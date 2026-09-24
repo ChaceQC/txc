@@ -113,6 +113,7 @@ $interface_dir = Join-Path $tool_dir 'stdlib'
 if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath $library_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'string.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'format.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'io.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'math.txh')) -or

@@ -21,5 +21,6 @@ struct dynamic_struct
 };
 
 [[nodiscard]] std::string format_print_value(const std::any& value);
+[[nodiscard]] std::string format_repr_value(const std::any& value);
 
 } // namespace tx_generated

@@ -27,6 +27,8 @@ void tx_fn_write(std::string text);
 void tx_fn_write_line(std::string text);
 void tx_fn_write_error(std::string text);
 void tx_fn_flush();
+std::string tx_fn_format(const std::string& text, const tx_array& args,
+                         const tx_dict& kwargs);
 std::string tx_fn_read_text(std::string path, std::string encoding);
 void tx_fn_write_text(std::string path, std::string text, std::string encoding);
 void tx_fn_append_text(std::string path, std::string text, std::string encoding);

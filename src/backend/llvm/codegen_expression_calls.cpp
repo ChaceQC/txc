@@ -16,7 +16,8 @@ bool supported_external_call(std::string_view name)
            name == "string.slice" || name == "string.replace" ||
            name == "string.split" || name == "string.join" ||
            name == "string.trim" || name == "string.lower" ||
-           name == "string.upper" || name == "file.read_text" ||
+           name == "string.upper" || name == "format.format" ||
+           name == "file.read_text" ||
            name == "file.write_text" || name == "file.append_text" ||
            name == "math.abs" || name == "math.min" ||
            name == "math.max" || name == "math.clamp" ||

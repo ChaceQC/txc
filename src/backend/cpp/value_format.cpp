@@ -158,4 +158,11 @@ std::string format_print_value(const std::any& value)
     return result;
 }
 
+std::string format_repr_value(const std::any& value)
+{
+    std::string result;
+    append_value(result, value, true, 0);
+    return result;
+}
+
 } // namespace tx_generated

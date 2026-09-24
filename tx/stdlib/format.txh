@@ -1,0 +1,1 @@
+def format(template: str, *args: array, **kwargs: dict) -> str

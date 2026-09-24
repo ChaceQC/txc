@@ -24,6 +24,8 @@ int txrt_string_join(const void* parts, const void* separator,
 int txrt_string_trim(const void* text, void** result) noexcept;
 int txrt_string_lower(const void* text, void** result) noexcept;
 int txrt_string_upper(const void* text, void** result) noexcept;
+int txrt_format_format(const void* text, const void* args,
+                       const void* kwargs, void** result) noexcept;
 
 int txrt_array_concat(const void* left, const void* right,
                        void** result) noexcept;

@@ -1,0 +1,15 @@
+import "format.txh" as fmt
+
+def main() -> int {
+    print(fmt.format("你好，{}！", "世界"))
+    print(fmt.format("{name}: {score:.2f}", name="Ada", score=9.875))
+    print(fmt.format("{0:>6} | {1:04d} | {{完成}}", "TX", 7))
+    print(fmt.format("{0!r}", "第一行\n第二行"))
+    print(fmt.format("{0:x} {0:X} {0:b} {0:o}", 31))
+    print(fmt.format("|{0:^7}|{1:.3s}|{2:+08d}|", "汉字", "abcdef", -42))
+    array values = ["TX", 7]
+    print(fmt.format("{0}-{1}", *values))
+    dict named = {"label": "完成"}
+    print(fmt.format("{label}", **named))
+    return 0
+}

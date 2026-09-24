@@ -37,6 +37,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/array_direct_abi.cpp
     src/backend/cpp/filesystem_direct_abi.cpp
     src/backend/cpp/file_direct_abi.cpp
+    src/backend/cpp/format_direct_abi.cpp
     src/backend/cpp/io_time_direct_abi.cpp
     src/backend/cpp/value_abi.cpp
     src/backend/cpp/value_format.cpp
@@ -45,6 +46,8 @@ add_library(txstdlib STATIC
     src/backend/cpp/external_abi.cpp
     src/backend/cpp/external_abi_time_random.cpp
     src/stdlib/string.cpp
+    src/stdlib/format.cpp
+    src/stdlib/format_spec.cpp
     src/stdlib/dictionary.cpp
     src/stdlib/conversion.cpp
     src/stdlib/io.cpp

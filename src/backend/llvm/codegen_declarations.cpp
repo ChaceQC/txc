@@ -38,6 +38,7 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_string_trim(ptr, ptr)\n"
             << "declare i32 @txrt_string_lower(ptr, ptr)\n"
             << "declare i32 @txrt_string_upper(ptr, ptr)\n"
+            << "declare i32 @txrt_format_format(ptr, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_array_concat(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_array_slice(ptr, i64, i64, ptr)\n"
             << "declare i32 @txrt_array_reverse(ptr, ptr)\n"
