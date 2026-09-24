@@ -56,6 +56,11 @@ private:
     [[nodiscard]] ir_value emit_builtin_call(
         const expression& item, const call_expression& call,
         const std::vector<ir_value>& arguments);
+    void emit_print_call(const expression& item, const call_expression& call,
+                         const std::vector<ir_value>& arguments);
+    void emit_print_value(const ir_value& value, bool newline,
+                          source_pos position);
+    void emit_print_char(int value);
     [[nodiscard]] ir_value emit_constructor_call(
         const expression& item, const call_expression& call,
         const std::vector<ir_value>& arguments);

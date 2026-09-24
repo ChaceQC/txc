@@ -11,6 +11,7 @@ namespace
 bool is_builtin_call(const std::string& name)
 {
     return name == "print" || name == "len" || name == "input" ||
+           name == "input_or_none" ||
            name == "to_float" || name == "is_none";
 }
 

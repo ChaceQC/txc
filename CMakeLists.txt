@@ -23,6 +23,7 @@ add_executable(txc
     src/backend/llvm/codegen_expression_ops.cpp
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
+    src/backend/llvm/codegen_print.cpp
     src/backend/llvm/codegen_external_direct.cpp
     src/backend/llvm/codegen_call_binding.cpp
     src/driver/module_loader.cpp
@@ -38,6 +39,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/file_direct_abi.cpp
     src/backend/cpp/io_time_direct_abi.cpp
     src/backend/cpp/value_abi.cpp
+    src/backend/cpp/value_format.cpp
     src/backend/cpp/dictionary_abi.cpp
     src/backend/cpp/call_abi.cpp
     src/backend/cpp/external_abi.cpp

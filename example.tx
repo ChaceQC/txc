@@ -75,6 +75,9 @@ def main() -> int {
     settings["new"] = [1, 2]
     user.name = "Grace"
     user.scores[1] = 9.5
+    print()
+    print("用户", user.name, "资料", user, sep=" | ")
+    print("列表：", nested, end="\n")
     print(user.name + "：" + heading)
     print(user.scores[1])
     print(user.meta["active"])
@@ -111,6 +114,10 @@ def main() -> int {
         # 保留 input 的调用示例，执行时不会等待终端输入。
         str answer = input("请输入：")
         print(answer)
+        auto optional_answer = input_or_none("再输入一行：")
+        if !is_none(optional_answer) {
+            print(optional_answer as str)
+        }
         str escaped = "第一行\\n第二行"
         print(escaped)
     }

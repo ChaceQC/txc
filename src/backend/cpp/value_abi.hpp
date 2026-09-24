@@ -22,7 +22,7 @@ int txrt_value_to_bool(const void* value, bool* result) noexcept;
 int txrt_value_to_str(const void* value, void** result) noexcept;
 int txrt_value_is_none(const void* value, bool* result) noexcept;
 int txrt_value_len(const void* value, std::int64_t* result) noexcept;
-int txrt_value_print(const void* value) noexcept;
+int txrt_value_print(const void* value, bool newline) noexcept;
 int txrt_value_require_type(const void* value, const char* type_name) noexcept;
 
 int txrt_array_new(std::int64_t length, void** result) noexcept;
@@ -45,8 +45,8 @@ int txrt_dict_element_address(void* value, const void* key, bool create,
 int txrt_value_element_address(void* value, const void* key, bool create,
                                void** result) noexcept;
 
-int txrt_struct_new(const char* type_name, std::size_t field_count,
-                    void** result) noexcept;
+int txrt_struct_new(const char* type_name, const char* display_name,
+                    std::size_t field_count, void** result) noexcept;
 int txrt_struct_set_field(void* value, std::size_t index,
                           const char* field_name, const void* field) noexcept;
 int txrt_struct_field_address(void* value, const char* field_name,

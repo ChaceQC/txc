@@ -40,7 +40,8 @@ bool supported_external_call(std::string_view name)
 bool is_builtin_call(std::string_view name)
 {
     return name == "print" || name == "len" || name == "is_none" ||
-           name == "to_float" || name == "input";
+           name == "to_float" || name == "input" ||
+           name == "input_or_none";
 }
 
 } // namespace
@@ -51,24 +52,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
 {
     if (call.name == "print")
     {
-        const auto& argument = arguments.front();
-        const auto* name = argument.type == value_type::int_type
-            ? "txrt_print_i64" : argument.type == value_type::float_type
-            ? "txrt_print_f64" : argument.type == value_type::bool_type
-            ? "txrt_print_bool" : argument.type == value_type::str_type
-            ? "txrt_print_str" : (argument.type == value_type::any_type ||
-                                    argument.type == value_type::none_type)
-            ? "txrt_value_print" : nullptr;
-        if (!name)
-        {
-            throw compile_error(item.position, "LLVM 后端暂不支持此 print 类型");
-        }
-        const auto status = temporary();
-        write_instruction(status + " = call i32 @" + name + "(" +
-                          llvm_type(argument.type, item.position) + " " +
-                          argument.text + ")");
-        write_instruction("call void @txrt_require_success(i32 " + status + ")");
-        release(argument);
+        emit_print_call(item, call, arguments);
         return {value_type::void_type, {}};
     }
     if (call.name == "len")
@@ -108,10 +92,13 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
                           " to double");
         return {value_type::float_type, result};
     }
-    const auto address = allocate(value_type::str_type, item.position);
+    const auto result_type = call.name == "input" ? value_type::str_type
+                                                   : value_type::any_type;
+    const auto address = allocate(result_type, item.position);
     const auto status = temporary();
     const auto prompt = arguments.empty() ? "null" : arguments.front().text;
-    write_instruction(status + " = call i32 @txrt_input(ptr " +
+    const auto* name = call.name == "input" ? "txrt_input" : "txrt_input_or_none";
+    write_instruction(status + " = call i32 @" + name + "(ptr " +
                       prompt + ", ptr " + address + ")");
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
     if (!arguments.empty())
@@ -120,7 +107,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
     }
     const auto result = temporary();
     write_instruction(result + " = load ptr, ptr " + address);
-    return {value_type::str_type, result};
+    return {result_type, result};
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_constructor_call(
@@ -133,10 +120,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_constructor_call(
         throw compile_error(item.position, "LLVM 后端找不到结构体：" + call.name);
     }
     const auto& fields = found->second->fields;
+    const auto separator = call.source_name.find_last_of('.');
+    const auto display_name = call.source_name.substr(
+        separator == std::string::npos ? 0 : separator + 1);
     const auto address = allocate(item.type, item.position);
     const auto status = temporary();
     write_instruction(status + " = call i32 @txrt_struct_new(ptr " +
-                      global_bytes(call.name) + ", i64 " +
+                      global_bytes(call.name) + ", ptr " +
+                      global_bytes(display_name) + ", i64 " +
                       std::to_string(fields.size()) + ", ptr " + address + ")");
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
     const auto result = temporary();

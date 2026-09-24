@@ -33,6 +33,7 @@ bool is_builtin_name(const std::string& name)
     return name == "print" || name == "len" || name == "array" ||
            name == "dict" ||
            name == "to_float" || name == "is_none" || name == "input" ||
+           name == "input_or_none" ||
            name == "any" || name == "void" || name == "unknown";
 }
 

@@ -2,6 +2,7 @@
 
 #include "backend/cpp/runtime.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
+#include "backend/cpp/value_format.hpp"
 
 #include <any>
 #include <stdexcept>
@@ -13,17 +14,8 @@
 namespace
 {
 
-struct dynamic_field
-{
-    std::string name;
-    std::any value;
-};
-
-struct dynamic_struct
-{
-    std::string type_name;
-    std::vector<dynamic_field> fields;
-};
+using tx_generated::dynamic_field;
+using tx_generated::dynamic_struct;
 
 std::any& as_value(void* value)
 {
@@ -132,9 +124,19 @@ extern "C" int txrt_value_len(const void* value,
     return invoke_checked([&] { *result = tx_generated::tx_len(as_value(value)); });
 }
 
-extern "C" int txrt_value_print(const void* value) noexcept
+extern "C" int txrt_value_print(const void* value, bool newline) noexcept
 {
-    return invoke_checked([&] { tx_generated::tx_print(as_value(value)); });
+    return invoke_checked([&] {
+        auto text = tx_generated::format_print_value(as_value(value));
+        if (newline)
+        {
+            tx_generated::tx_fn_write_line(std::move(text));
+        }
+        else
+        {
+            tx_generated::tx_fn_write(std::move(text));
+        }
+    });
 }
 
 extern "C" int txrt_value_require_type(const void* value,
@@ -246,12 +248,13 @@ extern "C" int txrt_array_require_length(const void* value,
     });
 }
 
-extern "C" int txrt_struct_new(const char* type_name, std::size_t field_count,
-                                 void** result) noexcept
+extern "C" int txrt_struct_new(const char* type_name,
+                                 const char* display_name,
+                                 std::size_t field_count, void** result) noexcept
 {
     return invoke_checked([&] {
         *result = new std::any(dynamic_struct{
-            type_name, std::vector<dynamic_field>(field_count)});
+            type_name, display_name, std::vector<dynamic_field>(field_count)});
     });
 }
 

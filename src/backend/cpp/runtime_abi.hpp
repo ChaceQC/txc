@@ -11,9 +11,10 @@ extern "C"
 const char* txrt_last_error() noexcept;
 void txrt_require_success(int status) noexcept;
 int txrt_prepare_console() noexcept;
-int txrt_print_i64(std::int64_t value) noexcept;
-int txrt_print_f64(double value) noexcept;
-int txrt_print_bool(bool value) noexcept;
+int txrt_print_i64(std::int64_t value, bool newline) noexcept;
+int txrt_print_f64(double value, bool newline) noexcept;
+int txrt_print_bool(bool value, bool newline) noexcept;
+int txrt_print_char(std::uint8_t value) noexcept;
 int txrt_exit_code(std::int64_t value) noexcept;
 int txrt_float_to_int(double value, std::int64_t* result) noexcept;
 // str 句柄由返回方持有；clone 返回独立副本，release 释放句柄。
@@ -25,8 +26,9 @@ int txrt_str_concat(const void* left, const void* right,
 int txrt_str_compare(const void* left, const void* right,
                      int* result) noexcept;
 int txrt_str_len(const void* value, std::int64_t* result) noexcept;
-int txrt_print_str(const void* value) noexcept;
+int txrt_print_str(const void* value, bool newline) noexcept;
 int txrt_input(const void* prompt, void** result) noexcept;
+int txrt_input_or_none(const void* prompt, void** result) noexcept;
 int txrt_parse_int(const void* value, std::int64_t* result) noexcept;
 int txrt_parse_float(const void* value, double* result) noexcept;
 int txrt_int_to_str(std::int64_t value, void** result) noexcept;

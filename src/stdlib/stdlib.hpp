@@ -16,12 +16,13 @@ using tx_array = std::vector<std::any>;
 
 std::string tx_input();
 std::string tx_input(const std::string& prompt);
+std::any tx_input_or_none();
+std::any tx_input_or_none(const std::string& prompt);
 void tx_prepare_console();
-void tx_print(tx_int value);
-void tx_print(double value);
-void tx_print(bool value);
-void tx_print(const std::string& value);
-void tx_print(const std::any& value);
+void tx_print(tx_int value, bool newline);
+void tx_print(double value, bool newline);
+void tx_print(bool value, bool newline);
+void tx_print(const std::string& value, bool newline);
 void tx_fn_write(std::string text);
 void tx_fn_write_line(std::string text);
 void tx_fn_write_error(std::string text);

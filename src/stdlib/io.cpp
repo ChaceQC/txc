@@ -3,9 +3,10 @@
 
 #include <iostream>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 #include <string_view>
-#include <typeinfo>
+#include <utility>
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -95,21 +96,17 @@ void write_checked(std::ostream& stream, std::string_view text,
     }
 }
 
-} // namespace
-
-void tx_prepare_console()
-{
-    prepare_console();
-}
-
-std::string tx_input()
+std::optional<std::string> read_input_line()
 {
     prepare_console();
     std::string result;
     if (!std::getline(std::cin, result))
     {
-        throw std::runtime_error(std::cin.bad()
-            ? "标准输入读取失败" : "标准输入已结束");
+        if (std::cin.bad() || !std::cin.eof())
+        {
+            throw std::runtime_error("标准输入读取失败");
+        }
+        return std::nullopt;
     }
     if (!result.empty() && result.back() == '\r')
     {
@@ -119,11 +116,53 @@ std::string tx_input()
     return result;
 }
 
+void write_printable(std::string text, bool newline)
+{
+    if (newline)
+    {
+        tx_fn_write_line(std::move(text));
+    }
+    else
+    {
+        tx_fn_write(std::move(text));
+    }
+}
+
+} // namespace
+
+void tx_prepare_console()
+{
+    prepare_console();
+}
+
+std::string tx_input()
+{
+    auto result = read_input_line();
+    if (!result)
+    {
+        throw std::runtime_error("标准输入已结束");
+    }
+    return std::move(*result);
+}
+
 std::string tx_input(const std::string& prompt)
 {
     tx_fn_write(prompt);
     tx_fn_flush();
     return tx_input();
+}
+
+std::any tx_input_or_none()
+{
+    auto result = read_input_line();
+    return result ? std::any(std::move(*result)) : std::any{};
+}
+
+std::any tx_input_or_none(const std::string& prompt)
+{
+    tx_fn_write(prompt);
+    tx_fn_flush();
+    return tx_input_or_none();
 }
 
 void tx_fn_write(std::string text)
@@ -152,41 +191,24 @@ void tx_fn_flush()
     }
 }
 
-void tx_print(tx_int value)
+void tx_print(tx_int value, bool newline)
 {
-    tx_fn_write_line(tx_int_to_string(value));
+    write_printable(tx_int_to_string(value), newline);
 }
 
-void tx_print(double value)
+void tx_print(double value, bool newline)
 {
-    tx_fn_write_line(tx_float_to_string(value));
+    write_printable(tx_float_to_string(value), newline);
 }
 
-void tx_print(bool value)
+void tx_print(bool value, bool newline)
 {
-    tx_fn_write_line(tx_bool_to_string(value));
+    write_printable(tx_bool_to_string(value), newline);
 }
 
-void tx_print(const std::string& value)
+void tx_print(const std::string& value, bool newline)
 {
-    tx_fn_write_line(value);
-}
-
-void tx_print(const std::any& value)
-{
-    if (!value.has_value())
-    {
-        tx_fn_write_line("none");
-    }
-    else if (value.type() == typeid(tx_int) || value.type() == typeid(double) ||
-             value.type() == typeid(bool) || value.type() == typeid(std::string))
-    {
-        tx_fn_write_line(tx_to_string(value));
-    }
-    else
-    {
-        throw std::runtime_error("此数组元素类型暂不可直接打印");
-    }
+    write_printable(value, newline);
 }
 
 } // namespace tx_generated

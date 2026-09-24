@@ -3,6 +3,7 @@
 
 #include "backend/cpp/runtime.hpp"
 
+#include <any>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
@@ -35,19 +36,26 @@ extern "C" int txrt_prepare_console() noexcept
     return invoke_checked([] { tx_generated::tx_prepare_console(); });
 }
 
-extern "C" int txrt_print_i64(std::int64_t value) noexcept
+extern "C" int txrt_print_i64(std::int64_t value, bool newline) noexcept
 {
-    return invoke_checked([&] { tx_generated::tx_print(value); });
+    return invoke_checked([&] { tx_generated::tx_print(value, newline); });
 }
 
-extern "C" int txrt_print_f64(double value) noexcept
+extern "C" int txrt_print_f64(double value, bool newline) noexcept
 {
-    return invoke_checked([&] { tx_generated::tx_print(value); });
+    return invoke_checked([&] { tx_generated::tx_print(value, newline); });
 }
 
-extern "C" int txrt_print_bool(bool value) noexcept
+extern "C" int txrt_print_bool(bool value, bool newline) noexcept
 {
-    return invoke_checked([&] { tx_generated::tx_print(value); });
+    return invoke_checked([&] { tx_generated::tx_print(value, newline); });
+}
+
+extern "C" int txrt_print_char(std::uint8_t value) noexcept
+{
+    return invoke_checked([&] {
+        tx_generated::tx_fn_write(std::string(1, static_cast<char>(value)));
+    });
 }
 
 extern "C" int txrt_exit_code(std::int64_t value) noexcept
@@ -111,10 +119,10 @@ extern "C" int txrt_str_len(const void* value,
     });
 }
 
-extern "C" int txrt_print_str(const void* value) noexcept
+extern "C" int txrt_print_str(const void* value, bool newline) noexcept
 {
     return invoke_checked([&] {
-        tx_generated::tx_print(*static_cast<const std::string*>(value));
+        tx_generated::tx_print(*static_cast<const std::string*>(value), newline);
     });
 }
 
@@ -124,6 +132,15 @@ extern "C" int txrt_input(const void* prompt, void** result) noexcept
         *result = new std::string(prompt
             ? tx_generated::tx_input(*static_cast<const std::string*>(prompt))
             : tx_generated::tx_input());
+    });
+}
+
+extern "C" int txrt_input_or_none(const void* prompt, void** result) noexcept
+{
+    return invoke_checked([&] {
+        *result = new std::any(prompt
+            ? tx_generated::tx_input_or_none(*static_cast<const std::string*>(prompt))
+            : tx_generated::tx_input_or_none());
     });
 }
 

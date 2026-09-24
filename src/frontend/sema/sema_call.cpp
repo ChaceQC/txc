@@ -18,6 +18,7 @@ bool is_printable(const value_type& type)
 {
     return is_numeric(type) || type == value_type::bool_type ||
            type == value_type::str_type || type == value_type::none_type ||
+           type == value_type::array_type || type == value_type::dict_type ||
            type == value_type::any_type;
 }
 
@@ -120,6 +121,47 @@ bool matches_signature(const function_signature& signature,
 
 value_type semantic_analyzer::check_builtin(expression& item, call_expression& call)
 {
+    if (call.name == "print")
+    {
+        bool seen_keyword = false;
+        bool seen_sep = false;
+        bool seen_end = false;
+        for (const auto& argument : call.arguments)
+        {
+            if (argument.kind == argument_kind::positional)
+            {
+                if (seen_keyword)
+                {
+                    throw compile_error(argument.position,
+                                        "print 的值必须写在 sep 和 end 前面");
+                }
+                const auto actual = check_expression(*argument.value);
+                if (!is_printable(actual) && !structs_.contains(actual.name))
+                {
+                    throw compile_error(argument.position, "print 不支持此类型：" +
+                                                        std::string(type_name(actual)));
+                }
+                continue;
+            }
+            if (argument.kind != argument_kind::keyword ||
+                (argument.name != "sep" && argument.name != "end"))
+            {
+                throw compile_error(argument.position,
+                                    "print 只接受位置值以及 sep、end 命名参数");
+            }
+            seen_keyword = true;
+            bool& seen = argument.name == "sep" ? seen_sep : seen_end;
+            if (seen)
+            {
+                throw compile_error(argument.position,
+                                    "print 重复指定 " + argument.name);
+            }
+            seen = true;
+            require_type(check_expression(*argument.value), value_type::str_type,
+                         argument.position, "print " + argument.name);
+        }
+        return value_type::void_type;
+    }
     for (const auto& argument : call.arguments)
     {
         if (argument.kind != argument_kind::positional)
@@ -127,19 +169,21 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
             throw compile_error(argument.position, "内置函数只接受普通位置实参");
         }
     }
-    if (call.name == "input")
+    if (call.name == "input" || call.name == "input_or_none")
     {
         if (call.arguments.size() > 1)
         {
-            throw compile_error(item.position, "input 最多接收一个提示字符串");
+            throw compile_error(item.position,
+                                call.name + " 最多接收一个提示字符串");
         }
         if (!call.arguments.empty())
         {
             require_type(check_expression(*call.arguments.front().value),
                          value_type::str_type,
-                         call.arguments.front().position, "input 提示");
+                         call.arguments.front().position, call.name + " 提示");
         }
-        return value_type::str_type;
+        return call.name == "input" ? value_type::str_type
+                                    : value_type::any_type;
     }
     if (call.arguments.size() != 1)
     {
@@ -147,15 +191,6 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
     }
     auto& argument = *call.arguments.front().value;
     const auto actual = check_expression(argument);
-    if (call.name == "print")
-    {
-        if (!is_printable(actual))
-        {
-            throw compile_error(argument.position, "print 不支持此类型：" +
-                                                    std::string(type_name(actual)));
-        }
-        return value_type::void_type;
-    }
     if (call.name == "len")
     {
         if (actual != value_type::array_type &&
@@ -219,6 +254,7 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
         ? call.name : call.source_name;
     if (call.name == "print" || call.name == "len" ||
         call.name == "to_float" || call.name == "input" ||
+        call.name == "input_or_none" ||
         call.name == "is_none")
     {
         return check_builtin(item, call);
