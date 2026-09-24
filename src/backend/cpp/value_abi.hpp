@@ -40,15 +40,19 @@ int txrt_dict_set(void* value, const void* key, const void* item) noexcept;
 int txrt_dict_len(const void* value, std::int64_t* result) noexcept;
 int txrt_dict_key_address(void* value, std::int64_t index,
                           void** result) noexcept;
+int txrt_dict_element_address(void* value, const void* key, bool create,
+                               void** result) noexcept;
 int txrt_value_element_address(void* value, const void* key, bool create,
-                                void** result) noexcept;
+                               void** result) noexcept;
 
 int txrt_struct_new(const char* type_name, std::size_t field_count,
                     void** result) noexcept;
 int txrt_struct_set_field(void* value, std::size_t index,
                           const char* field_name, const void* field) noexcept;
 int txrt_struct_field_address(void* value, const char* field_name,
-                              void** result) noexcept;
+                               void** result) noexcept;
+int txrt_struct_field_address_index(void* value, std::size_t index,
+                                     void** result) noexcept;
 int txrt_call_external(const char* name, const void* const* arguments,
                        std::size_t count, void** result) noexcept;
 

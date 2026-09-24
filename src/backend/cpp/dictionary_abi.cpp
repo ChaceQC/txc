@@ -56,43 +56,19 @@ void require_hashable(const std::any& key)
     throw std::runtime_error("字典键必须是可哈希的值");
 }
 
-bool equal_key(const std::any& left, const std::any& right)
+std::any* dict_element_address(tx_dict& dict, const std::any& key, bool create)
 {
-    if (left.type() != right.type())
+    require_hashable(key);
+    if (auto* found = dict.find_value(key))
     {
-        return false;
+        return found;
     }
-    if (!left.has_value())
+    if (!create)
     {
-        return true;
+        throw std::runtime_error("字典键不存在");
     }
-    if (left.type() == typeid(std::int64_t))
-    {
-        return std::any_cast<std::int64_t>(left) ==
-               std::any_cast<std::int64_t>(right);
-    }
-    if (left.type() == typeid(double))
-    {
-        return std::any_cast<double>(left) == std::any_cast<double>(right);
-    }
-    if (left.type() == typeid(bool))
-    {
-        return std::any_cast<bool>(left) == std::any_cast<bool>(right);
-    }
-    return std::any_cast<const std::string&>(left) ==
-           std::any_cast<const std::string&>(right);
-}
-
-std::any* find_value(tx_dict& dict, const std::any& key)
-{
-    for (auto& [entry_key, value] : dict)
-    {
-        if (equal_key(entry_key, key))
-        {
-            return &value;
-        }
-    }
-    return nullptr;
+    dict.emplace_back(key, std::any{});
+    return &dict.back().second;
 }
 
 } // namespace
@@ -111,7 +87,7 @@ extern "C" int txrt_dict_set(void* value, const void* key,
         auto& dict = as_dict(value);
         const auto& actual_key = as_value(key);
         require_hashable(actual_key);
-        if (auto* found = find_value(dict, actual_key))
+        if (auto* found = dict.find_value(actual_key))
         {
             *found = as_value(item);
         }
@@ -170,17 +146,14 @@ extern "C" int txrt_value_element_address(void* value, const void* key,
             throw std::runtime_error("索引对象不是数组或字典");
         }
         auto& dict = std::any_cast<tx_dict&>(object);
-        require_hashable(actual_key);
-        if (auto* found = find_value(dict, actual_key))
-        {
-            *result = found;
-            return;
-        }
-        if (!create)
-        {
-            throw std::runtime_error("字典键不存在");
-        }
-        dict.emplace_back(actual_key, std::any{});
-        *result = &dict.back().second;
+        *result = dict_element_address(dict, actual_key, create);
+    });
+}
+
+extern "C" int txrt_dict_element_address(void* value, const void* key,
+                                            bool create, void** result) noexcept
+{
+    return invoke_checked([&] {
+        *result = dict_element_address(as_dict(value), as_value(key), create);
     });
 }

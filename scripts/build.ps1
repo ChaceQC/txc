@@ -16,7 +16,8 @@ else
     $cmake_exe = (Get-Command cmake -ErrorAction Stop).Source
 }
 
-& $cmake_exe -S $project_root -B $build_dir -G Ninja '-DCMAKE_CXX_COMPILER=g++'
+& $cmake_exe -S $project_root -B $build_dir -G Ninja `
+    '-DCMAKE_CXX_COMPILER=g++' '-DCMAKE_BUILD_TYPE=Release'
 if ($LASTEXITCODE -ne 0)
 {
     throw 'CMake 配置失败；build/ 已保留。'

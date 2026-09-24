@@ -1,0 +1,14 @@
+import "random.txh" as random
+import "time.txh" as time
+
+def main() -> int {
+    random.seed(12345)
+    auto checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=5000000 {
+        checksum += random.random_int(0, 1000)
+    }
+    print(time.monotonic_millis() - started)
+    print(checksum)
+    return 0
+}

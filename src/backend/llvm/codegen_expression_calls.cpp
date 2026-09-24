@@ -166,43 +166,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
         throw compile_error(item.position, "标准库没有此二进制函数：" +
                                            call.source_name);
     }
-    const auto array_address = "%slot" + std::to_string(next_slot_++);
-    allocations_ << "  " << array_address << " = alloca ptr, i64 "
-                 << std::max<std::size_t>(1, arguments.size()) << '\n';
-    std::vector<ir_value> boxed;
-    boxed.reserve(arguments.size());
-    for (std::size_t index = 0; index < arguments.size(); ++index)
-    {
-        boxed.push_back(box_any(arguments[index], item.position));
-        const auto element_address = temporary();
-        write_instruction(element_address + " = getelementptr ptr, ptr " +
-                          array_address + ", i64 " + std::to_string(index));
-        write_instruction("store ptr " + boxed.back().text + ", ptr " +
-                          element_address);
-    }
-    const auto result_address = allocate(value_type::any_type, item.position);
-    const auto status = temporary();
-    write_instruction(status + " = call i32 @txrt_call_external(ptr " +
-                      global_bytes(target.external_name) + ", ptr " + array_address +
-                      ", i64 " + std::to_string(arguments.size()) +
-                      ", ptr " + result_address + ")");
-    write_instruction("call void @txrt_require_success(i32 " + status + ")");
-    for (std::size_t index = 0; index < arguments.size(); ++index)
-    {
-        release(boxed[index]);
-        release(arguments[index]);
-    }
-    const auto result_handle = temporary();
-    write_instruction(result_handle + " = load ptr, ptr " + result_address);
-    if (target.return_type == value_type::void_type)
-    {
-        release({value_type::any_type, result_handle});
-        return {value_type::void_type, {}};
-    }
-    const auto result = from_any({value_type::any_type, result_handle},
-                                 target.return_type, item.position);
-    release({value_type::any_type, result_handle});
-    return result;
+    return emit_direct_external_call(item, target, arguments);
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_user_call(

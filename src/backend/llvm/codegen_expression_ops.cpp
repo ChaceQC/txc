@@ -7,6 +7,40 @@ llvm_code_generator::ir_value llvm_code_generator::checked_binary(
     const std::string& name, const ir_value& left, const ir_value& right,
     const value_type& result_type, source_pos position)
 {
+    const char* intrinsic = nullptr;
+    if (result_type == value_type::int_type)
+    {
+        intrinsic = name == "txrt_add_i64" ? "llvm.sadd.with.overflow.i64"
+            : name == "txrt_sub_i64" ? "llvm.ssub.with.overflow.i64"
+            : name == "txrt_mul_i64" ? "llvm.smul.with.overflow.i64"
+            : nullptr;
+    }
+    if (intrinsic)
+    {
+        // 正常路径只执行 LLVM 整数运算；溢出时沿用运行时原有的中文错误。
+        const auto checked = temporary();
+        write_instruction(checked + " = call { i64, i1 } @" + intrinsic +
+                          "(i64 " + left.text + ", i64 " + right.text + ")");
+        const auto result = temporary();
+        write_instruction(result + " = extractvalue { i64, i1 } " + checked + ", 0");
+        const auto overflow = temporary();
+        write_instruction(overflow + " = extractvalue { i64, i1 } " + checked + ", 1");
+        const auto error_label = label();
+        const auto success_label = label();
+        write_instruction("br i1 " + overflow + ", label %" + error_label +
+                          ", label %" + success_label);
+        start_block(error_label);
+        const auto address = allocate(result_type, position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @" + name + "(i64 " +
+                          left.text + ", i64 " + right.text + ", ptr " +
+                          address + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        write_instruction("unreachable");
+        start_block(success_label);
+        return {result_type, result};
+    }
+
     const auto type = llvm_type(result_type, position);
     const auto address = allocate(result_type, position);
     const auto status = temporary();
@@ -27,6 +61,30 @@ llvm_code_generator::ir_value llvm_code_generator::checked_unary(
     const std::string& name, const ir_value& value,
     const value_type& result_type, source_pos position)
 {
+    if (result_type == value_type::int_type && name == "txrt_neg_i64")
+    {
+        const auto checked = temporary();
+        write_instruction(checked + " = call { i64, i1 } @llvm.ssub.with.overflow.i64"
+                          "(i64 0, i64 " + value.text + ")");
+        const auto result = temporary();
+        write_instruction(result + " = extractvalue { i64, i1 } " + checked + ", 0");
+        const auto overflow = temporary();
+        write_instruction(overflow + " = extractvalue { i64, i1 } " + checked + ", 1");
+        const auto error_label = label();
+        const auto success_label = label();
+        write_instruction("br i1 " + overflow + ", label %" + error_label +
+                          ", label %" + success_label);
+        start_block(error_label);
+        const auto address = allocate(result_type, position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_neg_i64(i64 " +
+                          value.text + ", ptr " + address + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        write_instruction("unreachable");
+        start_block(success_label);
+        return {result_type, result};
+    }
+
     const auto type = llvm_type(result_type, position);
     const auto address = allocate(result_type, position);
     const auto status = temporary();

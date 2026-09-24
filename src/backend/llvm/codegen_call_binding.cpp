@@ -1,15 +1,124 @@
 #include "backend/llvm/codegen.hpp"
 
 #include <algorithm>
+#include <utility>
 
 namespace tx
 {
+
+llvm_code_generator::ir_value llvm_code_generator::emit_variadic_array(
+    const std::vector<ir_value>& values, source_pos position)
+{
+    const auto slot = allocate(value_type::array_type, position);
+    const auto created = temporary();
+    write_instruction(created + " = call i32 @txrt_array_new(i64 0, ptr " +
+                      slot + ")");
+    write_instruction("call void @txrt_require_success(i32 " + created + ")");
+    const auto result = temporary();
+    write_instruction(result + " = load ptr, ptr " + slot);
+    for (const auto& value : values)
+    {
+        const auto boxed = box_any(value, position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_array_append(ptr " +
+                          result + ", ptr " + boxed.text + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        release(boxed);
+        release(value);
+    }
+    return {value_type::array_type, result};
+}
+
+llvm_code_generator::ir_value llvm_code_generator::emit_variadic_dict(
+    const std::vector<std::pair<std::string, ir_value>>& values,
+    source_pos position)
+{
+    const auto slot = allocate(value_type::dict_type, position);
+    const auto created = temporary();
+    write_instruction(created + " = call i32 @txrt_dict_new(ptr " + slot + ")");
+    write_instruction("call void @txrt_require_success(i32 " + created + ")");
+    const auto result = temporary();
+    write_instruction(result + " = load ptr, ptr " + slot);
+    for (const auto& [name, value] : values)
+    {
+        const auto boxed = box_any(value, position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_keyword_set(ptr " +
+                          result + ", ptr " + global_bytes(name) + ", ptr " +
+                          boxed.text + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        release(boxed);
+        release(value);
+    }
+    return {value_type::dict_type, result};
+}
+
+std::vector<llvm_code_generator::ir_value>
+llvm_code_generator::emit_static_arguments(
+    const expression& item, const call_expression& call,
+    const std::vector<parameter>& parameters)
+{
+    const auto fixed_count = static_cast<std::size_t>(std::count_if(
+        parameters.begin(), parameters.end(), [](const parameter& entry)
+        { return entry.kind == parameter_kind::ordinary; }));
+    std::vector<ir_value> result(parameters.size(),
+                                 {value_type::void_type, {}});
+    std::vector<ir_value> extra_positional;
+    std::vector<std::pair<std::string, ir_value>> extra_keywords;
+    std::size_t positional = 0;
+    // 先按源码顺序求值，再把已知实参放到目标形参位置。
+    for (const auto& argument : call.arguments)
+    {
+        const auto value = expression_value(*argument.value);
+        if (argument.kind == argument_kind::positional)
+        {
+            if (positional < fixed_count)
+            {
+                result[positional] = value;
+            }
+            else
+            {
+                extra_positional.push_back(value);
+            }
+            ++positional;
+            continue;
+        }
+        const auto found = std::find_if(parameters.begin(),
+            parameters.begin() + fixed_count,
+            [&](const parameter& entry) { return entry.name == argument.name; });
+        if (found == parameters.begin() + fixed_count)
+        {
+            extra_keywords.emplace_back(argument.name, value);
+        }
+        else
+        {
+            result[static_cast<std::size_t>(found - parameters.begin())] = value;
+        }
+    }
+    for (std::size_t index = fixed_count; index < parameters.size(); ++index)
+    {
+        result[index] = parameters[index].kind == parameter_kind::variadic_array
+            ? emit_variadic_array(extra_positional, item.position)
+            : emit_variadic_dict(extra_keywords, item.position);
+    }
+    return result;
+}
 
 std::vector<llvm_code_generator::ir_value>
 llvm_code_generator::emit_bound_arguments(
     const expression& item, const call_expression& call,
     const std::vector<parameter>& parameters)
 {
+    const bool has_spread = std::any_of(call.arguments.begin(),
+        call.arguments.end(), [](const call_argument& argument)
+        {
+            return argument.kind == argument_kind::spread_array ||
+                   argument.kind == argument_kind::spread_dict;
+        });
+    if (!has_spread)
+    {
+        return emit_static_arguments(item, call, parameters);
+    }
     const auto positional_slot = allocate(value_type::array_type, item.position);
     const auto positional_status = temporary();
     write_instruction(positional_status + " = call i32 @txrt_array_new(i64 0, ptr " +

@@ -286,3 +286,17 @@ extern "C" int txrt_struct_field_address(void* value,
         throw std::runtime_error("字段不存在或对象不是结构体");
     });
 }
+
+extern "C" int txrt_struct_field_address_index(void* value,
+                                                 std::size_t index,
+                                                 void** result) noexcept
+{
+    return invoke_checked([&] {
+        auto& definition = as_struct(value);
+        if (index >= definition.fields.size())
+        {
+            throw std::runtime_error("结构体字段索引越界");
+        }
+        *result = &definition.fields[index].value;
+    });
+}

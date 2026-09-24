@@ -15,7 +15,7 @@ int invoke_checked(operation&& run) noexcept
     try
     {
         std::forward<operation>(run)();
-        last_error[0] = '\0';
+        // 调用方只在失败状态读取错误文本，成功路径无需访问线程局部缓冲区。
         return 0;
     }
     catch (const std::exception& error)

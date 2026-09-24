@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.21)
 project(tx_compiler LANGUAGES CXX)
 
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 add_executable(txc
     src/frontend/lexer/lexer.cpp
     src/frontend/ast/ast.cpp
@@ -12,12 +16,14 @@ add_executable(txc
     src/frontend/sema/sema_expression.cpp
     src/frontend/sema/sema_call.cpp
     src/backend/llvm/codegen.cpp
+    src/backend/llvm/codegen_declarations.cpp
     src/backend/llvm/codegen_control.cpp
     src/backend/llvm/codegen_statement.cpp
     src/backend/llvm/codegen_expression.cpp
     src/backend/llvm/codegen_expression_ops.cpp
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
+    src/backend/llvm/codegen_external_direct.cpp
     src/backend/llvm/codegen_call_binding.cpp
     src/driver/module_loader.cpp
     src/driver/main.cpp
@@ -26,12 +32,18 @@ add_executable(txc
 add_library(txstdlib STATIC
     src/backend/cpp/runtime.cpp
     src/backend/cpp/runtime_abi.cpp
+    src/backend/cpp/text_direct_abi.cpp
+    src/backend/cpp/array_direct_abi.cpp
+    src/backend/cpp/filesystem_direct_abi.cpp
+    src/backend/cpp/file_direct_abi.cpp
+    src/backend/cpp/io_time_direct_abi.cpp
     src/backend/cpp/value_abi.cpp
     src/backend/cpp/dictionary_abi.cpp
     src/backend/cpp/call_abi.cpp
     src/backend/cpp/external_abi.cpp
     src/backend/cpp/external_abi_time_random.cpp
     src/stdlib/string.cpp
+    src/stdlib/dictionary.cpp
     src/stdlib/conversion.cpp
     src/stdlib/io.cpp
     src/stdlib/encoding.cpp

@@ -93,22 +93,47 @@ std::string llvm_code_generator::lvalue_address(const expression& item)
     if (const auto* member = std::get_if<member_expression>(&item.data))
     {
         base = lvalue_address(*member->object);
-        invocation = "@txrt_struct_field_address(ptr " + base + ", ptr " +
-                     global_bytes(member->field);
+        if (member->object->type == value_type::any_type)
+        {
+            invocation = "@txrt_struct_field_address(ptr " + base + ", ptr " +
+                         global_bytes(member->field);
+        }
+        else
+        {
+            invocation = "@txrt_struct_field_address_index(ptr " + base +
+                         ", i64 " + std::to_string(field_index(
+                             member->object->type, member->field,
+                             item.position));
+        }
     }
     else if (const auto* index = std::get_if<index_expression>(&item.data))
     {
         base = lvalue_address(*index->object);
         const auto position = expression_value(*index->index);
-        const auto boxed = box_any(position, item.position);
-        invocation = "@txrt_value_element_address(ptr " + base + ", ptr " +
-                     boxed.text + ", i1 true";
+        const bool static_array = index->object->type == value_type::array_type;
+        ir_value boxed{value_type::void_type, {}};
+        if (static_array)
+        {
+            invocation = "@txrt_array_element_address(ptr " + base + ", i64 " +
+                         position.text;
+        }
+        else
+        {
+            boxed = box_any(position, item.position);
+            const auto* function = index->object->type == value_type::dict_type
+                ? "txrt_dict_element_address" : "txrt_value_element_address";
+            invocation = "@" + std::string(function) + "(ptr " + base +
+                         ", ptr " + boxed.text + ", i1 true";
+        }
         const auto address = allocate(value_type::any_type, item.position);
         const auto status = temporary();
         write_instruction(status + " = call i32 " + invocation +
                           ", ptr " + address + ")");
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
-        release(boxed);
+        if (!static_array)
+        {
+            release(boxed);
+        }
         release(position);
         const auto result = temporary();
         write_instruction(result + " = load ptr, ptr " + address);

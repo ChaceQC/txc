@@ -10,7 +10,7 @@
 .\scripts\build.ps1
 ```
 
-编译器工具目录 `tx/` 包含 `txc.exe`、`clang.exe`、`libtxstdlib.a`、`link/` 内的链接组件、运行时 DLL 和 `stdlib/*.txh` 公开接口。交付时保留整个 `tx/` 目录。脚本在 build/ 中进行 CMake 构建，确认成功后删除中间目录；构建失败时保留 build/ 供排查。构建时使用 g++；生成的 txc 不会调用它。
+编译器工具目录 `tx/` 包含 `txc.exe`、`clang.exe`、`libtxstdlib.a`、`link/` 内的链接组件、运行时 DLL 和 `stdlib/*.txh` 公开接口。交付时保留整个 `tx/` 目录。脚本在 build/ 中以 Release 配置构建编译器、运行时库和标准库，确认成功后删除中间目录；构建失败时保留 build/ 供排查。构建时使用 g++；生成的 txc 不会调用它。直接用单配置 CMake 构建时默认也采用 Release；可显式设置 `CMAKE_BUILD_TYPE` 覆盖。
 
 ## 编译源码
 

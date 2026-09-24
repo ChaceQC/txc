@@ -96,6 +96,26 @@ llvm_code_generator::variable_slot llvm_code_generator::find_variable(
     throw compile_error(position, "LLVM 后端找不到变量：" + name);
 }
 
+std::size_t llvm_code_generator::field_index(const value_type& type,
+                                              std::string_view field,
+                                              source_pos position) const
+{
+    const auto found = structs_.find(type.name);
+    if (found != structs_.end())
+    {
+        const auto& fields = found->second->fields;
+        for (std::size_t index = 0; index < fields.size(); ++index)
+        {
+            if (fields[index].name == field)
+            {
+                return index;
+            }
+        }
+    }
+    throw compile_error(position, "LLVM 后端找不到结构体字段：" +
+                                  std::string(field));
+}
+
 llvm_code_generator::ir_value llvm_code_generator::load(
     const variable_slot& variable)
 {
@@ -197,6 +217,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
     next_value_ = 0;
     next_slot_ = 0;
     next_label_ = 0;
+    random_context_slot_.clear();
     terminated_ = false;
     push_scope();
 
@@ -265,7 +286,11 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_mul_i64(i64, i64, ptr)\n"
             << "declare i32 @txrt_div_i64(i64, i64, ptr)\n"
             << "declare i32 @txrt_neg_i64(i64, ptr)\n"
-            << "declare i32 @txrt_div_f64(double, double, ptr)\n\n";
+            << "declare i32 @txrt_div_f64(double, double, ptr)\n"
+            << "declare { i64, i1 } @llvm.sadd.with.overflow.i64(i64, i64)\n"
+            << "declare { i64, i1 } @llvm.ssub.with.overflow.i64(i64, i64)\n"
+            << "declare { i64, i1 } @llvm.smul.with.overflow.i64(i64, i64)\n\n";
+    write_external_declarations();
     module_ << "declare i32 @txrt_str_new(ptr, i64, ptr)\n"
             << "declare i32 @txrt_str_clone(ptr, ptr)\n"
             << "declare void @txrt_str_release(ptr)\n"
@@ -306,6 +331,7 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_dict_set(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dict_len(ptr, ptr)\n"
             << "declare i32 @txrt_dict_key_address(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_dict_element_address(ptr, ptr, i1, ptr)\n"
             << "declare i32 @txrt_value_element_address(ptr, ptr, i1, ptr)\n"
             << "declare i32 @txrt_keyword_set(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_keyword_merge(ptr, ptr)\n"
@@ -313,7 +339,8 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_struct_new(ptr, i64, ptr)\n"
             << "declare i32 @txrt_struct_set_field(ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_struct_field_address(ptr, ptr, ptr)\n"
-            << "declare i32 @txrt_call_external(ptr, ptr, i64, ptr)\n\n";
+            << "declare i32 @txrt_struct_field_address_index(ptr, i64, ptr)\n"
+            << "\n";
 
     for (const auto& function : source.functions)
     {

@@ -206,39 +206,109 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* access = std::get_if<index_expression>(&item.data))
     {
-        const auto object = expression_value(*access->object);
+        ir_value object{value_type::void_type, {}};
+        bool borrowed_object = false;
+        if (const auto* name = std::get_if<name_reference>(&access->object->data))
+        {
+            const auto variable = find_variable(name->name,
+                                                access->object->position);
+            if (is_value_handle(variable.type))
+            {
+                const auto handle = temporary();
+                write_instruction(handle + " = load ptr, ptr " + variable.address);
+                object = {variable.type, handle};
+                borrowed_object = true;
+            }
+        }
+        if (!borrowed_object)
+        {
+            object = expression_value(*access->object);
+        }
         const auto index = expression_value(*access->index);
-        const auto boxed_index = box_any(index, access->index->position);
+        const bool static_array = access->object->type == value_type::array_type;
+        ir_value boxed_index{value_type::void_type, {}};
+        if (!static_array)
+        {
+            boxed_index = box_any(index, access->index->position);
+        }
         const auto address = allocate(value_type::any_type, item.position);
         const auto status = temporary();
-        write_instruction(status +
-            " = call i32 @txrt_value_element_address(ptr " + object.text +
-            ", ptr " + boxed_index.text + ", i1 false, ptr " + address + ")");
+        if (static_array)
+        {
+            write_instruction(status +
+                " = call i32 @txrt_array_element_address(ptr " + object.text +
+                ", i64 " + index.text + ", ptr " + address + ")");
+        }
+        else
+        {
+            const auto* function = access->object->type == value_type::dict_type
+                ? "txrt_dict_element_address" : "txrt_value_element_address";
+            write_instruction(status +
+                " = call i32 @" + function + "(ptr " + object.text +
+                ", ptr " + boxed_index.text + ", i1 false, ptr " + address + ")");
+        }
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
         const auto borrowed = temporary();
         write_instruction(borrowed + " = load ptr, ptr " + address);
         const auto result = from_any({value_type::any_type, borrowed},
                                      item.type, item.position);
-        release(boxed_index);
+        if (!static_array)
+        {
+            release(boxed_index);
+        }
         release(index);
-        release(object);
+        if (!borrowed_object)
+        {
+            release(object);
+        }
         return result;
     }
     if (const auto* access = std::get_if<member_expression>(&item.data))
     {
-        const auto object = expression_value(*access->object);
+        ir_value object{value_type::void_type, {}};
+        bool borrowed_object = false;
+        if (const auto* name = std::get_if<name_reference>(&access->object->data))
+        {
+            const auto variable = find_variable(name->name,
+                                                access->object->position);
+            if (is_value_handle(variable.type))
+            {
+                const auto handle = temporary();
+                write_instruction(handle + " = load ptr, ptr " + variable.address);
+                object = {variable.type, handle};
+                borrowed_object = true;
+            }
+        }
+        if (!borrowed_object)
+        {
+            object = expression_value(*access->object);
+        }
         const auto address = allocate(value_type::any_type, item.position);
         const auto status = temporary();
-        write_instruction(status +
-            " = call i32 @txrt_struct_field_address(ptr " + object.text +
-            ", ptr " + global_bytes(access->field) +
-            ", ptr " + address + ")");
+        if (access->object->type == value_type::any_type)
+        {
+            write_instruction(status +
+                " = call i32 @txrt_struct_field_address(ptr " + object.text +
+                ", ptr " + global_bytes(access->field) +
+                ", ptr " + address + ")");
+        }
+        else
+        {
+            write_instruction(status +
+                " = call i32 @txrt_struct_field_address_index(ptr " +
+                object.text + ", i64 " + std::to_string(field_index(
+                    access->object->type, access->field, item.position)) +
+                ", ptr " + address + ")");
+        }
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
         const auto borrowed = temporary();
         write_instruction(borrowed + " = load ptr, ptr " + address);
         const auto result = from_any({value_type::any_type, borrowed},
                                      item.type, item.position);
-        release(object);
+        if (!borrowed_object)
+        {
+            release(object);
+        }
         return result;
     }
     if (const auto* operation = std::get_if<unary_operation>(&item.data))

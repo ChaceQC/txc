@@ -36,11 +36,15 @@ private:
                                                    std::size_t overload);
     [[nodiscard]] std::string temporary();
     [[nodiscard]] std::string label();
+    [[nodiscard]] std::string random_context();
     [[nodiscard]] std::string allocate(const value_type& type,
                                        source_pos position);
     [[nodiscard]] std::string global_bytes(std::string_view bytes);
     [[nodiscard]] variable_slot find_variable(const std::string& name,
                                               source_pos position) const;
+    [[nodiscard]] std::size_t field_index(const value_type& type,
+                                          std::string_view field,
+                                          source_pos position) const;
     [[nodiscard]] ir_value load(const variable_slot& variable);
     void release(const ir_value& value);
     void release_slot(const variable_slot& variable);
@@ -58,6 +62,9 @@ private:
     [[nodiscard]] ir_value emit_external_call(
         const expression& item, const call_expression& call,
         const function_decl& target, const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value emit_direct_external_call(
+        const expression& item, const function_decl& target,
+        const std::vector<ir_value>& arguments);
     [[nodiscard]] ir_value emit_user_call(
         const expression& item, const call_expression& call,
         const function_decl& target, const std::vector<ir_value>& arguments);
@@ -88,6 +95,14 @@ private:
     [[nodiscard]] std::vector<ir_value> emit_bound_arguments(
         const expression& item, const call_expression& call,
         const std::vector<parameter>& parameters);
+    [[nodiscard]] std::vector<ir_value> emit_static_arguments(
+        const expression& item, const call_expression& call,
+        const std::vector<parameter>& parameters);
+    [[nodiscard]] ir_value emit_variadic_array(
+        const std::vector<ir_value>& values, source_pos position);
+    [[nodiscard]] ir_value emit_variadic_dict(
+        const std::vector<std::pair<std::string, ir_value>>& values,
+        source_pos position);
     void emit_name_assignment(const statement& item,
                               const variable_assignment& assignment,
                               const name_reference& name);
@@ -100,6 +115,7 @@ private:
     void emit_for(const for_loop& loop);
     void emit_for_each(const for_each& loop);
     void emit_function(const function_decl& function);
+    void write_external_declarations();
     void write_instruction(const std::string& text);
     void start_block(const std::string& name);
     void push_scope();
@@ -117,6 +133,7 @@ private:
     std::size_t next_slot_ = 0;
     std::size_t next_label_ = 0;
     std::size_t next_string_ = 0;
+    std::string random_context_slot_;
     bool terminated_ = false;
 };
 
