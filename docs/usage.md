@@ -28,7 +28,7 @@ txc check <源码.tx>
 .\tx_build\example.exe
 ```
 
-程序输出为 55，退出码为 0。省略 -o 时，输出到仓库根目录的 tx_build/，主文件名与源码相同；例如编译 example.tx 会生成 tx_build/example.exe。指定 -o 时可使用自选位置，txc 会创建其父目录。
+程序展示当前语言的各类语法并以退出码 0 结束。省略 -o 时，输出到仓库根目录的 tx_build/，主文件名与源码相同；例如编译 example.tx 会生成 tx_build/example.exe。指定 -o 时可使用自选位置，txc 会创建其父目录。
 
 编译器先解析并检查 .tx，再生成 LLVM IR，由同目录的 `clang.exe` 将 IR 编为 Windows 目标文件，最后用 `tx/link/ld.exe` 与运行时库链接为原生可执行文件。生成程序需要的 MinGW 运行时 DLL 会复制到输出目录。语法或类型错误会以“文件:行:列: 错误：原因”的形式报告；后端失败时会显示目标文件生成器或链接器的输出。
 

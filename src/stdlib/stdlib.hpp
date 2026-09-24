@@ -3,6 +3,7 @@
 #include <any>
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace tx_generated
@@ -10,6 +11,7 @@ namespace tx_generated
 
 using tx_int = std::int64_t;
 using tx_array = std::vector<std::any>;
+using tx_dict = std::vector<std::pair<std::any, std::any>>;
 
 std::string tx_input();
 std::string tx_input(const std::string& prompt);

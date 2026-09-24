@@ -1,14 +1,151 @@
-def sum_to(n: int) -> int {
-    auto total = 0
+# 当前语言的可运行语法展示；模块接口由同名 .tx 提供实现。
+import "modules/offset.txh"
+import "modules/overload.txh" as math
 
+struct record {
+    name: str
+    scores: array
+    meta: dict
+}
+
+def sum_to(n: int) -> int {
+    int total = 0
     for i in 1..=n {
         total += i
     }
-
     return total
 }
 
+def factorial(n: int) -> int {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+def describe(value: int) -> str {
+    return "int=" + (value as str)
+}
+
+def describe(value: float) -> str {
+    return "float=" + (value as str)
+}
+
+def write_message(message: str) {
+    print(message)
+}
+
+def stop_early(done: bool) -> void {
+    if done {
+        return
+    }
+    print("未结束")
+}
+
+def show(label: str, *args, **kwargs) {
+    print(label)
+    for value in args {
+        print(value)
+    }
+    print(kwargs["status"])
+}
+
+def count_extra(*args: array, **kwargs: dict) -> int {
+    return len(args) + len(kwargs)
+}
+
 def main() -> int {
+    int count = 0
+    float ratio = 1.5
+    bool ready = true
+    str heading = "语法示例"
+    auto inferred = 2
+    array values = [1, 2.5, "三", true, none]
+    array[4] padded = [1, 2]
+    array[2] empty_slots
+    array empty_array = []
+    dict settings = {"status": "完成", 7: false}
+    dict empty_dict = {}
+    auto user = record(name="Ada", scores=[8.5, 9.0], meta={"active": true})
+    array nested = [[1, 2], user]
+
+    # 数组和字典都能按索引读写；结构体字段可赋值。
+    values[0] = 3
+    settings[7] = true
+    settings["new"] = [1, 2]
+    user.name = "Grace"
+    user.scores[1] = 9.5
+    print(user.name + "：" + heading)
+    print(user.scores[1])
+    print(user.meta["active"])
+    print(len(nested[0]))
+    print(nested[1].name)
+    print(len(values))
+    print(len(settings))
+    print(len(empty_array) + len(empty_dict))
+    print(len(heading))
+    print(is_none(padded[3]))
+    print(is_none(empty_slots[0]))
+
+    # 新名称被绑定为 any；已有变量保持原来的静态类型。
+    left, right = [10, 20]
+    print(left)
+    count, inferred = [3, 4]
+    print(count + inferred)
+
+    if ready && count > 0 {
+        print((ratio * 2.0) as str)
+    } else {
+        print("未就绪")
+    }
+    if !ready || count == 0 {
+        print("不会输出")
+    }
+    if count >= 3 && count != 0 && count <= 3 {
+        print(8 / 2)
+        print(7 - 2)
+        print(-count)
+        print(ratio / 0.5)
+    }
+    if false {
+        # 保留 input 的调用示例，执行时不会等待终端输入。
+        str answer = input("请输入：")
+        print(answer)
+        str escaped = "第一行\\n第二行"
+        print(escaped)
+    }
+    while count < 5 {
+        count += 1
+    }
+    for value in values {
+        print(value)
+    }
+    for key in settings {
+        print(key)
+    }
+
     print(sum_to(10))
+    print(sum_to(*[10]))
+    print(sum_to(**{"n": 10}))
+    print(factorial(5))
+    print(describe(3))
+    print(describe(3.5))
+    print(to_float(count))
+    print(2 as float)
+    print("2.5" as float)
+    print(1e2 / 4.0)
+    print(3.75 as int)
+    print(left as int)
+    print("42" as int)
+    print(add(1, 2))
+    print(math.twice(2.5))
+    print(math.twice(value=3))
+    // 双斜杠也是单行注释。
+
+    # 位置实参、命名实参、数组和字典展开可组合使用。
+    show("展开", *[1, 2], **{"status": "完成"})
+    print(count_extra(1, 2, note="额外命名参数"))
+    write_message(message="结束")
+    stop_early(true)
     return 0
 }

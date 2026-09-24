@@ -1,0 +1,38 @@
+def report(title: str, *args, **kwargs) {
+    print(title)
+    for value in args {
+        print(value)
+    }
+    print(kwargs["status"])
+}
+
+def add(left: int, right: int) -> int {
+    return left + right
+}
+
+def main() -> int {
+    array parts = ["左", "右"]
+    left, right = parts
+    print(left)
+    print(right)
+
+    int first = 0
+    int second = 0
+    first, second = [4, 5]
+    print(add(first, second))
+    print(add(right=7, left=6))
+    print(add(*[8, 9]))
+    print(add(**{"right": 11, "left": 10}))
+
+    dict options = {"status": "完成", 7: true}
+    array more = [2, 3]
+    report("结果", *more, **{"status": options["status"]})
+    print(options[7])
+    dict mixed = {true: "布尔键", 3.5: 23, none: "空键"}
+    print(mixed[true])
+    print(mixed[none])
+    for key in options {
+        print(key)
+    }
+    return 0
+}

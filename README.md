@@ -12,13 +12,14 @@
 .\tx_build\example.exe
 ```
 
-check 会检查语法和静态类型；示例程序运行后输出 55。完整构建步骤和命令参数见 [编译与运行](docs/usage.md)，当前语言支持的语法和类型规则见 [语法说明](docs/syntax.md)。
+check 会检查语法和静态类型；`example.tx` 是当前语言的完整可运行语法展示。完整构建步骤和命令参数见 [编译与运行](docs/usage.md)，当前语言支持的语法和类型规则见 [语法说明](docs/syntax.md)。
 
 最终编译器产物 `txc.exe`、`clang.exe`、`libtxstdlib.a`、链接组件和运行时 DLL 位于 `tx/`；构建成功后清理 `build/` 中间文件。txc 默认将 .tx 程序放在 `tx_build/`。
 
 txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的链接组件；运行 txc 编译 `.tx` 时不需要安装 g++。构建与发行结构见 [编译与运行](docs/usage.md)和[原生后端说明](docs/native_backend.md)。
 
 字符串、浮点数、混合类型数组和结构体的用法见 [数据类型示例](examples/data_types.tx)。
+数组解包、字典、命名实参与 `*args`、`**kwargs` 见 [可变参数示例](examples/variadic_unpack.tx)。
 
 模块导入、终端输入输出、可指定字符集的文本文件读写、字符串、数学、数组、文件系统、时间和随机数操作见 [模块说明](docs/modules.md)、[标准库说明](docs/standard_library.md)和[可运行示例](examples/import_io.tx)。
 终端与文件操作的单独示例见 [终端 I/O](examples/terminal_io.tx)、[文件 I/O](examples/file_io.tx)和[指定字符集读写](examples/file_encodings.tx)。

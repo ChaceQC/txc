@@ -26,6 +26,14 @@ void module_resolver::resolve_expression(
             resolve_expression(*element, module_key);
         }
     }
+    else if (auto* literal = std::get_if<dictionary_literal>(&item.data))
+    {
+        for (auto& entry : literal->entries)
+        {
+            resolve_expression(*entry.key, module_key);
+            resolve_expression(*entry.value, module_key);
+        }
+    }
     else if (auto* access = std::get_if<index_expression>(&item.data))
     {
         resolve_expression(*access->object, module_key);
@@ -53,7 +61,7 @@ void module_resolver::resolve_expression(
     {
         for (auto& argument : call->arguments)
         {
-            resolve_expression(*argument, module_key);
+            resolve_expression(*argument.value, module_key);
         }
         call->source_name = call->name;
         call->name = resolve_call_name(module_key, call->name, item.position);
@@ -83,6 +91,14 @@ void module_resolver::resolve_statement(
     else if (auto* assignment = std::get_if<variable_assignment>(&item.data))
     {
         resolve_expression(*assignment->target, module_key);
+        resolve_expression(*assignment->value, module_key);
+    }
+    else if (auto* assignment = std::get_if<unpack_assignment>(&item.data))
+    {
+        for (const auto& name : assignment->names)
+        {
+            check_local_name(module_key, name, item.position);
+        }
         resolve_expression(*assignment->value, module_key);
     }
     else if (auto* loop = std::get_if<for_loop>(&item.data))

@@ -23,7 +23,8 @@ bool same_parameter_types(const function_decl& left,
     }
     for (std::size_t index = 0; index < left.parameters.size(); ++index)
     {
-        if (left.parameters[index].type != right.parameters[index].type)
+        if (left.parameters[index].type != right.parameters[index].type ||
+            left.parameters[index].kind != right.parameters[index].kind)
         {
             return false;
         }

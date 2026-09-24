@@ -35,7 +35,7 @@ private:
     [[nodiscard]] expr_ptr parse_unary();
     [[nodiscard]] expr_ptr parse_postfix();
     [[nodiscard]] expr_ptr parse_atom();
-    [[nodiscard]] std::vector<expr_ptr> parse_arguments();
+    [[nodiscard]] std::vector<call_argument> parse_arguments();
 
     std::vector<token> tokens_;
     std::size_t index_ = 0;

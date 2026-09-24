@@ -31,6 +31,7 @@ struct value_type
     static const value_type float_type;
     static const value_type str_type;
     static const value_type array_type;
+    static const value_type dict_type;
     static const value_type any_type;
     static const value_type none_type;
     static const value_type void_type;
@@ -44,6 +45,7 @@ inline const value_type value_type::bool_type{"bool"};
 inline const value_type value_type::float_type{"float"};
 inline const value_type value_type::str_type{"str"};
 inline const value_type value_type::array_type{"array"};
+inline const value_type value_type::dict_type{"dict"};
 inline const value_type value_type::any_type{"any"};
 inline const value_type value_type::none_type{"none"};
 inline const value_type value_type::void_type{"void"};

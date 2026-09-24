@@ -76,7 +76,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
         const auto& argument = arguments.front();
         const auto* name = argument.type == value_type::str_type
             ? "txrt_str_len" : argument.type == value_type::array_type
-            ? "txrt_array_len" : argument.type == value_type::any_type
+            ? "txrt_array_len" : argument.type == value_type::dict_type
+            ? "txrt_dict_len" : argument.type == value_type::any_type
             ? "txrt_value_len" : nullptr;
         if (!name)
         {
@@ -234,18 +235,33 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
 llvm_code_generator::ir_value llvm_code_generator::emit_call(
     const expression& item, const call_expression& call)
 {
-    std::vector<ir_value> arguments;
-    arguments.reserve(call.arguments.size());
-    for (const auto& argument : call.arguments)
+    const auto plain_arguments = [&]
     {
-        arguments.push_back(expression_value(*argument));
-    }
+        std::vector<ir_value> values;
+        values.reserve(call.arguments.size());
+        for (const auto& argument : call.arguments)
+        {
+            values.push_back(expression_value(*argument.value));
+        }
+        return values;
+    };
     if (is_builtin_call(call.name))
     {
-        return emit_builtin_call(item, call, arguments);
+        return emit_builtin_call(item, call, plain_arguments());
     }
     if (call.is_constructor)
     {
+        const auto& definition = *structs_.at(call.name);
+        std::vector<parameter> parameters;
+        for (const auto& field : definition.fields)
+        {
+            parameters.push_back({field.name, field.type, field.position});
+        }
+        const bool needs_binding = std::any_of(call.arguments.begin(),
+            call.arguments.end(), [](const call_argument& argument)
+            { return argument.kind != argument_kind::positional; });
+        const auto arguments = needs_binding
+            ? emit_bound_arguments(item, call, parameters) : plain_arguments();
         return emit_constructor_call(item, call, arguments);
     }
     if (!call.overload_index)
@@ -259,6 +275,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
         throw compile_error(item.position, "LLVM 后端找不到函数调用目标");
     }
     const auto& target = *found->second[*call.overload_index];
+    const bool needs_binding = std::any_of(target.parameters.begin(),
+        target.parameters.end(), [](const parameter& value)
+        { return value.kind != parameter_kind::ordinary; }) ||
+        std::any_of(call.arguments.begin(), call.arguments.end(),
+            [](const call_argument& value)
+            { return value.kind != argument_kind::positional; });
+    const auto arguments = needs_binding
+        ? emit_bound_arguments(item, call, target.parameters) : plain_arguments();
     return target.external
         ? emit_external_call(item, call, target, arguments)
         : emit_user_call(item, call, target, arguments);

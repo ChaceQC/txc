@@ -10,6 +10,7 @@ add_executable(txc
     src/frontend/resolver/module_resolver_tree.cpp
     src/frontend/sema/sema.cpp
     src/frontend/sema/sema_expression.cpp
+    src/frontend/sema/sema_call.cpp
     src/backend/llvm/codegen.cpp
     src/backend/llvm/codegen_control.cpp
     src/backend/llvm/codegen_statement.cpp
@@ -17,6 +18,7 @@ add_executable(txc
     src/backend/llvm/codegen_expression_ops.cpp
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
+    src/backend/llvm/codegen_call_binding.cpp
     src/driver/module_loader.cpp
     src/driver/main.cpp
 )
@@ -25,6 +27,8 @@ add_library(txstdlib STATIC
     src/backend/cpp/runtime.cpp
     src/backend/cpp/runtime_abi.cpp
     src/backend/cpp/value_abi.cpp
+    src/backend/cpp/dictionary_abi.cpp
+    src/backend/cpp/call_abi.cpp
     src/backend/cpp/external_abi.cpp
     src/backend/cpp/external_abi_time_random.cpp
     src/stdlib/string.cpp

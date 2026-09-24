@@ -109,15 +109,17 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
 {
     push_scope();
     const auto values = expression_value(*loop.values);
-    const auto values_address = allocate(value_type::array_type,
+    const auto values_address = allocate(values.type,
                                          loop.values->position);
     write_instruction("store ptr " + values.text + ", ptr " + values_address);
     scopes_.back().emplace("$foreach", variable_slot{
-        value_type::array_type, values_address});
+        values.type, values_address});
     const auto length_address = allocate(value_type::int_type,
                                          loop.values->position);
     const auto length_status = temporary();
-    write_instruction(length_status + " = call i32 @txrt_array_len(ptr " +
+    const auto length_function = values.type == value_type::dict_type
+        ? "txrt_dict_len" : "txrt_array_len";
+    write_instruction(length_status + " = call i32 @" + length_function + "(ptr " +
                       values.text + ", ptr " + length_address + ")");
     write_instruction("call void @txrt_require_success(i32 " +
                       length_status + ")");
@@ -141,8 +143,10 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
     start_block(body_label);
     const auto field = allocate(value_type::any_type, loop.values->position);
     const auto field_status = temporary();
+    const auto element_function = values.type == value_type::dict_type
+        ? "txrt_dict_key_address" : "txrt_array_element_address";
     write_instruction(field_status +
-        " = call i32 @txrt_array_element_address(ptr " + values.text +
+        " = call i32 @" + element_function + "(ptr " + values.text +
         ", i64 " + index.text + ", ptr " + field + ")");
     write_instruction("call void @txrt_require_success(i32 " + field_status + ")");
     const auto borrowed = temporary();

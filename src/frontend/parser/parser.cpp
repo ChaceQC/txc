@@ -83,6 +83,10 @@ value_type parser::parse_type()
     {
         return value_type::array_type;
     }
+    if (match(token_kind::keyword_dict))
+    {
+        return value_type::dict_type;
+    }
     if (match(token_kind::identifier))
     {
         std::string name = previous().text;
@@ -146,11 +150,56 @@ function_decl parser::parse_function()
     std::vector<parameter> parameters;
     if (!check(token_kind::right_paren))
     {
+        bool seen_array = false;
+        bool seen_dict = false;
         do
         {
+            parameter_kind kind = parameter_kind::ordinary;
+            if (match(token_kind::double_star))
+            {
+                kind = parameter_kind::variadic_dict;
+                if (seen_dict)
+                {
+                    throw compile_error(previous().position, "只能有一个 **kwargs 参数");
+                }
+                seen_dict = true;
+            }
+            else if (match(token_kind::star))
+            {
+                kind = parameter_kind::variadic_array;
+                if (seen_array || seen_dict)
+                {
+                    throw compile_error(previous().position, "*args 必须位于普通参数后、**kwargs 前");
+                }
+                seen_array = true;
+            }
+            else if (seen_array || seen_dict)
+            {
+                throw compile_error(current().position, "普通参数必须位于 *args 和 **kwargs 前");
+            }
             const auto& parameter_name = consume(token_kind::identifier, "需要参数名");
-            (void)consume(token_kind::colon, "参数名后需要冒号");
-            parameters.push_back({parameter_name.text, parse_type(), parameter_name.position});
+            value_type type;
+            if (kind == parameter_kind::ordinary)
+            {
+                (void)consume(token_kind::colon, "参数名后需要冒号");
+                type = parse_type();
+            }
+            else
+            {
+                type = kind == parameter_kind::variadic_array
+                    ? value_type::array_type : value_type::dict_type;
+                if (match(token_kind::colon))
+                {
+                    const auto annotated = parse_type();
+                    if (annotated != type)
+                    {
+                        throw compile_error(parameter_name.position,
+                                            "可变参数类型必须为 " + type.name);
+                    }
+                }
+            }
+            parameters.push_back({parameter_name.text, type,
+                                  parameter_name.position, kind});
         } while (match(token_kind::comma));
     }
     (void)consume(token_kind::right_paren, "参数列表缺少右括号");
@@ -197,7 +246,7 @@ bool parser::looks_like_declaration() const
     const auto kind = current().kind;
     if (kind == token_kind::keyword_auto || kind == token_kind::keyword_int ||
         kind == token_kind::keyword_bool || kind == token_kind::keyword_float ||
-        kind == token_kind::keyword_str)
+        kind == token_kind::keyword_str || kind == token_kind::keyword_dict)
     {
         return true;
     }
@@ -287,6 +336,21 @@ stmt_ptr parser::parse_statement()
         }
         return std::make_unique<statement>(
             position, return_statement{std::move(value)});
+    }
+    if (check(token_kind::identifier) &&
+        tokens_[index_ + 1].kind == token_kind::comma)
+    {
+        std::vector<std::string> names;
+        names.push_back(advance().text);
+        (void)consume(token_kind::comma, "解包变量名之间需要逗号");
+        do
+        {
+            names.push_back(consume(token_kind::identifier,
+                                    "解包赋值需要变量名").text);
+        } while (match(token_kind::comma));
+        (void)consume(token_kind::equal, "解包赋值需要 =");
+        return std::make_unique<statement>(
+            position, unpack_assignment{std::move(names), {}, parse_expression()});
     }
     if (match(token_kind::keyword_array))
     {

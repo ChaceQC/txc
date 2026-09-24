@@ -100,8 +100,19 @@ std::string llvm_code_generator::lvalue_address(const expression& item)
     {
         base = lvalue_address(*index->object);
         const auto position = expression_value(*index->index);
-        invocation = "@txrt_array_element_address(ptr " + base + ", i64 " +
-                     position.text;
+        const auto boxed = box_any(position, item.position);
+        invocation = "@txrt_value_element_address(ptr " + base + ", ptr " +
+                     boxed.text + ", i1 true";
+        const auto address = allocate(value_type::any_type, item.position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 " + invocation +
+                          ", ptr " + address + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        release(boxed);
+        release(position);
+        const auto result = temporary();
+        write_instruction(result + " = load ptr, ptr " + address);
+        return result;
     }
     else
     {

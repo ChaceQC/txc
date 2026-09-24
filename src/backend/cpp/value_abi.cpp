@@ -137,6 +137,27 @@ extern "C" int txrt_value_print(const void* value) noexcept
     return invoke_checked([&] { tx_generated::tx_print(as_value(value)); });
 }
 
+extern "C" int txrt_value_require_type(const void* value,
+                                         const char* type_name) noexcept
+{
+    return invoke_checked([&] {
+        const auto& item = as_value(value);
+        const std::string type(type_name);
+        const bool valid = type == "any" ||
+            (type == "int" && item.type() == typeid(std::int64_t)) ||
+            (type == "float" && item.type() == typeid(double)) ||
+            (type == "bool" && item.type() == typeid(bool)) ||
+            (type == "str" && item.type() == typeid(std::string)) ||
+            (type == "array" && item.type() == typeid(tx_generated::tx_array)) ||
+            (type == "dict" && item.type() == typeid(tx_generated::tx_dict)) ||
+            (type == "none" && !item.has_value()) ||
+            (item.type() == typeid(dynamic_struct) &&
+             std::any_cast<const dynamic_struct&>(item).type_name == type);
+        if (!valid)
+            throw std::runtime_error("展开值与目标参数或变量类型不匹配：" + type);
+    });
+}
+
 extern "C" int txrt_array_new(std::int64_t length, void** result) noexcept
 {
     return invoke_checked([&] {
@@ -183,6 +204,45 @@ extern "C" int txrt_array_element_address(void* value, std::int64_t index,
         }
         *result = &tx_generated::tx_at(
             std::any_cast<tx_generated::tx_array&>(item), index);
+    });
+}
+
+extern "C" int txrt_array_append(void* value, const void* item) noexcept
+{
+    return invoke_checked([&] {
+        auto& values = std::any_cast<tx_generated::tx_array&>(as_value(value));
+        values.push_back(as_value(item));
+    });
+}
+
+extern "C" int txrt_array_extend(void* value, const void* items) noexcept
+{
+    return invoke_checked([&] {
+        auto& values = std::any_cast<tx_generated::tx_array&>(as_value(value));
+        const auto& source = as_value(items);
+        if (source.type() != typeid(tx_generated::tx_array))
+        {
+            throw std::runtime_error("* 展开需要数组");
+        }
+        const auto& more = std::any_cast<const tx_generated::tx_array&>(source);
+        values.insert(values.end(), more.begin(), more.end());
+    });
+}
+
+extern "C" int txrt_array_require_length(const void* value,
+                                            std::size_t length) noexcept
+{
+    return invoke_checked([&] {
+        const auto& source = as_value(value);
+        if (source.type() != typeid(tx_generated::tx_array))
+        {
+            throw std::runtime_error("解包右侧需要数组");
+        }
+        const auto& values = std::any_cast<const tx_generated::tx_array&>(source);
+        if (values.size() != length)
+        {
+            throw std::runtime_error("解包数量与数组长度不匹配");
+        }
     });
 }
 

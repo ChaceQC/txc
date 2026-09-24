@@ -17,7 +17,7 @@ struct symbol_info
 
 struct function_signature
 {
-    std::vector<value_type> parameters;
+    std::vector<parameter> parameters;
     value_type result;
 };
 
@@ -35,6 +35,7 @@ private:
     void check_statement(statement& item);
     void check_declaration(statement& item, variable_declaration& declaration);
     void check_assignment(statement& item, variable_assignment& assignment);
+    void check_unpack(statement& item, unpack_assignment& assignment);
     void check_for(statement& item, for_loop& loop);
     void check_for_each(statement& item, for_each& loop);
     void check_if(statement& item, if_statement& branch);

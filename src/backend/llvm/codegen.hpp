@@ -83,6 +83,11 @@ private:
                           const variable_declaration& declaration);
     void emit_assignment(const statement& item,
                          const variable_assignment& assignment);
+    void emit_unpack(const statement& item,
+                     const unpack_assignment& assignment);
+    [[nodiscard]] std::vector<ir_value> emit_bound_arguments(
+        const expression& item, const call_expression& call,
+        const std::vector<parameter>& parameters);
     void emit_name_assignment(const statement& item,
                               const variable_assignment& assignment,
                               const name_reference& name);

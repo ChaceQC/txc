@@ -31,6 +31,7 @@ bool returns_on_all_paths(const std::vector<stmt_ptr>& statements)
 bool is_builtin_name(const std::string& name)
 {
     return name == "print" || name == "len" || name == "array" ||
+           name == "dict" ||
            name == "to_float" || name == "is_none" || name == "input" ||
            name == "any" || name == "void" || name == "unknown";
 }
@@ -84,7 +85,8 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
 {
     if (type == value_type::int_type || type == value_type::bool_type ||
         type == value_type::float_type || type == value_type::str_type ||
-        type == value_type::array_type || structs_.contains(type.name))
+        type == value_type::array_type || type == value_type::dict_type ||
+        structs_.contains(type.name))
     {
         return;
     }
@@ -138,7 +140,7 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
         for (const auto& parameter : function.parameters)
         {
             validate_type(parameter.type, parameter.position);
-            signature.parameters.push_back(parameter.type);
+            signature.parameters.push_back(parameter);
         }
         auto& overloads = functions_[function.name];
         if (function.name == "main" && !overloads.empty())
@@ -147,7 +149,27 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
         }
         for (const auto& existing : overloads)
         {
-            if (existing.parameters == signature.parameters)
+            bool same_fixed_types = true;
+            std::size_t left = 0;
+            std::size_t right = 0;
+            while (left < existing.parameters.size() &&
+                   existing.parameters[left].kind == parameter_kind::ordinary &&
+                   right < signature.parameters.size() &&
+                   signature.parameters[right].kind == parameter_kind::ordinary)
+            {
+                if (existing.parameters[left].type != signature.parameters[right].type)
+                {
+                    same_fixed_types = false;
+                    break;
+                }
+                ++left;
+                ++right;
+            }
+            if (same_fixed_types &&
+                (left == existing.parameters.size() ||
+                 existing.parameters[left].kind != parameter_kind::ordinary) &&
+                (right == signature.parameters.size() ||
+                 signature.parameters[right].kind != parameter_kind::ordinary))
             {
                 throw compile_error(function.position,
                                     "重复的函数重载签名：" + display_name);
@@ -291,6 +313,34 @@ void semantic_analyzer::check_assignment(statement& item,
     }
 }
 
+void semantic_analyzer::check_unpack(statement& item,
+                                     unpack_assignment& assignment)
+{
+    const auto source_type = check_expression(*assignment.value);
+    if (source_type != value_type::array_type && source_type != value_type::any_type)
+    {
+        throw compile_error(assignment.value->position, "解包右侧需要数组");
+    }
+    std::unordered_set<std::string> used;
+    for (const auto& name : assignment.names)
+    {
+        if (!used.insert(name).second)
+        {
+            throw compile_error(item.position, "解包变量名重复：" + name);
+        }
+        const auto* existing = find_symbol(name);
+        if (existing && existing->read_only)
+        {
+            throw compile_error(item.position, "循环变量不可赋值：" + name);
+        }
+        assignment.declares.push_back(existing == nullptr);
+        if (!existing)
+        {
+            declare_symbol(name, {value_type::any_type, false}, item.position);
+        }
+    }
+}
+
 void semantic_analyzer::check_for(statement& item, for_loop& loop)
 {
     require_type(check_expression(*loop.first), value_type::int_type,
@@ -305,8 +355,12 @@ void semantic_analyzer::check_for(statement& item, for_loop& loop)
 
 void semantic_analyzer::check_for_each(statement& item, for_each& loop)
 {
-    require_type(check_expression(*loop.values), value_type::array_type,
-                 loop.values->position, "遍历对象");
+    const auto values_type = check_expression(*loop.values);
+    if (values_type != value_type::array_type &&
+        values_type != value_type::dict_type)
+    {
+        throw compile_error(loop.values->position, "遍历对象需要数组或字典");
+    }
     push_scope();
     declare_symbol(loop.name, {value_type::any_type, true}, item.position);
     check_statements(loop.body);
@@ -346,6 +400,10 @@ void semantic_analyzer::check_statement(statement& item)
     else if (auto* assignment = std::get_if<variable_assignment>(&item.data))
     {
         check_assignment(item, *assignment);
+    }
+    else if (auto* assignment = std::get_if<unpack_assignment>(&item.data))
+    {
+        check_unpack(item, *assignment);
     }
     else if (auto* loop = std::get_if<for_loop>(&item.data))
     {

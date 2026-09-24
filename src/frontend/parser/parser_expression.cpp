@@ -63,14 +63,40 @@ expr_ptr parser::parse_unary()
     return parse_postfix();
 }
 
-std::vector<expr_ptr> parser::parse_arguments()
+std::vector<call_argument> parser::parse_arguments()
 {
-    std::vector<expr_ptr> arguments;
+    std::vector<call_argument> arguments;
+    bool seen_keyword = false;
     if (!check(token_kind::right_paren))
     {
         do
         {
-            arguments.push_back(parse_expression());
+            const auto position = current().position;
+            argument_kind kind = argument_kind::positional;
+            std::string name;
+            if (match(token_kind::double_star))
+            {
+                kind = argument_kind::spread_dict;
+                seen_keyword = true;
+            }
+            else if (match(token_kind::star))
+            {
+                kind = argument_kind::spread_array;
+            }
+            else if (check(token_kind::identifier) &&
+                     tokens_[index_ + 1].kind == token_kind::equal)
+            {
+                kind = argument_kind::keyword;
+                name = advance().text;
+                (void)advance();
+                seen_keyword = true;
+            }
+            if (seen_keyword && (kind == argument_kind::positional ||
+                                 kind == argument_kind::spread_array))
+            {
+                throw compile_error(position, "位置实参必须写在命名实参之前");
+            }
+            arguments.push_back({kind, std::move(name), parse_expression(), position});
         } while (match(token_kind::comma));
     }
     (void)consume(token_kind::right_paren, "调用缺少右括号");
@@ -183,6 +209,23 @@ expr_ptr parser::parse_atom()
         (void)consume(token_kind::right_bracket, "数组缺少右方括号");
         return std::make_unique<expression>(
             position, array_literal{std::move(elements)});
+    }
+    if (match(token_kind::left_brace))
+    {
+        const auto position = previous().position;
+        std::vector<dictionary_entry> entries;
+        if (!check(token_kind::right_brace))
+        {
+            do
+            {
+                auto key = parse_expression();
+                (void)consume(token_kind::colon, "字典键后需要冒号");
+                entries.push_back({std::move(key), parse_expression()});
+            } while (match(token_kind::comma));
+        }
+        (void)consume(token_kind::right_brace, "字典缺少右大括号");
+        return std::make_unique<expression>(
+            position, dictionary_literal{std::move(entries)});
     }
     if (match(token_kind::left_paren))
     {

@@ -150,6 +150,62 @@ void llvm_code_generator::emit_assignment(
     }
 }
 
+void llvm_code_generator::emit_unpack(
+    const statement& item, const unpack_assignment& assignment)
+{
+    const auto source = expression_value(*assignment.value);
+    const auto length_status = temporary();
+    write_instruction(length_status +
+        " = call i32 @txrt_array_require_length(ptr " + source.text +
+        ", i64 " + std::to_string(assignment.names.size()) + ")");
+    write_instruction("call void @txrt_require_success(i32 " +
+                      length_status + ")");
+    std::vector<ir_value> values;
+    values.reserve(assignment.names.size());
+    for (std::size_t index = 0; index < assignment.names.size(); ++index)
+    {
+        const auto type = assignment.declares[index]
+            ? value_type::any_type
+            : find_variable(assignment.names[index], item.position).type;
+        const auto address = allocate(value_type::any_type, item.position);
+        const auto status = temporary();
+        write_instruction(status +
+            " = call i32 @txrt_array_element_address(ptr " + source.text +
+            ", i64 " + std::to_string(index) + ", ptr " + address + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        const auto borrowed = temporary();
+        write_instruction(borrowed + " = load ptr, ptr " + address);
+        if (type != value_type::any_type)
+        {
+            const auto checked = temporary();
+            write_instruction(checked + " = call i32 @txrt_value_require_type(ptr " +
+                              borrowed + ", ptr " + global_bytes(type.name) + ")");
+            write_instruction("call void @txrt_require_success(i32 " +
+                              checked + ")");
+        }
+        values.push_back(from_any({value_type::any_type, borrowed},
+                                  type, item.position));
+    }
+    for (std::size_t index = 0; index < assignment.names.size(); ++index)
+    {
+        if (assignment.declares[index])
+        {
+            const auto address = allocate(value_type::any_type, item.position);
+            write_instruction("store ptr " + values[index].text + ", ptr " + address);
+            scopes_.back().emplace(assignment.names[index],
+                variable_slot{value_type::any_type, address});
+        }
+        else
+        {
+            const auto slot = find_variable(assignment.names[index], item.position);
+            release_slot(slot);
+            write_instruction("store " + llvm_type(slot.type, item.position) +
+                              " " + values[index].text + ", ptr " + slot.address);
+        }
+    }
+    release(source);
+}
+
 void llvm_code_generator::emit_return(const statement& item,
                                       const return_statement& result)
 {
@@ -181,6 +237,10 @@ void llvm_code_generator::emit_statement(const statement& item)
     else if (const auto* assignment = std::get_if<variable_assignment>(&item.data))
     {
         emit_assignment(item, *assignment);
+    }
+    else if (const auto* assignment = std::get_if<unpack_assignment>(&item.data))
+    {
+        emit_unpack(item, *assignment);
     }
     else if (const auto* branch = std::get_if<if_statement>(&item.data))
     {

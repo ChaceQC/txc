@@ -45,7 +45,16 @@ tx_int tx_len(const std::any& value)
     {
         return tx_len(std::any_cast<const std::string&>(value));
     }
-    throw std::runtime_error("len 的对象不是数组或字符串");
+    if (value.type() == typeid(tx_dict))
+    {
+        const auto size = std::any_cast<const tx_dict&>(value).size();
+        if (size > static_cast<std::size_t>(std::numeric_limits<tx_int>::max()))
+        {
+            throw std::overflow_error("字典长度超出 int 范围");
+        }
+        return static_cast<tx_int>(size);
+    }
+    throw std::runtime_error("len 的对象不是数组、字典或字符串");
 }
 
 std::any& tx_at(tx_array& values, tx_int index)

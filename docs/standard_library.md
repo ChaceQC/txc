@@ -76,7 +76,7 @@ random_int 要求 lower <= upper，支持完整的 int 范围；区间无效时�
 
 `input()` 从标准输入读取一行 UTF-8 文本，返回不含行尾换行的 `str`。`input("提示")` 先将提示写到标准输出并刷新。输入到文件末尾时，若已有字符但没有结尾换行，仍返回这最后一行；之后再次调用才报运行错误。读取失败或输入不是有效 UTF-8 时也报运行错误。
 
-`print(value)` 将 `int`、`float`、`bool`、`str`、`none` 或 `any` 中的这些值输出到标准输出并换行。数值和布尔值的文本格式与 `as str` 一致；数组和结构体不能直接打印。
+`print(value)` 将 `int`、`float`、`bool`、`str`、`none` 或 `any` 中的这些值输出到标准输出并换行。数值和布尔值的文本格式与 `as str` 一致；数组、字典和结构体不能直接打印。
 
 需要控制换行、标准错误或刷新时，导入 [tx/stdlib/io.txh](../tx/stdlib/io.txh)：
 
@@ -152,7 +152,7 @@ import "string.txh"
 
 | 函数 | 返回值 | 说明 |
 | --- | --- | --- |
-| len(text) | int | UTF-8 字符数量；len(array) 仍返回数组长度 |
+| len(text) | int | UTF-8 字符数量；len(array) 返回数组长度，len(dict) 返回键数 |
 | contains(text, part) | bool | 是否包含子串 |
 | starts_with(text, prefix) | bool | 是否以指定文本开头 |
 | ends_with(text, suffix) | bool | 是否以指定文本结尾 |

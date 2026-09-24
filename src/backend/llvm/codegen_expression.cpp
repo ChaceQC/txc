@@ -172,6 +172,34 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
         }
         return {item.type, result};
     }
+    if (const auto* literal = std::get_if<dictionary_literal>(&item.data))
+    {
+        const auto address = allocate(value_type::dict_type, item.position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_dict_new(ptr " +
+                          address + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        const auto result = temporary();
+        write_instruction(result + " = load ptr, ptr " + address);
+        for (const auto& entry : literal->entries)
+        {
+            const auto key = expression_value(*entry.key);
+            const auto value = expression_value(*entry.value);
+            const auto boxed_key = box_any(key, entry.key->position);
+            const auto boxed_value = box_any(value, entry.value->position);
+            const auto set_status = temporary();
+            write_instruction(set_status + " = call i32 @txrt_dict_set(ptr " +
+                              result + ", ptr " + boxed_key.text + ", ptr " +
+                              boxed_value.text + ")");
+            write_instruction("call void @txrt_require_success(i32 " +
+                              set_status + ")");
+            release(boxed_key);
+            release(boxed_value);
+            release(key);
+            release(value);
+        }
+        return {item.type, result};
+    }
     if (const auto* name = std::get_if<name_reference>(&item.data))
     {
         return load(find_variable(name->name, item.position));
@@ -180,16 +208,19 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     {
         const auto object = expression_value(*access->object);
         const auto index = expression_value(*access->index);
+        const auto boxed_index = box_any(index, access->index->position);
         const auto address = allocate(value_type::any_type, item.position);
         const auto status = temporary();
         write_instruction(status +
-            " = call i32 @txrt_array_element_address(ptr " + object.text +
-            ", i64 " + index.text + ", ptr " + address + ")");
+            " = call i32 @txrt_value_element_address(ptr " + object.text +
+            ", ptr " + boxed_index.text + ", i1 false, ptr " + address + ")");
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
         const auto borrowed = temporary();
         write_instruction(borrowed + " = load ptr, ptr " + address);
         const auto result = from_any({value_type::any_type, borrowed},
                                      item.type, item.position);
+        release(boxed_index);
+        release(index);
         release(object);
         return result;
     }

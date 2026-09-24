@@ -39,6 +39,7 @@ std::optional<token_kind> keyword_kind(std::string_view text)
         {"float", token_kind::keyword_float},
         {"str", token_kind::keyword_str},
         {"array", token_kind::keyword_array},
+        {"dict", token_kind::keyword_dict},
         {"struct", token_kind::keyword_struct},
         {"as", token_kind::keyword_as},
         {"none", token_kind::keyword_none},
@@ -195,6 +196,7 @@ void lexer::scan_symbol()
         token_kind kind;
     } symbols[] = {
         {"..=", token_kind::range_inclusive},
+        {"**", token_kind::double_star},
         {"->", token_kind::arrow},
         {"+=", token_kind::plus_equal},
         {"==", token_kind::equal_equal},

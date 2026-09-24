@@ -23,11 +23,9 @@ bool is_equality_type(const value_type& type)
            type == value_type::str_type || type == value_type::none_type;
 }
 
-bool is_printable(const value_type& type)
+bool is_hashable_key_type(const value_type& type)
 {
-    return is_numeric(type) || type == value_type::bool_type ||
-           type == value_type::str_type || type == value_type::none_type ||
-           type == value_type::any_type;
+    return is_equality_type(type) || type == value_type::any_type;
 }
 
 bool is_min_int_magnitude(std::string_view digits)
@@ -77,15 +75,31 @@ value_type semantic_analyzer::check_literal(expression& item)
     {
         return value_type::none_type;
     }
-    auto& literal = std::get<array_literal>(item.data);
-    for (auto& element : literal.elements)
+    if (auto* literal = std::get_if<array_literal>(&item.data))
     {
-        if (check_expression(*element) == value_type::void_type)
+        for (auto& element : literal->elements)
         {
-            throw compile_error(element->position, "数组不能存放无返回值的调用");
+            if (check_expression(*element) == value_type::void_type)
+            {
+                throw compile_error(element->position, "数组不能存放无返回值的调用");
+            }
+        }
+        return value_type::array_type;
+    }
+    auto& literal = std::get<dictionary_literal>(item.data);
+    for (auto& entry : literal.entries)
+    {
+        const auto key_type = check_expression(*entry.key);
+        if (!is_hashable_key_type(key_type))
+        {
+            throw compile_error(entry.key->position, "字典键必须是可哈希的值");
+        }
+        if (check_expression(*entry.value) == value_type::void_type)
+        {
+            throw compile_error(item.position, "字典不能存放无返回值的调用");
         }
     }
-    return value_type::array_type;
+    return value_type::dict_type;
 }
 
 value_type semantic_analyzer::check_unary(expression& item,
@@ -167,148 +181,31 @@ value_type semantic_analyzer::check_binary(expression& item,
                                        std::string(type_name(right)));
 }
 
-value_type semantic_analyzer::check_builtin(expression& item, call_expression& call)
-{
-    if (call.name == "input")
-    {
-        if (call.arguments.size() > 1)
-        {
-            throw compile_error(item.position, "input 最多接收一个提示字符串");
-        }
-        if (!call.arguments.empty())
-        {
-            require_type(check_expression(*call.arguments.front()),
-                         value_type::str_type,
-                         call.arguments.front()->position, "input 提示");
-        }
-        return value_type::str_type;
-    }
-    if (call.arguments.size() != 1)
-    {
-        throw compile_error(item.position, call.name + " 需要一个参数");
-    }
-    auto& argument = *call.arguments.front();
-    const auto actual = check_expression(argument);
-    if (call.name == "print")
-    {
-        if (!is_printable(actual))
-        {
-            throw compile_error(argument.position, "print 不支持此类型：" +
-                                                    std::string(type_name(actual)));
-        }
-        return value_type::void_type;
-    }
-    if (call.name == "len")
-    {
-        if (actual != value_type::array_type &&
-            actual != value_type::str_type &&
-            actual != value_type::any_type)
-        {
-            throw compile_error(argument.position, "len 需要数组或字符串");
-        }
-        return value_type::int_type;
-    }
-    if (call.name == "to_float")
-    {
-        require_type(actual, value_type::int_type, argument.position, "to_float 参数");
-        return value_type::float_type;
-    }
-    if (actual != value_type::any_type && actual != value_type::none_type)
-    {
-        throw compile_error(argument.position, "is_none 只接受数组元素或 none");
-    }
-    return value_type::bool_type;
-}
-
-value_type semantic_analyzer::check_constructor(expression& item,
-                                                call_expression& call)
-{
-    const auto& definition = *structs_.at(call.name);
-    if (call.arguments.size() != definition.fields.size())
-    {
-        throw compile_error(item.position, "结构体构造参数数量不匹配：" + call.name);
-    }
-    for (std::size_t index = 0; index < call.arguments.size(); ++index)
-    {
-        require_type(check_expression(*call.arguments[index]),
-                     definition.fields[index].type,
-                     call.arguments[index]->position, "结构体字段初值");
-    }
-    call.is_constructor = true;
-    return value_type(call.name);
-}
-
-value_type semantic_analyzer::check_call(expression& item, call_expression& call)
-{
-    const auto& display_name = call.source_name.empty()
-        ? call.name : call.source_name;
-    if (call.name == "print" || call.name == "len" ||
-        call.name == "to_float" || call.name == "input" ||
-        call.name == "is_none")
-    {
-        return check_builtin(item, call);
-    }
-    if (structs_.contains(call.name))
-    {
-        return check_constructor(item, call);
-    }
-    const auto found = functions_.find(call.name);
-    if (found == functions_.end())
-    {
-        throw compile_error(item.position, "未定义函数：" + display_name);
-    }
-    bool valid_arity = false;
-    for (const auto& signature : found->second)
-    {
-        if (call.arguments.size() == signature.parameters.size())
-        {
-            valid_arity = true;
-            break;
-        }
-    }
-    if (!valid_arity)
-    {
-        throw compile_error(item.position, "函数参数数量不匹配：" + display_name);
-    }
-    std::vector<value_type> actual_types;
-    actual_types.reserve(call.arguments.size());
-    for (auto& argument : call.arguments)
-    {
-        actual_types.push_back(check_expression(*argument));
-    }
-    for (std::size_t index = 0; index < found->second.size(); ++index)
-    {
-        const auto& signature = found->second[index];
-        if (signature.parameters == actual_types)
-        {
-            // 后端直接使用已选中的重载，不再依赖 C++ 的重载解析。
-            call.overload_index = index;
-            return signature.result;
-        }
-    }
-    std::string actual = display_name + "(";
-    for (std::size_t index = 0; index < actual_types.size(); ++index)
-    {
-        if (index != 0)
-        {
-            actual += ", ";
-        }
-        actual += type_name(actual_types[index]);
-    }
-    throw compile_error(item.position, "没有匹配的函数重载：" + actual + ")");
-}
-
 value_type semantic_analyzer::check_index(expression&,
                                           index_expression& access)
 {
     const auto object_type = check_expression(*access.object);
     if (object_type != value_type::array_type &&
+        object_type != value_type::dict_type &&
         object_type != value_type::any_type)
     {
-        throw compile_error(access.object->position, "索引对象需要数组");
+        throw compile_error(access.object->position, "索引对象需要数组或字典");
     }
-    require_type(check_expression(*access.index), value_type::int_type,
-                 access.index->position, "数组索引");
+    const auto index_type = check_expression(*access.index);
+    if (object_type == value_type::array_type)
+    {
+        require_type(index_type, value_type::int_type,
+                     access.index->position, "数组索引");
+    }
+    else if (object_type == value_type::dict_type &&
+             !is_hashable_key_type(index_type))
+    {
+        throw compile_error(access.index->position, "字典键必须是可哈希的值");
+    }
+    else if (index_type == value_type::void_type)
+    {
+        throw compile_error(access.index->position, "字典键不能是 void");
+    }
     return value_type::any_type;
 }
 
@@ -362,7 +259,8 @@ value_type semantic_analyzer::check_expression(expression& item)
         std::holds_alternative<string_literal>(item.data) ||
         std::holds_alternative<boolean_literal>(item.data) ||
         std::holds_alternative<none_literal>(item.data) ||
-        std::holds_alternative<array_literal>(item.data))
+        std::holds_alternative<array_literal>(item.data) ||
+        std::holds_alternative<dictionary_literal>(item.data))
     {
         item.type = check_literal(item);
     }
