@@ -10,13 +10,22 @@ add_executable(txc
     src/frontend/resolver/module_resolver_tree.cpp
     src/frontend/sema/sema.cpp
     src/frontend/sema/sema_expression.cpp
-    src/backend/cpp/codegen.cpp
-    src/backend/cpp/codegen_expression.cpp
+    src/backend/llvm/codegen.cpp
+    src/backend/llvm/codegen_control.cpp
+    src/backend/llvm/codegen_statement.cpp
+    src/backend/llvm/codegen_expression.cpp
+    src/backend/llvm/codegen_expression_ops.cpp
+    src/backend/llvm/codegen_expression_values.cpp
+    src/backend/llvm/codegen_expression_calls.cpp
     src/driver/module_loader.cpp
     src/driver/main.cpp
 )
 
 add_library(txstdlib STATIC
+    src/backend/cpp/runtime.cpp
+    src/backend/cpp/runtime_abi.cpp
+    src/backend/cpp/value_abi.cpp
+    src/backend/cpp/external_abi.cpp
     src/stdlib/string.cpp
     src/stdlib/conversion.cpp
     src/stdlib/io.cpp
@@ -29,6 +38,9 @@ target_compile_features(txstdlib PRIVATE cxx_std_23)
 target_include_directories(txc PRIVATE src)
 target_include_directories(txstdlib PRIVATE src)
 add_dependencies(txc txstdlib)
+if(WIN32)
+    target_link_libraries(txc PRIVATE shell32)
+endif()
 set(TX_TOOL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/tx")
 set_target_properties(txstdlib PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${TX_TOOL_OUTPUT_DIR}"

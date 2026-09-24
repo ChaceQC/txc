@@ -14,7 +14,9 @@
 
 check 会检查语法和静态类型；示例程序运行后输出 55。完整构建步骤和命令参数见 [编译与运行](docs/usage.md)，当前语言支持的语法和类型规则见 [语法说明](docs/syntax.md)。
 
-最终编译器产物 `txc.exe` 和 `libtxstdlib.a` 位于 `tx/`；构建成功后清理 `build/` 中间文件。txc 默认将 .tx 程序放在 `tx_build/`。
+最终编译器产物 `txc.exe`、`clang.exe`、`libtxstdlib.a`、链接组件和运行时 DLL 位于 `tx/`；构建成功后清理 `build/` 中间文件。txc 默认将 .tx 程序放在 `tx_build/`。
+
+txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的链接组件；运行 txc 编译 `.tx` 时不需要安装 g++。构建与发行结构见 [编译与运行](docs/usage.md)和[原生后端说明](docs/native_backend.md)。
 
 字符串、浮点数、混合类型数组和结构体的用法见 [数据类型示例](examples/data_types.tx)。
 
@@ -30,6 +32,7 @@ check 会检查语法和静态类型；示例程序运行后输出 55。完整�
 
 - `src/common`：共用类型和错误位置。
 - `src/frontend`：词法分析、语法树、语法分析和语义检查。
-- `src/backend/cpp`：C++ 源码生成与运行时。
+- `src/backend/llvm`：LLVM IR 代码生成。
+- `src/backend/cpp`：生成程序使用的 C++23 运行时与 C ABI 接口。
 - `src/stdlib`：标准库二进制实现；公开接口位于 `tx/stdlib/*.txh`。
 - `src/driver`：`txc` 命令行入口。

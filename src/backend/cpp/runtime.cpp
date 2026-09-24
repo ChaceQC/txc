@@ -1,64 +1,14 @@
-#pragma once
+#include "backend/cpp/runtime.hpp"
 
-#include <string_view>
-
-namespace tx
-{
-
-inline constexpr std::string_view runtime_source = R"TXCPP(
-#include <any>
-#include <cstdint>
-#include <iostream>
 #include <limits>
 #include <stdexcept>
-#include <string>
-#include <string_view>
 #include <typeinfo>
 #include <utility>
-#include <vector>
 
 namespace tx_generated
 {
 
-using tx_int = std::int64_t;
-using tx_array = std::vector<std::any>;
-
-std::string tx_input();
-std::string tx_input(const std::string& prompt);
-void tx_prepare_console();
-tx_int tx_parse_int(const std::string& text);
-double tx_parse_float(const std::string& text);
-tx_int tx_float_to_int(double value);
-std::string tx_int_to_string(tx_int value);
-std::string tx_float_to_string(double value);
-std::string tx_bool_to_string(bool value);
-tx_int tx_to_int(const std::any& value);
-double tx_to_float(const std::any& value);
-std::string tx_to_string(const std::any& value);
-tx_int tx_len(const std::string& text);
-void tx_print(tx_int value);
-void tx_print(double value);
-void tx_print(bool value);
-void tx_print(const std::string& value);
-void tx_print(const std::any& value);
-
-template<class value>
-std::any tx_box(value&& item)
-{
-    return std::any(std::forward<value>(item));
-}
-
-std::any tx_box(const std::any& item)
-{
-    return item;
-}
-
-std::any tx_box(std::any&& item)
-{
-    return std::move(item);
-}
-
-tx_array tx_make_array(tx_int length, tx_array initial = {})
+tx_array tx_make_array(tx_int length, tx_array initial)
 {
     if (length < 0)
     {
@@ -225,6 +175,4 @@ double tx_neg(double value)
     return -value;
 }
 
-)TXCPP";
-
-} // namespace tx
+} // namespace tx_generated

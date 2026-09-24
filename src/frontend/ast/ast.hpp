@@ -91,6 +91,7 @@ struct call_expression
     std::vector<expr_ptr> arguments;
     bool is_constructor = false;
     std::string source_name;
+    std::optional<std::size_t> overload_index = std::nullopt;
 };
 
 using expression_data = std::variant<

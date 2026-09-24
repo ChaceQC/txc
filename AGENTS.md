@@ -15,10 +15,10 @@
 
 - src/common 存放跨层共用的类型与诊断定义。
 - src/frontend/lexer 存放 Token 与词法分析；src/frontend/ast 存放语法树；src/frontend/parser 存放语法分析；src/frontend/sema 存放名称和类型检查。
-- src/backend/cpp 存放 C++ 代码生成及生成程序使用的运行时源码。
+- src/backend/llvm 存放 LLVM IR 代码生成；src/backend/cpp 存放生成程序使用的 C++23 运行时源码和 C ABI 接口。
 - src/stdlib 存放标准库的 C++23 实现；tx/stdlib 只公开 .txh 接口，标准库构建为二进制静态库。
 - src/driver 只负责命令行参数、文件输入和编译流程编排。
-- 最终生成的 txc.exe 与标准库静态库放在仓库根目录 tx/；txc 默认输出的 .tx 程序放在 tx_build/。build/ 只用作临时 CMake 构建目录，构建成功并确认产物后清理，失败时保留以便排查。
+- 最终生成的 txc.exe、clang.exe、标准库静态库、链接组件和运行时 DLL 放在仓库根目录 tx/；txc 默认输出的 .tx 程序放在 tx_build/。build/ 只用作临时构建目录，构建成功并确认产物后清理，失败时保留以便排查。
 - 新代码放进职责对应的子目录，不把源文件直接平铺到 src 根目录。跨层调用通过明确的头文件进行。
 
 ## C++ 代码规范

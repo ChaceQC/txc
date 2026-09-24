@@ -276,10 +276,13 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     {
         actual_types.push_back(check_expression(*argument));
     }
-    for (const auto& signature : found->second)
+    for (std::size_t index = 0; index < found->second.size(); ++index)
     {
+        const auto& signature = found->second[index];
         if (signature.parameters == actual_types)
         {
+            // 后端直接使用已选中的重载，不再依赖 C++ 的重载解析。
+            call.overload_index = index;
             return signature.result;
         }
     }

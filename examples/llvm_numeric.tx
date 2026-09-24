@@ -1,0 +1,15 @@
+def twice(value: int) -> int {
+    return value * 2
+}
+
+def twice(value: float) -> float {
+    return value * 2.0
+}
+
+def main() -> int {
+    if true && twice(2) == 4 {
+        print(twice(2.5))
+    }
+    print(3.75 as int)
+    return 0
+}

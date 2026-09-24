@@ -28,6 +28,84 @@ if ($LASTEXITCODE -ne 0)
     throw '编译失败；build/ 已保留。'
 }
 
+$clang_exe = $null
+if ($env:TX_LLVM_BIN)
+{
+    $candidate = Join-Path $env:TX_LLVM_BIN 'clang.exe'
+    if (Test-Path -LiteralPath $candidate -PathType Leaf)
+    {
+        $clang_exe = $candidate
+    }
+}
+if (-not $clang_exe)
+{
+    $command = Get-Command clang.exe -ErrorAction SilentlyContinue
+    if ($command)
+    {
+        $clang_exe = $command.Source
+    }
+}
+if (-not $clang_exe)
+{
+    $candidate = 'C:\Program Files\LLVM\bin\clang.exe'
+    if (Test-Path -LiteralPath $candidate -PathType Leaf)
+    {
+        $clang_exe = $candidate
+    }
+}
+if (-not $clang_exe)
+{
+    $candidate = Join-Path $tool_dir 'clang.exe'
+    if (Test-Path -LiteralPath $candidate -PathType Leaf)
+    {
+        $clang_exe = $candidate
+    }
+}
+if (-not $clang_exe)
+{
+    throw '构建时需要 LLVM clang.exe；请设置 TX_LLVM_BIN 或加入 PATH。build/ 已保留。'
+}
+$bundled_clang = Join-Path $tool_dir 'clang.exe'
+if (-not [string]::Equals(
+    [System.IO.Path]::GetFullPath($clang_exe),
+    [System.IO.Path]::GetFullPath($bundled_clang),
+    [System.StringComparison]::OrdinalIgnoreCase))
+{
+    Copy-Item -LiteralPath $clang_exe -Destination $bundled_clang -Force
+}
+Copy-Item -LiteralPath (Join-Path $project_root 'third_party/llvm/LICENSE.TXT') `
+    -Destination (Join-Path $tool_dir 'LLVM-LICENSE.TXT') -Force
+
+$gcc_exe = (Get-Command g++ -ErrorAction Stop).Source
+$gcc_bin = Split-Path $gcc_exe
+$link_dir = Join-Path $tool_dir 'link'
+New-Item -ItemType Directory -Path $link_dir -Force | Out-Null
+foreach ($name in @(
+    'crt2.o', 'crtbegin.o', 'crtend.o', 'default-manifest.o',
+    'libstdc++.dll.a', 'libmingw32.a', 'libgcc_s.a', 'libgcc.a',
+    'libmoldname.a', 'libmingwex.a', 'libmsvcrt.a', 'libkernel32.a',
+    'libpthread.a', 'libadvapi32.a', 'libshell32.a', 'libuser32.a',
+    'libiconv.a'))
+{
+    $source = (& $gcc_exe "-print-file-name=$name" | Select-Object -First 1).Trim()
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf))
+    {
+        throw "缺少链接依赖：$name；build/ 已保留。"
+    }
+    Copy-Item -LiteralPath $source -Destination (Join-Path $link_dir $name) -Force
+}
+foreach ($name in @('ld.exe', 'libssp-0.dll'))
+{
+    Copy-Item -LiteralPath (Join-Path $gcc_bin $name) `
+        -Destination (Join-Path $link_dir $name) -Force
+}
+foreach ($name in @('libgcc_s_seh-1.dll', 'libstdc++-6.dll',
+                    'libwinpthread-1.dll'))
+{
+    Copy-Item -LiteralPath (Join-Path $gcc_bin $name) `
+        -Destination (Join-Path $tool_dir $name) -Force
+}
+
 $compiler_path = Join-Path $tool_dir 'txc.exe'
 $library_path = Join-Path $tool_dir 'libtxstdlib.a'
 $interface_dir = Join-Path $tool_dir 'stdlib'
