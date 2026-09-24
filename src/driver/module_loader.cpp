@@ -212,7 +212,22 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
     source_path.replace_extension(".tx");
     if (!fs::exists(source_path))
     {
-        result.modules[scope_indices_.at(path_text(header_path))].binary_interface = true;
+        std::error_code error;
+        const auto library_dir = fs::canonical(standard_library_dir_, error);
+        if (!error)
+        {
+            auto relative = header_path.lexically_relative(library_dir);
+            if (!relative.empty() && !relative.is_absolute() &&
+                *relative.begin() != fs::path(".."))
+            {
+                relative.replace_extension();
+                const auto module_name = path_text(relative);
+                for (auto& function : header.functions)
+                {
+                    function.external_name = module_name + "." + function.name;
+                }
+            }
+        }
         append_program(result, header);
         return;
     }
@@ -286,7 +301,7 @@ std::string module_loader::load_file(const std::filesystem::path& path,
     states_.emplace(key, load_state::visiting);
     stack_.push_back(key);
     scope_indices_[key] = result.modules.size();
-    result.modules.push_back({key, false, {}});
+    result.modules.push_back({key, {}});
     result.file_modules[key] = key;
     auto syntax = parse_file(normalized);
     if (import_site)

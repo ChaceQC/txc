@@ -20,9 +20,11 @@ txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的
 
 字符串、浮点数、混合类型数组和结构体的用法见 [数据类型示例](examples/data_types.tx)。
 
-模块导入、终端输入输出、可指定字符集的文本文件读写与字符串库见 [模块说明](docs/modules.md)、[标准库说明](docs/standard_library.md)和[可运行示例](examples/import_io.tx)。
+模块导入、终端输入输出、可指定字符集的文本文件读写、字符串、数学、数组、文件系统、时间和随机数操作见 [模块说明](docs/modules.md)、[标准库说明](docs/standard_library.md)和[可运行示例](examples/import_io.tx)。
 终端与文件操作的单独示例见 [终端 I/O](examples/terminal_io.tx)、[文件 I/O](examples/file_io.tx)和[指定字符集读写](examples/file_encodings.tx)。
 两个模块拥有同名函数时的调用见 [别名导入示例](examples/import_alias.tx)。
+数学、数组、目录与路径标准库的组合用法见 [标准库示例](examples/stdlib_modules.tx)；运行时会在 tx_build/ 下创建示例目录。
+毫秒计时和可设种子的随机数用法见 [时间与随机数示例](examples/time_random.tx)。
 `import "io.txh"` 和 `import "xx/xx.txh"` 会先查找源码同目录的接口，再查找 `tx/stdlib/` 下的对应路径；见 [本地接口优先示例](examples/local_priority/main.tx)。
 函数的直接递归、相互递归和无返回值递归见 [递归示例](examples/recursion.tx)。
 同名函数按参数类型列表重载的用法见 [函数重载示例](examples/overload.tx)。

@@ -9,15 +9,32 @@ namespace
 
 bool supported_external_call(std::string_view name)
 {
-    return name == "write" || name == "write_line" ||
-           name == "write_error" || name == "flush" ||
-           name == "contains" || name == "starts_with" ||
-           name == "ends_with" || name == "find" ||
-           name == "slice" || name == "replace" ||
-           name == "split" || name == "join" ||
-           name == "trim" || name == "lower" ||
-           name == "upper" || name == "read_text" ||
-           name == "write_text" || name == "append_text";
+    return name == "io.write" || name == "io.write_line" ||
+           name == "io.write_error" || name == "io.flush" ||
+           name == "string.contains" || name == "string.starts_with" ||
+           name == "string.ends_with" || name == "string.find" ||
+           name == "string.slice" || name == "string.replace" ||
+           name == "string.split" || name == "string.join" ||
+           name == "string.trim" || name == "string.lower" ||
+           name == "string.upper" || name == "file.read_text" ||
+           name == "file.write_text" || name == "file.append_text" ||
+           name == "math.abs" || name == "math.min" ||
+           name == "math.max" || name == "math.clamp" ||
+           name == "math.mod" || name == "math.sqrt" ||
+           name == "math.pow" || name == "math.floor" ||
+           name == "math.ceil" || name == "array.concat" ||
+           name == "array.slice" || name == "array.reverse" ||
+           name == "fs.exists" || name == "fs.is_file" ||
+           name == "fs.is_directory" ||
+           name == "fs.create_directories" ||
+           name == "fs.list_directory" ||
+           name == "path.join" || name == "path.parent" ||
+           name == "path.file_name" || name == "path.extension" ||
+           name == "time.unix_millis" ||
+           name == "time.monotonic_millis" ||
+           name == "time.sleep_millis" || name == "random.seed" ||
+           name == "random.random_int" ||
+           name == "random.random_float";
 }
 
 bool is_builtin_call(std::string_view name)
@@ -143,9 +160,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
     const expression& item, const call_expression& call,
     const function_decl& target, const std::vector<ir_value>& arguments)
 {
-    if (!supported_external_call(call.name))
+    if (!supported_external_call(target.external_name))
     {
-        throw compile_error(item.position, "标准库没有此二进制函数：" + call.name);
+        throw compile_error(item.position, "标准库没有此二进制函数：" +
+                                           call.source_name);
     }
     const auto array_address = "%slot" + std::to_string(next_slot_++);
     allocations_ << "  " << array_address << " = alloca ptr, i64 "
@@ -164,7 +182,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
     const auto result_address = allocate(value_type::any_type, item.position);
     const auto status = temporary();
     write_instruction(status + " = call i32 @txrt_call_external(ptr " +
-                      global_bytes(call.name) + ", ptr " + array_address +
+                      global_bytes(target.external_name) + ", ptr " + array_address +
                       ", i64 " + std::to_string(arguments.size()) +
                       ", ptr " + result_address + ")");
     write_instruction("call void @txrt_require_success(i32 " + status + ")");

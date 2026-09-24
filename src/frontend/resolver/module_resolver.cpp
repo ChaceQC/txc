@@ -43,8 +43,7 @@ void module_resolver::build_index(const program& source)
     {
         const auto& module = source.modules[index];
         scopes_.emplace(module.key, &module);
-        prefixes_.emplace(module.key, module.binary_interface
-            ? "" : "m" + std::to_string(index) + "_");
+        prefixes_.emplace(module.key, "m" + std::to_string(index) + "_");
     }
     for (const auto& definition : source.structs)
     {

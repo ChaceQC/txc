@@ -1,0 +1,3 @@
+def seed(value: int) -> void
+def random_int(lower: int, upper: int) -> int
+def random_float() -> float

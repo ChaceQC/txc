@@ -222,6 +222,7 @@ struct function_decl
     source_pos position;
     bool external = false;
     std::string source_name;
+    std::string external_name;
 };
 
 struct import_decl
@@ -241,7 +242,6 @@ struct module_import_binding
 struct module_scope
 {
     std::string key;
-    bool binary_interface = false;
     std::vector<module_import_binding> imports;
 };
 

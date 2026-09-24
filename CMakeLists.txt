@@ -26,11 +26,17 @@ add_library(txstdlib STATIC
     src/backend/cpp/runtime_abi.cpp
     src/backend/cpp/value_abi.cpp
     src/backend/cpp/external_abi.cpp
+    src/backend/cpp/external_abi_time_random.cpp
     src/stdlib/string.cpp
     src/stdlib/conversion.cpp
     src/stdlib/io.cpp
     src/stdlib/encoding.cpp
     src/stdlib/file.cpp
+    src/stdlib/math.cpp
+    src/stdlib/array.cpp
+    src/stdlib/filesystem.cpp
+    src/stdlib/time.cpp
+    src/stdlib/random.cpp
 )
 
 target_compile_features(txc PRIVATE cxx_std_23)

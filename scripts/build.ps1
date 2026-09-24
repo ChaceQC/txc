@@ -113,7 +113,13 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath $library_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'string.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'io.txh')) -or
-    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file.txh')))
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'math.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'array.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'fs.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'path.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'time.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'random.txh')))
 {
     throw '编译器产物或标准库接口不完整；build/ 已保留。'
 }

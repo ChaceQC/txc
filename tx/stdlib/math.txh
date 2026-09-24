@@ -1,0 +1,13 @@
+def abs(value: int) -> int
+def abs(value: float) -> float
+def min(left: int, right: int) -> int
+def min(left: float, right: float) -> float
+def max(left: int, right: int) -> int
+def max(left: float, right: float) -> float
+def clamp(value: int, lower: int, upper: int) -> int
+def clamp(value: float, lower: float, upper: float) -> float
+def mod(left: int, right: int) -> int
+def sqrt(value: float) -> float
+def pow(base: float, exponent: float) -> float
+def floor(value: float) -> int
+def ceil(value: float) -> int

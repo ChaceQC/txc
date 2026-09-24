@@ -1,4 +1,76 @@
-# 输入输出、转换与字符串库
+# 标准库
+
+## 数学运算
+
+导入 [tx/stdlib/math.txh](../tx/stdlib/math.txh)。int 版本和 float 版本的同名函数按实参类型精确匹配，不进行隐式数值转换。
+
+| 函数 | 行为 |
+| --- | --- |
+| abs(value: int 或 float) | 绝对值 |
+| min(left, right)、max(left, right) | 两个同类型数值中的较小值、较大值 |
+| clamp(value, lower, upper) | 将数值限制在闭区间内，要求 lower <= upper |
+| mod(left: int, right: int) -> int | 整数余数，符号与 left 相同 |
+| sqrt(value: float) -> float | 平方根 |
+| pow(base: float, exponent: float) -> float | 浮点幂 |
+| floor(value: float)、ceil(value: float) -> int | 向下、向上取整 |
+
+abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行错误。float 参数及 float 结果必须是有限值；sqrt 的参数不得为负，pow 的结果必须可表示为有限 float。floor、ceil 的结果还必须落在 int 范围内。
+
+## 数组操作
+
+导入 [tx/stdlib/array.txh](../tx/stdlib/array.txh)：
+
+| 函数 | 行为 |
+| --- | --- |
+| concat(left: array, right: array) -> array | 按顺序拼接两个数组 |
+| slice(values: array, start: int, end: int) -> array | 取半开区间 [start, end) |
+| reverse(values: array) -> array | 反转元素顺序 |
+
+三者均返回新数组，不修改参数；元素保留原有类型和值。slice 要求 0 <= start <= end <= len(values)，否则报运行错误。现有数组按值传递，追加单个元素可写为 `values = concat(values, [value])`。
+
+字符串库也定义了 slice；同时导入两个模块时，建议用 `as` 别名，例如 `text.slice(...)` 和 `arrays.slice(...)`。
+
+## 文件系统与路径
+
+导入 [tx/stdlib/fs.txh](../tx/stdlib/fs.txh) 和 [tx/stdlib/path.txh](../tx/stdlib/path.txh)，表中分别以 `fs` 和 `path` 为导入别名。路径参数使用 UTF-8 字符串，空路径或含 NUL 的路径会报运行错误。路径操作只处理路径文本，不访问磁盘。
+
+| 函数 | 行为 |
+| --- | --- |
+| fs.exists(path) -> bool | 路径存在时返回 true；不存在时返回 false |
+| fs.is_file(path) -> bool | 路径指向普通文件时返回 true |
+| fs.is_directory(path) -> bool | 路径指向目录时返回 true |
+| fs.create_directories(path) -> void | 创建路径及缺失的父目录；目录已存在则无操作 |
+| fs.list_directory(path) -> array | 返回目录下直接子项的名称，按 UTF-8 字节序排序 |
+| path.join(left, right) -> str | 拼接两个路径；right 为绝对路径时以 right 为准 |
+| path.parent(path) -> str | 返回父路径；没有父路径时返回空字符串 |
+| path.file_name(path) -> str | 返回末级名称 |
+| path.extension(path) -> str | 返回末级扩展名，含开头的点；没有则返回空字符串 |
+
+目录列表不递归，数组元素均为 str。文件系统操作遇到权限、非目录或其他 I/O 错误时会报运行错误；is_file 和 is_directory 对不存在的路径返回 false。路径函数的结果统一使用正斜杠作分隔符，便于直接写入 .tx 源码中的路径字符串。
+
+## 时间
+
+导入 [tx/stdlib/time.txh](../tx/stdlib/time.txh)：
+
+| 函数 | 行为 |
+| --- | --- |
+| unix_millis() -> int | 返回当前 Unix 时间戳，单位毫秒 |
+| monotonic_millis() -> int | 返回单调时钟读数，单位毫秒 |
+| sleep_millis(duration: int) -> void | 至少等待指定的非负毫秒数 |
+
+unix_millis 使用系统时钟，系统时间调整可能让相邻读数倒退。monotonic_millis 的起点没有日历含义，只适合用两次读数之差测量经过时间；毫秒精度下，短时间内的两次读数可以相同。sleep_millis(0) 无需等待；负数参数会报运行错误，实际等待时间可能比请求的更长。
+
+## 伪随机数
+
+导入 [tx/stdlib/random.txh](../tx/stdlib/random.txh)：
+
+| 函数 | 行为 |
+| --- | --- |
+| seed(value: int) -> void | 用指定整数重新初始化当前随机序列 |
+| random_int(lower: int, upper: int) -> int | 在含两端点的区间内均匀取整数 |
+| random_float() -> float | 在半开区间 [0.0, 1.0) 内取浮点数 |
+
+random_int 要求 lower <= upper，支持完整的 int 范围；区间无效时会报运行错误。未调用 seed 时，生成器由 C++ random_device 初始化，实际熵源取决于运行环境。用相同种子并按相同顺序调用，在同一构建环境中可重现结果。这些函数使用伪随机数生成器，不适合生成密钥、令牌或其他安全敏感值。
 
 ## 终端输入输出
 

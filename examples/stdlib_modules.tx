@@ -1,0 +1,48 @@
+import "math.txh" as math
+import "array.txh" as arrays
+import "fs.txh" as fs
+import "path.txh" as paths
+import "string.txh" as strings
+import "file.txh" as file
+import "io.txh" as io
+
+def main() -> int {
+    print(math.abs(-7))
+    print(math.abs(-2.5))
+    print(math.min(4, 8))
+    print(math.max(8, 3))
+    print(math.max(2.5, 3.5))
+    print(math.clamp(12, 0, 10))
+    print(math.clamp(2.5, 0.0, 2.0))
+    print(math.mod(-7, 3))
+    print(math.sqrt(9.0))
+    print(math.pow(2.0, 3.0))
+    print(math.floor(-1.2))
+    print(math.ceil(-1.2))
+
+    array values = arrays.concat([1, "二"], [3])
+    auto middle = arrays.slice(values, 1, 3)
+    auto backward = arrays.reverse(values)
+    print(len(values))
+    print(middle[0])
+    print(backward[0])
+    print(strings.slice("abcd", 1, 3))
+
+    auto directory = paths.join("tx_build", "标准库示例")
+    fs.create_directories(directory)
+    print(fs.exists(directory))
+    print(fs.is_directory(directory))
+    print(fs.is_file("README.md"))
+    print(paths.parent(directory))
+    print(paths.file_name(directory))
+    print(paths.file_name("example.txt"))
+    print(paths.extension("example.txt"))
+    for name in fs.list_directory("tx_build") {
+        if (name as str) == "标准库示例" {
+            print(name)
+        }
+    }
+    print(len(file.read_text("README.md", "utf-8")))
+    io.write_line("完成")
+    return 0
+}

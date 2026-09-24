@@ -162,11 +162,12 @@ function_decl parser::parse_function()
         {
             throw compile_error(current().position, ".txh 只允许函数声明");
         }
-        return {name, std::move(parameters), return_type, {}, position, true, name};
+        return {name, std::move(parameters), return_type, {}, position, true,
+                name, {}};
     }
     auto body = parse_block();
     return {name, std::move(parameters), return_type, std::move(body),
-            position, false, name};
+            position, false, name, {}};
 }
 
 std::vector<stmt_ptr> parser::parse_block()

@@ -1,0 +1,5 @@
+def exists(path: str) -> bool
+def is_file(path: str) -> bool
+def is_directory(path: str) -> bool
+def create_directories(path: str) -> void
+def list_directory(path: str) -> array

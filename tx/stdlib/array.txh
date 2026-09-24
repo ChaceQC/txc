@@ -1,0 +1,3 @@
+def concat(left: array, right: array) -> array
+def slice(values: array, start: int, end: int) -> array
+def reverse(values: array) -> array
