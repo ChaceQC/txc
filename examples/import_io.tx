@@ -1,0 +1,24 @@
+import "string.txh"
+
+def main() -> int {
+    auto text = input("number> ")
+    auto number = text as int
+    print(number as float)
+    print(len("你好"))
+    print(contains("你好，世界", "世界"))
+    print(starts_with("abcdef", "abc"))
+    print(ends_with("abcdef", "def"))
+    print(find("你好，世界", "世界"))
+    auto parts = split("甲,乙", ",")
+    print(parts[0])
+    print(join(parts, " / "))
+    print(replace("a-b-a", "a", "x"))
+    print(slice("abcdef", 1, 4))
+    print(trim("  hello  "))
+    print(lower("AbC"))
+    print(upper("abC"))
+    print("3.5" as float)
+    print(42 as str)
+    print(3.5 as str)
+    return 0
+}

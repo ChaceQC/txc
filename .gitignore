@@ -1,0 +1,9 @@
+/build/
+/tx/*
+!/tx/stdlib/
+/tx/stdlib/*
+!/tx/stdlib/*.txh
+/tx_build/
+*.exe
+*.o
+*.obj

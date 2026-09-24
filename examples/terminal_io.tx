@@ -1,0 +1,21 @@
+import "io.txh" as io
+
+def show_number(value: float) -> void {
+    print(value)
+}
+
+def greet(name: str) {
+    if name == "" {
+        return
+    }
+    io.write_line("你好，" + name)
+}
+
+def main() -> int {
+    io.write("请输入姓名: ")
+    io.flush()
+    auto name = input()
+    greet(name)
+    show_number(3.5)
+    return 0
+}

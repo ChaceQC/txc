@@ -1,0 +1,4 @@
+def write(text: str) -> void
+def write_line(text: str)
+def write_error(text: str) -> void
+def flush()

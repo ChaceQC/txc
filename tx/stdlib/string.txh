@@ -1,0 +1,11 @@
+def contains(text: str, part: str) -> bool
+def starts_with(text: str, prefix: str) -> bool
+def ends_with(text: str, suffix: str) -> bool
+def find(text: str, part: str) -> int
+def slice(text: str, start: int, end: int) -> str
+def replace(text: str, old: str, new: str) -> str
+def split(text: str, separator: str) -> array
+def join(parts: array, separator: str) -> str
+def trim(text: str) -> str
+def lower(text: str) -> str
+def upper(text: str) -> str

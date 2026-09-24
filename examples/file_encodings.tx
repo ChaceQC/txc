@@ -1,0 +1,33 @@
+import "file.txh" as file
+
+def roundtrip(path: str, text: str, encoding: str) -> bool {
+    file.write_text(path, text, encoding)
+    file.append_text(path, "追加", encoding)
+    return file.read_text(path, encoding) == text + "追加"
+}
+
+def main() -> int {
+    if !roundtrip("中文-utf8.txt", "你好", "utf-8") {
+        return 1
+    }
+    if !roundtrip("中文-utf8-sig.txt", "你好", "utf-8-sig") {
+        return 2
+    }
+    if !roundtrip("中文-utf16.txt", "你好𠀀", "utf-16") {
+        return 3
+    }
+    if !roundtrip("中文-utf16le.txt", "你好𠀀", "utf-16le") {
+        return 4
+    }
+    if !roundtrip("中文-utf16be.txt", "你好𠀀", "utf-16be") {
+        return 5
+    }
+    if !roundtrip("中文-gbk.txt", "你好", "gbk") {
+        return 6
+    }
+    if !roundtrip("中文-gb18030.txt", "你好𠀀", "gb18030") {
+        return 7
+    }
+    print("七种字符集读写通过")
+    return 0
+}

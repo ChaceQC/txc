@@ -1,0 +1,40 @@
+struct person {
+    name: str
+    scores: array
+}
+
+def score_count(user: person) -> int {
+    return len(user.scores)
+}
+
+def main() -> int {
+    str greeting = "你好，"
+    auto user = person("Ada", [8.5, 9.0])
+    user.scores[1] = 9.5
+    array numbers = [1, 2.5, "三"]
+    array[4] padded = [1, 2.5]
+    array[2] empty_slots
+    array mixed = [1, 2.5, user, [true, "内层"], none]
+    numbers[0] = 4
+
+    print(greeting + user.name)
+    print(user.scores[1])
+    print(score_count(user))
+    print(8.5 * 2.0)
+    print(len(numbers))
+    print(numbers[0])
+    print(numbers[0] as float)
+    print(is_none(padded[3]))
+    print(is_none(empty_slots[0]))
+    print(is_none(mixed[4]))
+    print(mixed[2].name)
+    print(len(mixed[3]))
+    print(to_float(len(numbers)))
+    print(2 as float)
+    print(3.75 as int)
+    print(1e2 / 4.0)
+    for value in numbers {
+        print(value)
+    }
+    return 0
+}

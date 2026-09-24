@@ -1,0 +1,10 @@
+import "../modules/math.txh" as math
+import "../modules/offset.txh" as offset
+import "string.txh" as text
+
+def main() -> int {
+    print(math.add(2, 3))
+    print(offset.add(2, 3))
+    print(text.contains("hello", "ell"))
+    return 0
+}
