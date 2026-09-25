@@ -74,6 +74,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/runtime_abi.cpp
     src/backend/cpp/error_abi.cpp
     src/backend/cpp/parse_abi.cpp
+    src/backend/cpp/json_abi.cpp
     src/backend/cpp/file_result_abi.cpp
     src/backend/cpp/text_reference.cpp
     src/backend/cpp/string_concat_abi.cpp
@@ -118,6 +119,9 @@ add_library(txstdlib STATIC
     src/stdlib/dictionary.cpp
     src/stdlib/conversion.cpp
     src/stdlib/parse.cpp
+    src/stdlib/json_parser.cpp
+    src/stdlib/json_writer.cpp
+    src/stdlib/json_fields.cpp
     src/stdlib/io.cpp
     src/stdlib/encoding.cpp
     src/stdlib/file.cpp

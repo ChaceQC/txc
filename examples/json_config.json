@@ -1,0 +1,13 @@
+{
+  "name": "TX",
+  "retries": 2,
+  "enabled": false,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8080
+  },
+  "tasks": [
+    {"name": "compile", "enabled": true},
+    {"name": "format", "enabled": false}
+  ]
+}

@@ -8,6 +8,10 @@
 
 解析及可恢复错误使用 `parse.txh`、`error.txh`，完整规则见[解析与可恢复错误](errors_and_parse.md)。`try_parse_int` 支持十进制和显式 2～36 进制，`try_parse_float` 支持有限十进制浮点数；返回具体的 `ok/value/error` 结果。严格 `parse_int/parse_float` 可由 `try { } exception 类型 as e { }` 捕获。文件库新增 `try_read_text/try_write_text/try_append_text`，复用相同的错误字段和结果结构。
 
+## JSON
+
+导入 [json.txh](../tx/stdlib/json.txh) 可解析和序列化 JSON；配置文件可通过 `file.read_text`、`json.parse_object` 得到普通 `dict`，直接索引和修改字段，再用 `json.stringify_pretty` 与 `file.write_text` 保存。`try_parse` 返回可区分合法 `null` 与失败的 `error.any_result`，`parse` 在错误时抛出含行、列和字节偏移的 `parse_error`。`contains`、`get` 及类型化 `get_*` 也可用于明确的字段读取。完整流程、类型对应和错误码见 [JSON 模块说明](json.md)。
+
 ## 容器算法
 
 导入 [algorithm.txh](../tx/stdlib/algorithm.txh)，提供 `sort`、`sorted`、`find`、`count`、`lower_bound`、`upper_bound`、`reverse`，以及数值向量的 `sum`、`min_element`、`max_element`。排序与二分覆盖 `vector<int/float/str>`；查找、计数和原地反转还支持 `vector<bool>`。

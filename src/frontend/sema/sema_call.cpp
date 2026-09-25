@@ -33,7 +33,7 @@ bool semantic_analyzer::matches_signature(
     const auto accepts = [this, allow_upcast, &signature](
         const value_type& actual, const value_type& expected)
     {
-        if (signature.accepts_array_value && expected == value_type::any_type)
+        if (signature.accepts_any_value && expected == value_type::any_type)
         {
             return actual != value_type::void_type &&
                    actual != value_type::unknown_type;

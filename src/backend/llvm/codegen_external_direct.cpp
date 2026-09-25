@@ -157,6 +157,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         parameters += ", i64 10";
     }
     if (target.external_name.starts_with("parse.try_") ||
+        target.external_name == "json.try_parse" ||
         target.external_name.starts_with("file.try_"))
     {
         const auto& fields = structs_.at(item.type.name)->fields;

@@ -19,7 +19,7 @@ struct function_signature
 {
     std::vector<parameter> parameters;
     value_type result;
-    bool accepts_array_value = false;
+    bool accepts_any_value = false;
 };
 
 class semantic_analyzer

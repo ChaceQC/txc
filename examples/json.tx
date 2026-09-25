@@ -1,0 +1,26 @@
+import "file.txh" as file
+import "json.txh" as json
+
+def main() -> int
+{
+    str text = file.read_text("examples/json_config.json", "utf-8")
+    dict config = json.parse_object(text)
+
+    str name = config["name"]
+    int retries = config["retries"]
+    dict server = config["server"]
+    int port = server["port"]
+    array tasks = config["tasks"]
+    dict first_task = tasks[0]
+    str task_name = first_task["name"]
+    print(name, retries, port, task_name)
+
+    config["retries"] = retries + 1
+    config["enabled"] = true
+    server["port"] = port + 1
+    first_task["enabled"] = false
+    file.write_text("tx_build/json_config_updated.json",
+                    json.stringify_pretty(config, 2), "utf-8")
+    print(json.stringify(config))
+    return 0
+}

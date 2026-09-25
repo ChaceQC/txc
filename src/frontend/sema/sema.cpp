@@ -39,17 +39,19 @@ bool returns_on_all_paths(const std::vector<stmt_ptr>& statements)
     return false;
 }
 
-bool insert_implicit_scalar_cast(expr_ptr& value, const value_type& actual,
-                                 const value_type& target)
+bool insert_implicit_value_cast(expr_ptr& value, const value_type& actual,
+                                const value_type& target)
 {
     if (actual != value_type::any_type ||
         (target != value_type::int_type &&
          target != value_type::float_type &&
-         target != value_type::str_type))
+         target != value_type::str_type &&
+         target != value_type::array_type &&
+         target != value_type::dict_type))
     {
         return false;
     }
-    // 目标类型已由声明、赋值或返回值确定，复用显式 as 的检查与代码生成。
+    // 目标类型已确定，按运行时实际值完成标量转换或容器类型检查。
     const auto position = value->position;
     auto converted = std::make_unique<expression>(
         position, cast_expression{std::move(value), target});
@@ -187,7 +189,7 @@ void semantic_analyzer::check_declaration(statement& item,
         validate_type(selected, item.position);
     }
     const auto actual = declaration.declared_type &&
-        insert_implicit_scalar_cast(declaration.initializer, inferred, selected)
+        insert_implicit_value_cast(declaration.initializer, inferred, selected)
         ? selected : inferred;
     require_type(actual, selected, declaration.initializer->position, "变量初值");
     declare_symbol(declaration.name, {selected, false}, item.position);
@@ -278,7 +280,7 @@ void semantic_analyzer::check_assignment(statement& item,
         const auto* index = std::get_if<index_expression>(&assignment.target->data);
         const bool typed_element = index &&
             (index->object->type.is_vector() || index->object->type.is_map());
-        if (!typed_element && insert_implicit_scalar_cast(assignment.value, value, target_type))
+        if (!typed_element && insert_implicit_value_cast(assignment.value, value, target_type))
         {
             value = target_type;
         }
@@ -416,7 +418,7 @@ void semantic_analyzer::check_statement(statement& item)
             throw compile_error(item.position, "非 void 函数必须返回值");
         }
         auto actual = check_expression(*result->value);
-        if (insert_implicit_scalar_cast(result->value, actual,
+        if (insert_implicit_value_cast(result->value, actual,
                                         current_return_type_))
         {
             actual = current_return_type_;

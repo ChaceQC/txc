@@ -83,7 +83,9 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
 {
     if (is_value_handle(target))
     {
-        if (target.is_vector() || target.is_typed_container())
+        if (target == value_type::array_type ||
+            target == value_type::dict_type ||
+            target.is_vector() || target.is_typed_container())
         {
             const auto check = temporary();
             write_instruction(check + " = call i32 @txrt_value_require_type(ptr " +

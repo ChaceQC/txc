@@ -1,0 +1,16 @@
+import "error.txh" as errors
+
+def parse(text: str) -> any
+def parse_object(text: str) -> dict
+def try_parse(text: str) -> errors.any_result
+def stringify(value: any) -> str
+def stringify_pretty(value: any, indent: int) -> str
+
+def contains(object: dict, key: str) -> bool
+def get(object: dict, key: str) -> any
+def get_int(object: dict, key: str) -> int
+def get_float(object: dict, key: str) -> float
+def get_bool(object: dict, key: str) -> bool
+def get_str(object: dict, key: str) -> str
+def get_array(object: dict, key: str) -> array
+def get_object(object: dict, key: str) -> dict

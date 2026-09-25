@@ -20,6 +20,13 @@ bool supported_external_call(std::string_view name)
            name == "string.upper" || name == "format.format" ||
            name == "parse.try_parse_int" || name == "parse.try_parse_float" ||
            name == "parse.parse_int" || name == "parse.parse_float" ||
+           name == "json.parse" || name == "json.parse_object" ||
+           name == "json.try_parse" ||
+           name == "json.stringify" || name == "json.stringify_pretty" ||
+           name == "json.contains" || name == "json.get" ||
+           name == "json.get_int" || name == "json.get_float" ||
+           name == "json.get_bool" || name == "json.get_str" ||
+           name == "json.get_array" || name == "json.get_object" ||
            name == "file.try_read_text" || name == "file.try_write_text" ||
            name == "file.try_append_text" || name == "file.read_text" ||
            name == "file.write_text" || name == "file.append_text" ||

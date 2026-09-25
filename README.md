@@ -38,6 +38,7 @@ txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的
 数组原地增删、字典条目快照和 none 键见[容器接口示例](examples/container_interfaces.tx)；文件复制、移动、删除、递归列举和路径转换见[文件系统接口示例](examples/filesystem_interfaces.tx)。
 程序参数、环境变量、工作目录和常用系统路径见[系统接口说明](docs/system_env.md)与[示例](examples/system_env.tx)。
 `parse`、统一的 `ok/value/error` 结果，以及 `try { } exception type as e { }` 的规则见[解析与可恢复错误](docs/errors_and_parse.md)与[示例](examples/parse_errors.tx)。实现已接入，6 个定向场景通过，验证范围见该文档末尾。
+JSON 解析、序列化和字段读取见 [JSON 模块说明](docs/json.md)与[示例](examples/json.tx)。
 毫秒计时和可设种子的随机数用法见 [时间与随机数示例](examples/time_random.tx)。
 语言特性和运行时的 TX/C++ 性能对照见 [语言特性基准](benchmarks/language_features/README.md)；标准库与 C++ Release 的对照见 [标准库基准](benchmarks/library_compare/README.md)。
 `import "io.txh"` 和 `import "xx/xx.txh"` 会先查找源码同目录的接口，再查找 `tx/stdlib/` 下的对应路径；见 [本地接口优先示例](examples/local_priority/main.tx)。

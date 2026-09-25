@@ -53,3 +53,10 @@ struct bool_result
     value: bool
     error: error_info
 }
+
+struct any_result
+{
+    ok: bool
+    value: any
+    error: error_info
+}

@@ -1,0 +1,112 @@
+import "json.txh" as json
+import "error.txh" as errors
+import "string.txh" as string
+
+def expect(condition: bool, label: str)
+{
+    if !condition
+    {
+        print("JSON_FAIL", label)
+        print(1 / 0)
+    }
+}
+
+def last_object(values: array) -> dict
+{
+    return values[2]
+}
+
+def main() -> int
+{
+    auto empty = json.try_parse("null")
+    expect(empty.ok && is_none(empty.value), "null result")
+    expect(empty.error.kind == "", "success error")
+
+    dict object = json.parse_object("{\"name\":\"\\uD834\\uDD1E\",\"n\":-9223372036854775808,\"v\":1.25e2,\"same\":1,\"same\":2,\"empty\":null}")
+    expect(json.get_str(object, "name") == "𝄞", "unicode escape")
+    expect(json.get_int(object, "n") == -9223372036854775808, "integer boundary")
+    expect(json.get_float(object, "v") == 125.0, "float")
+    expect(json.get_int(object, "same") == 2, "duplicate key")
+    expect(json.contains(object, "empty") && is_none(json.get(object, "empty")), "null field")
+    expect(!json.contains(object, "missing"), "missing field")
+
+    array values = json.parse("[true,null,{\"x\":3}]")
+    expect(len(values) == 3 && is_none(values[1]), "root array")
+    dict nested_value = values[2]
+    expect(json.get_int(nested_value, "x") == 3, "nested object")
+    expect(json.stringify(values) == "[true,null,{\"x\":3}]", "compact roundtrip")
+    expect(string.contains(json.stringify_pretty(object, 2), "\n  \"empty\": null"), "pretty")
+    dict assigned = {}
+    assigned = values[2]
+    expect(json.get_int(last_object(values), "x") == 3, "container return")
+    values[2]["x"] = 4
+    expect(json.get_int(assigned, "x") == 4, "shared nested assignment")
+
+    bool wrong_container = false
+    try
+    {
+        array wrong = values[2]
+        print(len(wrong))
+    }
+    exception errors.runtime_error as e
+    {
+        wrong_container = string.contains(e.message, "array")
+    }
+    expect(wrong_container, "container type check")
+
+    auto invalid = json.try_parse("{\n\"a\":1,}")
+    expect(!invalid.ok && invalid.error.kind == "parse_error", "invalid result")
+    expect(invalid.error.code == "invalid_syntax", "invalid code")
+    expect(string.contains(invalid.error.message, "第 2 行第 7 列"), "error position")
+    expect(json.try_parse("\"\\uD800\"").error.code == "invalid_escape", "surrogate")
+    expect(json.try_parse("9223372036854775808").error.code == "out_of_range", "integer overflow")
+
+    bool caught_missing = false
+    try
+    {
+        print(json.get_int(object, "missing"))
+    }
+    exception errors.parse_error as e
+    {
+        caught_missing = e.code == "missing_field"
+    }
+    expect(caught_missing, "missing field exception")
+
+    array cyclic = [none]
+    cyclic[0] = cyclic
+    bool caught_cycle = false
+    try
+    {
+        print(json.stringify(cyclic))
+    }
+    exception errors.runtime_error as e
+    {
+        caught_cycle = e.code == "cyclic_value"
+    }
+    expect(caught_cycle, "cycle rejection")
+
+    dict bad_key = {1: 2}
+    bool caught_key = false
+    try
+    {
+        print(json.stringify(bad_key))
+    }
+    exception errors.runtime_error as e
+    {
+        caught_key = e.code == "invalid_key"
+    }
+    expect(caught_key, "key rejection")
+
+    bool caught_indent = false
+    try
+    {
+        print(json.stringify_pretty(object, -1))
+    }
+    exception errors.runtime_error as e
+    {
+        caught_indent = e.code == "invalid_indent"
+    }
+    expect(caught_indent, "indent rejection")
+    print("JSON_OK")
+    return 0
+}

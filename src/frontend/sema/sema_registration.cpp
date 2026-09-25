@@ -132,10 +132,12 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
             validate_type(function.return_type, function.position);
         }
         function_signature signature{{}, function.return_type};
-        // 异构数组的写入边界接收任意值，不改变普通函数的精确匹配规则。
-        signature.accepts_array_value = function.external &&
+        // 这些标准库边界显式接收 any；其他函数仍使用精确匹配规则。
+        signature.accepts_any_value = function.external &&
             (function.external_name == "array.push_back" ||
-             function.external_name == "array.insert");
+             function.external_name == "array.insert" ||
+             function.external_name == "json.stringify" ||
+             function.external_name == "json.stringify_pretty");
         for (const auto& parameter : function.parameters)
         {
             validate_type(parameter.type, parameter.position);
