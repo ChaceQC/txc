@@ -6,6 +6,7 @@
 #include <any>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace
@@ -55,15 +56,7 @@ std::string keyword_name(const std::any& key)
 
 bool contains_keyword(const tx_dict& dict, const std::string& name)
 {
-    for (const auto& [key, value] : dict)
-    {
-        (void)value;
-        if (keyword_name(key) == name)
-        {
-            return true;
-        }
-    }
-    return false;
+    return dict.find_value(std::string_view(name)) != nullptr;
 }
 
 bool fixed_name(const char* const* names, std::size_t count,
@@ -102,7 +95,7 @@ extern "C" int txrt_keyword_merge(void* keywords,
     return invoke_checked([&] {
         auto& target = as_keywords(keywords);
         const auto& items = as_keywords(source);
-        for (const auto& [key, value] : items)
+        items.for_each([&](const std::any& key, const std::any& value)
         {
             const auto name = keyword_name(key);
             if (contains_keyword(target, name))
@@ -110,7 +103,7 @@ extern "C" int txrt_keyword_merge(void* keywords,
                 throw std::runtime_error("重复命名实参：" + name);
             }
             target.emplace_back(name, value);
-        }
+        });
     });
 }
 
@@ -124,6 +117,11 @@ extern "C" int txrt_call_bind(const void* positional,
     return invoke_checked([&] {
         const auto& values = std::any_cast<const tx_array&>(as_value(positional));
         const auto& words = as_keywords(keywords);
+        words.for_each([&](const std::any& key, const std::any& value)
+        {
+            (void)value;
+            (void)keyword_name(key);
+        });
         if (values.size() > fixed_count && !accepts_args)
         {
             throw std::runtime_error("位置实参数量过多");
@@ -132,15 +130,8 @@ extern "C" int txrt_call_bind(const void* positional,
                        static_cast<std::size_t>(accepts_kwargs));
         for (std::size_t index = 0; index < fixed_count; ++index)
         {
-            const std::any* named_value = nullptr;
-            for (const auto& [key, value] : words)
-            {
-                if (keyword_name(key) == names[index])
-                {
-                    named_value = &value;
-                    break;
-                }
-            }
+            const std::any* named_value = words.find_value(
+                std::string_view(names[index]));
             if (index < values.size() && named_value)
             {
                 throw std::runtime_error("参数同时收到位置和命名值：" +
@@ -161,7 +152,7 @@ extern "C" int txrt_call_bind(const void* positional,
             bound[fixed_count] = tx_array(begin, values.end());
         }
         tx_dict extra;
-        for (const auto& [key, value] : words)
+        words.for_each([&](const std::any& key, const std::any& value)
         {
             const auto name = keyword_name(key);
             if (!fixed_name(names, fixed_count, name))
@@ -172,7 +163,7 @@ extern "C" int txrt_call_bind(const void* positional,
                 }
                 extra.emplace_back(name, value);
             }
-        }
+        });
         if (accepts_kwargs)
         {
             bound[fixed_count + static_cast<std::size_t>(accepts_args)] =
@@ -198,7 +189,7 @@ extern "C" int txrt_call_split_spreads(
         const auto& keywords = as_keywords(spread_dict);
         tx_array args(source.begin(), source.end());
         tx_dict kwargs;
-        for (const auto& [key, value] : keywords)
+        keywords.for_each([&](const std::any& key, const std::any& value)
         {
             const auto name = keyword_name(key);
             if (fixed_name(fixed_names, fixed_count, name))
@@ -206,7 +197,7 @@ extern "C" int txrt_call_split_spreads(
                 throw std::runtime_error("参数同时收到位置和命名值：" + name);
             }
             kwargs.emplace_back(key, value);
-        }
+        });
         auto* args_handle = tx_generated::detail::make_handle<std::any>(
             std::move(args));
         try

@@ -97,15 +97,7 @@ field parse_field(std::string_view text)
 
 const std::any* find_keyword(const tx_dict& kwargs, std::string_view name)
 {
-    for (const auto& [key, value] : kwargs)
-    {
-        if (key.type() == typeid(std::string) &&
-            std::any_cast<const std::string&>(key) == name)
-        {
-            return &value;
-        }
-    }
-    return nullptr;
+    return kwargs.find_value(name);
 }
 
 const std::any& resolve_field(const field& item, const tx_array& args,

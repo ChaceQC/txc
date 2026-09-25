@@ -1,6 +1,7 @@
 # 当前语言的可运行语法展示；模块接口由同名 .tx 提供实现。
 import "modules/offset.txh"
 import "modules/overload.txh" as math
+import "dictionary.txh" as dictionary
 
 struct record
 {
@@ -200,7 +201,7 @@ def main() -> int
     array[4] padded = [1, 2]
     array[2] empty_slots
     array empty_array = []
-    dict settings = {"status": "完成", 7: false}
+    dict settings = {"status": "完成", "count": 2, 7: false}
     dict empty_dict = {}
     auto user = record(name="Ada", scores=[8.5, 9.0], meta={"active": true})
     auto position = vector2(2, 3) + vector2(4, 5)
@@ -214,6 +215,13 @@ def main() -> int
     settings["new"] = [1, 2]
     user.name = "Grace"
     user.scores[1] = 9.5
+    # 元素静态类型为 any；明确的目标类型按 as 的规则转换。
+    int first_number = values[0]
+    float second_number = values[1]
+    str third_text = values[2]
+    int saved_count = settings["count"]
+    str saved_status = settings["status"]
+    print(first_number, second_number, third_text, saved_count, saved_status)
     print()
     print("用户", user.name, "资料", user, sep=" | ")
     print("列表：", nested, end="\n")
@@ -227,6 +235,20 @@ def main() -> int
     print(nested[1].name)
     print(len(values))
     print(len(settings))
+    # 字典查询可允许缺键；contains 能区分缺键和存储的 none。
+    any missing = dictionary.get(settings, "missing")
+    print(is_none(missing))
+    print(dictionary.contains(settings, "status"))
+    str found_status = dictionary.get(settings, "status")
+    print(found_status)
+    print(dictionary.remove(settings, "new"))
+    print(dictionary.remove(settings, "new"))
+    # 字典无序；两次独立取得的键和值快照不用于按位置配对。
+    print(dictionary.keys(settings))
+    print(dictionary.values(settings))
+    dict scratch = {"temporary": 1}
+    dictionary.clear(scratch)
+    print(len(scratch))
     print(len(empty_array) + len(empty_dict))
     print(len(heading))
     print(is_none(padded[3]))
@@ -289,6 +311,7 @@ def main() -> int
     {
         print(value)
     }
+    # 字典遍历使用进入循环时的无序键快照。
     for key in settings
     {
         print(key)

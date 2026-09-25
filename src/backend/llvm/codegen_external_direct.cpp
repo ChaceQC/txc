@@ -106,13 +106,23 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         symbol = "txrt_" + target.external_name;
         std::replace(symbol.begin(), symbol.end(), '.', '_');
     }
+    const bool dictionary_key_call = target.external_name == "dictionary.get" ||
+        target.external_name == "dictionary.contains" ||
+        target.external_name == "dictionary.remove";
+    ir_value boxed_key{value_type::void_type, {}};
+    if (dictionary_key_call)
+    {
+        boxed_key = box_any(arguments[1], item.position);
+    }
     std::string parameters;
-    for (const auto& argument : arguments)
+    for (std::size_t index = 0; index < arguments.size(); ++index)
     {
         if (!parameters.empty())
         {
             parameters += ", ";
         }
+        const auto& argument = dictionary_key_call && index == 1
+            ? boxed_key : arguments[index];
         parameters += llvm_type(argument.type, item.position) + " " + argument.text;
     }
     if (target.external_name.starts_with("random."))
@@ -149,6 +159,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     const auto status = temporary();
     write_instruction(status + " = call i32 @" + symbol + "(" + parameters + ")");
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
+    release(boxed_key);
     for (const auto& argument : arguments)
     {
         release(argument);

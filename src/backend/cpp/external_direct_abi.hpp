@@ -33,6 +33,16 @@ int txrt_array_slice(const void* values, std::int64_t start,
                       std::int64_t end, void** result) noexcept;
 int txrt_array_reverse(const void* values, void** result) noexcept;
 
+int txrt_dictionary_get(const void* values, const void* key,
+                         void** result) noexcept;
+int txrt_dictionary_contains(const void* values, const void* key,
+                              bool* result) noexcept;
+int txrt_dictionary_remove(void* values, const void* key,
+                            bool* result) noexcept;
+int txrt_dictionary_keys(const void* values, void** result) noexcept;
+int txrt_dictionary_values(const void* values, void** result) noexcept;
+int txrt_dictionary_clear(void* values) noexcept;
+
 int txrt_file_read_text(const void* path, const void* encoding,
                          void** result) noexcept;
 int txrt_file_write_text(const void* path, const void* text,

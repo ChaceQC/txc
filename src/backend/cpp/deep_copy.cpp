@@ -78,10 +78,10 @@ private:
         }
         tx_dict result;
         copies_.emplace(source.identity(), result);
-        for (const auto& [key, item] : source)
+        source.for_each([&](const std::any& key, const std::any& item)
         {
             result.emplace_back(copy(key), copy(item));
-        }
+        });
         return result;
     }
 

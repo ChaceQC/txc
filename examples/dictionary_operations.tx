@@ -1,0 +1,46 @@
+import "dictionary.txh" as dictionary
+
+def main() -> int
+{
+    dict data = {"count": 2, "ratio": 1.5, "empty": none, 7: "seven"}
+    print(dictionary.contains(data, "count"))
+    print(dictionary.contains(data, "empty"))
+    print(dictionary.get(data, "missing"))
+    print(dictionary.get(data, 7))
+    int count = data["count"]
+    float ratio = data["ratio"]
+    str word = data[7]
+    str selected = "count"
+    int selected_count = data[selected]
+    print(count)
+    print(ratio)
+    print(word)
+    print(selected_count)
+    print(dictionary.keys(data))
+    print(dictionary.values(data))
+    print(dictionary.remove(data, "count"))
+    print(dictionary.remove(data, "count"))
+    dict alias = data
+    print(dictionary.remove(alias, 7))
+    print(dictionary.contains(data, 7))
+    data["count"] = 3
+    print(dictionary.keys(data))
+    for key in data
+    {
+        print(key)
+    }
+    # 遍历进入循环时保存键快照，清空原字典也不会跳过后续键。
+    dict snapshot = {"first": 1, "second": 2}
+    for key in snapshot
+    {
+        dictionary.clear(snapshot)
+        print(key)
+    }
+    print(len(snapshot))
+    dictionary.clear(data)
+    print(len(data))
+    data = {"new": 4}
+    int number = data["new"]
+    print(number)
+    return 0
+}

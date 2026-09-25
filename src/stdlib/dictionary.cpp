@@ -1,4 +1,5 @@
 #include "stdlib/dictionary.hpp"
+#include "stdlib/stdlib.hpp"
 
 #include "backend/cpp/cycle_gc.hpp"
 
@@ -13,18 +14,24 @@ tx_dict::tx_dict() : data_(std::make_shared<storage>())
     register_gc_node(data_,
         [](const void* object, gc_visit visit, void* context)
         {
-            for (const auto& [key, value] :
-                 static_cast<const storage*>(object)->entries)
+            const auto& data = *static_cast<const storage*>(object);
+            for (const auto& [index, item] : data.entries)
             {
-                visit(key, context);
-                visit(value, context);
+                (void)index;
+                visit(item.first, context);
+                visit(item.second, context);
+            }
+            for (const auto& item : data.nan_entries)
+            {
+                visit(item.first, context);
+                visit(item.second, context);
             }
         },
         [](void* object)
         {
             auto& data = *static_cast<storage*>(object);
             data.entries.clear();
-            data.positions.clear();
+            data.nan_entries.clear();
         });
 }
 
@@ -35,42 +42,7 @@ const void* tx_dict::identity() const noexcept
 
 std::size_t tx_dict::size() const noexcept
 {
-    return data_->entries.size();
-}
-
-tx_dict::entry& tx_dict::operator[](std::size_t index)
-{
-    return data_->entries[index];
-}
-
-const tx_dict::entry& tx_dict::operator[](std::size_t index) const
-{
-    return data_->entries[index];
-}
-
-tx_dict::entry& tx_dict::back()
-{
-    return data_->entries.back();
-}
-
-tx_dict::iterator tx_dict::begin() noexcept
-{
-    return data_->entries.begin();
-}
-
-tx_dict::iterator tx_dict::end() noexcept
-{
-    return data_->entries.end();
-}
-
-tx_dict::const_iterator tx_dict::begin() const noexcept
-{
-    return data_->entries.begin();
-}
-
-tx_dict::const_iterator tx_dict::end() const noexcept
-{
-    return data_->entries.end();
+    return data_->entries.size() + data_->nan_entries.size();
 }
 
 std::optional<tx_dict::index_key> tx_dict::make_key(const std::any& key)
@@ -103,40 +75,110 @@ std::optional<tx_dict::index_key> tx_dict::make_key(const std::any& key)
 
 std::any* tx_dict::find_value(const std::any& key)
 {
+    return const_cast<std::any*>(std::as_const(*this).find_value(key));
+}
+
+const std::any* tx_dict::find_value(const std::any& key) const
+{
     const auto index = make_key(key);
     if (!index)
     {
         return nullptr;
     }
-    const auto found = data_->positions.find(*index);
-    return found == data_->positions.end() ? nullptr
-                                           : &data_->entries[found->second].second;
+    const auto found = data_->entries.find(*index);
+    return found == data_->entries.end() ? nullptr : &found->second.second;
 }
 
 std::any* tx_dict::find_value(std::string_view key)
 {
-    const index_key index = std::string(key);
-    const auto found = data_->positions.find(index);
-    return found == data_->positions.end() ? nullptr
-                                           : &data_->entries[found->second].second;
+    return const_cast<std::any*>(std::as_const(*this).find_value(key));
 }
 
-void tx_dict::emplace_back(std::any key, std::any value)
+const std::any* tx_dict::find_value(std::string_view key) const
+{
+    const auto found = data_->entries.find(key);
+    return found == data_->entries.end() ? nullptr : &found->second.second;
+}
+
+std::any& tx_dict::emplace_back(std::any key, std::any value)
 {
     const auto index = make_key(key);
-    data_->entries.emplace_back(std::move(key), std::move(value));
-    if (index)
+    if (!index)
     {
-        try
-        {
-            data_->positions.emplace(*index, data_->entries.size() - 1);
-        }
-        catch (...)
-        {
-            data_->entries.pop_back();
-            throw;
-        }
+        data_->nan_entries.emplace_back(std::move(key), std::move(value));
+        return data_->nan_entries.back().second;
     }
+    const auto found = data_->entries.find(*index);
+    if (found != data_->entries.end())
+    {
+        found->second.second = std::move(value);
+        return found->second.second;
+    }
+    const auto [inserted, success] = data_->entries.emplace(
+        *index, entry{std::move(key), std::move(value)});
+    (void)success;
+    return inserted->second.second;
+}
+
+bool tx_dict::erase(const std::any& key)
+{
+    const auto index = make_key(key);
+    if (!index)
+    {
+        return false;
+    }
+    return data_->entries.erase(*index) != 0;
+}
+
+void tx_dict::clear() noexcept
+{
+    data_->entries.clear();
+    data_->nan_entries.clear();
+}
+
+std::any tx_fn_dictionary_get(const tx_dict& values, const std::any& key)
+{
+    const auto* found = values.find_value(key);
+    return found ? *found : std::any{};
+}
+
+bool tx_fn_dictionary_contains(const tx_dict& values, const std::any& key)
+{
+    return values.find_value(key) != nullptr;
+}
+
+bool tx_fn_dictionary_remove(tx_dict values, const std::any& key)
+{
+    return values.erase(key);
+}
+
+tx_array tx_fn_dictionary_keys(const tx_dict& values)
+{
+    tx_array result;
+    result.reserve(values.size());
+    values.for_each([&](const std::any& key, const std::any& value)
+    {
+        (void)value;
+        result.push_back(key);
+    });
+    return result;
+}
+
+tx_array tx_fn_dictionary_values(const tx_dict& values)
+{
+    tx_array result;
+    result.reserve(values.size());
+    values.for_each([&](const std::any& key, const std::any& value)
+    {
+        (void)key;
+        result.push_back(value);
+    });
+    return result;
+}
+
+void tx_fn_dictionary_clear(tx_dict values) noexcept
+{
+    values.clear();
 }
 
 } // namespace tx_generated

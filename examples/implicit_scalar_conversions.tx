@@ -1,0 +1,36 @@
+# any 元素在明确的 int、float、str 目标处沿用 as 的转换规则。
+def read_text(values: array) -> str
+{
+    return values[3]
+}
+
+def main() -> int
+{
+    array a = [1, 2, 3.2, "666"]
+    int b = a[1]
+    float c = a[2]
+    str d = a[3]
+    print(b, c, d)
+
+    int parsed = a[3]
+    float widened = a[1]
+    str formatted = a[2]
+    float explicit_float = a[2] as float
+    str explicit_str = a[3] as str
+    if parsed != 666 || widened != 2.0 || formatted != "3.2"
+    {
+        return 1
+    }
+    if explicit_float != 3.2 || explicit_str != "666"
+    {
+        return 2
+    }
+    b = a[0]
+    c = a[1]
+    d = read_text(a)
+    if b != 1 || c != 2.0 || d != "666"
+    {
+        return 3
+    }
+    return 0
+}

@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
+#include <string>
 #include <typeinfo>
 
 namespace
@@ -81,6 +82,47 @@ extern "C" std::int64_t txrt_array_ref_get_i64(const void* value,
     txrt_require_success(invoke_checked([&]
     {
         result = tx_generated::tx_to_int(tx_generated::tx_at(array, index));
+    }));
+    return result;
+}
+
+extern "C" double txrt_array_ref_get_f64(const void* value,
+                                           std::int64_t index) noexcept
+{
+    const auto& array = *static_cast<const tx_generated::tx_array*>(value);
+    if (index >= 0 && static_cast<std::uint64_t>(index) < array.size())
+    {
+        if (const auto* number = std::any_cast<double>(
+                &array[static_cast<std::size_t>(index)]))
+        {
+            return *number;
+        }
+    }
+    double result = 0;
+    txrt_require_success(invoke_checked([&]
+    {
+        result = tx_generated::tx_to_float(tx_generated::tx_at(array, index));
+    }));
+    return result;
+}
+
+extern "C" void* txrt_array_ref_get_str(const void* value,
+                                          std::int64_t index) noexcept
+{
+    const auto& array = *static_cast<const tx_generated::tx_array*>(value);
+    void* result = nullptr;
+    txrt_require_success(invoke_checked([&]
+    {
+        const auto& element = tx_generated::tx_at(array, index);
+        if (const auto* text = std::any_cast<std::string>(&element))
+        {
+            result = make_handle<std::string>(*text);
+        }
+        else
+        {
+            result = make_handle<std::string>(
+                tx_generated::tx_to_string(element));
+        }
     }));
     return result;
 }

@@ -1,0 +1,18 @@
+def get(values: dict, key: int) -> any
+def get(values: dict, key: float) -> any
+def get(values: dict, key: bool) -> any
+def get(values: dict, key: str) -> any
+
+def contains(values: dict, key: int) -> bool
+def contains(values: dict, key: float) -> bool
+def contains(values: dict, key: bool) -> bool
+def contains(values: dict, key: str) -> bool
+
+def remove(values: dict, key: int) -> bool
+def remove(values: dict, key: float) -> bool
+def remove(values: dict, key: bool) -> bool
+def remove(values: dict, key: str) -> bool
+
+def keys(values: dict) -> array
+def values(values: dict) -> array
+def clear(values: dict) -> void

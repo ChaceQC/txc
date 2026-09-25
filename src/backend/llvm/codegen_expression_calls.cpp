@@ -25,6 +25,9 @@ bool supported_external_call(std::string_view name)
            name == "math.pow" || name == "math.floor" ||
            name == "math.ceil" || name == "array.concat" ||
            name == "array.slice" || name == "array.reverse" ||
+           name == "dictionary.get" || name == "dictionary.contains" ||
+           name == "dictionary.remove" || name == "dictionary.keys" ||
+           name == "dictionary.values" || name == "dictionary.clear" ||
            name == "fs.exists" || name == "fs.is_file" ||
            name == "fs.is_directory" ||
            name == "fs.create_directories" ||
@@ -271,6 +274,22 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
                         const auto length = temporary();
                         write_instruction(length +
                             " = call i64 @txrt_array_ref_len(ptr " +
+                            reference + ")");
+                        return {value_type::int_type, length};
+                    }
+                }
+            }
+            if (call.name == "len" && input.type == value_type::dict_type)
+            {
+                if (const auto* name = std::get_if<name_reference>(&input.data))
+                {
+                    const auto slot = find_variable(name->name, input.position);
+                    if (!slot.dict_reference.empty())
+                    {
+                        const auto reference = load_dict_reference(slot);
+                        const auto length = temporary();
+                        write_instruction(length +
+                            " = call i64 @txrt_dict_ref_len(ptr " +
                             reference + ")");
                         return {value_type::int_type, length};
                     }

@@ -64,7 +64,7 @@ void append_dict(std::string& output, const tx_dict& items,
 {
     output.push_back('{');
     std::size_t index = 0;
-    for (const auto& [key, item] : items)
+    items.for_each([&](const std::any& key, const std::any& item)
     {
         if (index++ != 0)
         {
@@ -73,7 +73,7 @@ void append_dict(std::string& output, const tx_dict& items,
         append_value(output, key, true, depth + 1);
         output += ": ";
         append_value(output, item, true, depth + 1);
-    }
+    });
     output.push_back('}');
 }
 

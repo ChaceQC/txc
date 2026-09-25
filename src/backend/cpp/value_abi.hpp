@@ -50,6 +50,10 @@ void* txrt_array_ref(void* value) noexcept;
 std::int64_t txrt_array_ref_len(const void* value) noexcept;
 std::int64_t txrt_array_ref_get_i64(const void* value,
                                     std::int64_t index) noexcept;
+double txrt_array_ref_get_f64(const void* value,
+                              std::int64_t index) noexcept;
+void* txrt_array_ref_get_str(const void* value,
+                             std::int64_t index) noexcept;
 const void* txrt_array_ref_element_read_ptr(const void* value,
                                             std::int64_t index) noexcept;
 void* txrt_array_ref_element_ptr(void* value, std::int64_t index) noexcept;
@@ -81,10 +85,34 @@ int txrt_array_extend(void* value, const void* items) noexcept;
 int txrt_array_require_length(const void* value, std::size_t length) noexcept;
 
 int txrt_dict_new(void** result) noexcept;
+void* txrt_dict_ref(void* value) noexcept;
+std::int64_t txrt_dict_ref_len(const void* value) noexcept;
+const void* txrt_dict_ref_element_read_ptr(const void* value,
+                                           const void* key) noexcept;
+const void* txrt_dict_ref_element_read_ptr_str(const void* value,
+                                               const void* key) noexcept;
+const void* txrt_dict_ref_element_read_ptr_literal(const void* value,
+    const char* key, std::size_t length) noexcept;
+std::int64_t txrt_dict_ref_get_i64(const void* value,
+                                  const void* key) noexcept;
+std::int64_t txrt_dict_ref_get_i64_str(const void* value,
+                                      const void* key) noexcept;
+std::int64_t txrt_dict_ref_get_i64_literal(const void* value,
+    const char* key, std::size_t length) noexcept;
+double txrt_dict_ref_get_f64(const void* value,
+                             const void* key) noexcept;
+double txrt_dict_ref_get_f64_str(const void* value,
+                                 const void* key) noexcept;
+double txrt_dict_ref_get_f64_literal(const void* value,
+    const char* key, std::size_t length) noexcept;
+void* txrt_dict_ref_get_str(const void* value,
+                            const void* key) noexcept;
+void* txrt_dict_ref_get_str_str(const void* value,
+                                const void* key) noexcept;
+void* txrt_dict_ref_get_str_literal(const void* value,
+    const char* key, std::size_t length) noexcept;
 int txrt_dict_set(void* value, const void* key, const void* item) noexcept;
 int txrt_dict_len(const void* value, std::int64_t* result) noexcept;
-int txrt_dict_key_address(void* value, std::int64_t index,
-                          void** result) noexcept;
 int txrt_dict_element_address(void* value, const void* key, bool create,
                                void** result) noexcept;
 int txrt_dict_element_address_str(void* value, const void* key, bool create,

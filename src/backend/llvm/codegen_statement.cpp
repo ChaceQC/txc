@@ -78,8 +78,12 @@ void llvm_code_generator::emit_declaration(
                       value.text + ", ptr " + address);
     const auto array_reference = type == value_type::array_type
         ? cache_array_reference(value.text, item.position) : std::string{};
-    scopes_.back().emplace(declaration.name,
-                           variable_slot{type, address, false, array_reference});
+    variable_slot slot{type, address, false, array_reference};
+    if (type == value_type::dict_type)
+    {
+        slot.dict_reference = cache_dict_reference(value.text, item.position);
+    }
+    scopes_.back().emplace(declaration.name, std::move(slot));
 }
 
 void llvm_code_generator::emit_composite_assignment(
@@ -231,6 +235,7 @@ void llvm_code_generator::emit_name_assignment(
     write_instruction("store " + llvm_type(variable.type, item.position) +
                       " " + value.text + ", ptr " + variable.address);
     refresh_array_reference(variable, value.text);
+    refresh_dict_reference(variable, value.text);
 }
 
 void llvm_code_generator::emit_assignment(

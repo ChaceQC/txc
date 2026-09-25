@@ -123,6 +123,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
         ir_value object{value_type::void_type, {}};
         bool borrowed_object = false;
         bool native_array = false;
+        bool native_dict = false;
         if (const auto* name = std::get_if<name_reference>(&access->object->data))
         {
             const auto variable = find_variable(name->name,
@@ -131,9 +132,19 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
             {
                 native_array = variable.type == value_type::array_type &&
                     !variable.array_reference.empty();
+                const bool simple_key =
+                    std::holds_alternative<name_reference>(access->index->data) ||
+                    std::holds_alternative<string_literal>(access->index->data) ||
+                    std::holds_alternative<integer_literal>(access->index->data) ||
+                    std::holds_alternative<floating_literal>(access->index->data) ||
+                    std::holds_alternative<boolean_literal>(access->index->data) ||
+                    std::holds_alternative<none_literal>(access->index->data);
+                native_dict = variable.type == value_type::dict_type &&
+                    !variable.dict_reference.empty() && simple_key;
                 const auto handle = native_array
-                    ? load_array_reference(variable) : temporary();
-                if (!native_array)
+                    ? load_array_reference(variable) : native_dict
+                    ? load_dict_reference(variable) : temporary();
+                if (!native_array && !native_dict)
                 {
                     write_instruction(handle + " = load ptr, ptr " +
                                       variable.address);
@@ -170,6 +181,27 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
                     ? "txrt_array_ref_element_read_ptr"
                     : "txrt_array_element_read_ptr") + "(ptr " + object.text +
                 ", i64 " + index.text + ")");
+        }
+        else if (native_dict)
+        {
+            borrowed = temporary();
+            if (literal_key)
+            {
+                const auto decoded = decode_string_literal(literal_key->text);
+                write_instruction(borrowed +
+                    " = call ptr @txrt_dict_ref_element_read_ptr_literal(ptr " +
+                    object.text + ", ptr " + global_bytes(decoded) +
+                    ", i64 " + std::to_string(decoded.size()) + ")");
+            }
+            else
+            {
+                const auto* function = string_key
+                    ? "txrt_dict_ref_element_read_ptr_str"
+                    : "txrt_dict_ref_element_read_ptr";
+                write_instruction(borrowed + " = call ptr @" + function +
+                    "(ptr " + object.text + ", ptr " +
+                    (string_key ? index.text : boxed_index.text) + ")");
+            }
         }
         else
         {

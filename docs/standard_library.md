@@ -30,6 +30,23 @@ abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行�
 
 字符串库也定义了 slice；同时导入两个模块时，建议用 `as` 别名，例如 `text.slice(...)` 和 `arrays.slice(...)`。
 
+## 字典操作
+
+导入 [tx/stdlib/dictionary.txh](../tx/stdlib/dictionary.txh)，建议使用 `as dictionary` 别名。带键的操作分别提供 `int`、`float`、`bool`、`str` 重载，按键的静态类型选用；字典仍保留原有的索引规则。
+
+| 函数 | 行为 |
+| --- | --- |
+| `get(values: dict, key) -> any` | 返回对应值；缺键返回 `none`，不插入新键 |
+| `contains(values: dict, key) -> bool` | 判断键是否存在，包括值为 `none` 的键 |
+| `remove(values: dict, key) -> bool` | 删除键并返回 `true`；缺键返回 `false` |
+| `keys(values: dict) -> array` | 返回键的快照，顺序不保证 |
+| `values(values: dict) -> array` | 返回值的快照，顺序不保证 |
+| `clear(values: dict) -> void` | 清空共享字典 |
+
+`get` 返回 `none` 时，可用 `contains` 区分缺键与已存储的 `none`。`keys` 和 `values` 返回独立数组，其中的复合值仍与原字典共享对象；两次独立调用的排列不能当作彼此配对的保证。`remove` 和 `clear` 会通过共享引用生效。普通键的查找、插入与删除平均为 O(1)，哈希碰撞极端情况下可能退化。完整用法见[字典操作示例](../examples/dictionary_operations.tx)。
+
+浮点 `NaN` 键保留现有语义：可以存入并计入长度与遍历，但由于它不等于自身，后续查找和删除都不会命中它。
+
 ## 文件系统与路径
 
 导入 [tx/stdlib/fs.txh](../tx/stdlib/fs.txh) 和 [tx/stdlib/path.txh](../tx/stdlib/path.txh)，表中分别以 `fs` 和 `path` 为导入别名。路径参数使用 UTF-8 字符串，空路径或含 NUL 的路径会报运行错误。路径操作只处理路径文本，不访问磁盘。
@@ -79,7 +96,7 @@ random_int 要求 lower <= upper，支持完整的 int 范围；区间无效时�
 
 `input_or_none()` 和 `input_or_none("提示")` 使用同样的读取与提示规则，但在没有更多输入时返回 `none`；读到一行时返回 `str`，静态返回类型为 `any`。可先用 `is_none` 判断，再用 `as str` 取得文本。真正的读取失败和无效 UTF-8 仍报运行错误。
 
-`print()` 输出空行；`print(value, ...)` 输出零个或多个值，默认用空格分隔、末尾换行。可以在值后指定 `sep` 和 `end` 字符串，如 `print("a", 2, sep=", ", end="!\n")`。不支持在 `print` 中使用 `*` 或 `**` 展开。数值和布尔值的文本格式与 `as str` 一致；顶层字符串原样输出，`none` 输出为 `none`。数组显示为 `[元素, ...]`，字典显示为 `{键: 值, ...}`，结构体显示为 `类型名(字段=值, ...)`；嵌套字符串以双引号括起，并转义反斜杠、引号及 ASCII 控制字符。字典保持插入顺序，结构体保持字段声明顺序。复合值嵌套超过 64 层时报运行错误。`as str` 对复合值的现有转换规则不变。
+`print()` 输出空行；`print(value, ...)` 输出零个或多个值，默认用空格分隔、末尾换行。可以在值后指定 `sep` 和 `end` 字符串，如 `print("a", 2, sep=", ", end="!\n")`。不支持在 `print` 中使用 `*` 或 `**` 展开。数值和布尔值的文本格式与 `as str` 一致；顶层字符串原样输出，`none` 输出为 `none`。数组显示为 `[元素, ...]`，字典显示为 `{键: 值, ...}`，结构体显示为 `类型名(字段=值, ...)`；嵌套字符串以双引号括起，并转义反斜杠、引号及 ASCII 控制字符。字典不保证输出顺序，结构体保持字段声明顺序。复合值嵌套超过 64 层时报运行错误。`as str` 对复合值的现有转换规则不变。
 
 需要控制换行、标准错误或刷新时，导入 [tx/stdlib/io.txh](../tx/stdlib/io.txh)：
 
@@ -146,6 +163,8 @@ def main() -> int {
 | any 中实际存放上述值 | int、float、str | 按实际类型执行对应转换 |
 
 例如 2 as float 输出 2.0，"42" as int 得到 42，3.5 as str 得到 "3.5"。对 none、数组或结构体做这些转换会报运行错误。
+
+静态类型为 `any` 的表达式赋给明确的 `int`、`float`、`str` 目标时，可省略 `as`；显式变量声明、普通赋值和返回值采用相同的转换及错误规则。例如 `array values = [1, 2, 3.2, "666"]` 后，`int number = values[1]`、`float decimal = values[2]`、`str text = values[3]` 分别得到 `2`、`3.2`、`"666"`。静态类型已知的 `int`、`float`、`str` 之间仍需显式使用 `as`。
 
 ## 字符串基础操作
 

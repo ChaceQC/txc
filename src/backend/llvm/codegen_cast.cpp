@@ -50,6 +50,31 @@ llvm_code_generator::ir_value llvm_code_generator::emit_cast(
                 return cast_array_element(*index, cast.target, item.position);
             }
         }
+        if (const auto* index = std::get_if<index_expression>(&cast.value->data);
+            index && index->object->type == value_type::dict_type &&
+            (cast.target == value_type::int_type ||
+             cast.target == value_type::float_type ||
+             cast.target == value_type::str_type))
+        {
+            if (const auto* name = std::get_if<name_reference>(
+                    &index->object->data))
+            {
+                const auto variable = find_variable(name->name,
+                                                    index->object->position);
+                const auto& key = index->index->data;
+                const bool simple_key =
+                    std::holds_alternative<name_reference>(key) ||
+                    std::holds_alternative<string_literal>(key) ||
+                    std::holds_alternative<integer_literal>(key) ||
+                    std::holds_alternative<floating_literal>(key) ||
+                    std::holds_alternative<boolean_literal>(key) ||
+                    std::holds_alternative<none_literal>(key);
+                if (!variable.dict_reference.empty() && simple_key)
+                {
+                    return cast_dict_element(*index, cast.target, item.position);
+                }
+            }
+        }
     }
     const auto value = expression_value(*cast.value);
     if (classes_.contains(cast.target.name))
@@ -188,12 +213,19 @@ llvm_code_generator::ir_value llvm_code_generator::cast_array_element(
         write_instruction(array + " = load ptr, ptr " + field);
     }
     const auto element_index = expression_value(*index.index);
-    if (native_array && target == value_type::int_type)
+    if (native_array &&
+        (target == value_type::int_type ||
+         target == value_type::float_type ||
+         target == value_type::str_type))
     {
+        const auto* function = target == value_type::int_type
+            ? "txrt_array_ref_get_i64"
+            : target == value_type::float_type
+            ? "txrt_array_ref_get_f64" : "txrt_array_ref_get_str";
         const auto result = temporary();
-        write_instruction(result +
-            " = call i64 @txrt_array_ref_get_i64(ptr " + array +
-            ", i64 " + element_index.text + ")");
+        write_instruction(result + " = call " +
+            llvm_type(target, position) + " @" + function +
+            "(ptr " + array + ", i64 " + element_index.text + ")");
         release(element_index);
         return {target, result};
     }

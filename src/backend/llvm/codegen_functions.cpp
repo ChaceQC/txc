@@ -60,11 +60,16 @@ void llvm_code_generator::emit_function(const function_decl& function)
         const auto array_reference = parameter.type == value_type::array_type
             ? cache_array_reference("%arg" + std::to_string(argument_index),
                                     parameter.position) : std::string{};
-        scopes_.back().emplace(parameter.name,
-            variable_slot{parameter.type, address,
-                (i == 0 && operator_parameter_borrowed(function)) ||
-                init_parameter_borrowed(function, i) ||
-                ordinary_parameter_borrowed(function, i), array_reference});
+        variable_slot slot{parameter.type, address,
+            (i == 0 && operator_parameter_borrowed(function)) ||
+            init_parameter_borrowed(function, i) ||
+            ordinary_parameter_borrowed(function, i), array_reference};
+        if (parameter.type == value_type::dict_type)
+        {
+            slot.dict_reference = cache_dict_reference(
+                "%arg" + std::to_string(argument_index), parameter.position);
+        }
+        scopes_.back().emplace(parameter.name, std::move(slot));
     }
     emit_statements(function.body);
     if (!terminated_)

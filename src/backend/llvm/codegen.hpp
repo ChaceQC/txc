@@ -36,6 +36,7 @@ private:
         std::string snapshot_bits;
         std::optional<std::size_t> local_array_length;
         std::string dynamic_array_length;
+        std::string dict_reference;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -83,6 +84,12 @@ private:
     void refresh_array_reference(const variable_slot& variable,
                                  const std::string& handle);
     [[nodiscard]] std::string load_array_reference(
+        const variable_slot& variable);
+    [[nodiscard]] std::string cache_dict_reference(
+        const std::string& handle, source_pos position);
+    void refresh_dict_reference(const variable_slot& variable,
+                                const std::string& handle);
+    [[nodiscard]] std::string load_dict_reference(
         const variable_slot& variable);
     [[nodiscard]] variable_slot make_scalar_snapshot(
         const std::string& element, source_pos position);
@@ -172,6 +179,9 @@ private:
     [[nodiscard]] ir_value cast_array_element(const index_expression& index,
                                               const value_type& target,
                                               source_pos position);
+    [[nodiscard]] ir_value cast_dict_element(const index_expression& index,
+                                             const value_type& target,
+                                             source_pos position);
     [[nodiscard]] ir_value checked_binary(const std::string& name,
                                           const ir_value& left,
                                           const ir_value& right,

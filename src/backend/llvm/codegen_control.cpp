@@ -285,6 +285,22 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
     write_instruction("store ptr " + values.text + ", ptr " + values_address);
     scopes_.back().emplace("$foreach", variable_slot{
         values.type, values_address, borrowed_values});
+    std::string iteration_values = values.text;
+    if (values.type == value_type::dict_type)
+    {
+        // 字典无序；进入循环时取得键快照，后续增删不影响本次遍历。
+        const auto keys_address = allocate(value_type::array_type,
+                                           loop.values->position);
+        const auto keys_status = temporary();
+        write_instruction(keys_status + " = call i32 @txrt_dictionary_keys(ptr " +
+                          values.text + ", ptr " + keys_address + ")");
+        write_instruction("call void @txrt_require_success(i32 " +
+                          keys_status + ")");
+        iteration_values = temporary();
+        write_instruction(iteration_values + " = load ptr, ptr " + keys_address);
+        scopes_.back().emplace("$dict_keys", variable_slot{
+            value_type::array_type, keys_address});
+    }
     const auto length_address = allocate(value_type::int_type,
                                          loop.values->position);
     if (!array_reference.empty())
@@ -297,10 +313,8 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
     else
     {
         const auto length_status = temporary();
-        const auto length_function = values.type == value_type::dict_type
-            ? "txrt_dict_len" : "txrt_array_len";
-        write_instruction(length_status + " = call i32 @" + length_function +
-                          "(ptr " + values.text + ", ptr " + length_address + ")");
+        write_instruction(length_status + " = call i32 @txrt_array_len(ptr " +
+                          iteration_values + ", ptr " + length_address + ")");
         write_instruction("call void @txrt_require_success(i32 " +
                           length_status + ")");
     }
@@ -339,16 +353,10 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
         }
         else
         {
-            const auto field = allocate(value_type::any_type,
-                                        loop.values->position);
-            const auto field_status = temporary();
-            write_instruction(field_status +
-                " = call i32 @txrt_dict_key_address(ptr " + values.text +
-                ", i64 " + index.text + ", ptr " + field + ")");
-            write_instruction("call void @txrt_require_success(i32 " +
-                              field_status + ")");
             borrowed = temporary();
-            write_instruction(borrowed + " = load ptr, ptr " + field);
+            write_instruction(borrowed +
+                " = call ptr @txrt_array_element_read_ptr(ptr " +
+                iteration_values + ", i64 " + index.text + ")");
         }
         if (!rebinds_name(loop.body, loop.name))
         {

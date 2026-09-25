@@ -24,6 +24,7 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
     if (type == value_type::int_type || type == value_type::bool_type ||
         type == value_type::float_type || type == value_type::str_type ||
         type == value_type::array_type || type == value_type::dict_type ||
+        type == value_type::any_type ||
         structs_.contains(type.name) || classes_.contains(type.name))
     {
         return;

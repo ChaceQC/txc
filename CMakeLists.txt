@@ -36,6 +36,7 @@ add_executable(txc
     src/backend/llvm/codegen_local_array_analysis.cpp
     src/backend/llvm/codegen_expression.cpp
     src/backend/llvm/codegen_cast.cpp
+    src/backend/llvm/codegen_dict.cpp
     src/backend/llvm/codegen_expression_ops.cpp
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
@@ -55,6 +56,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/cycle_gc.cpp
     src/backend/cpp/text_direct_abi.cpp
     src/backend/cpp/array_direct_abi.cpp
+    src/backend/cpp/dictionary_direct_abi.cpp
     src/backend/cpp/array_abi.cpp
     src/backend/cpp/local_scalar_array_abi.cpp
     src/backend/cpp/filesystem_direct_abi.cpp
@@ -67,6 +69,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/class_abi.cpp
     src/backend/cpp/value_format.cpp
     src/backend/cpp/dictionary_abi.cpp
+    src/backend/cpp/dictionary_ref_abi.cpp
     src/backend/cpp/call_abi.cpp
     src/backend/cpp/external_abi.cpp
     src/backend/cpp/external_abi_time_random.cpp

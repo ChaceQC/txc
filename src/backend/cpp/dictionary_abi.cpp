@@ -68,8 +68,7 @@ std::any* dict_element_address(tx_dict& dict, const std::any& key, bool create)
     {
         throw std::runtime_error("字典键不存在");
     }
-    dict.emplace_back(key, std::any{});
-    return &dict.back().second;
+    return &dict.emplace_back(key, std::any{});
 }
 
 } // namespace
@@ -112,19 +111,6 @@ extern "C" int txrt_dict_len(const void* value,
             throw std::runtime_error("字典长度超出 int 范围");
         }
         *result = static_cast<std::int64_t>(size);
-    });
-}
-
-extern "C" int txrt_dict_key_address(void* value, std::int64_t index,
-                                        void** result) noexcept
-{
-    return invoke_checked([&] {
-        auto& dict = as_dict(value);
-        if (index < 0 || static_cast<std::size_t>(index) >= dict.size())
-        {
-            throw std::runtime_error("字典索引越界");
-        }
-        *result = &dict[static_cast<std::size_t>(index)].first;
     });
 }
 
@@ -189,7 +175,6 @@ extern "C" int txrt_dict_element_address_literal(
         {
             throw std::runtime_error("字典键不存在");
         }
-        dict.emplace_back(std::string(text), std::any{});
-        *result = &dict.back().second;
+        *result = &dict.emplace_back(std::string(text), std::any{});
     });
 }

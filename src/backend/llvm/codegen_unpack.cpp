@@ -96,6 +96,7 @@ void llvm_code_generator::emit_unpack(
             write_instruction("store " + llvm_type(slot.type, item.position) +
                               " " + values[index].text + ", ptr " + slot.address);
             refresh_array_reference(slot, values[index].text);
+            refresh_dict_reference(slot, values[index].text);
         }
     }
     if (!borrowed_source)
