@@ -9,6 +9,16 @@ def report(name: str, started: int, checksum: int)
     print(checksum)
 }
 
+def runtime_seed() -> int
+{
+    # 让输入在运行时确定，同时让正常时间环境下的校验值保持固定。
+    if time.unix_millis() > 0
+    {
+        return 1
+    }
+    return 2
+}
+
 def add(left: int, right: int) -> int
 {
     return left + right
@@ -101,6 +111,19 @@ class adjusted_counter : counter, readable
         }
 }
 
+class alternate_counter : counter, readable
+{
+    public:
+        override def read() -> int
+        {
+            return self.value + 1
+        }
+        override def operator +(other: counter) -> int
+        {
+            return (super + other) + 1
+        }
+}
+
 class tracked
 {
     public:
@@ -157,12 +180,18 @@ def bench_scalar_control()
 def bench_updates()
 {
     int checksum = 0
-    int value = 0
+    int value = runtime_seed()
     auto started = time.monotonic_millis()
     for i in 1..=500000
     {
+        value += i
         checksum += value++
+        value -= value / 7
         value--
+        if value > 1000000
+        {
+            value -= 1000000
+        }
     }
     report("updates", started, checksum)
 }
@@ -200,33 +229,37 @@ def bench_float_arithmetic()
 
 def bench_overloads()
 {
-    int checksum = 0
+    int checksum = runtime_seed()
     auto started = time.monotonic_millis()
     for i in 1..=100000
     {
         checksum += add(i, 3) + (add(1.0, 2.0) as int)
+        checksum -= checksum / 1000000
     }
     report("overloads", started, checksum)
 }
 
 def bench_named_arguments()
 {
-    int checksum = 0
+    int checksum = runtime_seed()
     auto started = time.monotonic_millis()
     for i in 1..=200000
     {
         checksum += add(right=3, left=i)
+        checksum -= checksum / 1000000
     }
     report("named_arguments", started, checksum)
 }
 
 def bench_recursion()
 {
+    int offset = runtime_seed()
     int checksum = 0
     auto started = time.monotonic_millis()
     for i in 1..=10000
     {
-        checksum += recursive_sum(24)
+        int depth = 20 + offset + (i / 1000) - (i / 10000) * 10
+        checksum += recursive_sum(depth)
     }
     report("recursion", started, checksum)
 }
@@ -318,7 +351,7 @@ def bench_class_methods()
     auto started = time.monotonic_millis()
     for i in 1..=200000
     {
-        checksum += value.increase(1)
+        checksum += value.increase((i / 1000) + 1)
         checksum += value.increase(1.0)
     }
     report("class_methods", started, checksum)
@@ -326,9 +359,12 @@ def bench_class_methods()
 
 def bench_virtual_interface()
 {
-    adjusted_counter concrete = adjusted_counter(7)
-    readable interface_view = concrete
-    counter parent_view = concrete
+    readable interface_view = adjusted_counter(7)
+    if time.unix_millis() <= 0
+    {
+        interface_view = alternate_counter(7)
+    }
+    counter parent_view = interface_view as counter
     int checksum = 0
     auto started = time.monotonic_millis()
     for i in 1..=200000
@@ -341,6 +377,10 @@ def bench_virtual_interface()
 def bench_class_operator()
 {
     counter left = adjusted_counter(7)
+    if time.unix_millis() <= 0
+    {
+        left = alternate_counter(7)
+    }
     counter right = counter(2)
     int checksum = 0
     auto started = time.monotonic_millis()

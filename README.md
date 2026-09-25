@@ -32,7 +32,7 @@ txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的
 两个模块拥有同名函数时的调用见 [别名导入示例](examples/import_alias.tx)。
 数学、数组、目录与路径标准库的组合用法见 [标准库示例](examples/stdlib_modules.tx)；运行时会在 tx_build/ 下创建示例目录。
 毫秒计时和可设种子的随机数用法见 [时间与随机数示例](examples/time_random.tx)。
-语言特性和运行时的性能负载见 [语言特性基准](benchmarks/language_features/README.md)；标准库与 C++ Release 的对照见 [标准库基准](benchmarks/library_compare/README.md)。
+语言特性和运行时的 TX/C++ 性能对照见 [语言特性基准](benchmarks/language_features/README.md)；标准库与 C++ Release 的对照见 [标准库基准](benchmarks/library_compare/README.md)。
 `import "io.txh"` 和 `import "xx/xx.txh"` 会先查找源码同目录的接口，再查找 `tx/stdlib/` 下的对应路径；见 [本地接口优先示例](examples/local_priority/main.tx)。
 函数的直接递归、相互递归和无返回值递归见 [递归示例](examples/recursion.tx)。
 同名函数按参数类型列表重载的用法见 [函数重载示例](examples/overload.tx)。
