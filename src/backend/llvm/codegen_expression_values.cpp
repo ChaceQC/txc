@@ -153,4 +153,50 @@ std::string llvm_code_generator::lvalue_address(const expression& item)
     return result;
 }
 
+llvm_code_generator::ir_value llvm_code_generator::emit_update(
+    const expression& item, const update_expression& operation)
+{
+    const auto* name = std::get_if<name_reference>(&operation.target->data);
+    const auto address = name
+        ? find_variable(name->name, item.position).address
+        : lvalue_address(*operation.target);
+    const auto current = name
+        ? load({item.type, address})
+        : from_any({value_type::any_type, address}, item.type, item.position);
+    const ir_value one{item.type, item.type == value_type::int_type
+        ? "1" : "0x3ff0000000000000"};
+    const bool increment = operation.operation == token_kind::plus_plus;
+    ir_value updated{item.type, {}};
+    if (item.type == value_type::int_type)
+    {
+        updated = checked_binary(increment ? "txrt_add_i64" : "txrt_sub_i64",
+                                 current, one, item.type, item.position);
+    }
+    else
+    {
+        updated.text = temporary();
+        write_instruction(updated.text +
+            (increment ? " = fadd double " : " = fsub double ") +
+            current.text + ", " + one.text);
+    }
+    release(current);
+
+    // 后置写法按先更新、再返回新值处理；字段目标的地址仅计算一次。
+    if (name)
+    {
+        write_instruction("store " + llvm_type(item.type, item.position) +
+                          " " + updated.text + ", ptr " + address);
+    }
+    else
+    {
+        const auto boxed = box_any(updated, item.position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_value_assign(ptr " +
+                          address + ", ptr " + boxed.text + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        release(boxed);
+    }
+    return updated;
+}
+
 } // namespace tx

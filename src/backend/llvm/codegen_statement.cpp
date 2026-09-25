@@ -59,31 +59,35 @@ void llvm_code_generator::emit_composite_assignment(
 {
     const auto target = lvalue_address(*assignment.target);
     auto value = expression_value(*assignment.value);
-    if (assignment.operation == token_kind::plus_equal)
+    if (assignment.operation == token_kind::plus_equal ||
+        assignment.operation == token_kind::minus_equal)
     {
+        const bool add = assignment.operation == token_kind::plus_equal;
         const auto current = from_any({value_type::any_type, target},
                                       assignment.target->type, item.position);
         ir_value combined{value_type::void_type, {}};
         if (current.type == value_type::int_type)
         {
-            combined = checked_binary("txrt_add_i64", current, value,
+            combined = checked_binary(add ? "txrt_add_i64" : "txrt_sub_i64",
+                                      current, value,
                                       current.type, item.position);
         }
         else if (current.type == value_type::float_type)
         {
             const auto result = temporary();
-            write_instruction(result + " = fadd double " + current.text +
-                              ", " + value.text);
+            write_instruction(result +
+                (add ? " = fadd double " : " = fsub double ") +
+                current.text + ", " + value.text);
             combined = {current.type, result};
         }
-        else if (current.type == value_type::str_type)
+        else if (add && current.type == value_type::str_type)
         {
             combined = checked_binary("txrt_str_concat", current, value,
                                       current.type, item.position);
         }
         else
         {
-            throw compile_error(item.position, "LLVM 后端暂不支持此 += 类型");
+            throw compile_error(item.position, "LLVM 后端暂不支持此复合赋值类型");
         }
         release(current);
         release(value);
@@ -104,22 +108,26 @@ void llvm_code_generator::emit_name_assignment(
 {
     const auto variable = find_variable(name.name, item.position);
     auto value = expression_value(*assignment.value);
-    if (assignment.operation == token_kind::plus_equal)
+    if (assignment.operation == token_kind::plus_equal ||
+        assignment.operation == token_kind::minus_equal)
     {
+        const bool add = assignment.operation == token_kind::plus_equal;
         const auto old = load(variable);
         if (variable.type == value_type::int_type)
         {
-            value = checked_binary("txrt_add_i64", old, value,
+            value = checked_binary(add ? "txrt_add_i64" : "txrt_sub_i64",
+                                   old, value,
                                    variable.type, item.position);
         }
         else if (variable.type == value_type::float_type)
         {
             const auto result = temporary();
-            write_instruction(result + " = fadd double " + old.text +
-                              ", " + value.text);
+            write_instruction(result +
+                (add ? " = fadd double " : " = fsub double ") +
+                old.text + ", " + value.text);
             value = {variable.type, result};
         }
-        else if (variable.type == value_type::str_type)
+        else if (add && variable.type == value_type::str_type)
         {
             const auto combined = checked_binary("txrt_str_concat", old,
                 value, variable.type, item.position);
@@ -129,7 +137,7 @@ void llvm_code_generator::emit_name_assignment(
         }
         else
         {
-            throw compile_error(item.position, "LLVM 后端暂不支持此 += 类型");
+            throw compile_error(item.position, "LLVM 后端暂不支持此复合赋值类型");
         }
     }
     release_slot(variable);

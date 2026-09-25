@@ -90,6 +90,8 @@ private:
                                     const value_type& target,
                                     source_pos position);
     [[nodiscard]] std::string lvalue_address(const expression& item);
+    [[nodiscard]] ir_value emit_update(const expression& item,
+                                       const update_expression& operation);
     void emit_statement(const statement& item);
     void emit_declaration(const statement& item,
                           const variable_declaration& declaration);

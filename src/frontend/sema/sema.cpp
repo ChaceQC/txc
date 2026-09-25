@@ -308,6 +308,15 @@ void semantic_analyzer::check_assignment(statement& item,
         }
         require_type(value, target_type, assignment.value->position, "+= 右侧");
     }
+    else if (assignment.operation == token_kind::minus_equal)
+    {
+        if (target_type != value_type::int_type &&
+            target_type != value_type::float_type)
+        {
+            throw compile_error(item.position, "-= 只支持 int 或 float");
+        }
+        require_type(value, target_type, assignment.value->position, "-= 右侧");
+    }
     else if (target_type != value_type::any_type)
     {
         require_type(value, target_type, assignment.value->position, "赋值");

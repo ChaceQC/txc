@@ -89,6 +89,12 @@ struct unary_operation
     bool is_min_int_literal = false;
 };
 
+struct update_expression
+{
+    token_kind operation;
+    expr_ptr target;
+};
+
 struct binary_operation
 {
     token_kind operation;
@@ -128,6 +134,7 @@ using expression_data = std::variant<
     member_expression,
     cast_expression,
     unary_operation,
+    update_expression,
     binary_operation,
     call_expression>;
 

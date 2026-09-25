@@ -1,0 +1,44 @@
+# 复合赋值和先更新、再返回新值的后置 ++ / --。
+struct counter {
+    value: int
+    ratio: float
+}
+
+def main() -> int {
+    int count = 4
+    count -= 2
+    int scaled = count++ * 3
+    if count != 3 || scaled != 9 {
+        return 1
+    }
+    int lowered = count--
+    if count != 2 || lowered != 2 {
+        return 2
+    }
+    int negative = -count++
+    if count != 3 || negative != -3 {
+        return 6
+    }
+
+    float amount = 1.5
+    amount -= 0.5
+    float total = amount++ + 2.0
+    if amount != 2.0 || total != 4.0 {
+        return 3
+    }
+
+    auto item = counter(0, 2.0)
+    int result = item.value++ + 1
+    item.value -= 1
+    item.ratio--
+    if result != 2 || item.value != 0 || item.ratio != 1.0 {
+        return 4
+    }
+
+    str label = "新"
+    label += "值"
+    if label != "新值" {
+        return 5
+    }
+    return 0
+}

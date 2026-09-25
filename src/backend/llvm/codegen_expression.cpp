@@ -335,6 +335,10 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
         }
         return {item.type, result};
     }
+    if (const auto* operation = std::get_if<update_expression>(&item.data))
+    {
+        return emit_update(item, *operation);
+    }
     if (const auto* operation = std::get_if<binary_operation>(&item.data))
     {
         return emit_binary(item, *operation);

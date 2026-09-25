@@ -96,6 +96,17 @@ def main() -> int {
     count, inferred = [3, 4]
     print(count + inferred)
 
+    # 复合赋值是独立语句；后置更新先修改目标，再返回新值。
+    int steps = 2
+    steps += 3
+    steps -= 1
+    print(steps++ * 2)
+    print(steps--)
+    print(steps)
+    ratio -= 0.5
+    ratio++
+    ratio--
+
     if ready && count > 0 {
         print((ratio * 2.0) as str)
     } else {

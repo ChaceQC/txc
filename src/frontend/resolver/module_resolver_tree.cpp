@@ -52,6 +52,10 @@ void module_resolver::resolve_expression(
     {
         resolve_expression(*operation->operand, module_key);
     }
+    else if (auto* operation = std::get_if<update_expression>(&item.data))
+    {
+        resolve_expression(*operation->target, module_key);
+    }
     else if (auto* operation = std::get_if<binary_operation>(&item.data))
     {
         resolve_expression(*operation->left, module_key);

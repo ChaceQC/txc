@@ -19,6 +19,7 @@ check 会检查语法和静态类型；`example.tx` 是当前语言的完整可�
 txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的链接组件；运行 txc 编译 `.tx` 时不需要安装 g++。构建与发行结构见 [编译与运行](docs/usage.md)和[原生后端说明](docs/native_backend.md)。
 
 字符串、浮点数、混合类型数组和结构体的用法见 [数据类型示例](examples/data_types.tx)。
+`+=`、`-=`、`++`、`--` 的用法见 [更新运算符示例](examples/update_operators.tx)。
 数组解包、字典、命名实参与 `*args`、`**kwargs` 见 [可变参数示例](examples/variadic_unpack.tx)。
 
 模块导入、终端输入输出、可指定字符集的文本文件读写、字符串、数学、数组、文件系统、时间和随机数操作见 [模块说明](docs/modules.md)、[标准库说明](docs/standard_library.md)和[可运行示例](examples/import_io.tx)。

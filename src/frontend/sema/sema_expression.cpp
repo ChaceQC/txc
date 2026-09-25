@@ -289,6 +289,14 @@ value_type semantic_analyzer::check_expression(expression& item)
     {
         item.type = check_unary(item, *operation);
     }
+    else if (auto* operation = std::get_if<update_expression>(&item.data))
+    {
+        item.type = check_lvalue(*operation->target);
+        if (!is_numeric(item.type))
+        {
+            throw compile_error(item.position, "++ 和 -- 只支持 int 或 float");
+        }
+    }
     else if (auto* operation = std::get_if<binary_operation>(&item.data))
     {
         item.type = check_binary(item, *operation);

@@ -53,6 +53,10 @@ expr_ptr parser::parse_expression(int min_precedence)
 
 expr_ptr parser::parse_unary()
 {
+    if (check(token_kind::plus_plus) || check(token_kind::minus_minus))
+    {
+        throw compile_error(current().position, "++ 和 -- 只支持后置写法");
+    }
     if (match(token_kind::minus) || match(token_kind::bang))
     {
         const auto operation = previous();
@@ -155,6 +159,13 @@ expr_ptr parser::parse_postfix()
             const auto target = parse_type();
             value = std::make_unique<expression>(
                 position, cast_expression{std::move(value), target});
+        }
+        else if (match(token_kind::plus_plus) || match(token_kind::minus_minus))
+        {
+            const auto operation = previous();
+            value = std::make_unique<expression>(
+                operation.position,
+                update_expression{operation.kind, std::move(value)});
         }
         else
         {

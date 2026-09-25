@@ -386,7 +386,8 @@ stmt_ptr parser::parse_statement()
             position, variable_declaration{name, declared_type, parse_expression(), nullptr});
     }
     auto target = parse_expression();
-    if (match(token_kind::equal) || match(token_kind::plus_equal))
+    if (match(token_kind::equal) || match(token_kind::plus_equal) ||
+        match(token_kind::minus_equal))
     {
         const auto operation = previous().kind;
         return std::make_unique<statement>(
