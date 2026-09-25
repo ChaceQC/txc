@@ -85,6 +85,9 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
     {
         if (target == value_type::array_type ||
             target == value_type::dict_type ||
+            target == value_type::bytes_type ||
+            target == value_type::binary_stream_type ||
+            target == value_type::text_stream_type ||
             target.is_vector() || target.is_typed_container())
         {
             const auto check = temporary();

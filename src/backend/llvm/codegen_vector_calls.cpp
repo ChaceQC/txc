@@ -49,7 +49,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_vector_call(
         {
             const auto& element = type.parameters.front();
             arguments.push_back({value_type::int_type, "0"});
-            arguments.push_back({element, element == value_type::str_type ? "null"
+            arguments.push_back({element,
+                element == value_type::str_type || element == value_type::bytes_type ? "null"
                 : element == value_type::float_type ? "0.0"
                 : element == value_type::bool_type ? "false" : "0"});
         }

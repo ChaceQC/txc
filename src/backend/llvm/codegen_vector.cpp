@@ -8,7 +8,8 @@ std::string llvm_code_generator::vector_suffix(const value_type& type)
     const auto& element = type.parameters.front();
     return element == value_type::int_type ? "i64"
         : element == value_type::float_type ? "f64"
-        : element == value_type::bool_type ? "bool" : "str";
+        : element == value_type::bool_type ? "bool"
+        : element == value_type::bytes_type ? "bytes" : "str";
 }
 
 bool llvm_code_generator::stable_value_expression(const expression& item)
@@ -105,8 +106,19 @@ std::string llvm_code_generator::vector_slot(
 llvm_code_generator::ir_value llvm_code_generator::vector_read(
     const ir_value& value, const ir_value& index, source_pos position)
 {
-    const auto slot = vector_slot(value, index, position);
     const auto& element = value.type.parameters.front();
+    if (element == value_type::bytes_type)
+    {
+        const auto output = allocate(element, position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_vector_get_bytes(ptr " +
+            value.text + ", i64 " + index.text + ", ptr " + output + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        const auto result = temporary();
+        write_instruction(result + " = load ptr, ptr " + output);
+        return {element, result};
+    }
+    const auto slot = vector_slot(value, index, position);
     if (element == value_type::bool_type)
     {
         const auto byte = temporary();
@@ -121,6 +133,14 @@ llvm_code_generator::ir_value llvm_code_generator::vector_read(
 void llvm_code_generator::vector_write(const ir_value& value,
     const ir_value& index, const ir_value& element, source_pos position)
 {
+    if (element.type == value_type::bytes_type)
+    {
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_vector_set_bytes(ptr " +
+            value.text + ", i64 " + index.text + ", ptr " + element.text + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        return;
+    }
     const auto slot = vector_slot(value, index, position);
     if (element.type == value_type::str_type)
     {

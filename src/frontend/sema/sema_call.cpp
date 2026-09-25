@@ -19,7 +19,8 @@ bool is_numeric(const value_type& type)
 bool is_printable(const value_type& type)
 {
     return is_numeric(type) || type == value_type::bool_type ||
-           type == value_type::str_type || type == value_type::none_type ||
+           type == value_type::str_type || type == value_type::bytes_type ||
+           type == value_type::none_type ||
            type == value_type::array_type || type == value_type::dict_type ||
            type == value_type::any_type || type.is_vector() || type.is_typed_container();
 }
@@ -218,6 +219,7 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
         if (actual != value_type::array_type &&
             actual != value_type::dict_type &&
             actual != value_type::str_type &&
+            actual != value_type::bytes_type &&
             actual != value_type::any_type && !actual.is_vector() &&
             !actual.is_typed_container())
         {

@@ -115,6 +115,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     {
         symbol = "txrt_env_get_default";
     }
+    if (target.external_name == "file_stream.flush" ||
+        target.external_name == "file_stream.close")
+    {
+        symbol += target.parameters.front().type == value_type::binary_stream_type
+            ? "_binary" : "_text";
+    }
     const bool dictionary_key_call = target.external_name == "dictionary.get" ||
         target.external_name == "dictionary.contains" ||
         target.external_name == "dictionary.remove";
@@ -163,6 +169,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         const auto& fields = structs_.at(item.type.name)->fields;
         parameters += ", ptr " + global_bytes(item.type.name) +
                       ", ptr " + global_bytes(fields.at(2).type.name);
+    }
+    if (target.external_name == "file_stream.read_bytes" ||
+        target.external_name == "file_stream.read_chars" ||
+        target.external_name == "file_stream.read_line")
+    {
+        parameters += ", ptr " + global_bytes(item.type.name);
     }
     if (target.external_name.starts_with("random."))
     {

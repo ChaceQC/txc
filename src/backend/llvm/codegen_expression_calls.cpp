@@ -30,6 +30,23 @@ bool supported_external_call(std::string_view name)
            name == "file.try_read_text" || name == "file.try_write_text" ||
            name == "file.try_append_text" || name == "file.read_text" ||
            name == "file.write_text" || name == "file.append_text" ||
+           name == "bytes.empty" || name == "bytes.from_vector" ||
+           name == "bytes.to_vector" || name == "bytes.concat" ||
+           name == "bytes.slice" || name == "bytes.to_hex" ||
+           name == "bytes.from_hex" || name == "bytes.to_base64" ||
+           name == "bytes.from_base64" ||
+           name == "encoding.encode" || name == "encoding.decode" ||
+           name == "file_stream.open_binary" ||
+           name == "file_stream.read_bytes" ||
+           name == "file_stream.read_all_bytes" ||
+           name == "file_stream.write_bytes" ||
+           name == "file_stream.tell" || name == "file_stream.seek" ||
+           name == "file_stream.flush" || name == "file_stream.close" ||
+           name == "file_stream.open_text" ||
+           name == "file_stream.read_chars" ||
+           name == "file_stream.read_line" ||
+           name == "file_stream.write_text" ||
+           name == "file_stream.write_line" ||
            name == "math.abs" || name == "math.min" ||
            name == "math.max" || name == "math.clamp" ||
            name == "math.mod" || name == "math.sqrt" ||
@@ -125,7 +142,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
     {
         const auto& argument = arguments.front();
         const auto* name = argument.type == value_type::str_type
-            ? "txrt_str_len" : argument.type == value_type::array_type
+            ? "txrt_str_len" : argument.type == value_type::bytes_type
+            ? "txrt_value_len" : argument.type == value_type::array_type
             ? "txrt_array_len" : argument.type == value_type::dict_type
             ? "txrt_dict_len" : argument.type == value_type::any_type
             ? "txrt_value_len" : nullptr;

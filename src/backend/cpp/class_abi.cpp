@@ -5,6 +5,8 @@
 #include "backend/cpp/runtime_abi.hpp"
 #include "backend/cpp/value_format.hpp"
 #include "stdlib/vector.hpp"
+#include "stdlib/bytes.hpp"
+#include "stdlib/file_stream.hpp"
 
 #include <any>
 #include <algorithm>
@@ -107,6 +109,18 @@ std::any default_field(const std::string& type)
     {
         return std::string{};
     }
+    if (type == "bytes")
+    {
+        return tx_generated::make_bytes({});
+    }
+    if (type == "binary_stream")
+    {
+        return tx_generated::binary_stream{};
+    }
+    if (type == "text_stream")
+    {
+        return tx_generated::text_stream{};
+    }
     if (type == "array")
     {
         return tx_generated::tx_array{};
@@ -130,6 +144,10 @@ std::any default_field(const std::string& type)
     if (type == "vector<str>")
     {
         return tx_generated::string_vector{};
+    }
+    if (type == "vector<bytes>")
+    {
+        return tx_generated::bytes_vector{};
     }
     return {};
 }

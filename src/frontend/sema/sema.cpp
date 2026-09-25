@@ -46,6 +46,9 @@ bool insert_implicit_value_cast(expr_ptr& value, const value_type& actual,
         (target != value_type::int_type &&
          target != value_type::float_type &&
          target != value_type::str_type &&
+         target != value_type::bytes_type &&
+         target != value_type::binary_stream_type &&
+         target != value_type::text_stream_type &&
          target != value_type::array_type &&
          target != value_type::dict_type))
     {
@@ -265,6 +268,10 @@ value_type semantic_analyzer::check_lvalue(expression& target)
         }
         if (const auto* access = std::get_if<index_expression>(&root->data))
         {
+            if (access->object->type == value_type::bytes_type)
+            {
+                throw compile_error(target.position, "bytes 不可修改索引元素");
+            }
             root = access->object.get();
         }
         else if (const auto* access = std::get_if<member_expression>(&root->data))

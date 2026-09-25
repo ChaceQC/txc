@@ -1,0 +1,2 @@
+def encode(text: str, encoding: str) -> bytes
+def decode(data: bytes, encoding: str) -> str

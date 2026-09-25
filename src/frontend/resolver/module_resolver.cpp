@@ -19,6 +19,7 @@ bool is_builtin_call(const std::string& name)
 bool is_builtin_type(const std::string& name)
 {
     return name == "int" || name == "float" || name == "str" ||
+           name == "bytes" || name == "binary_stream" || name == "text_stream" ||
            name == "bool" || name == "array" || name == "dict" || name == "any" ||
            name == "none" || name == "void" || name == "unknown" ||
            name == "fn";

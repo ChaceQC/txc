@@ -1,0 +1,9 @@
+def empty() -> bytes
+def from_vector(values: vector<int>) -> bytes
+def to_vector(data: bytes) -> vector<int>
+def concat(left: bytes, right: bytes) -> bytes
+def slice(data: bytes, start: int, end: int) -> bytes
+def to_hex(data: bytes) -> str
+def from_hex(text: str) -> bytes
+def to_base64(data: bytes) -> str
+def from_base64(text: str) -> bytes

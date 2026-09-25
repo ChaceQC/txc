@@ -1,6 +1,6 @@
-# 字节值、编码与文件流设计
+# 字节值、编码与文件流
 
-本文是后续实现契约草案，**`bytes`、内存编码模块和文件流目前均未实现**。当前可用的是[整文件文本接口](standard_library.md#文本文件输入输出)及其 UTF-8、UTF-16、GBK、GB18030 转换。此设计先确定静态类型、复制和共享、EOF、定位、资源关闭与错误语义，再修改编译器及标准库。
+本文记录 `bytes`、内存编码模块与文件流的接口和语义。代码及 `.txh` 接口已接入编译器和标准库，C++ 构建与少量定向场景已通过。原有[整文件文本接口](standard_library.md#文本文件输入输出)继续可用。
 
 ## 设计目标
 
@@ -21,9 +21,9 @@
 | `left == right`、`left != right` | 按全部字节比较；不定义大小排序 |
 | `print(data)` | 只显示 `bytes(长度)`，不擅自把内容当作文本输出 |
 
-`bytes` 可作为普通函数参数、返回值、局部变量和结构体/类字段，也可放入 `any`、`array` 和 `dict` 的值位置。未显式初始化的类字段默认空 `bytes`。第一版不把 `bytes` 作为字典键，不提供字节字面量或隐式 `bytes as str`。实现时需同步更新类型解析、语义检查、LLVM 类型和 C ABI、运行时装箱、打印、析构及循环回收边界；只增加 `.txh` 函数并不足以形成这一类型。
+`bytes` 可作为普通函数参数、返回值、局部变量和结构体/类字段，也可放入 `any`、`array` 和 `dict` 的值位置，或作为 `vector<bytes>` 的元素。`array`、`dict` 中的字节值按原有异构值规则装箱，可用 `as bytes` 或目标类型为 `bytes` 的赋值取回；`vector<bytes>` 保留完整静态元素类型，容器独立复制时继续共享不可变字节载荷。未显式初始化的类字段默认空 `bytes`。第一版不把 `bytes` 作为字典键，不提供字节字面量或隐式 `bytes as str`。
 
-建议 `bytes.txh` 提供：
+[bytes.txh](../tx/stdlib/bytes.txh) 提供：
 
 | 函数 | 行为 |
 | --- | --- |
@@ -39,7 +39,7 @@
 
 ## 内存编码模块
 
-新增 `encoding.txh`，复用现有 [`encoding.cpp`](../src/stdlib/encoding.cpp) 的编码名称及严格转换规则：
+新增 [encoding.txh](../tx/stdlib/encoding.txh)，复用现有 [`encoding.cpp`](../src/stdlib/encoding.cpp) 的编码名称及严格转换规则：
 
 ```tx
 def encode(text: str, encoding: str) -> bytes
@@ -48,9 +48,11 @@ def decode(data: bytes, encoding: str) -> str
 
 支持 `utf-8`、`utf-8-sig`、`utf-16`、`utf-16le`、`utf-16be`、`gbk`、`gb18030` 及现有别名。`encode` 先校验输入是合法 UTF-8，再编码；`decode` 必须完整消费字节，不能用替代字符静默修复无效序列。`utf-8-sig` 写入 BOM，读取时去掉可选 BOM；`utf-16` 写入小端 BOM，读取时要求有大小端 BOM；显式端序的 UTF-16 行为与当前文件接口一致。未知编码、无效字节或无法表示的字符报告 `parse_error` 与可区分的 `unknown_encoding`、`invalid_encoding`、`unrepresentable_character`。文件流遇到同类数据时对外归入 `io_error`，以维持文件操作的错误约定。
 
+内存接口的一次转换受 Windows 字符集 API 的有符号 32 位长度参数限制；超出该上限报告 `runtime_error` / `size_limit`。大文件应使用下文的分块文件流。
+
 ## 文件流的公开类型
 
-建议新增 `file_stream.txh`，用引用语义的 `binary_stream`、`text_stream` 类包装原生文件句柄；两者不能互换。普通赋值和传参共享同一流对象与游标。`close` 使所有别名同时失效；再次 `close` 无害，关闭后读写、定位或刷新报告 `io_error` / `closed_stream`。类的 `deinit` 在最后一个引用消失时兜底关闭；需要确认写入或刷新是否成功时，程序仍应显式调用 `close`。`deep_copy(stream)` 不得复制原生句柄，须在编译期或运行时报明确错误。
+[file_stream.txh](../tx/stdlib/file_stream.txh) 使用内置不透明引用类型 `binary_stream`、`text_stream` 包装原生文件句柄；两者不能互换。普通赋值和传参共享同一流对象与游标。`close` 使所有别名同时失效；再次 `close` 无害，关闭后读写、定位或刷新报告 `io_error` / `closed_stream`。最后一个引用消失时运行时兜底关闭；需要确认写入或刷新是否成功时，程序仍应显式调用 `close`。`deep_copy(stream)` 报明确运行错误，不复制原生句柄。
 
 ```tx
 struct byte_chunk
@@ -117,4 +119,6 @@ struct line_result
 
 [网络模块设计](network.md)的第一阶段正文和 WS 消息是 UTF-8 文本。`bytes` 落地后可增加 `httpx.send_bytes`、响应二进制正文和 `ws.send_binary/receive_binary`；这些是后续新签名，不改变已有文本接口的含义。文件流可为网络上传下载提供分块来源与目标，但真正的流式背压、取消和连接关闭规则需在网络实施时单独明确。
 
-建议先实现 `bytes` 的语言类型、运行时表示与编码转换，再实现二进制流，最后加入文本增量解码与逐行处理。每阶段同步 `.txh`、文档和示例，并仅做对应的定向验证：字节边界、非法编码、EOF/空行、读写定位、BOM、关闭与错误清理。**本轮只交付文档，尚无这些接口的代码或测试结果。**
+代码已按 `bytes` 与编码、二进制流、文本流的顺序接入。[组合示例](../examples/bytes_file_stream.tx) 展示 `vector<bytes>`、`array`/`dict` 值、编码与两种文件流。
+
+2026-09-26 定向验证：`scripts/build.ps1` 构建通过并更新 `tx/txc.exe`、`tx/libtxstdlib.a`，成功后清理 `build/`。组合示例通过；[边界场景](../tests/bytes_file_stream/behavior.tx)通过非法 Hex/Base64、越界字节、无效 UTF-8、关闭别名、EOF、空行及字符与逐行混合读取；[编码场景](../tests/bytes_file_stream/encodings.tx)通过七种编码的内存转换与增量文本流。未运行全量回归或性能测试。

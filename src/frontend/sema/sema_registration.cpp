@@ -43,16 +43,20 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         for (const auto& element : type.parameters)
         {
             if (element != value_type::int_type && element != value_type::float_type &&
-                element != value_type::bool_type && element != value_type::str_type)
+                element != value_type::bool_type && element != value_type::str_type &&
+                !(type.is_vector() && element == value_type::bytes_type))
             {
                 throw compile_error(position, type.container_name() +
-                    " 当前支持 int、float、bool、str 类型参数");
+                    " 当前支持 int、float、bool、str；vector 还支持 bytes 类型参数");
             }
         }
         return;
     }
     if (type == value_type::int_type || type == value_type::bool_type ||
         type == value_type::float_type || type == value_type::str_type ||
+        type == value_type::bytes_type ||
+        type == value_type::binary_stream_type ||
+        type == value_type::text_stream_type ||
         type == value_type::array_type || type == value_type::dict_type ||
         type == value_type::any_type || type == value_type::none_type ||
         structs_.contains(type.name) || classes_.contains(type.name))

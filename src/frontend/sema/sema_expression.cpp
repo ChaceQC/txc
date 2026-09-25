@@ -20,12 +20,14 @@ bool is_numeric(const value_type& type)
 bool is_equality_type(const value_type& type)
 {
     return is_numeric(type) || type == value_type::bool_type ||
-           type == value_type::str_type || type == value_type::none_type;
+           type == value_type::str_type || type == value_type::bytes_type ||
+           type == value_type::none_type;
 }
 
 bool is_hashable_key_type(const value_type& type)
 {
-    return is_equality_type(type) || type == value_type::any_type;
+    return (is_equality_type(type) && type != value_type::bytes_type) ||
+           type == value_type::any_type;
 }
 
 bool is_min_int_magnitude(std::string_view digits)
@@ -216,12 +218,14 @@ value_type semantic_analyzer::check_index(expression&,
     }
     if (object_type != value_type::array_type &&
         object_type != value_type::dict_type &&
-        object_type != value_type::any_type && !object_type.is_vector())
+        object_type != value_type::any_type &&
+        object_type != value_type::bytes_type && !object_type.is_vector())
     {
         throw compile_error(access.object->position, "索引对象需要数组或字典");
     }
     const auto index_type = check_expression(*access.index);
-    if (object_type == value_type::array_type || object_type.is_vector())
+    if (object_type == value_type::array_type ||
+        object_type == value_type::bytes_type || object_type.is_vector())
     {
         require_type(index_type, value_type::int_type,
                      access.index->position, "数组索引");
@@ -235,7 +239,9 @@ value_type semantic_analyzer::check_index(expression&,
     {
         throw compile_error(access.index->position, "字典键不能是 void");
     }
-    return object_type.is_vector() ? object_type.parameters.front() : value_type::any_type;
+    return object_type == value_type::bytes_type ? value_type::int_type
+        : object_type.is_vector() ? object_type.parameters.front()
+        : value_type::any_type;
 }
 
 value_type semantic_analyzer::check_member(expression& item,
@@ -282,6 +288,17 @@ value_type semantic_analyzer::check_member(expression& item,
 
 value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast)
 {
+    if (cast.target == value_type::bytes_type ||
+        cast.target == value_type::binary_stream_type ||
+        cast.target == value_type::text_stream_type)
+    {
+        const auto source = check_expression(*cast.value);
+        if (source != cast.target && source != value_type::any_type)
+        {
+            throw compile_error(item.position, "资源或字节转换需要相同类型或 any");
+        }
+        return cast.target;
+    }
     if (cast.target.is_vector() || cast.target.is_typed_container())
     {
         validate_type(cast.target, item.position);

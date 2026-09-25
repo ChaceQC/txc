@@ -1,0 +1,88 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "file_stream.txh" as streams
+import "fs.txh" as fs
+import "time.txh" as time
+
+def main() -> int
+{
+    bytes data = encoding.encode("你好", "utf-8")
+    vector<bytes> blocks = vector<bytes>()
+    blocks.push_back(data)
+    array items = [data]
+    dict named = {"payload": data}
+    bytes from_array = items[0]
+    bytes from_dict = named["payload"]
+    if blocks[0] != data || from_array != data || from_dict != data
+    {
+        return 1
+    }
+    blocks[0] = byte_values.empty()
+    items[0] = byte_values.empty()
+    named["payload"] = byte_values.empty()
+    if len(blocks[0]) != 0 || len(items[0] as bytes) != 0 || len(named["payload"] as bytes) != 0
+    {
+        return 1
+    }
+    blocks[0] = data
+    if encoding.decode(blocks[0], "utf-8") != "你好"
+    {
+        return 2
+    }
+    if byte_values.to_hex(data) != "e4bda0e5a5bd" || byte_values.to_base64(data) != "5L2g5aW9"
+    {
+        return 2
+    }
+
+    str root = "tx_build/bytes_file_stream_" + (time.unix_millis() as str)
+    if fs.exists(root)
+    {
+        return 3
+    }
+    fs.create_directories(root)
+    str binary_path = root + "/payload.bin"
+    binary_stream output = streams.open_binary(binary_path, "write")
+    streams.write_bytes(output, data)
+    streams.close(output)
+
+    binary_stream input = streams.open_binary(binary_path, "read")
+    streams.byte_chunk first = streams.read_bytes(input, 2)
+    streams.byte_chunk second = streams.read_bytes(input, 8)
+    streams.byte_chunk end = streams.read_bytes(input, 1)
+    if first.eof || second.eof || !end.eof
+    {
+        return 4
+    }
+    if byte_values.concat(first.data, second.data) != data
+    {
+        return 4
+    }
+    streams.seek(input, 0, "start")
+    if streams.read_all_bytes(input) != data
+    {
+        return 5
+    }
+    streams.close(input)
+
+    str text_path = root + "/notes.txt"
+    text_stream writer = streams.open_text(text_path, "write", "utf-16")
+    streams.write_line(writer, "你好")
+    streams.write_text(writer, "末行")
+    streams.close(writer)
+    text_stream reader = streams.open_text(text_path, "read", "utf-16")
+    streams.line_result line1 = streams.read_line(reader, 128)
+    streams.line_result line2 = streams.read_line(reader, 128)
+    streams.line_result line3 = streams.read_line(reader, 128)
+    streams.close(reader)
+    if !line1.has_line || line1.line != "你好"
+    {
+        return 6
+    }
+    if !line2.has_line || line2.line != "末行" || line3.has_line
+    {
+        return 6
+    }
+    fs.remove_all(root)
+    print("字节值、容器、编码与文件流组合示例通过")
+    return 0
+}

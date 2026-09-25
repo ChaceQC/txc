@@ -3,6 +3,8 @@
 #include "backend/cpp/container_value.hpp"
 
 #include "stdlib/stdlib.hpp"
+#include "stdlib/bytes.hpp"
+#include "stdlib/file_stream.hpp"
 
 #include <stdexcept>
 #include <string_view>
@@ -136,6 +138,19 @@ void append_value(std::string& output, const std::any& value,
             output += text;
         }
     }
+    else if (value.type() == typeid(byte_value))
+    {
+        output += "bytes(" + std::to_string(bytes_length(
+            std::any_cast<const byte_value&>(value))) + ")";
+    }
+    else if (value.type() == typeid(binary_stream))
+    {
+        output += "<binary_stream>";
+    }
+    else if (value.type() == typeid(text_stream))
+    {
+        output += "<text_stream>";
+    }
     else if (value.type() == typeid(tx_array))
     {
         append_array(output, std::any_cast<const tx_array&>(value), depth);
@@ -182,6 +197,10 @@ void append_value(std::string& output, const std::any& value,
             else if constexpr (std::is_same_v<element_type, double>)
             {
                 output += tx_float_to_string(element);
+            }
+            else if constexpr (std::is_same_v<element_type, byte_value>)
+            {
+                output += "bytes(" + std::to_string(bytes_length(element)) + ")";
             }
             else
             {

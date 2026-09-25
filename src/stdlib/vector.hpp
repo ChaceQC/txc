@@ -66,5 +66,7 @@ using int_vector = tx_vector<std::int64_t>;
 using float_vector = tx_vector<double>;
 using bool_vector = tx_vector<std::uint8_t>;
 using string_vector = tx_vector<text_reference>;
+using byte_value = std::shared_ptr<const std::vector<std::uint8_t>>;
+using bytes_vector = tx_vector<byte_value>;
 
 } // namespace tx_generated

@@ -234,6 +234,25 @@ llvm_code_generator::ir_value llvm_code_generator::emit_binary(
         throw compile_error(item.position, "LLVM 后端暂不支持此字符串运算");
     }
 
+    if (type == value_type::bytes_type)
+    {
+        const auto address = allocate(value_type::bool_type, item.position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_bytes_equal(ptr " +
+            left.text + ", ptr " + right.text + ", ptr " + address + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        release(left);
+        release(right);
+        const auto equal = load({value_type::bool_type, address});
+        if (kind == token_kind::equal_equal)
+        {
+            return equal;
+        }
+        const auto inverted = temporary();
+        write_instruction(inverted + " = xor i1 " + equal.text + ", true");
+        return {value_type::bool_type, inverted};
+    }
+
     if (type == value_type::int_type)
     {
         if (kind == token_kind::plus || kind == token_kind::minus ||

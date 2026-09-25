@@ -6,6 +6,8 @@
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/runtime_abi.hpp"
 #include "backend/cpp/value_format.hpp"
+#include "stdlib/bytes.hpp"
+#include "stdlib/file_stream.hpp"
 
 #include <any>
 #include <stdexcept>
@@ -256,6 +258,12 @@ extern "C" int txrt_value_require_type(const void* value,
             (type == "float" && item.type() == typeid(double)) ||
             (type == "bool" && item.type() == typeid(bool)) ||
             (type == "str" && item.type() == typeid(std::string)) ||
+            (type == "bytes" && item.type() ==
+                typeid(tx_generated::byte_value)) ||
+            (type == "binary_stream" && item.type() ==
+                typeid(tx_generated::binary_stream)) ||
+            (type == "text_stream" && item.type() ==
+                typeid(tx_generated::text_stream)) ||
             tx_generated::vector_matches(item, type) ||
             tx_generated::container_matches(item, type) ||
             (type == "array" && item.type() == typeid(tx_generated::tx_array)) ||

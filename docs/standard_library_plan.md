@@ -160,13 +160,13 @@
 
 文件模块已经实现 UTF-8、UTF-16、GBK、GB18030 等字符集转换。内部接口见 [encoding.hpp](../src/stdlib/encoding.hpp)。
 
-建议后续 `encoding` 模块复用这些实现，公开内存中的文本与字节转换能力。
+`encoding` 模块已复用这些实现，公开内存中的文本与字节转换能力；少量定向场景已通过。
 
 ### 明确字节容器和流接口
 
-当前 [file.txh](../tx/stdlib/file.txh) 只公开整文件文本读取、覆盖写入和追加写入。二进制处理需要明确的字节容器；语言目前没有公开的 `bytes` 类型或 `vector<byte>`。
+原有 [file.txh](../tx/stdlib/file.txh) 继续公开整文件文本接口。现已新增内置 `bytes`、`vector<bytes>` 和 [file_stream.txh](../tx/stdlib/file_stream.txh)；`array`、`dict` 也可保存 `bytes` 值。
 
-字节值、内存编码及二进制/文本流的具体接口、EOF、定位和资源规则见[字节值与文件流设计](bytes_file_stream.md)。该文档仍是待实现契约；现有文本文件接口继续承担便捷的整文件操作。
+字节值、内存编码及二进制/文本流的具体接口、EOF、定位和资源规则见[字节值与文件流](bytes_file_stream.md)。代码及接口已接入并完成构建，少量定向场景已通过；现有文本文件接口继续承担便捷的整文件操作。
 
 ## 七、建议实施顺序
 

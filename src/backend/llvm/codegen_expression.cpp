@@ -124,6 +124,18 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* access = std::get_if<index_expression>(&item.data))
     {
+        if (access->object->type == value_type::bytes_type)
+        {
+            const auto object = expression_value(*access->object);
+            const auto index = expression_value(*access->index);
+            const auto address = allocate(value_type::int_type, item.position);
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @txrt_bytes_at(ptr " +
+                object.text + ", i64 " + index.text + ", ptr " + address + ")");
+            write_instruction("call void @txrt_require_success(i32 " + status + ")");
+            release(object);
+            return load({value_type::int_type, address});
+        }
         if (access->object->type.is_map())
         {
             return emit_map_index(*access, item.position);

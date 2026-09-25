@@ -76,6 +76,9 @@ add_library(txstdlib STATIC
     src/backend/cpp/parse_abi.cpp
     src/backend/cpp/json_abi.cpp
     src/backend/cpp/file_result_abi.cpp
+    src/backend/cpp/bytes_abi.cpp
+    src/backend/cpp/encoding_memory_abi.cpp
+    src/backend/cpp/file_stream_abi.cpp
     src/backend/cpp/text_reference.cpp
     src/backend/cpp/string_concat_abi.cpp
     src/backend/cpp/dictionary_string_query.cpp
@@ -83,6 +86,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/vector_f64_abi.cpp
     src/backend/cpp/vector_bool_abi.cpp
     src/backend/cpp/vector_str_abi.cpp
+    src/backend/cpp/vector_bytes_abi.cpp
     src/backend/cpp/vector_text_abi.cpp
     src/backend/cpp/algorithm_abi.cpp
     src/backend/cpp/map_i64_abi.cpp
@@ -124,6 +128,9 @@ add_library(txstdlib STATIC
     src/stdlib/json_fields.cpp
     src/stdlib/io.cpp
     src/stdlib/encoding.cpp
+    src/stdlib/bytes.cpp
+    src/stdlib/file_stream.cpp
+    src/stdlib/file_stream_text.cpp
     src/stdlib/file.cpp
     src/stdlib/math.cpp
     src/stdlib/array.cpp

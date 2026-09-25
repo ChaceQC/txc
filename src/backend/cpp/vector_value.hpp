@@ -28,6 +28,10 @@ bool visit_vector(const std::any& value, operation&& apply)
     {
         apply(*vector);
     }
+    else if (const auto* vector = std::any_cast<bytes_vector>(&value))
+    {
+        apply(*vector);
+    }
     else
     {
         return false;
@@ -40,7 +44,8 @@ inline bool vector_matches(const std::any& value, std::string_view name)
     return (name == "vector<int>" && value.type() == typeid(int_vector)) ||
            (name == "vector<float>" && value.type() == typeid(float_vector)) ||
            (name == "vector<bool>" && value.type() == typeid(bool_vector)) ||
-           (name == "vector<str>" && value.type() == typeid(string_vector));
+           (name == "vector<str>" && value.type() == typeid(string_vector)) ||
+           (name == "vector<bytes>" && value.type() == typeid(bytes_vector));
 }
 
 } // namespace tx_generated

@@ -1,0 +1,64 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "file_stream.txh" as streams
+import "fs.txh" as fs
+import "time.txh" as time
+
+def roundtrip(path: str, name: str, text: str) -> bool
+{
+    bytes raw = encoding.encode(text, name)
+    if encoding.decode(raw, name) != text
+    {
+        return false
+    }
+    text_stream output = streams.open_text(path, "write", name)
+    streams.write_text(output, text)
+    streams.close(output)
+    text_stream input = streams.open_text(path, "read", name)
+    streams.text_chunk first = streams.read_chars(input, 1)
+    streams.text_chunk rest = streams.read_chars(input, 3)
+    streams.text_chunk end = streams.read_chars(input, 1)
+    streams.close(input)
+    return !first.eof && !rest.eof && end.eof && first.text + rest.text == text
+}
+
+def main() -> int
+{
+    str root = "tx_build/encoding_stream_" + (time.unix_millis() as str)
+    if fs.exists(root)
+    {
+        return 1
+    }
+    fs.create_directories(root)
+    if !roundtrip(root + "/utf8.txt", "utf-8", "你好𠀀")
+    {
+        return 2
+    }
+    if !roundtrip(root + "/utf8sig.txt", "utf-8-sig", "你好𠀀")
+    {
+        return 3
+    }
+    if !roundtrip(root + "/utf16.txt", "utf-16", "你好𠀀")
+    {
+        return 4
+    }
+    if !roundtrip(root + "/utf16le.txt", "utf-16le", "你好𠀀")
+    {
+        return 5
+    }
+    if !roundtrip(root + "/utf16be.txt", "utf-16be", "你好𠀀")
+    {
+        return 6
+    }
+    if !roundtrip(root + "/gbk.txt", "gbk", "你好")
+    {
+        return 7
+    }
+    if !roundtrip(root + "/gb18030.txt", "gb18030", "你好𠀀")
+    {
+        return 8
+    }
+    fs.remove_all(root)
+    print("七种编码的内存转换和增量文本流通过")
+    return 0
+}

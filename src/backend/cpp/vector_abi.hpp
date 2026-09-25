@@ -58,5 +58,18 @@ int txrt_vector_clear_str(void* value) noexcept;
 int txrt_vector_pop_back_str(void* value) noexcept;
 int txrt_vector_insert_str(void* value, std::int64_t index, const void* item) noexcept;
 int txrt_vector_erase_str(void* value, std::int64_t index) noexcept;
+void* txrt_vector_ref_bytes(const void* value) noexcept;
+int txrt_vector_new_bytes(std::int64_t count, const void* item, void** result) noexcept;
+int txrt_vector_from_array_bytes(const void* value, void** result) noexcept;
+int txrt_vector_to_array_bytes(const void* value, void** result) noexcept;
+int txrt_vector_reserve_bytes(void* value, std::int64_t count) noexcept;
+int txrt_vector_push_back_bytes(void* value, const void* item) noexcept;
+int txrt_vector_resize_bytes(void* value, std::int64_t count, const void* item) noexcept;
+int txrt_vector_clear_bytes(void* value) noexcept;
+int txrt_vector_pop_back_bytes(void* value) noexcept;
+int txrt_vector_insert_bytes(void* value, std::int64_t index, const void* item) noexcept;
+int txrt_vector_erase_bytes(void* value, std::int64_t index) noexcept;
+int txrt_vector_get_bytes(const void* value, std::int64_t index, void** result) noexcept;
+int txrt_vector_set_bytes(void* value, std::int64_t index, const void* item) noexcept;
 
 }

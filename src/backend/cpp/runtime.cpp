@@ -1,6 +1,7 @@
 #include "backend/cpp/runtime.hpp"
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
+#include "stdlib/bytes.hpp"
 
 #include <limits>
 #include <stdexcept>
@@ -49,6 +50,10 @@ tx_int tx_len(const tx_array& values)
 
 tx_int tx_len(const std::any& value)
 {
+    if (const auto* bytes = std::any_cast<byte_value>(&value))
+    {
+        return bytes_length(*bytes);
+    }
     if (const auto* container = std::any_cast<container_handle>(&value))
     {
         return static_cast<tx_int>((*container)->size());

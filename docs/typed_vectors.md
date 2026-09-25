@@ -1,6 +1,6 @@
 # 类型化 vector
 
-本轮实现范围：`vector<int>`、`vector<float>`、`vector<bool>`、`vector<str>`。它们在局部变量、函数参数、返回值、结构体与类字段、`.txh` 接口中保持完整静态类型。复合元素向量仍不支持，应给出编译诊断。后续的类型化哈希容器、堆和队列见[类型化容器](typed_containers.md)。
+当前实现范围：`vector<int>`、`vector<float>`、`vector<bool>`、`vector<str>`、`vector<bytes>`。它们在局部变量、函数参数、返回值、结构体与类字段、`.txh` 接口中保持完整静态类型。`bytes` 为不可变字节值；其他复合元素向量仍不支持，应给出编译诊断。后续的类型化哈希容器、堆和队列见[类型化容器](typed_containers.md)。
 
 ## 类型和构造
 
@@ -38,6 +38,8 @@ vector 的元素区采用 C++23 `std::vector<T>` 管理。整数和浮点数连�
 
 本轮所有元素类型都不能形成引用环，向量自身不登记循环 GC；实际分配仍按现有规则触发安全点。字符串引用与外部临时句柄分别管理所有权，错误退出释放根引用，容器销毁释放内部引用，避免提前销毁共享文本。
 
+`vector<bytes>` 的元素区连续存储不可变字节载荷的共享引用；按下标读写通过明确的 ABI 复制或替换引用，不把 C++ 共享指针的内部布局暴露给 LLVM。`deep_copy(vector<bytes>)` 创建独立向量，字节载荷仍可安全共享。`vector<bytes>(array)` 逐项检查实际值，`to_array()` 生成可独立修改的异构数组。
+
 字符串模块新增 `split_vector(text: str, separator: str) -> vector<str>`；`join` 增加 `vector<str>` 重载。原有 split/array 路径保留，类型化路径不经过中间 array。
 
 ## 交付与验证
@@ -50,8 +52,10 @@ vector 的元素区采用 C++23 `std::vector<T>` 管理。整数和浮点数连�
 
 同一脚本还包含 16 项字符串借用、复合键与 UTF-8 检查。后续字符串优化让向量元素直接复制内部引用，并为只读字符串操作借用稳定的向量元素；需要保存值、经过用户回调或跨越可能修改拥有者的表达式时仍保留拥有型快照。
 
-mini-filesystem 已迁移，普通解与计时解分别通过 44/44 组正式数据。性能结果见 [性能优化记录](mini_filesystem_performance.md#类型化-vector-落地)。暂不支持复合元素 vector、用户泛型或迭代器；这些类型不会退化为隐藏的异构数组。
+mini-filesystem 已迁移，普通解与计时解分别通过 44/44 组正式数据。性能结果见 [性能优化记录](mini_filesystem_performance.md#类型化-vector-落地)。除后续加入的 `bytes` 外，暂不支持其他复合元素 vector、用户泛型或迭代器；这些类型不会退化为隐藏的异构数组。
 
 2026-09-26 接口补齐：四种元素类型统一增加 `empty() -> bool`，不接受参数，直接比较当前长度是否为零。已有 `clear()` 和增删改查接口继续沿用。[类型化 vector 示例](../examples/typed_vectors.tx) 补充了判空、共享清空和独立复制的用法。
 
 同日经用户授权进行少量测试：`scripts/build.ps1` 构建通过，已更新 `tx/txc.exe` 和 `tx/libtxstdlib.a`，成功后已清理 `build/`。`python -X utf8 scripts/check_vector_empty.py` 的 4 个场景全部通过：四种元素类型的空/非空和清空、容量保留、共享与独立复制、字符串生命周期、清空后复用、class/struct 字段和接收者只求值一次；更新后的示例输出；empty 多余实参诊断；bool 结果不能赋给 int 的诊断。另运行 `python -X utf8 scripts/check_typed_containers.py example`，现有 map/set/heap/queue 示例通过，共 5/5 个场景。未运行全量回归或性能测试，未发现需要继续修改实现的问题。
+
+2026-09-26 增加 `vector<bytes>`，支持构造、增删改、遍历、`array` 互转与 `deep_copy` 的独立容器语义；字节载荷保持不可变共享。组合示例和边界场景已覆盖 `push_back`、索引读写、`to_array` 与从异构数组取回 `bytes`。其余历史验证记录仍只覆盖当时的四种元素类型；本轮未运行全量向量回归。

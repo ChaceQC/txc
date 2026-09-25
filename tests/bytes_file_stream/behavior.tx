@@ -1,0 +1,151 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "file_stream.txh" as streams
+import "error.txh" as errors
+import "fs.txh" as fs
+import "time.txh" as time
+
+def invalid_hex() -> bool
+{
+    try
+    {
+        byte_values.from_hex("0g")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_hex"
+    }
+    return false
+}
+
+def invalid_base64() -> bool
+{
+    try
+    {
+        byte_values.from_base64("Zh==")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_base64"
+    }
+    return false
+}
+
+def invalid_byte() -> bool
+{
+    try
+    {
+        byte_values.from_vector(vector<int>([0, 256]))
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def invalid_encoding() -> bool
+{
+    try
+    {
+        encoding.decode(byte_values.from_hex("ff"), "utf-8")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_encoding"
+    }
+    return false
+}
+
+def closed_alias(source: binary_stream) -> bool
+{
+    try
+    {
+        streams.read_bytes(source, 1)
+    }
+    exception errors.io_error as e
+    {
+        return e.code == "closed_stream"
+    }
+    return false
+}
+
+def closed_text_alias(source: text_stream) -> bool
+{
+    try
+    {
+        streams.read_chars(source, 1)
+    }
+    exception errors.io_error as e
+    {
+        return e.code == "closed_stream"
+    }
+    return false
+}
+
+def main() -> int
+{
+    if !invalid_hex() || !invalid_base64() || !invalid_byte() || !invalid_encoding()
+    {
+        return 1
+    }
+    bytes value = byte_values.from_hex("00ff")
+    vector<bytes> values = vector<bytes>([value])
+    array copy = values.to_array()
+    if (copy[0] as bytes) != value
+    {
+        return 2
+    }
+    values[0] = byte_values.empty()
+    if len(values[0]) != 0 || (copy[0] as bytes) != value
+    {
+        return 2
+    }
+    str root = "tx_build/bytes_boundary_" + (time.unix_millis() as str)
+    if fs.exists(root)
+    {
+        return 3
+    }
+    fs.create_directories(root)
+    str binary_path = root + "/data.bin"
+    binary_stream output = streams.open_binary(binary_path, "write")
+    streams.write_bytes(output, value)
+    binary_stream alias = output
+    streams.close(output)
+    streams.close(alias)
+    if !closed_alias(alias)
+    {
+        return 4
+    }
+
+    str text_path = root + "/lines.txt"
+    text_stream writer = streams.open_text(text_path, "write", "utf-8")
+    streams.write_text(writer, "\r\n中\r尾")
+    streams.close(writer)
+    text_stream reader = streams.open_text(text_path, "read", "utf-8")
+    streams.line_result first = streams.read_line(reader, 32)
+    streams.text_chunk middle = streams.read_chars(reader, 1)
+    streams.line_result separator = streams.read_line(reader, 32)
+    streams.line_result last = streams.read_line(reader, 32)
+    streams.line_result end = streams.read_line(reader, 32)
+    streams.close(reader)
+    if !first.has_line || first.line != "" || middle.text != "中" || middle.eof
+    {
+        return 5
+    }
+    if !separator.has_line || separator.line != "" || !last.has_line || last.line != "尾" || end.has_line
+    {
+        return 6
+    }
+    text_stream replay = streams.open_text(text_path, "read", "utf-8")
+    streams.read_line(replay, 32)
+    streams.read_line(replay, 32)
+    streams.close(replay)
+    if !closed_text_alias(replay)
+    {
+        return 7
+    }
+    fs.remove_all(root)
+    print("字节与文件流边界场景通过")
+    return 0
+}

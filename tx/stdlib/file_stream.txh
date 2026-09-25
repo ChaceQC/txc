@@ -1,0 +1,34 @@
+struct byte_chunk
+{
+    data: bytes
+    eof: bool
+}
+
+struct text_chunk
+{
+    text: str
+    eof: bool
+}
+
+struct line_result
+{
+    has_line: bool
+    line: str
+}
+
+def open_binary(path: str, mode: str) -> binary_stream
+def read_bytes(source: binary_stream, size: int) -> byte_chunk
+def read_all_bytes(source: binary_stream) -> bytes
+def write_bytes(target: binary_stream, data: bytes) -> void
+def tell(source: binary_stream) -> int
+def seek(source: binary_stream, offset: int, origin: str) -> int
+def flush(target: binary_stream) -> void
+def close(target: binary_stream) -> void
+
+def open_text(path: str, mode: str, encoding: str) -> text_stream
+def read_chars(source: text_stream, count: int) -> text_chunk
+def read_line(source: text_stream, max_bytes: int) -> line_result
+def write_text(target: text_stream, text: str) -> void
+def write_line(target: text_stream, text: str) -> void
+def flush(target: text_stream) -> void
+def close(target: text_stream) -> void

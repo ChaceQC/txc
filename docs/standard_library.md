@@ -4,7 +4,9 @@
 
 后续 `httpx` 与 `ws` 客户端、服务端的接口设计见[网络模块设计](network.md)；当前尚未实现。
 
-后续 `bytes`、内存编码与文件流的接口设计见[字节值与文件流设计](bytes_file_stream.md)；当前尚未实现。
+`bytes`、`encoding` 和 `file_stream` 的接口及语义见[字节值与文件流](bytes_file_stream.md)；代码已构建，少量定向场景已通过。
+
+导入 [bytes.txh](../tx/stdlib/bytes.txh) 可构造、拼接、切片及进行 Hex/Base64 转换；[encoding.txh](../tx/stdlib/encoding.txh) 提供内存中的文本编码与解码；[file_stream.txh](../tx/stdlib/file_stream.txh) 提供二进制和文本文件流。`bytes` 也可作为 `vector<bytes>` 元素以及 `array`、`dict` 的值。
 
 内置 `map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
 

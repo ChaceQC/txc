@@ -5,6 +5,8 @@
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
 #include "stdlib/stdlib.hpp"
+#include "stdlib/bytes.hpp"
+#include "stdlib/file_stream.hpp"
 
 #include <any>
 #include <memory>
@@ -65,6 +67,16 @@ public:
         if (value.type() == typeid(class_handle))
         {
             return copy_class(std::any_cast<const class_handle&>(value));
+        }
+        if (value.type() == typeid(byte_value))
+        {
+            // bytes 载荷不可变，深拷贝仍可安全共享。
+            return value;
+        }
+        if (value.type() == typeid(binary_stream) ||
+            value.type() == typeid(text_stream))
+        {
+            throw std::runtime_error("deep_copy 不支持复制文件流句柄");
         }
         if (!value.has_value() || value.type() == typeid(std::int64_t) ||
             value.type() == typeid(double) || value.type() == typeid(bool) ||
