@@ -58,6 +58,7 @@ int txrt_io_flush() noexcept;
 
 int txrt_time_unix_millis(std::int64_t* result) noexcept;
 int txrt_time_monotonic_millis(std::int64_t* result) noexcept;
+int txrt_time_monotonic_micros(std::int64_t* result) noexcept;
 int txrt_time_sleep_millis(std::int64_t duration) noexcept;
 
 }

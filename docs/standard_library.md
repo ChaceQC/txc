@@ -56,9 +56,10 @@ abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行�
 | --- | --- |
 | unix_millis() -> int | 返回当前 Unix 时间戳，单位毫秒 |
 | monotonic_millis() -> int | 返回单调时钟读数，单位毫秒 |
+| monotonic_micros() -> int | 返回单调时钟读数，单位微秒 |
 | sleep_millis(duration: int) -> void | 至少等待指定的非负毫秒数 |
 
-unix_millis 使用系统时钟，系统时间调整可能让相邻读数倒退。monotonic_millis 的起点没有日历含义，只适合用两次读数之差测量经过时间；毫秒精度下，短时间内的两次读数可以相同。sleep_millis(0) 无需等待；负数参数会报运行错误，实际等待时间可能比请求的更长。
+unix_millis 使用系统时钟，系统时间调整可能让相邻读数倒退。monotonic_millis 和 monotonic_micros 的起点没有日历含义，只适合用两次读数之差测量经过时间；微秒单位不保证实际时钟具有微秒分辨率。sleep_millis(0) 无需等待；负数参数会报运行错误，实际等待时间可能比请求的更长。
 
 ## 伪随机数
 

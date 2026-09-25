@@ -5,7 +5,7 @@ import "workload.txh" as workload
 def report(name: str, started: int, checksum: int)
 {
     print(name)
-    print(time.monotonic_millis() - started)
+    print(time.monotonic_micros() - started)
     print(checksum)
 }
 
@@ -159,10 +159,16 @@ def make_cycle(totals: array)
     node.next = node
 }
 
+# 返回值逃逸以保留真实堆分配，供循环回收基准推动安全点。
+def make_gc_padding() -> array
+{
+    return []
+}
+
 def bench_scalar_control()
 {
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=500000
     {
         if i <= 250000 && i > 0
@@ -181,7 +187,7 @@ def bench_updates()
 {
     int checksum = 0
     int value = runtime_seed()
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=500000
     {
         value += i
@@ -200,7 +206,7 @@ def bench_while_logic()
 {
     int checksum = 0
     int index = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     while index < 500000
     {
         index++
@@ -219,7 +225,7 @@ def bench_while_logic()
 def bench_float_arithmetic()
 {
     float checksum = 0.0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=500000
     {
         checksum += (i as float) / 2.0
@@ -230,7 +236,7 @@ def bench_float_arithmetic()
 def bench_overloads()
 {
     int checksum = runtime_seed()
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=100000
     {
         checksum += add(i, 3) + (add(1.0, 2.0) as int)
@@ -242,7 +248,7 @@ def bench_overloads()
 def bench_named_arguments()
 {
     int checksum = runtime_seed()
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=200000
     {
         checksum += add(right=3, left=i)
@@ -255,7 +261,7 @@ def bench_recursion()
 {
     int offset = runtime_seed()
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=10000
     {
         int depth = 20 + offset + (i / 1000) - (i / 10000) * 10
@@ -269,7 +275,7 @@ def bench_variadic_unpack()
     array extra = [2, 3]
     dict named = {"bonus": 4}
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=10000
     {
         checksum += collect(i, *extra, **named)
@@ -280,7 +286,7 @@ def bench_variadic_unpack()
 def bench_array_destructure()
 {
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=20000
     {
         array pair = [i, i + 1]
@@ -297,7 +303,7 @@ def bench_array_destructure()
 def bench_array_padded()
 {
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=50000
     {
         array[4] values = [i, i + 1]
@@ -315,7 +321,7 @@ def bench_dict_iteration()
 {
     dict values = {1: 1, "two": 2, true: 3}
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=100000
     {
         values["two"] = i
@@ -331,7 +337,7 @@ def bench_dict_iteration()
 def bench_struct_operators()
 {
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=100000
     {
         point current = point(y=2, x=i)
@@ -348,7 +354,7 @@ def bench_class_methods()
 {
     counter value = counter(0)
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=200000
     {
         checksum += value.increase((i / 1000) + 1)
@@ -366,7 +372,7 @@ def bench_virtual_interface()
     }
     counter parent_view = interface_view as counter
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=200000
     {
         checksum += interface_view.read() + parent_view.read()
@@ -383,7 +389,7 @@ def bench_class_operator()
     }
     counter right = counter(2)
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=100000
     {
         checksum += left + right
@@ -395,7 +401,7 @@ def bench_runtime_cast()
 {
     readable interface_view = adjusted_counter(7)
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=100000
     {
         counter parent_view = interface_view as counter
@@ -407,7 +413,7 @@ def bench_runtime_cast()
 def bench_module_call()
 {
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=100000
     {
         workload.pair item = workload.pair(i, i + 1)
@@ -419,7 +425,7 @@ def bench_module_call()
 def bench_string_conversion()
 {
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=50000
     {
         str encoded = i as str
@@ -434,7 +440,7 @@ def bench_deep_copy()
     array numbers = [1, 2, 3]
     record source = record({"numbers": numbers})
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=10000
     {
         record copied = deep_copy(source)
@@ -450,7 +456,7 @@ def bench_copy_cycle()
     array source = [none, 7]
     source[0] = source
     int checksum = 0
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=10000
     {
         array copied = deep_copy(source)
@@ -467,7 +473,7 @@ def bench_copy_cycle()
 def bench_deinit()
 {
     array totals = [0]
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=20000
     {
         tracked item = tracked(totals)
@@ -478,7 +484,7 @@ def bench_deinit()
 def bench_cycle_gc()
 {
     array totals = [0]
-    auto started = time.monotonic_millis()
+    auto started = time.monotonic_micros()
     for i in 1..=1000
     {
         make_cycle(totals)
@@ -487,7 +493,7 @@ def bench_cycle_gc()
     int attempts = 0
     while (totals[0] as int) < 1000 && attempts < 4096
     {
-        array padding = []
+        array padding = make_gc_padding()
         attempts++
     }
     report("cycle_gc", started, totals[0] as int)

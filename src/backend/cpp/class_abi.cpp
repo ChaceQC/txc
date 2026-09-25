@@ -2,6 +2,7 @@
 
 #include "backend/cpp/runtime.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
+#include "backend/cpp/runtime_abi.hpp"
 #include "backend/cpp/value_format.hpp"
 
 #include <any>
@@ -9,6 +10,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace tx_generated
@@ -25,12 +27,12 @@ bool finalize_class_object(const std::shared_ptr<dynamic_class>& object)
     object->destroying = true;
     for (std::size_t index = 0; index < object->destructor_count; ++index)
     {
-        // 接收者由生成方法持有并释放；回调期间额外引用保证字段仍然有效。
-        auto* receiver = detail::make_handle<std::any>(class_handle(object));
+        // 析构回调借用栈上接收者；额外引用保证回调期间字段仍然有效。
+        std::any receiver = class_handle(object);
         using destructor_fn = void (*)(void*);
         auto callback = reinterpret_cast<destructor_fn>(
             const_cast<void*>(object->destructor_targets[index]));
-        callback(receiver);
+        callback(&receiver);
     }
     return true;
 }
@@ -114,6 +116,27 @@ std::any default_field(const std::string& type)
     return {};
 }
 
+template<class field_type>
+void* scalar_field_ptr(const void* value, std::size_t index,
+                       const char* type_name) noexcept
+{
+    const auto* item = static_cast<const std::any*>(value);
+    const auto* handle = item
+        ? std::any_cast<tx_generated::class_handle>(item) : nullptr;
+    if (handle && *handle && index < (*handle)->fields.size())
+    {
+        auto& field = (*handle)->fields[index];
+        if (auto* result = std::any_cast<field_type>(&field))
+        {
+            return result;
+        }
+    }
+    std::snprintf(tx_generated::detail::last_error, 256,
+                  "类字段不是 %s 或索引无效", type_name);
+    txrt_require_success(1);
+    return nullptr;
+}
+
 } // namespace
 
 using tx_generated::detail::invoke_checked;
@@ -131,10 +154,8 @@ extern "C" int txrt_class_new(
         auto object = std::make_shared<tx_generated::dynamic_class>();
         object->type_name = type_name;
         object->display_name = display_name;
-        for (std::size_t i = 0; i < ancestor_count; ++i)
-        {
-            object->ancestors.emplace_back(ancestors[i]);
-        }
+        object->ancestors = ancestors;
+        object->ancestor_count = ancestor_count;
         object->fields.reserve(field_count);
         for (std::size_t i = 0; i < field_count; ++i)
         {
@@ -170,6 +191,24 @@ extern "C" int txrt_class_field_address_index(
     });
 }
 
+extern "C" void* txrt_class_field_i64_ptr(const void* value,
+                                            std::size_t index) noexcept
+{
+    return scalar_field_ptr<std::int64_t>(value, index, "int");
+}
+
+extern "C" void* txrt_class_field_f64_ptr(const void* value,
+                                            std::size_t index) noexcept
+{
+    return scalar_field_ptr<double>(value, index, "float");
+}
+
+extern "C" void* txrt_class_field_bool_ptr(const void* value,
+                                             std::size_t index) noexcept
+{
+    return scalar_field_ptr<bool>(value, index, "bool");
+}
+
 extern "C" int txrt_class_virtual_target(
     const void* value, std::size_t slot, void** result) noexcept
 {
@@ -188,6 +227,23 @@ extern "C" int txrt_class_virtual_target(
     });
 }
 
+extern "C" void* txrt_class_virtual_target_fast(
+    const void* value, std::size_t slot) noexcept
+{
+    const auto* item = static_cast<const std::any*>(value);
+    const auto* handle = item
+        ? std::any_cast<tx_generated::class_handle>(item) : nullptr;
+    if (handle && *handle && slot < (*handle)->virtual_count &&
+        (*handle)->virtual_targets[slot])
+    {
+        return const_cast<void*>((*handle)->virtual_targets[slot]);
+    }
+    std::snprintf(tx_generated::detail::last_error, 256,
+                  "虚方法槽索引越界或尚未实现");
+    txrt_require_success(1);
+    return nullptr;
+}
+
 extern "C" int txrt_class_require_type(
     const void* value, const char* type_name) noexcept
 {
@@ -199,10 +255,33 @@ extern "C" int txrt_class_require_type(
             throw std::runtime_error("类或接口转换失败：源值不是类对象");
         }
         const auto& object = as_class(value);
-        if (std::find(object.ancestors.begin(), object.ancestors.end(),
-                      type_name) == object.ancestors.end())
+        bool matches = false;
+        for (std::size_t index = 0; index < object.ancestor_count; ++index)
+        {
+            matches |= std::string_view(object.ancestors[index]) == type_name;
+        }
+        if (!matches)
         {
             throw std::runtime_error("类或接口转换失败：对象不属于目标类型");
         }
     });
+}
+
+extern "C" void txrt_class_require_type_fast(
+    const void* value, const char* type_name) noexcept
+{
+    const auto* item = static_cast<const std::any*>(value);
+    const auto* handle = item
+        ? std::any_cast<tx_generated::class_handle>(item) : nullptr;
+    if (handle && *handle)
+    {
+        for (std::size_t index = 0; index < (*handle)->ancestor_count; ++index)
+        {
+            if (std::string_view((*handle)->ancestors[index]) == type_name)
+            {
+                return;
+            }
+        }
+    }
+    txrt_require_success(txrt_class_require_type(value, type_name));
 }

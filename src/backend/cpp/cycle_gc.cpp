@@ -161,6 +161,11 @@ void register_gc_node(const std::shared_ptr<void>& object, gc_trace trace,
     ++allocations_since_collection;
 }
 
+void note_gc_allocation() noexcept
+{
+    ++allocations_since_collection;
+}
+
 void collect_cycles()
 {
     if (collecting)

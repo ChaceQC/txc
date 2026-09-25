@@ -60,6 +60,7 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_io_flush()\n"
             << "declare i32 @txrt_time_unix_millis(ptr)\n"
             << "declare i32 @txrt_time_monotonic_millis(ptr)\n"
+            << "declare i32 @txrt_time_monotonic_micros(ptr)\n"
             << "declare i32 @txrt_time_sleep_millis(i64)\n\n";
 }
 

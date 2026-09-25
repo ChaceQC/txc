@@ -8,6 +8,15 @@
 namespace tx_generated
 {
 
+tx_array tx_make_array(tx_int length)
+{
+    if (length < 0)
+    {
+        throw std::runtime_error("数组长度不能为负");
+    }
+    return tx_array(static_cast<std::size_t>(length));
+}
+
 tx_array tx_make_array(tx_int length, tx_array initial)
 {
     if (length < 0)
@@ -19,9 +28,10 @@ tx_array tx_make_array(tx_int length, tx_array initial)
         throw std::runtime_error("数组初值数量超过声明长度");
     }
     tx_array result(static_cast<std::size_t>(length));
+    const auto& source = static_cast<const tx_array&>(initial);
     for (std::size_t index = 0; index < initial.size(); ++index)
     {
-        result[index] = std::move(initial[index]);
+        result[index] = source[index];
     }
     return result;
 }

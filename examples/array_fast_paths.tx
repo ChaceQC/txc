@@ -1,0 +1,85 @@
+# 数组优化的行为样例：局部槽位、元素快照、共享引用和重新绑定。
+def main() -> int
+{
+    array[4] slots = [1, 2]
+    if !is_none(slots[3]) || len(slots) != 4
+    {
+        return 1
+    }
+    slots[2] = 5
+    if (slots[2] as int) != 5
+    {
+        return 2
+    }
+
+    array pair = [3, 4]
+    left, right = pair
+    pair[1] = 8
+    if (right as int) != 4
+    {
+        return 3
+    }
+    int total = 0
+    for item in pair
+    {
+        total += item as int
+        pair[0] = 10
+    }
+    if total != 11 || (left as int) != 3
+    {
+        return 4
+    }
+
+    array dynamic = [1, "two", none]
+    array alias = dynamic
+    alias[0] = 7
+    if (dynamic[0] as int) != 7 || !is_none(alias[2])
+    {
+        return 5
+    }
+    array[4] resized = dynamic
+    if (dynamic[0] as int) != 7 || !is_none(resized[3])
+    {
+        return 6
+    }
+    dynamic[1] = "2"
+    if (dynamic[1] as int) != 2
+    {
+        return 12
+    }
+
+    array first = [1]
+    array second = [2]
+    first, second = [second, first]
+    if (first[0] as int) != 2 || (second[0] as int) != 1
+    {
+        return 7
+    }
+
+    array scalar_kinds = [1.5, true, none]
+    if (scalar_kinds[0] as int) != 1 || is_none(scalar_kinds[1]) || !is_none(scalar_kinds[2])
+    {
+        return 8
+    }
+    scalar_kinds[2] = 2.5
+    if (scalar_kinds[2] as float) != 2.5
+    {
+        return 9
+    }
+
+    int dynamic_length = 3
+    array[dynamic_length] local_state
+    if !is_none(local_state[2])
+    {
+        return 10
+    }
+    local_state[2] = true
+    if is_none(local_state[2]) || len(local_state) != dynamic_length
+    {
+        return 11
+    }
+
+    array cycle = [none]
+    cycle[0] = cycle
+    return 0
+}

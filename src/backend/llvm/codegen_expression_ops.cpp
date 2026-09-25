@@ -124,19 +124,17 @@ llvm_code_generator::ir_value llvm_code_generator::short_circuit(
 llvm_code_generator::ir_value llvm_code_generator::emit_operator_call(
     const value_type& result_type, source_pos position,
     const operator_binding& binding, const ir_value& receiver,
-    const std::optional<ir_value>& argument)
+    const std::optional<ir_value>& argument,
+    bool receiver_borrowed, bool argument_borrowed)
 {
     std::string callee = function_name(binding.symbol, binding.overload_index);
     if (binding.virtual_slot)
     {
-        const auto target_slot = allocate(value_type::any_type, position);
-        const auto status = temporary();
-        write_instruction(status + " = call i32 @txrt_class_virtual_target(ptr " +
-            receiver.text + ", i64 " + std::to_string(*binding.virtual_slot) +
-            ", ptr " + target_slot + ")");
-        write_instruction("call void @txrt_require_success(i32 " + status + ")");
         callee = temporary();
-        write_instruction(callee + " = load ptr, ptr " + target_slot);
+        write_instruction(callee +
+            " = call ptr @txrt_class_virtual_target_fast(ptr " +
+            receiver.text + ", i64 " +
+            std::to_string(*binding.virtual_slot) + ")");
     }
     std::string arguments = "ptr " + receiver.text;
     if (argument)
@@ -147,6 +145,15 @@ llvm_code_generator::ir_value llvm_code_generator::emit_operator_call(
     const auto result = temporary();
     write_instruction(result + " = call " + llvm_type(result_type, position) +
                       " " + callee + "(" + arguments + ")");
+    if (!receiver_borrowed)
+    {
+        release(receiver);
+    }
+    if (argument && operator_argument_borrowed(binding) &&
+        !argument_borrowed)
+    {
+        release(*argument);
+    }
     return {result_type, result};
 }
 
@@ -158,12 +165,19 @@ llvm_code_generator::ir_value llvm_code_generator::emit_binary(
     {
         return short_circuit(operation);
     }
-    const auto left = expression_value(*operation.left);
-    const auto right = expression_value(*operation.right);
+    bool left_borrowed = false;
+    bool right_borrowed = false;
+    const auto left = operation.binding
+        ? expression_value_or_borrow(*operation.left, left_borrowed)
+        : expression_value(*operation.left);
+    const auto right = operation.binding &&
+        operator_argument_borrowed(*operation.binding)
+        ? expression_value_or_borrow(*operation.right, right_borrowed)
+        : expression_value(*operation.right);
     if (operation.binding)
     {
         return emit_operator_call(item.type, item.position, *operation.binding,
-                                  left, right);
+                                  left, right, left_borrowed, right_borrowed);
     }
     const auto& type = operation.left->type;
     const auto kind = operation.operation;

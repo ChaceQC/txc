@@ -46,6 +46,11 @@ extern "C" int txrt_time_monotonic_millis(std::int64_t* result) noexcept
     return invoke_checked([&] { *result = tx_generated::tx_fn_monotonic_millis(); });
 }
 
+extern "C" int txrt_time_monotonic_micros(std::int64_t* result) noexcept
+{
+    return invoke_checked([&] { *result = tx_generated::tx_fn_monotonic_micros(); });
+}
+
 extern "C" int txrt_time_sleep_millis(std::int64_t duration) noexcept
 {
     return invoke_checked([&] { tx_generated::tx_fn_sleep_millis(duration); });

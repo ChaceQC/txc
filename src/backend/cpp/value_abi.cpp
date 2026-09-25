@@ -2,15 +2,15 @@
 
 #include "backend/cpp/runtime.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
+#include "backend/cpp/runtime_abi.hpp"
 #include "backend/cpp/value_format.hpp"
 
 #include <any>
-#include <algorithm>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <typeinfo>
 #include <utility>
-#include <vector>
 
 namespace
 {
@@ -38,6 +38,39 @@ dynamic_struct& as_struct(void* value)
         throw std::runtime_error("字段访问需要结构体类型");
     }
     return std::any_cast<dynamic_struct&>(item);
+}
+
+template<class field_type>
+void* struct_scalar_ptr(const void* value, std::size_t index,
+                        const char* type_name) noexcept
+{
+    const auto* item = static_cast<const std::any*>(value);
+    const auto* definition = item ? std::any_cast<dynamic_struct>(item) : nullptr;
+    if (definition && index < (*definition)->fields.size())
+    {
+        auto& field = (*definition)->fields[index].value;
+        if (auto* result = std::any_cast<field_type>(&field))
+        {
+            return result;
+        }
+    }
+    std::snprintf(tx_generated::detail::last_error, 256,
+                  "结构体字段不是 %s 或索引无效", type_name);
+    txrt_require_success(1);
+    return nullptr;
+}
+
+template<class field_type>
+void set_struct_field(void* value, std::size_t index,
+                      const char* field_name, field_type&& field)
+{
+    auto& definition = as_struct(value);
+    if (index >= definition->fields.size())
+    {
+        throw std::runtime_error("结构体字段索引越界");
+    }
+    definition->fields[index] = {
+        field_name, std::forward<field_type>(field)};
 }
 
 } // namespace
@@ -94,12 +127,31 @@ extern "C" int txrt_value_clone(const void* value, void** result) noexcept
 
 extern "C" void txrt_value_release(void* value) noexcept
 {
+    if (!value)
+    {
+        return;
+    }
     tx_generated::detail::destroy_handle(static_cast<std::any*>(value));
 }
 
 extern "C" int txrt_value_assign(void* target, const void* value) noexcept
 {
     return invoke_checked([&] { as_value(target) = as_value(value); });
+}
+
+extern "C" int txrt_value_set_i64(void* target, std::int64_t value) noexcept
+{
+    return invoke_checked([&] { as_value(target) = value; });
+}
+
+extern "C" int txrt_value_set_f64(void* target, double value) noexcept
+{
+    return invoke_checked([&] { as_value(target) = value; });
+}
+
+extern "C" int txrt_value_set_bool(void* target, bool value) noexcept
+{
+    return invoke_checked([&] { as_value(target) = value; });
 }
 
 extern "C" int txrt_value_to_i64(const void* value,
@@ -123,6 +175,39 @@ extern "C" int txrt_value_to_bool(const void* value, bool* result) noexcept
         }
         *result = std::any_cast<const bool&>(item);
     });
+}
+
+extern "C" std::int64_t txrt_value_to_i64_fast(const void* value) noexcept
+{
+    if (const auto* direct = std::any_cast<std::int64_t>(&as_value(value)))
+    {
+        return *direct;
+    }
+    std::int64_t result = 0;
+    txrt_require_success(txrt_value_to_i64(value, &result));
+    return result;
+}
+
+extern "C" double txrt_value_to_f64_fast(const void* value) noexcept
+{
+    if (const auto* direct = std::any_cast<double>(&as_value(value)))
+    {
+        return *direct;
+    }
+    double result = 0;
+    txrt_require_success(txrt_value_to_f64(value, &result));
+    return result;
+}
+
+extern "C" bool txrt_value_to_bool_fast(const void* value) noexcept
+{
+    if (const auto* direct = std::any_cast<bool>(&as_value(value)))
+    {
+        return *direct;
+    }
+    bool result = false;
+    txrt_require_success(txrt_value_to_bool(value, &result));
+    return result;
 }
 
 extern "C" int txrt_value_to_str(const void* value, void** result) noexcept
@@ -177,109 +262,20 @@ extern "C" int txrt_value_require_type(const void* value,
             (item.type() == typeid(class_handle) &&
              [&]
              {
-                 const auto& ancestors =
-                     std::any_cast<const class_handle&>(item)->ancestors;
-                 return std::find(ancestors.begin(), ancestors.end(), type) !=
-                        ancestors.end();
+                 const auto& object =
+                     *std::any_cast<const class_handle&>(item);
+                 for (std::size_t index = 0;
+                      index < object.ancestor_count; ++index)
+                 {
+                     if (object.ancestors[index] == type)
+                     {
+                         return true;
+                     }
+                 }
+                 return false;
              }());
         if (!valid)
             throw std::runtime_error("展开值与目标参数或变量类型不匹配：" + type);
-    });
-}
-
-extern "C" int txrt_array_new(std::int64_t length, void** result) noexcept
-{
-    return invoke_checked([&] {
-        *result = make_handle<std::any>(tx_generated::tx_make_array(length));
-    });
-}
-
-extern "C" int txrt_array_resize(std::int64_t length, const void* initial,
-                                   void** result) noexcept
-{
-    return invoke_checked([&] {
-        const auto& source = as_value(initial);
-        if (source.type() != typeid(tx_generated::tx_array))
-        {
-            throw std::runtime_error("数组初值需要数组类型");
-        }
-        *result = make_handle<std::any>(tx_generated::tx_make_array(
-            length, std::any_cast<const tx_generated::tx_array&>(source)));
-    });
-}
-
-extern "C" int txrt_array_len(const void* value,
-                               std::int64_t* result) noexcept
-{
-    return invoke_checked([&] {
-        const auto& item = as_value(value);
-        if (item.type() != typeid(tx_generated::tx_array))
-        {
-            throw std::runtime_error("len 的对象不是数组");
-        }
-        *result = tx_generated::tx_len(
-            std::any_cast<const tx_generated::tx_array&>(item));
-    });
-}
-
-extern "C" int txrt_array_element_address(void* value, std::int64_t index,
-                                            void** result) noexcept
-{
-    return invoke_checked([&] {
-        auto& item = as_value(value);
-        if (item.type() != typeid(tx_generated::tx_array))
-        {
-            throw std::runtime_error("索引对象不是数组");
-        }
-        *result = &tx_generated::tx_at(
-            std::any_cast<tx_generated::tx_array&>(item), index);
-    });
-}
-
-extern "C" int txrt_array_append(void* value, const void* item) noexcept
-{
-    return invoke_checked([&] {
-        auto& values = std::any_cast<tx_generated::tx_array&>(as_value(value));
-        values.push_back(as_value(item));
-    });
-}
-
-extern "C" int txrt_array_extend(void* value, const void* items) noexcept
-{
-    return invoke_checked([&] {
-        auto& values = std::any_cast<tx_generated::tx_array&>(as_value(value));
-        const auto& source = as_value(items);
-        if (source.type() != typeid(tx_generated::tx_array))
-        {
-            throw std::runtime_error("* 展开需要数组");
-        }
-        const auto& more = std::any_cast<const tx_generated::tx_array&>(source);
-        if (values.identity() == more.identity())
-        {
-            const tx_generated::tx_array snapshot(more.begin(), more.end());
-            values.insert(values.end(), snapshot.begin(), snapshot.end());
-        }
-        else
-        {
-            values.insert(values.end(), more.begin(), more.end());
-        }
-    });
-}
-
-extern "C" int txrt_array_require_length(const void* value,
-                                            std::size_t length) noexcept
-{
-    return invoke_checked([&] {
-        const auto& source = as_value(value);
-        if (source.type() != typeid(tx_generated::tx_array))
-        {
-            throw std::runtime_error("解包右侧需要数组");
-        }
-        const auto& values = std::any_cast<const tx_generated::tx_array&>(source);
-        if (values.size() != length)
-        {
-            throw std::runtime_error("解包数量与数组长度不匹配");
-        }
     });
 }
 
@@ -289,7 +285,7 @@ extern "C" int txrt_struct_new(const char* type_name,
 {
     return invoke_checked([&] {
         *result = make_handle<std::any>(dynamic_struct(dynamic_struct_data{
-            type_name, display_name, std::vector<dynamic_field>(field_count)}));
+            type_name, display_name, tx_generated::struct_fields(field_count)}));
     });
 }
 
@@ -297,13 +293,39 @@ extern "C" int txrt_struct_set_field(void* value, std::size_t index,
                                        const char* field_name,
                                        const void* field) noexcept
 {
-    return invoke_checked([&] {
-        auto& definition = as_struct(value);
-        if (index >= definition->fields.size())
-        {
-            throw std::runtime_error("结构体字段索引越界");
-        }
-        definition->fields[index] = {field_name, as_value(field)};
+    return invoke_checked([&]
+    {
+        set_struct_field(value, index, field_name, as_value(field));
+    });
+}
+
+extern "C" int txrt_struct_set_field_i64(void* value, std::size_t index,
+                                           const char* field_name,
+                                           std::int64_t field) noexcept
+{
+    return invoke_checked([&]
+    {
+        set_struct_field(value, index, field_name, field);
+    });
+}
+
+extern "C" int txrt_struct_set_field_f64(void* value, std::size_t index,
+                                           const char* field_name,
+                                           double field) noexcept
+{
+    return invoke_checked([&]
+    {
+        set_struct_field(value, index, field_name, field);
+    });
+}
+
+extern "C" int txrt_struct_set_field_bool(void* value, std::size_t index,
+                                            const char* field_name,
+                                            bool field) noexcept
+{
+    return invoke_checked([&]
+    {
+        set_struct_field(value, index, field_name, field);
     });
 }
 
@@ -315,7 +337,7 @@ extern "C" int txrt_struct_field_address(void* value,
         auto& definition = as_struct(value);
         for (auto& field : definition->fields)
         {
-            if (field.name == field_name)
+            if (field.name && std::string_view(field.name) == field_name)
             {
                 *result = &field.value;
                 return;
@@ -337,4 +359,22 @@ extern "C" int txrt_struct_field_address_index(void* value,
         }
         *result = &definition->fields[index].value;
     });
+}
+
+extern "C" void* txrt_struct_field_i64_ptr(const void* value,
+                                             std::size_t index) noexcept
+{
+    return struct_scalar_ptr<std::int64_t>(value, index, "int");
+}
+
+extern "C" void* txrt_struct_field_f64_ptr(const void* value,
+                                             std::size_t index) noexcept
+{
+    return struct_scalar_ptr<double>(value, index, "float");
+}
+
+extern "C" void* txrt_struct_field_bool_ptr(const void* value,
+                                              std::size_t index) noexcept
+{
+    return struct_scalar_ptr<bool>(value, index, "bool");
 }

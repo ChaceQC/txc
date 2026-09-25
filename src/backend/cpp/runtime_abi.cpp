@@ -5,10 +5,12 @@
 #include "backend/cpp/runtime.hpp"
 
 #include <any>
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <unordered_map>
+#include <vector>
 
 namespace tx_generated::detail
 {
@@ -16,18 +18,89 @@ namespace tx_generated::detail
 thread_local char last_error[256]{};
 namespace
 {
-thread_local std::unordered_map<void*, handle_kind> live_handles;
+struct handle_entry
+{
+    void* value;
+    handle_kind kind;
+};
+
+constexpr std::size_t small_handle_limit = 32;
+thread_local std::vector<handle_entry> live_handles;
+thread_local std::unordered_map<void*, std::size_t> handle_positions;
+thread_local bool indexed_handles = false;
 thread_local bool cleaning_handles = false;
 }
 
 void register_handle(void* value, handle_kind kind)
 {
-    live_handles.emplace(value, kind);
+    if (!indexed_handles && live_handles.size() == small_handle_limit)
+    {
+        std::unordered_map<void*, std::size_t> positions;
+        positions.reserve(small_handle_limit * 2);
+        for (std::size_t index = 0; index < live_handles.size(); ++index)
+        {
+            positions.emplace(live_handles[index].value, index);
+        }
+        handle_positions.swap(positions);
+        indexed_handles = true;
+    }
+    live_handles.push_back({value, kind});
+    if (indexed_handles)
+    {
+        try
+        {
+            handle_positions.emplace(value, live_handles.size() - 1);
+        }
+        catch (...)
+        {
+            live_handles.pop_back();
+            throw;
+        }
+    }
 }
 
 void unregister_handle(void* value) noexcept
 {
-    live_handles.erase(value);
+    std::size_t index = live_handles.size();
+    if (indexed_handles)
+    {
+        const auto found = handle_positions.find(value);
+        if (found != handle_positions.end())
+        {
+            index = found->second;
+            handle_positions.erase(found);
+        }
+    }
+    else
+    {
+        const auto found = std::find_if(live_handles.begin(), live_handles.end(),
+            [value](const handle_entry& entry)
+            {
+                return entry.value == value;
+            });
+        if (found != live_handles.end())
+        {
+            index = static_cast<std::size_t>(found - live_handles.begin());
+        }
+    }
+    if (index == live_handles.size())
+    {
+        return;
+    }
+    if (index + 1 != live_handles.size())
+    {
+        live_handles[index] = live_handles.back();
+        if (indexed_handles)
+        {
+            handle_positions.find(live_handles[index].value)->second = index;
+        }
+    }
+    live_handles.pop_back();
+    if (indexed_handles && live_handles.size() <= small_handle_limit / 2)
+    {
+        handle_positions.clear();
+        indexed_handles = false;
+    }
 }
 
 bool cleanup_in_progress() noexcept
@@ -44,10 +117,12 @@ void cleanup_live_handles() noexcept
     cleaning_handles = true;
     while (!live_handles.empty())
     {
-        const auto found = live_handles.begin();
-        void* value = found->first;
-        const auto kind = found->second;
-        live_handles.erase(found);
+        const auto [value, kind] = live_handles.back();
+        live_handles.pop_back();
+        if (indexed_handles)
+        {
+            handle_positions.erase(value);
+        }
         if (kind == handle_kind::text)
         {
             delete static_cast<std::string*>(value);
@@ -57,6 +132,8 @@ void cleanup_live_handles() noexcept
             delete static_cast<std::any*>(value);
         }
     }
+    handle_positions.clear();
+    indexed_handles = false;
     try
     {
         tx_generated::collect_cycles();

@@ -1,3 +1,4 @@
 def unix_millis() -> int
 def monotonic_millis() -> int
+def monotonic_micros() -> int
 def sleep_millis(duration: int) -> void

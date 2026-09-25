@@ -19,6 +19,22 @@ void llvm_code_generator::collect_class_nodes(
     result.push_back(&definition);
 }
 
+std::size_t llvm_code_generator::class_field_count(
+    const class_decl& definition) const
+{
+    std::vector<const class_decl*> nodes;
+    collect_class_nodes(definition, nodes);
+    std::size_t count = 0;
+    for (const auto* node : nodes)
+    {
+        for (const auto& field : node->fields)
+        {
+            count = std::max(count, field.slot + 1);
+        }
+    }
+    return count;
+}
+
 bool llvm_code_generator::class_is_assignable(
     const value_type& actual, const value_type& expected) const
 {
@@ -70,7 +86,7 @@ void llvm_code_generator::emit_class_metadata(const class_decl& definition)
         ancestors.push_back(global_bytes(node->name));
     }
     write_ptrs("@tx_class_ancestors_" + definition.name, ancestors);
-    std::vector<std::string> field_types(field_slot_count_, "null");
+    std::vector<std::string> field_types(class_field_count(definition), "null");
     for (const auto* node : nodes)
     {
         for (const auto& field : node->fields)
@@ -107,7 +123,8 @@ void llvm_code_generator::emit_class_metadata(const class_decl& definition)
 
 llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
     const expression& item, const call_expression& call,
-    const std::vector<ir_value>& arguments)
+    const std::vector<ir_value>& arguments,
+    const std::vector<bool>& borrowed_arguments)
 {
     const auto& definition = *classes_.at(call.name);
     std::vector<const class_decl*> nodes;
@@ -122,14 +139,15 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
     const auto separator = call.source_name.find_last_of('.');
     const auto display_name = call.source_name.substr(
         separator == std::string::npos ? 0 : separator + 1);
+    const auto field_count = class_field_count(definition);
     const auto address = allocate(item.type, item.position);
     const auto status = temporary();
     write_instruction(status + " = call i32 @txrt_class_new(ptr " +
         global_bytes(call.name) + ", ptr " + global_bytes(display_name) +
         ", ptr @tx_class_ancestors_" + call.name + ", i64 " +
         std::to_string(nodes.size()) + ", ptr " +
-        (field_slot_count_ == 0 ? "null" : "@tx_class_fields_" + call.name) +
-        ", i64 " + std::to_string(field_slot_count_) + ", ptr " +
+        (field_count == 0 ? "null" : "@tx_class_fields_" + call.name) +
+        ", i64 " + std::to_string(field_count) + ", ptr " +
         (virtual_slot_count_ == 0 ? "null" : "@tx_class_vtable_" + call.name) +
         ", i64 " + std::to_string(virtual_slot_count_) + ", ptr " +
         (destructor_count == 0 ? "null" :
@@ -141,15 +159,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
     write_instruction(object + " = load ptr, ptr " + address);
     if (!call.constructor_init_symbol.empty())
     {
-        const auto clone_slot = allocate(item.type, item.position);
-        const auto clone_status = temporary();
-        write_instruction(clone_status + " = call i32 @txrt_value_clone(ptr " +
-                          object + ", ptr " + clone_slot + ")");
-        write_instruction("call void @txrt_require_success(i32 " +
-                          clone_status + ")");
-        const auto receiver = temporary();
-        write_instruction(receiver + " = load ptr, ptr " + clone_slot);
-        std::string parameters = "ptr " + receiver;
+        std::string parameters = "ptr " + object;
         for (const auto& argument : arguments)
         {
             parameters += ", " + llvm_type(argument.type, item.position) +
@@ -158,6 +168,16 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
         write_instruction("call void " + function_name(
             call.constructor_init_symbol, call.constructor_init_index) +
             "(" + parameters + ")");
+        const auto& init = *functions_.at(call.constructor_init_symbol).at(
+            call.constructor_init_index);
+        for (std::size_t index = 0; index < arguments.size(); ++index)
+        {
+            if (init_parameter_borrowed(init, index) &&
+                !borrowed_arguments[index])
+            {
+                release(arguments[index]);
+            }
+        }
     }
     return {item.type, object};
 }
@@ -165,7 +185,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
 llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     const expression& item, const call_expression& call)
 {
-    const auto receiver = expression_value(*call.receiver);
+    bool borrowed = false;
+    const auto receiver = expression_value_or_borrow(*call.receiver, borrowed);
     const auto& target = *functions_.at(call.name).at(*call.overload_index);
     const bool needs_binding = std::any_of(target.parameters.begin(),
         target.parameters.end(), [](const parameter& value)
@@ -186,16 +207,17 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     arguments.insert(arguments.begin(), receiver);
     if (!call.virtual_dispatch)
     {
-        return emit_user_call(item, call, target, arguments);
+        const auto result = emit_user_call(item, call, target, arguments);
+        if (!borrowed)
+        {
+            release(receiver);
+        }
+        return result;
     }
-    const auto target_slot = allocate(value_type::any_type, item.position);
-    const auto status = temporary();
-    write_instruction(status + " = call i32 @txrt_class_virtual_target(ptr " +
-        receiver.text + ", i64 " + std::to_string(call.virtual_slot) +
-        ", ptr " + target_slot + ")");
-    write_instruction("call void @txrt_require_success(i32 " + status + ")");
     const auto target_address = temporary();
-    write_instruction(target_address + " = load ptr, ptr " + target_slot);
+    write_instruction(target_address +
+        " = call ptr @txrt_class_virtual_target_fast(ptr " +
+        receiver.text + ", i64 " + std::to_string(call.virtual_slot) + ")");
     std::string parameters;
     for (const auto& argument : arguments)
     {
@@ -210,10 +232,18 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     if (item.type == value_type::void_type)
     {
         write_instruction(invocation);
+        if (!borrowed)
+        {
+            release(receiver);
+        }
         return {item.type, {}};
     }
     const auto result = temporary();
     write_instruction(result + " = " + invocation);
+    if (!borrowed)
+    {
+        release(receiver);
+    }
     return {item.type, result};
 }
 

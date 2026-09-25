@@ -181,3 +181,44 @@ extern "C" int txrt_call_bind(const void* positional,
         *result = tx_generated::detail::make_handle<std::any>(std::move(bound));
     });
 }
+
+extern "C" int txrt_call_split_spreads(
+    const void* spread_array, const void* spread_dict,
+    const char* const* fixed_names, std::size_t fixed_count,
+    void** args_result, void** kwargs_result) noexcept
+{
+    return invoke_checked([&]
+    {
+        const auto& array_value = as_value(spread_array);
+        if (array_value.type() != typeid(tx_array))
+        {
+            throw std::runtime_error("* 展开需要数组");
+        }
+        const auto& source = std::any_cast<const tx_array&>(array_value);
+        const auto& keywords = as_keywords(spread_dict);
+        tx_array args(source.begin(), source.end());
+        tx_dict kwargs;
+        for (const auto& [key, value] : keywords)
+        {
+            const auto name = keyword_name(key);
+            if (fixed_name(fixed_names, fixed_count, name))
+            {
+                throw std::runtime_error("参数同时收到位置和命名值：" + name);
+            }
+            kwargs.emplace_back(key, value);
+        }
+        auto* args_handle = tx_generated::detail::make_handle<std::any>(
+            std::move(args));
+        try
+        {
+            *kwargs_result = tx_generated::detail::make_handle<std::any>(
+                std::move(kwargs));
+        }
+        catch (...)
+        {
+            tx_generated::detail::destroy_handle(args_handle);
+            throw;
+        }
+        *args_result = args_handle;
+    });
+}

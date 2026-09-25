@@ -20,6 +20,12 @@ tx_int tx_fn_monotonic_millis()
     return std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
 }
 
+tx_int tx_fn_monotonic_micros()
+{
+    const auto elapsed = std::chrono::steady_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+}
+
 void tx_fn_sleep_millis(tx_int duration)
 {
     if (duration < 0)

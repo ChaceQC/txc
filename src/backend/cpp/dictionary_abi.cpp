@@ -7,6 +7,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <typeinfo>
 
 namespace
@@ -158,5 +159,37 @@ extern "C" int txrt_dict_element_address(void* value, const void* key,
 {
     return invoke_checked([&] {
         *result = dict_element_address(as_dict(value), as_value(key), create);
+    });
+}
+
+extern "C" int txrt_dict_element_address_str(void* value, const void* key,
+                                                bool create, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = dict_element_address(as_dict(value),
+            *static_cast<const std::string*>(key), create);
+    });
+}
+
+extern "C" int txrt_dict_element_address_literal(
+    void* value, const char* key, std::size_t length, bool create,
+    void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        auto& dict = as_dict(value);
+        const std::string_view text(key, length);
+        if (auto* found = dict.find_value(text))
+        {
+            *result = found;
+            return;
+        }
+        if (!create)
+        {
+            throw std::runtime_error("字典键不存在");
+        }
+        dict.emplace_back(std::string(text), std::any{});
+        *result = &dict.back().second;
     });
 }

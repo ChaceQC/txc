@@ -93,7 +93,7 @@ private:
         }
         dynamic_struct result(dynamic_struct_data{
             source->type_name, source->display_name,
-            std::vector<dynamic_field>(source->fields.size())});
+            struct_fields(source->fields.size())});
         copies_.emplace(source.identity(), result);
         for (std::size_t index = 0; index < source->fields.size(); ++index)
         {
@@ -118,6 +118,7 @@ private:
         object->type_name = source->type_name;
         object->display_name = source->display_name;
         object->ancestors = source->ancestors;
+        object->ancestor_count = source->ancestor_count;
         object->virtual_targets = source->virtual_targets;
         object->virtual_count = source->virtual_count;
         object->destructor_targets = source->destructor_targets;

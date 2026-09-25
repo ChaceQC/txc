@@ -33,6 +33,7 @@ bool supported_external_call(std::string_view name)
            name == "path.file_name" || name == "path.extension" ||
            name == "time.unix_millis" ||
            name == "time.monotonic_millis" ||
+           name == "time.monotonic_micros" ||
            name == "time.sleep_millis" || name == "random.seed" ||
            name == "random.random_int" ||
            name == "random.random_float";
@@ -49,7 +50,7 @@ bool is_builtin_call(std::string_view name)
 
 llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
     const expression& item, const call_expression& call,
-    const std::vector<ir_value>& arguments)
+    const std::vector<ir_value>& arguments, bool borrowed_argument)
 {
     if (call.name == "print")
     {
@@ -90,7 +91,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
         write_instruction(status + " = call i32 @" + name + "(ptr " +
                           argument.text + ", ptr " + address + ")");
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
-        release(argument);
+        if (!borrowed_argument)
+        {
+            release(argument);
+        }
         return load({value_type::int_type, address});
     }
     if (call.name == "is_none")
@@ -100,7 +104,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
         write_instruction(status + " = call i32 @txrt_value_is_none(ptr " +
                           arguments.front().text + ", ptr " + address + ")");
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
-        release(arguments.front());
+        if (!borrowed_argument)
+        {
+            release(arguments.front());
+        }
         return load({value_type::bool_type, address});
     }
     if (call.name == "to_float")
@@ -152,12 +159,25 @@ llvm_code_generator::ir_value llvm_code_generator::emit_constructor_call(
     write_instruction(result + " = load ptr, ptr " + address);
     for (std::size_t index = 0; index < fields.size(); ++index)
     {
-        const auto boxed = box_any(arguments[index], item.position);
+        const auto& argument = arguments[index];
+        const auto* direct = argument.type == value_type::int_type
+            ? "txrt_struct_set_field_i64" :
+            argument.type == value_type::float_type
+            ? "txrt_struct_set_field_f64" :
+            argument.type == value_type::bool_type
+            ? "txrt_struct_set_field_bool" : nullptr;
+        ir_value boxed{value_type::void_type, {}};
+        if (!direct)
+        {
+            boxed = box_any(argument, item.position);
+        }
         const auto set_status = temporary();
-        write_instruction(set_status + " = call i32 @txrt_struct_set_field(ptr " +
-                          result + ", i64 " + std::to_string(index) +
-                          ", ptr " + global_bytes(fields[index].name) +
-                          ", ptr " + boxed.text + ")");
+        write_instruction(set_status + " = call i32 @" +
+            std::string(direct ? direct : "txrt_struct_set_field") +
+            "(ptr " + result + ", i64 " + std::to_string(index) +
+            ", ptr " + global_bytes(fields[index].name) + ", " +
+            (direct ? llvm_type(argument.type, item.position) + " " +
+            argument.text : "ptr " + boxed.text) + ")");
         write_instruction("call void @txrt_require_success(i32 " +
                           set_status + ")");
         release(boxed);
@@ -229,6 +249,93 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
     };
     if (is_builtin_call(call.name))
     {
+        if (call.name == "len" || call.name == "is_none")
+        {
+            bool borrowed = false;
+            const auto& input = *call.arguments.front().value;
+            if (call.name == "len" && input.type == value_type::array_type)
+            {
+                if (const auto* name = std::get_if<name_reference>(&input.data))
+                {
+                    const auto slot = find_variable(name->name, input.position);
+                    if (has_local_array(slot))
+                    {
+                        return {value_type::int_type,
+                            slot.local_array_length
+                                ? std::to_string(*slot.local_array_length)
+                                : slot.dynamic_array_length};
+                    }
+                    if (!slot.array_reference.empty())
+                    {
+                        const auto reference = load_array_reference(slot);
+                        const auto length = temporary();
+                        write_instruction(length +
+                            " = call i64 @txrt_array_ref_len(ptr " +
+                            reference + ")");
+                        return {value_type::int_type, length};
+                    }
+                }
+            }
+            ir_value argument{value_type::void_type, {}};
+            if (call.name == "len" && input.type == value_type::str_type)
+            {
+                if (const auto* name = std::get_if<name_reference>(&input.data))
+                {
+                    const auto slot = find_variable(name->name, input.position);
+                    const auto text = temporary();
+                    write_instruction(text + " = load ptr, ptr " + slot.address);
+                    argument = {input.type, text};
+                    borrowed = true;
+                }
+            }
+            if (const auto* index = std::get_if<index_expression>(&input.data);
+                index && input.type == value_type::any_type &&
+                index->object->type == value_type::array_type)
+            {
+                if (const auto* owner = std::get_if<name_reference>(
+                        &index->object->data))
+                {
+                    // 索引先求值，再从变量槽借用元素；内置函数不会保存地址。
+                    const auto position = expression_value(*index->index);
+                    const auto slot = find_variable(owner->name, input.position);
+                    if (has_local_array(slot))
+                    {
+                        const auto [kind_address, bits_address] =
+                            local_array_element(slot, position.text, false);
+                        const auto kind = temporary();
+                        write_instruction(kind + " = load i8, ptr " + kind_address);
+                        const auto result = temporary();
+                        write_instruction(result + " = icmp eq i8 " + kind +
+                                          ", 1");
+                        release(position);
+                        (void)bits_address;
+                        return {value_type::bool_type, result};
+                    }
+                    const bool native = !slot.array_reference.empty();
+                    const auto array = native
+                        ? load_array_reference(slot) : temporary();
+                    if (!native)
+                    {
+                        write_instruction(array + " = load ptr, ptr " +
+                                          slot.address);
+                    }
+                    const auto element = temporary();
+                    write_instruction(element +
+                        " = call ptr @" + std::string(native
+                            ? "txrt_array_ref_element_read_ptr"
+                            : "txrt_array_element_read_ptr") + "(ptr " + array +
+                        ", i64 " + position.text + ")");
+                    release(position);
+                    argument = {input.type, element};
+                    borrowed = true;
+                }
+            }
+            if (!borrowed)
+            {
+                argument = expression_value_or_borrow(input, borrowed);
+            }
+            return emit_builtin_call(item, call, {argument}, borrowed);
+        }
         return emit_builtin_call(item, call, plain_arguments());
     }
     if (call.is_constructor)
@@ -247,10 +354,29 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
                  std::any_of(call.arguments.begin(), call.arguments.end(),
                     [](const call_argument& argument)
                     { return argument.kind != argument_kind::positional; }));
-            const auto arguments = needs_binding
-                ? emit_bound_arguments(item, call, init->parameters)
-                : plain_arguments();
-            return emit_class_constructor(item, call, arguments);
+            std::vector<ir_value> arguments;
+            std::vector<bool> borrowed_arguments;
+            if (needs_binding)
+            {
+                arguments = emit_bound_arguments(item, call, init->parameters);
+                borrowed_arguments.resize(arguments.size(), false);
+            }
+            else
+            {
+                arguments.reserve(call.arguments.size());
+                for (std::size_t index = 0; index < call.arguments.size(); ++index)
+                {
+                    bool borrowed = false;
+                    const auto& argument = *call.arguments[index].value;
+                    arguments.push_back(init &&
+                        init_parameter_borrowed(*init, index)
+                        ? expression_value_or_borrow(argument, borrowed)
+                        : expression_value(argument));
+                    borrowed_arguments.push_back(borrowed);
+                }
+            }
+            return emit_class_constructor(item, call, arguments,
+                                          borrowed_arguments);
         }
         const auto& definition = *structs_.at(call.name);
         std::vector<parameter> parameters;
@@ -282,11 +408,43 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
         std::any_of(call.arguments.begin(), call.arguments.end(),
             [](const call_argument& value)
             { return value.kind != argument_kind::positional; });
-    const auto arguments = needs_binding
-        ? emit_bound_arguments(item, call, target.parameters) : plain_arguments();
-    return target.external
-        ? emit_external_call(item, call, target, arguments)
-        : emit_user_call(item, call, target, arguments);
+    if (target.external)
+    {
+        const auto arguments = needs_binding
+            ? emit_bound_arguments(item, call, target.parameters)
+            : plain_arguments();
+        return emit_external_call(item, call, target, arguments);
+    }
+    std::vector<ir_value> arguments;
+    std::vector<bool> borrowed_arguments;
+    if (needs_binding)
+    {
+        arguments = emit_bound_arguments(item, call, target.parameters);
+        borrowed_arguments.resize(arguments.size(), false);
+    }
+    else
+    {
+        arguments.reserve(call.arguments.size());
+        for (std::size_t index = 0; index < call.arguments.size(); ++index)
+        {
+            bool borrowed = false;
+            const auto& argument = *call.arguments[index].value;
+            arguments.push_back(ordinary_parameter_borrowed(target, index)
+                ? expression_value_or_borrow(argument, borrowed)
+                : expression_value(argument));
+            borrowed_arguments.push_back(borrowed);
+        }
+    }
+    const auto result = emit_user_call(item, call, target, arguments);
+    for (std::size_t index = 0; index < arguments.size(); ++index)
+    {
+        if (ordinary_parameter_borrowed(target, index) &&
+            !borrowed_arguments[index])
+        {
+            release(arguments[index]);
+        }
+    }
+    return result;
 }
 
 } // namespace tx

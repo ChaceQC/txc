@@ -54,7 +54,8 @@ function Read-BenchmarkResult
 {
     param(
         [string]$Executable,
-        [string]$Label
+        [string]$Label,
+        [double]$MillisecondsPerUnit = 1.0
     )
 
     [string[]]$lines = & $Executable
@@ -76,7 +77,7 @@ function Read-BenchmarkResult
         {
             throw "$Label 第 $($index + 1) 项名称不匹配：$name。"
         }
-        $elapsed = [double]::Parse($lines[$line + 1], $culture)
+        $elapsed = [double]::Parse($lines[$line + 1], $culture) * $MillisecondsPerUnit
         $checksum = [long]::Parse($lines[$line + 2], $culture)
         if ($checksum -ne $expected[$name])
         {
@@ -120,7 +121,8 @@ try
         throw 'TX 基准编译失败。'
     }
 
-    $null = Read-BenchmarkResult -Executable $tx_exe -Label 'TX 预热'
+    $null = Read-BenchmarkResult -Executable $tx_exe -Label 'TX 预热' `
+        -MillisecondsPerUnit 0.001
     $null = Read-BenchmarkResult -Executable $cpp_exe -Label 'C++ 预热'
 
     $tx_samples = @{}
@@ -135,13 +137,15 @@ try
     {
         if ($round % 2 -eq 0)
         {
-            $tx_result = Read-BenchmarkResult -Executable $tx_exe -Label 'TX'
+            $tx_result = Read-BenchmarkResult -Executable $tx_exe -Label 'TX' `
+                -MillisecondsPerUnit 0.001
             $cpp_result = Read-BenchmarkResult -Executable $cpp_exe -Label 'C++'
         }
         else
         {
             $cpp_result = Read-BenchmarkResult -Executable $cpp_exe -Label 'C++'
-            $tx_result = Read-BenchmarkResult -Executable $tx_exe -Label 'TX'
+            $tx_result = Read-BenchmarkResult -Executable $tx_exe -Label 'TX' `
+                -MillisecondsPerUnit 0.001
         }
         foreach ($name in $names)
         {
@@ -161,7 +165,7 @@ try
             $cpp_median.ToString('F4', $culture),
             $ratio.ToString('F2', $culture)
     }
-    'C++ 低于 1 ms 的项目对系统调度更敏感，倍率仅供粗略参考。'
+    '短项目仍受系统调度影响；TX 和 C++ 均已换算为毫秒。'
 }
 finally
 {

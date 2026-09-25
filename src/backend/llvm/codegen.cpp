@@ -129,6 +129,24 @@ std::size_t llvm_code_generator::field_index(const value_type& type,
 llvm_code_generator::ir_value llvm_code_generator::load(
     const variable_slot& variable)
 {
+    if (!variable.snapshot_kind.empty())
+    {
+        const auto kind = temporary();
+        write_instruction(kind + " = load i8, ptr " + variable.snapshot_kind);
+        const auto bits = temporary();
+        write_instruction(bits + " = load i64, ptr " + variable.snapshot_bits);
+        const auto fallback = temporary();
+        write_instruction(fallback + " = load ptr, ptr " + variable.address);
+        const auto output = allocate(value_type::any_type, {});
+        const auto status = temporary();
+        write_instruction(status +
+            " = call i32 @txrt_value_snapshot_box(i8 " + kind +
+            ", i64 " + bits + ", ptr " + fallback + ", ptr " + output + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        const auto result = temporary();
+        write_instruction(result + " = load ptr, ptr " + output);
+        return {variable.type, result};
+    }
     const auto result = temporary();
     write_instruction(result + " = load " +
                       llvm_type(variable.type, {}) + ", ptr " + variable.address);
@@ -157,6 +175,70 @@ llvm_code_generator::ir_value llvm_code_generator::load(
     return {variable.type, result};
 }
 
+std::string llvm_code_generator::cache_array_reference(
+    const std::string& handle, source_pos position)
+{
+    const auto address = allocate(value_type::array_type, position);
+    const auto reference = temporary();
+    write_instruction(reference + " = call ptr @txrt_array_ref(ptr " +
+                      handle + ")");
+    write_instruction("store ptr " + reference + ", ptr " + address);
+    return address;
+}
+
+void llvm_code_generator::refresh_array_reference(
+    const variable_slot& variable, const std::string& handle)
+{
+    if (variable.array_reference.empty())
+    {
+        return;
+    }
+    const auto reference = temporary();
+    write_instruction(reference + " = call ptr @txrt_array_ref(ptr " +
+                      handle + ")");
+    write_instruction("store ptr " + reference + ", ptr " +
+                      variable.array_reference);
+}
+
+std::string llvm_code_generator::load_array_reference(
+    const variable_slot& variable)
+{
+    const auto result = temporary();
+    write_instruction(result + " = load ptr, ptr " + variable.array_reference);
+    return result;
+}
+
+llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
+    const expression& item, bool& borrowed)
+{
+    const name_reference* name = std::get_if<name_reference>(&item.data);
+    if (const auto* call = std::get_if<call_expression>(&item.data);
+        call && call->is_super_view)
+    {
+        name = nullptr;
+        const auto variable = find_variable("self", item.position);
+        const auto result = temporary();
+        write_instruction(result + " = load ptr, ptr " + variable.address);
+        borrowed = true;
+        return {item.type, result};
+    }
+    if (name && is_value_handle(item.type))
+    {
+        const auto variable = find_variable(name->name, item.position);
+        if (!variable.snapshot_kind.empty())
+        {
+            borrowed = false;
+            return load(variable);
+        }
+        const auto result = temporary();
+        write_instruction(result + " = load ptr, ptr " + variable.address);
+        borrowed = true;
+        return {item.type, result};
+    }
+    borrowed = false;
+    return expression_value(item);
+}
+
 void llvm_code_generator::release(const ir_value& value)
 {
     if (value.type == value_type::str_type)
@@ -171,6 +253,27 @@ void llvm_code_generator::release(const ir_value& value)
 
 void llvm_code_generator::release_slot(const variable_slot& variable)
 {
+    if (!variable.dynamic_array_length.empty())
+    {
+        write_instruction("call void @txrt_local_scalar_array_release(ptr " +
+                          variable.address + ")");
+        return;
+    }
+    if (variable.local_array_length)
+    {
+        return;
+    }
+    if (!variable.snapshot_kind.empty())
+    {
+        const auto fallback = temporary();
+        write_instruction(fallback + " = load ptr, ptr " + variable.address);
+        write_instruction("call void @txrt_value_release(ptr " + fallback + ")");
+        return;
+    }
+    if (variable.borrowed)
+    {
+        return;
+    }
     if (variable.type == value_type::str_type ||
         is_value_handle(variable.type))
     {
@@ -182,6 +285,23 @@ void llvm_code_generator::release_slot(const variable_slot& variable)
 
 void llvm_code_generator::write_instruction(const std::string& text)
 {
+    constexpr std::string_view check = "call void @txrt_require_success(i32 ";
+    if (text.starts_with(check) && text.ends_with(')'))
+    {
+        // 成功路径只检查状态码，错误处理沿用运行时原有出口。
+        const auto status = text.substr(check.size(),
+                                        text.size() - check.size() - 1);
+        const auto failed = temporary();
+        body_ << "  " << failed << " = icmp ne i32 " << status << ", 0\n";
+        const auto error_label = label();
+        const auto success_label = label();
+        body_ << "  br i1 " << failed << ", label %" << error_label
+              << ", label %" << success_label << '\n';
+        start_block(error_label);
+        body_ << "  " << text << "\n  unreachable\n";
+        start_block(success_label);
+        return;
+    }
     body_ << "  " << text << '\n';
 }
 
@@ -196,6 +316,7 @@ void llvm_code_generator::start_block(const std::string& name)
 {
     body_ << name << ":\n";
     terminated_ = false;
+    in_entry_block_ = false;
 }
 
 void llvm_code_generator::push_scope()
@@ -218,6 +339,8 @@ void llvm_code_generator::pop_scope()
 
 std::string llvm_code_generator::generate(const program& source)
 {
+    gc_visiting_.clear();
+    gc_neutral_cache_.clear();
     functions_.clear();
     structs_.clear();
     classes_.clear();
@@ -226,7 +349,6 @@ std::string llvm_code_generator::generate(const program& source)
     globals_.str({});
     globals_.clear();
     next_string_ = 0;
-    field_slot_count_ = source.field_slot_count;
     virtual_slot_count_ = source.virtual_slot_count;
     for (const auto& function : source.functions)
     {
@@ -290,41 +412,83 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_value_box_bool(i1, ptr)\n"
             << "declare i32 @txrt_value_box_str(ptr, ptr)\n"
             << "declare i32 @txrt_value_clone(ptr, ptr)\n"
+            << "declare i1 @txrt_value_snapshot_scalar(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_value_snapshot_box(i8, i64, ptr, ptr)\n"
+            << "declare i64 @txrt_value_snapshot_to_i64_fast(i8, i64, ptr)\n"
+            << "declare double @txrt_value_snapshot_to_f64_fast(i8, i64, ptr)\n"
+            << "declare i1 @txrt_value_snapshot_to_bool_fast(i8, i64, ptr)\n"
             << "declare i32 @txrt_value_deep_copy(ptr, ptr)\n"
             << "declare void @txrt_value_release(ptr)\n"
             << "declare i32 @txrt_value_assign(ptr, ptr)\n"
+            << "declare i32 @txrt_value_set_i64(ptr, i64)\n"
+            << "declare i32 @txrt_value_set_f64(ptr, double)\n"
+            << "declare i32 @txrt_value_set_bool(ptr, i1)\n"
             << "declare i32 @txrt_value_to_i64(ptr, ptr)\n"
             << "declare i32 @txrt_value_to_f64(ptr, ptr)\n"
             << "declare i32 @txrt_value_to_bool(ptr, ptr)\n"
+            << "declare i64 @txrt_value_to_i64_fast(ptr)\n"
+            << "declare double @txrt_value_to_f64_fast(ptr)\n"
+            << "declare i1 @txrt_value_to_bool_fast(ptr)\n"
             << "declare i32 @txrt_value_to_str(ptr, ptr)\n"
             << "declare i32 @txrt_value_is_none(ptr, ptr)\n"
             << "declare i32 @txrt_value_len(ptr, ptr)\n"
             << "declare i32 @txrt_value_print(ptr, i1)\n"
             << "declare i32 @txrt_value_require_type(ptr, ptr)\n"
             << "declare i32 @txrt_array_new(i64, ptr)\n"
+            << "declare ptr @txrt_array_ref(ptr)\n"
+            << "declare void @txrt_array_index_error()\n"
+            << "declare i32 @txrt_local_scalar_array_new(i64, ptr)\n"
+            << "declare void @txrt_local_scalar_array_release(ptr)\n"
+            << "declare i64 @txrt_array_ref_len(ptr)\n"
+            << "declare i64 @txrt_array_ref_get_i64(ptr, i64)\n"
+            << "declare ptr @txrt_array_ref_element_read_ptr(ptr, i64)\n"
+            << "declare ptr @txrt_array_ref_element_ptr(ptr, i64)\n"
+            << "declare i32 @txrt_array_ref_set_i64(ptr, i64, i64)\n"
+            << "declare i32 @txrt_array_ref_set_f64(ptr, i64, double)\n"
+            << "declare i32 @txrt_array_ref_set_bool(ptr, i64, i1)\n"
             << "declare i32 @txrt_array_resize(i64, ptr, ptr)\n"
             << "declare i32 @txrt_array_len(ptr, ptr)\n"
             << "declare i32 @txrt_array_element_address(ptr, i64, ptr)\n"
+            << "declare ptr @txrt_array_element_ptr(ptr, i64)\n"
+            << "declare ptr @txrt_array_element_read_ptr(ptr, i64)\n"
+            << "declare i32 @txrt_array_set_i64(ptr, i64, i64)\n"
+            << "declare i32 @txrt_array_set_f64(ptr, i64, double)\n"
+            << "declare i32 @txrt_array_set_bool(ptr, i64, i1)\n"
             << "declare i32 @txrt_array_append(ptr, ptr)\n"
             << "declare i32 @txrt_array_extend(ptr, ptr)\n"
+            << "declare void @txrt_array_require_spread(ptr)\n"
             << "declare i32 @txrt_array_require_length(ptr, i64)\n"
             << "declare i32 @txrt_dict_new(ptr)\n"
             << "declare i32 @txrt_dict_set(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dict_len(ptr, ptr)\n"
             << "declare i32 @txrt_dict_key_address(ptr, i64, ptr)\n"
             << "declare i32 @txrt_dict_element_address(ptr, ptr, i1, ptr)\n"
+            << "declare i32 @txrt_dict_element_address_str(ptr, ptr, i1, ptr)\n"
+            << "declare i32 @txrt_dict_element_address_literal(ptr, ptr, i64, i1, ptr)\n"
             << "declare i32 @txrt_value_element_address(ptr, ptr, i1, ptr)\n"
             << "declare i32 @txrt_keyword_set(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_keyword_merge(ptr, ptr)\n"
             << "declare i32 @txrt_call_bind(ptr, ptr, ptr, i64, i32, i32, ptr)\n"
+            << "declare i32 @txrt_call_split_spreads(ptr, ptr, ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_struct_new(ptr, ptr, i64, ptr)\n"
             << "declare i32 @txrt_struct_set_field(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_struct_set_field_i64(ptr, i64, ptr, i64)\n"
+            << "declare i32 @txrt_struct_set_field_f64(ptr, i64, ptr, double)\n"
+            << "declare i32 @txrt_struct_set_field_bool(ptr, i64, ptr, i1)\n"
             << "declare i32 @txrt_struct_field_address(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_struct_field_address_index(ptr, i64, ptr)\n"
+            << "declare ptr @txrt_struct_field_i64_ptr(ptr, i64)\n"
+            << "declare ptr @txrt_struct_field_f64_ptr(ptr, i64)\n"
+            << "declare ptr @txrt_struct_field_bool_ptr(ptr, i64)\n"
             << "declare i32 @txrt_class_new(ptr, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr)\n"
             << "declare i32 @txrt_class_field_address_index(ptr, i64, i1, ptr)\n"
+            << "declare ptr @txrt_class_field_i64_ptr(ptr, i64)\n"
+            << "declare ptr @txrt_class_field_f64_ptr(ptr, i64)\n"
+            << "declare ptr @txrt_class_field_bool_ptr(ptr, i64)\n"
             << "declare i32 @txrt_class_virtual_target(ptr, i64, ptr)\n"
+            << "declare ptr @txrt_class_virtual_target_fast(ptr, i64)\n"
             << "declare i32 @txrt_class_require_type(ptr, ptr)\n"
+            << "declare void @txrt_class_require_type_fast(ptr, ptr)\n"
             << "\n";
 
     for (const auto& definition : source.classes)

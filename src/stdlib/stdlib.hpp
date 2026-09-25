@@ -81,6 +81,7 @@ std::string tx_fn_file_name(std::string path);
 std::string tx_fn_extension(std::string path);
 tx_int tx_fn_unix_millis();
 tx_int tx_fn_monotonic_millis();
+tx_int tx_fn_monotonic_micros();
 void tx_fn_sleep_millis(tx_int duration);
 void tx_fn_seed(tx_int value);
 tx_int tx_fn_random_int(tx_int lower, tx_int upper);

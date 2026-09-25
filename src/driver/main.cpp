@@ -205,7 +205,7 @@ int compile_llvm_native(const std::string& generated_source,
     }
     const auto emit_result = run_local_tool(tool_dir / "clang.exe",
         {L"-target", L"x86_64-w64-windows-gnu", L"-x", L"ir", L"-c",
-         L"-O2", L"-o", object_file.path.wstring(), ir_file.path.wstring()});
+         L"-O3", L"-o", object_file.path.wstring(), ir_file.path.wstring()});
     if (emit_result != 0)
     {
         return emit_result;

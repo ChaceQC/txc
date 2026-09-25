@@ -32,6 +32,10 @@ std::any dispatch_time_random(std::string_view name,
     {
         return tx_fn_monotonic_millis();
     }
+    if (name == "time.monotonic_micros")
+    {
+        return tx_fn_monotonic_micros();
+    }
     if (name == "time.sleep_millis")
     {
         tx_fn_sleep_millis(argument<tx_int>(arguments, 0));

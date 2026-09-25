@@ -27,11 +27,20 @@ add_executable(txc
     src/backend/llvm/codegen_declarations.cpp
     src/backend/llvm/codegen_control.cpp
     src/backend/llvm/codegen_statement.cpp
+    src/backend/llvm/codegen_unpack.cpp
+    src/backend/llvm/codegen_gc.cpp
+    src/backend/llvm/codegen_ownership.cpp
+    src/backend/llvm/codegen_snapshot.cpp
+    src/backend/llvm/codegen_local_array.cpp
+    src/backend/llvm/codegen_dynamic_local_array.cpp
+    src/backend/llvm/codegen_local_array_analysis.cpp
     src/backend/llvm/codegen_expression.cpp
+    src/backend/llvm/codegen_cast.cpp
     src/backend/llvm/codegen_expression_ops.cpp
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
     src/backend/llvm/codegen_class.cpp
+    src/backend/llvm/codegen_fields.cpp
     src/backend/llvm/codegen_print.cpp
     src/backend/llvm/codegen_external_direct.cpp
     src/backend/llvm/codegen_call_binding.cpp
@@ -46,11 +55,14 @@ add_library(txstdlib STATIC
     src/backend/cpp/cycle_gc.cpp
     src/backend/cpp/text_direct_abi.cpp
     src/backend/cpp/array_direct_abi.cpp
+    src/backend/cpp/array_abi.cpp
+    src/backend/cpp/local_scalar_array_abi.cpp
     src/backend/cpp/filesystem_direct_abi.cpp
     src/backend/cpp/file_direct_abi.cpp
     src/backend/cpp/format_direct_abi.cpp
     src/backend/cpp/io_time_direct_abi.cpp
     src/backend/cpp/value_abi.cpp
+    src/backend/cpp/value_snapshot_abi.cpp
     src/backend/cpp/deep_copy.cpp
     src/backend/cpp/class_abi.cpp
     src/backend/cpp/value_format.cpp

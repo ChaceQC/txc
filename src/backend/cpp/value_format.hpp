@@ -3,6 +3,8 @@
 #include "backend/cpp/cycle_gc.hpp"
 
 #include <any>
+#include <array>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <utility>
@@ -13,15 +15,87 @@ namespace tx_generated
 
 struct dynamic_field
 {
-    std::string name;
+    const char* name = nullptr;
     std::any value;
+};
+
+class struct_fields
+{
+public:
+    explicit struct_fields(std::size_t count = 0) : count_(count)
+    {
+        if (count > inline_count)
+        {
+            overflow_.resize(count);
+        }
+    }
+
+    [[nodiscard]] std::size_t size() const noexcept
+    {
+        return count_;
+    }
+    [[nodiscard]] dynamic_field& operator[](std::size_t index) noexcept
+    {
+        return data()[index];
+    }
+    [[nodiscard]] const dynamic_field& operator[](std::size_t index) const noexcept
+    {
+        return data()[index];
+    }
+    [[nodiscard]] dynamic_field* begin() noexcept
+    {
+        return data();
+    }
+    [[nodiscard]] dynamic_field* end() noexcept
+    {
+        return data() + count_;
+    }
+    [[nodiscard]] const dynamic_field* begin() const noexcept
+    {
+        return data();
+    }
+    [[nodiscard]] const dynamic_field* end() const noexcept
+    {
+        return data() + count_;
+    }
+    void clear() noexcept
+    {
+        if (count_ > inline_count)
+        {
+            overflow_.clear();
+        }
+        else
+        {
+            for (std::size_t index = 0; index < count_; ++index)
+            {
+                local_[index].value.reset();
+                local_[index].name = nullptr;
+            }
+        }
+        count_ = 0;
+    }
+
+private:
+    static constexpr std::size_t inline_count = 2;
+    [[nodiscard]] dynamic_field* data() noexcept
+    {
+        return count_ > inline_count ? overflow_.data() : local_.data();
+    }
+    [[nodiscard]] const dynamic_field* data() const noexcept
+    {
+        return count_ > inline_count ? overflow_.data() : local_.data();
+    }
+
+    std::array<dynamic_field, inline_count> local_{};
+    std::vector<dynamic_field> overflow_;
+    std::size_t count_ = 0;
 };
 
 struct dynamic_struct_data
 {
-    std::string type_name;
-    std::string display_name;
-    std::vector<dynamic_field> fields;
+    const char* type_name = nullptr;
+    const char* display_name = nullptr;
+    struct_fields fields;
 };
 
 struct dynamic_struct
@@ -58,9 +132,10 @@ struct dynamic_struct
 
 struct dynamic_class
 {
-    std::string type_name;
-    std::string display_name;
-    std::vector<std::string> ancestors;
+    const char* type_name = nullptr;
+    const char* display_name = nullptr;
+    const char* const* ancestors = nullptr;
+    std::size_t ancestor_count = 0;
     std::vector<std::any> fields;
     const void* const* virtual_targets = nullptr;
     std::size_t virtual_count = 0;

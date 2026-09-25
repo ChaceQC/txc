@@ -3,6 +3,40 @@
 namespace tx
 {
 
+void llvm_code_generator::emit_array_elements(const array_literal& literal,
+                                               const std::string& array,
+                                               source_pos position)
+{
+    const auto reference = temporary();
+    write_instruction(reference + " = call ptr @txrt_array_ref(ptr " +
+                      array + ")");
+    for (std::size_t index = 0; index < literal.elements.size(); ++index)
+    {
+        const auto element = expression_value(*literal.elements[index]);
+        const auto* direct = element.type == value_type::int_type
+            ? "txrt_array_ref_set_i64" : element.type == value_type::float_type
+            ? "txrt_array_ref_set_f64" : element.type == value_type::bool_type
+            ? "txrt_array_ref_set_bool" : nullptr;
+        if (direct)
+        {
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @" + direct +
+                "(ptr " + reference + ", i64 " + std::to_string(index) +
+                ", " + llvm_type(element.type, position) + " " +
+                element.text + ")");
+            write_instruction("call void @txrt_require_success(i32 " +
+                              status + ")");
+            continue;
+        }
+        const auto target = temporary();
+        write_instruction(target +
+            " = call ptr @txrt_array_ref_element_ptr(ptr " + reference +
+            ", i64 " + std::to_string(index) + ")");
+        assign_any(target, element, position);
+        release(element);
+    }
+}
+
 llvm_code_generator::ir_value llvm_code_generator::box_any(
     const ir_value& value, source_pos position)
 {
@@ -64,6 +98,18 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
     {
         throw compile_error(position, "LLVM 后端暂不支持此动态类型转换");
     }
+    if (target == value_type::int_type ||
+        target == value_type::float_type ||
+        target == value_type::bool_type)
+    {
+        const auto* direct = target == value_type::int_type
+            ? "txrt_value_to_i64_fast" : target == value_type::float_type
+            ? "txrt_value_to_f64_fast" : "txrt_value_to_bool_fast";
+        const auto result = temporary();
+        write_instruction(result + " = call " + llvm_type(target, position) +
+                          " @" + direct + "(ptr " + value.text + ")");
+        return {target, result};
+    }
     const auto address = allocate(target, position);
     const auto status = temporary();
     write_instruction(status + " = call i32 @" + name + "(ptr " +
@@ -73,6 +119,29 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
     write_instruction(result + " = load " + llvm_type(target, position) +
                       ", ptr " + address);
     return {target, result};
+}
+
+void llvm_code_generator::assign_any(const std::string& target,
+                                     const ir_value& value,
+                                     source_pos position)
+{
+    const auto* direct = value.type == value_type::int_type
+        ? "txrt_value_set_i64" : value.type == value_type::float_type
+        ? "txrt_value_set_f64" : value.type == value_type::bool_type
+        ? "txrt_value_set_bool" : nullptr;
+    ir_value boxed{value_type::void_type, {}};
+    if (!direct && !is_value_handle(value.type))
+    {
+        boxed = box_any(value, position);
+    }
+    const auto status = temporary();
+    write_instruction(status + " = call i32 @" +
+        std::string(direct ? direct : "txrt_value_assign") + "(ptr " +
+        target + ", " + (direct ? llvm_type(value.type, position) + " " +
+        value.text : "ptr " + (is_value_handle(value.type)
+            ? value.text : boxed.text)) + ")");
+    write_instruction("call void @txrt_require_success(i32 " + status + ")");
+    release(boxed);
 }
 
 void llvm_code_generator::prepare_lvalue_indices(
@@ -86,7 +155,11 @@ void llvm_code_generator::prepare_lvalue_indices(
     {
         prepare_lvalue_indices(*index->object, indices);
         // 所有可能产生副作用的索引先各求值一次，再取得容器内部地址。
-        indices.emplace(&item, expression_value(*index->index));
+        if (index->object->type != value_type::dict_type ||
+            !std::holds_alternative<string_literal>(index->index->data))
+        {
+            indices.emplace(&item, expression_value(*index->index));
+        }
     }
 }
 
@@ -136,14 +209,54 @@ std::string llvm_code_generator::lvalue_address(
     }
     else if (const auto* index = std::get_if<index_expression>(&item.data))
     {
-        base = lvalue_address(*index->object, indices);
-        const auto position = indices.at(&item);
+        bool native_array = false;
+        if (const auto* name = std::get_if<name_reference>(&index->object->data);
+            name && index->object->type == value_type::array_type)
+        {
+            const auto variable = find_variable(name->name, item.position);
+            native_array = !variable.array_reference.empty();
+            if (native_array)
+            {
+                base = load_array_reference(variable);
+            }
+        }
+        if (!native_array)
+        {
+            base = lvalue_address(*index->object, indices);
+        }
+        const auto* literal_key = index->object->type == value_type::dict_type
+            ? std::get_if<string_literal>(&index->index->data) : nullptr;
+        ir_value position{value_type::void_type, {}};
+        if (!literal_key)
+        {
+            position = indices.at(&item);
+        }
         const bool static_array = index->object->type == value_type::array_type;
-        ir_value boxed{value_type::void_type, {}};
+        const bool string_key = index->object->type == value_type::dict_type &&
+                                position.type == value_type::str_type;
         if (static_array)
         {
-            invocation = "@txrt_array_element_address(ptr " + base + ", i64 " +
-                         position.text;
+            const auto result = temporary();
+            write_instruction(result +
+                " = call ptr @" + std::string(native_array
+                    ? "txrt_array_ref_element_ptr"
+                    : "txrt_array_element_ptr") + "(ptr " + base +
+                ", i64 " + position.text + ")");
+            release(position);
+            return result;
+        }
+        ir_value boxed{value_type::void_type, {}};
+        if (literal_key)
+        {
+            const auto decoded = decode_string_literal(literal_key->text);
+            invocation = "@txrt_dict_element_address_literal(ptr " + base +
+                ", ptr " + global_bytes(decoded) + ", i64 " +
+                std::to_string(decoded.size()) + ", i1 true";
+        }
+        else if (string_key)
+        {
+            invocation = "@txrt_dict_element_address_str(ptr " + base +
+                         ", ptr " + position.text + ", i1 true";
         }
         else
         {
@@ -158,11 +271,14 @@ std::string llvm_code_generator::lvalue_address(
         write_instruction(status + " = call i32 " + invocation +
                           ", ptr " + address + ")");
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
-        if (!static_array)
+        if (!string_key && !literal_key)
         {
             release(boxed);
         }
-        release(position);
+        if (!literal_key)
+        {
+            release(position);
+        }
         const auto result = temporary();
         write_instruction(result + " = load ptr, ptr " + address);
         return result;
@@ -184,6 +300,29 @@ std::string llvm_code_generator::lvalue_address(
 llvm_code_generator::ir_value llvm_code_generator::emit_update(
     const expression& item, const update_expression& operation)
 {
+    if (direct_scalar_field(*operation.target))
+    {
+        const auto address = scalar_field_address(*operation.target);
+        const auto current = load({item.type, address});
+        const bool increment = operation.operation == token_kind::plus_plus;
+        ir_value updated{item.type, {}};
+        if (item.type == value_type::int_type)
+        {
+            updated = checked_binary(increment ? "txrt_add_i64" : "txrt_sub_i64",
+                                     current, {item.type, "1"}, item.type,
+                                     item.position);
+        }
+        else
+        {
+            updated.text = temporary();
+            write_instruction(updated.text +
+                (increment ? " = fadd double " : " = fsub double ") +
+                current.text + ", 0x3ff0000000000000");
+        }
+        write_instruction("store " + llvm_type(item.type, item.position) +
+                          " " + updated.text + ", ptr " + address);
+        return updated;
+    }
     const auto* name = std::get_if<name_reference>(&operation.target->data);
     lvalue_indices indices;
     if (!name)
@@ -222,12 +361,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_update(
     }
     else
     {
-        const auto boxed = box_any(updated, item.position);
-        const auto status = temporary();
-        write_instruction(status + " = call i32 @txrt_value_assign(ptr " +
-                          address + ", ptr " + boxed.text + ")");
-        write_instruction("call void @txrt_require_success(i32 " + status + ")");
-        release(boxed);
+        assign_any(address, updated, item.position);
     }
     return updated;
 }

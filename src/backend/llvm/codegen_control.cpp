@@ -2,6 +2,140 @@
 
 namespace tx
 {
+namespace
+{
+
+bool uses_name(const expression& item, std::string_view name)
+{
+    if (const auto* reference = std::get_if<name_reference>(&item.data))
+    {
+        return reference->name == name;
+    }
+    if (const auto* index = std::get_if<index_expression>(&item.data))
+    {
+        return uses_name(*index->object, name) ||
+               uses_name(*index->index, name);
+    }
+    if (const auto* member = std::get_if<member_expression>(&item.data))
+    {
+        return uses_name(*member->object, name);
+    }
+    if (const auto* cast = std::get_if<cast_expression>(&item.data))
+    {
+        return uses_name(*cast->value, name);
+    }
+    if (const auto* unary = std::get_if<unary_operation>(&item.data))
+    {
+        return uses_name(*unary->operand, name);
+    }
+    if (const auto* update = std::get_if<update_expression>(&item.data))
+    {
+        return uses_name(*update->target, name);
+    }
+    if (const auto* binary = std::get_if<binary_operation>(&item.data))
+    {
+        return uses_name(*binary->left, name) ||
+               uses_name(*binary->right, name);
+    }
+    if (const auto* call = std::get_if<call_expression>(&item.data))
+    {
+        if (call->receiver && uses_name(*call->receiver, name))
+        {
+            return true;
+        }
+        for (const auto& argument : call->arguments)
+        {
+            if (uses_name(*argument.value, name))
+            {
+                return true;
+            }
+        }
+    }
+    if (const auto* array = std::get_if<array_literal>(&item.data))
+    {
+        for (const auto& element : array->elements)
+        {
+            if (uses_name(*element, name))
+            {
+                return true;
+            }
+        }
+    }
+    if (const auto* dict = std::get_if<dictionary_literal>(&item.data))
+    {
+        for (const auto& entry : dict->entries)
+        {
+            if (uses_name(*entry.key, name) || uses_name(*entry.value, name))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool uses_name(const std::vector<stmt_ptr>& body, std::string_view name);
+
+bool uses_name(const statement& item, std::string_view name)
+{
+    if (const auto* declaration =
+            std::get_if<variable_declaration>(&item.data))
+    {
+        return (declaration->initializer &&
+                uses_name(*declaration->initializer, name)) ||
+               (declaration->array_length &&
+                uses_name(*declaration->array_length, name));
+    }
+    if (const auto* assignment =
+            std::get_if<variable_assignment>(&item.data))
+    {
+        return uses_name(*assignment->target, name) ||
+               uses_name(*assignment->value, name);
+    }
+    if (const auto* unpack = std::get_if<unpack_assignment>(&item.data))
+    {
+        return uses_name(*unpack->value, name);
+    }
+    if (const auto* branch = std::get_if<if_statement>(&item.data))
+    {
+        return uses_name(*branch->condition, name) ||
+               uses_name(branch->then_body, name) ||
+               uses_name(branch->else_body, name);
+    }
+    if (const auto* loop = std::get_if<while_statement>(&item.data))
+    {
+        return uses_name(*loop->condition, name) ||
+               uses_name(loop->body, name);
+    }
+    if (const auto* loop = std::get_if<for_loop>(&item.data))
+    {
+        return uses_name(*loop->first, name) ||
+               uses_name(*loop->last, name) || uses_name(loop->body, name);
+    }
+    if (const auto* loop = std::get_if<for_each>(&item.data))
+    {
+        return uses_name(*loop->values, name) || uses_name(loop->body, name);
+    }
+    if (const auto* result = std::get_if<return_statement>(&item.data))
+    {
+        return result->value && uses_name(*result->value, name);
+    }
+    return uses_name(*std::get<expression_statement>(item.data).value, name);
+}
+
+bool uses_name(const std::vector<stmt_ptr>& body, std::string_view name)
+{
+    for (const auto& item : body)
+    {
+        if (uses_name(*item, name))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+} // namespace
 
 void llvm_code_generator::emit_if(const if_statement& branch)
 {
@@ -52,7 +186,7 @@ void llvm_code_generator::emit_while(const while_statement& loop)
     pop_scope();
     if (!terminated_)
     {
-        if (loop.body.empty())
+        if (loop.body.empty() || !gc_neutral_expression(*loop.condition))
         {
             emit_gc_safepoint();
         }
@@ -115,22 +249,61 @@ void llvm_code_generator::emit_for(const for_loop& loop)
 
 void llvm_code_generator::emit_for_each(const for_each& loop)
 {
+    if (const auto* name = std::get_if<name_reference>(&loop.values->data))
+    {
+        const auto array = find_variable(name->name, loop.values->position);
+        if (has_local_array(array))
+        {
+            emit_local_array_for_each(loop, array);
+            return;
+        }
+    }
     push_scope();
-    const auto values = expression_value(*loop.values);
+    bool borrowed_values = false;
+    ir_value values{value_type::void_type, {}};
+    if (const auto* name = std::get_if<name_reference>(&loop.values->data);
+        name && !uses_name(loop.body, name->name))
+    {
+        values = expression_value_or_borrow(*loop.values, borrowed_values);
+    }
+    else
+    {
+        values = expression_value(*loop.values);
+    }
+    std::string array_reference;
+    if (borrowed_values && values.type == value_type::array_type)
+    {
+        const auto& name = std::get<name_reference>(loop.values->data);
+        const auto variable = find_variable(name.name, loop.values->position);
+        if (!variable.array_reference.empty())
+        {
+            array_reference = load_array_reference(variable);
+        }
+    }
     const auto values_address = allocate(values.type,
                                          loop.values->position);
     write_instruction("store ptr " + values.text + ", ptr " + values_address);
     scopes_.back().emplace("$foreach", variable_slot{
-        values.type, values_address});
+        values.type, values_address, borrowed_values});
     const auto length_address = allocate(value_type::int_type,
                                          loop.values->position);
-    const auto length_status = temporary();
-    const auto length_function = values.type == value_type::dict_type
-        ? "txrt_dict_len" : "txrt_array_len";
-    write_instruction(length_status + " = call i32 @" + length_function + "(ptr " +
-                      values.text + ", ptr " + length_address + ")");
-    write_instruction("call void @txrt_require_success(i32 " +
-                      length_status + ")");
+    if (!array_reference.empty())
+    {
+        const auto length = temporary();
+        write_instruction(length + " = call i64 @txrt_array_ref_len(ptr " +
+                          array_reference + ")");
+        write_instruction("store i64 " + length + ", ptr " + length_address);
+    }
+    else
+    {
+        const auto length_status = temporary();
+        const auto length_function = values.type == value_type::dict_type
+            ? "txrt_dict_len" : "txrt_array_len";
+        write_instruction(length_status + " = call i32 @" + length_function +
+                          "(ptr " + values.text + ", ptr " + length_address + ")");
+        write_instruction("call void @txrt_require_success(i32 " +
+                          length_status + ")");
+    }
     const auto length = load({value_type::int_type, length_address});
     const auto index_address = allocate(value_type::int_type,
                                         loop.values->position);
@@ -149,24 +322,52 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
                       ", label %" + end_label);
 
     start_block(body_label);
-    const auto field = allocate(value_type::any_type, loop.values->position);
-    const auto field_status = temporary();
-    const auto element_function = values.type == value_type::dict_type
-        ? "txrt_dict_key_address" : "txrt_array_element_address";
-    write_instruction(field_status +
-        " = call i32 @" + element_function + "(ptr " + values.text +
-        ", i64 " + index.text + ", ptr " + field + ")");
-    write_instruction("call void @txrt_require_success(i32 " + field_status + ")");
-    const auto borrowed = temporary();
-    write_instruction(borrowed + " = load ptr, ptr " + field);
-    const auto element = from_any({value_type::any_type, borrowed},
-                                  value_type::any_type, loop.values->position);
-    const auto element_address = allocate(value_type::any_type,
-                                          loop.values->position);
-    write_instruction("store ptr " + element.text + ", ptr " + element_address);
+    const bool needs_element = uses_name(loop.body, loop.name);
     push_scope();
-    scopes_.back().emplace(loop.name, variable_slot{
-        value_type::any_type, element_address});
+    if (needs_element)
+    {
+        std::string borrowed;
+        if (values.type == value_type::array_type)
+        {
+            borrowed = temporary();
+            write_instruction(borrowed +
+                " = call ptr @" + std::string(array_reference.empty()
+                    ? "txrt_array_element_read_ptr"
+                    : "txrt_array_ref_element_read_ptr") + "(ptr " +
+                (array_reference.empty() ? values.text : array_reference) +
+                ", i64 " + index.text + ")");
+        }
+        else
+        {
+            const auto field = allocate(value_type::any_type,
+                                        loop.values->position);
+            const auto field_status = temporary();
+            write_instruction(field_status +
+                " = call i32 @txrt_dict_key_address(ptr " + values.text +
+                ", i64 " + index.text + ", ptr " + field + ")");
+            write_instruction("call void @txrt_require_success(i32 " +
+                              field_status + ")");
+            borrowed = temporary();
+            write_instruction(borrowed + " = load ptr, ptr " + field);
+        }
+        if (!rebinds_name(loop.body, loop.name))
+        {
+            scopes_.back().emplace(loop.name,
+                make_scalar_snapshot(borrowed, loop.values->position));
+        }
+        else
+        {
+            const auto element = from_any({value_type::any_type, borrowed},
+                                          value_type::any_type,
+                                          loop.values->position);
+            const auto element_address = allocate(value_type::any_type,
+                                                  loop.values->position);
+            write_instruction("store ptr " + element.text + ", ptr " +
+                              element_address);
+            scopes_.back().emplace(loop.name, variable_slot{
+                value_type::any_type, element_address});
+        }
+    }
     emit_statements(loop.body);
     pop_scope();
     if (!terminated_)

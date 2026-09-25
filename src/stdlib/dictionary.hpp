@@ -7,6 +7,7 @@
 #include <optional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -32,6 +33,7 @@ public:
     [[nodiscard]] const_iterator begin() const noexcept;
     [[nodiscard]] const_iterator end() const noexcept;
     [[nodiscard]] std::any* find_value(const std::any& key);
+    [[nodiscard]] std::any* find_value(std::string_view key);
     void emplace_back(std::any key, std::any value);
     [[nodiscard]] const void* identity() const noexcept;
 

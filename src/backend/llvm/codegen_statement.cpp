@@ -1,5 +1,8 @@
 #include "backend/llvm/codegen.hpp"
 
+#include <algorithm>
+#include <cstdint>
+
 namespace tx
 {
 
@@ -18,12 +21,30 @@ void llvm_code_generator::emit_statements(const std::vector<stmt_ptr>& statement
 void llvm_code_generator::emit_declaration(
     const statement& item, const variable_declaration& declaration)
 {
+    if (eligible_dynamic_local_array(declaration))
+    {
+        emit_dynamic_local_array_declaration(item, declaration);
+        return;
+    }
+    if (const auto length = eligible_local_array_length(declaration))
+    {
+        emit_local_array_declaration(item, declaration, *length);
+        return;
+    }
     ir_value value{value_type::void_type, {}};
     if (declaration.array_length)
     {
         const auto length = expression_value(*declaration.array_length);
+        const auto* literal = declaration.initializer
+            ? std::get_if<array_literal>(&declaration.initializer->data)
+            : nullptr;
+        const auto* constant =
+            std::get_if<integer_literal>(&declaration.array_length->data);
+        const bool direct = literal && constant &&
+            std::stoll(constant->digits) >=
+                static_cast<std::int64_t>(literal->elements.size());
         ir_value initial{value_type::void_type, {}};
-        if (declaration.initializer)
+        if (declaration.initializer && !direct)
         {
             initial = expression_value(*declaration.initializer);
         }
@@ -31,7 +52,7 @@ void llvm_code_generator::emit_declaration(
                                              item.position);
         const auto status = temporary();
         write_instruction(status + " = call i32 @" +
-            std::string(declaration.initializer
+            std::string(declaration.initializer && !direct
                 ? "txrt_array_resize(i64 " + length.text +
                   ", ptr " + initial.text
                 : "txrt_array_new(i64 " + length.text) +
@@ -41,6 +62,10 @@ void llvm_code_generator::emit_declaration(
         release(initial);
         const auto result = temporary();
         write_instruction(result + " = load ptr, ptr " + result_address);
+        if (direct)
+        {
+            emit_array_elements(*literal, result, item.position);
+        }
         value = {value_type::array_type, result};
     }
     else
@@ -51,12 +76,53 @@ void llvm_code_generator::emit_declaration(
     const auto address = allocate(type, item.position);
     write_instruction("store " + llvm_type(type, item.position) + " " +
                       value.text + ", ptr " + address);
-    scopes_.back().emplace(declaration.name, variable_slot{type, address});
+    const auto array_reference = type == value_type::array_type
+        ? cache_array_reference(value.text, item.position) : std::string{};
+    scopes_.back().emplace(declaration.name,
+                           variable_slot{type, address, false, array_reference});
 }
 
 void llvm_code_generator::emit_composite_assignment(
     const statement& item, const variable_assignment& assignment)
 {
+    if (emit_local_array_assignment(item, assignment))
+    {
+        return;
+    }
+    if (!assignment.binding && direct_scalar_field(*assignment.target))
+    {
+        const auto value = expression_value(*assignment.value);
+        const auto address = scalar_field_address(*assignment.target);
+        ir_value assigned = value;
+        if (assignment.operation == token_kind::plus_equal ||
+            assignment.operation == token_kind::minus_equal)
+        {
+            const auto current = load({assignment.target->type, address});
+            const bool add = assignment.operation == token_kind::plus_equal;
+            if (current.type == value_type::int_type)
+            {
+                assigned = checked_binary(add ? "txrt_add_i64" : "txrt_sub_i64",
+                                          current, value, current.type,
+                                          item.position);
+            }
+            else if (current.type == value_type::float_type)
+            {
+                assigned.text = temporary();
+                write_instruction(assigned.text +
+                    (add ? " = fadd double " : " = fsub double ") +
+                    current.text + ", " + value.text);
+            }
+            else
+            {
+                throw compile_error(item.position,
+                                    "LLVM 后端暂不支持此复合赋值类型");
+            }
+        }
+        write_instruction("store " + llvm_type(assigned.type, item.position) +
+                          " " + assigned.text + ", ptr " + address);
+        release(value);
+        return;
+    }
     lvalue_indices indices;
     prepare_lvalue_indices(*assignment.target, indices);
     ir_value value{value_type::void_type, {}};
@@ -109,12 +175,7 @@ void llvm_code_generator::emit_composite_assignment(
             value = combined;
         }
     }
-    const auto boxed = box_any(value, item.position);
-    const auto status = temporary();
-    write_instruction(status + " = call i32 @txrt_value_assign(ptr " +
-                      target + ", ptr " + boxed.text + ")");
-    write_instruction("call void @txrt_require_success(i32 " + status + ")");
-    release(boxed);
+    assign_any(target, value, item.position);
     release(value);
 }
 
@@ -169,6 +230,7 @@ void llvm_code_generator::emit_name_assignment(
     release_slot(variable);
     write_instruction("store " + llvm_type(variable.type, item.position) +
                       " " + value.text + ", ptr " + variable.address);
+    refresh_array_reference(variable, value.text);
 }
 
 void llvm_code_generator::emit_assignment(
@@ -182,62 +244,6 @@ void llvm_code_generator::emit_assignment(
     {
         emit_composite_assignment(item, assignment);
     }
-}
-
-void llvm_code_generator::emit_unpack(
-    const statement& item, const unpack_assignment& assignment)
-{
-    const auto source = expression_value(*assignment.value);
-    const auto length_status = temporary();
-    write_instruction(length_status +
-        " = call i32 @txrt_array_require_length(ptr " + source.text +
-        ", i64 " + std::to_string(assignment.names.size()) + ")");
-    write_instruction("call void @txrt_require_success(i32 " +
-                      length_status + ")");
-    std::vector<ir_value> values;
-    values.reserve(assignment.names.size());
-    for (std::size_t index = 0; index < assignment.names.size(); ++index)
-    {
-        const auto type = assignment.declares[index]
-            ? value_type::any_type
-            : find_variable(assignment.names[index], item.position).type;
-        const auto address = allocate(value_type::any_type, item.position);
-        const auto status = temporary();
-        write_instruction(status +
-            " = call i32 @txrt_array_element_address(ptr " + source.text +
-            ", i64 " + std::to_string(index) + ", ptr " + address + ")");
-        write_instruction("call void @txrt_require_success(i32 " + status + ")");
-        const auto borrowed = temporary();
-        write_instruction(borrowed + " = load ptr, ptr " + address);
-        if (type != value_type::any_type)
-        {
-            const auto checked = temporary();
-            write_instruction(checked + " = call i32 @txrt_value_require_type(ptr " +
-                              borrowed + ", ptr " + global_bytes(type.name) + ")");
-            write_instruction("call void @txrt_require_success(i32 " +
-                              checked + ")");
-        }
-        values.push_back(from_any({value_type::any_type, borrowed},
-                                  type, item.position));
-    }
-    for (std::size_t index = 0; index < assignment.names.size(); ++index)
-    {
-        if (assignment.declares[index])
-        {
-            const auto address = allocate(value_type::any_type, item.position);
-            write_instruction("store ptr " + values[index].text + ", ptr " + address);
-            scopes_.back().emplace(assignment.names[index],
-                variable_slot{value_type::any_type, address});
-        }
-        else
-        {
-            const auto slot = find_variable(assignment.names[index], item.position);
-            release_slot(slot);
-            write_instruction("store " + llvm_type(slot.type, item.position) +
-                              " " + values[index].text + ", ptr " + slot.address);
-        }
-    }
-    release(source);
 }
 
 void llvm_code_generator::emit_return(const statement& item,
@@ -301,7 +307,41 @@ void llvm_code_generator::emit_statement(const statement& item)
         const auto& expression_only = std::get<expression_statement>(item.data);
         release(expression_value(*expression_only.value));
     }
-    if (!terminated_)
+    bool local_scalar_only = false;
+    if (const auto* declaration =
+            std::get_if<variable_declaration>(&item.data))
+    {
+        const auto slot = find_variable(declaration->name, item.position);
+        if (slot.local_array_length)
+        {
+            const auto* literal = declaration->initializer
+                ? std::get_if<array_literal>(&declaration->initializer->data)
+                : nullptr;
+            local_scalar_only =
+                (!declaration->array_length ||
+                 gc_neutral_expression(*declaration->array_length)) &&
+                (!literal || std::all_of(literal->elements.begin(),
+                    literal->elements.end(), [&](const expr_ptr& element)
+                    { return gc_neutral_expression(*element); }));
+        }
+    }
+    if (const auto* assignment =
+            std::get_if<variable_assignment>(&item.data))
+    {
+        if (const auto* index =
+                std::get_if<index_expression>(&assignment->target->data))
+        {
+            if (const auto* name =
+                    std::get_if<name_reference>(&index->object->data))
+            {
+                local_scalar_only =
+                    find_variable(name->name, item.position).local_array_length &&
+                    gc_neutral_expression(*index->index) &&
+                    gc_neutral_expression(*assignment->value);
+            }
+        }
+    }
+    if (!terminated_ && !local_scalar_only && !gc_neutral_statement(item))
     {
         emit_gc_safepoint();
     }

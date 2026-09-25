@@ -2,9 +2,14 @@
 
 #include "backend/cpp/cycle_gc.hpp"
 
+#include <algorithm>
 #include <any>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <string>
+#include <typeinfo>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -14,71 +19,93 @@ namespace tx_generated
 class tx_array
 {
 public:
-    using storage = std::vector<std::any>;
-    using iterator = storage::iterator;
-    using const_iterator = storage::const_iterator;
+    using iterator = std::vector<std::any>::iterator;
+    using const_iterator = std::vector<std::any>::const_iterator;
 
     tx_array() : elements_(std::make_shared<storage>())
     {
-        register_storage();
+        note_gc_allocation();
     }
     explicit tx_array(std::size_t count)
         : elements_(std::make_shared<storage>(count))
     {
-        register_storage();
+        note_gc_allocation();
     }
 
     template<class input_iterator>
     tx_array(input_iterator first, input_iterator last)
         : elements_(std::make_shared<storage>(first, last))
     {
-        register_storage();
+        note_gc_allocation();
+        if (std::any_of(elements_->values.begin(), elements_->values.end(),
+                        may_contain_cycle))
+        {
+            register_storage();
+        }
     }
 
     [[nodiscard]] std::size_t size() const noexcept
     {
-        return elements_->size();
+        return elements_->values.size();
     }
     [[nodiscard]] std::any& operator[](std::size_t index)
     {
-        return (*elements_)[index];
+        register_storage();
+        return elements_->values[index];
     }
     [[nodiscard]] const std::any& operator[](std::size_t index) const
     {
-        return (*elements_)[index];
+        return elements_->values[index];
     }
-    [[nodiscard]] iterator begin() noexcept
+    [[nodiscard]] iterator begin()
     {
-        return elements_->begin();
+        register_storage();
+        return elements_->values.begin();
     }
-    [[nodiscard]] iterator end() noexcept
+    [[nodiscard]] iterator end()
     {
-        return elements_->end();
+        register_storage();
+        return elements_->values.end();
     }
     [[nodiscard]] const_iterator begin() const noexcept
     {
-        return elements_->begin();
+        return elements_->values.begin();
     }
     [[nodiscard]] const_iterator end() const noexcept
     {
-        return elements_->end();
+        return elements_->values.end();
     }
     void reserve(std::size_t count)
     {
-        elements_->reserve(count);
+        elements_->values.reserve(count);
     }
     void push_back(std::any value)
     {
-        elements_->push_back(std::move(value));
+        if (may_contain_cycle(value))
+        {
+            register_storage();
+        }
+        elements_->values.push_back(std::move(value));
     }
     template<class... arguments>
     void emplace_back(arguments&&... values)
     {
-        elements_->emplace_back(std::forward<arguments>(values)...);
+        std::any value(std::forward<arguments>(values)...);
+        push_back(std::move(value));
     }
     void insert(iterator where, const_iterator first, const_iterator last)
     {
-        elements_->insert(where, first, last);
+        // 任意范围可能包含复合值，并且会使现有元素地址失效。
+        register_storage();
+        elements_->values.insert(where, first, last);
+    }
+    template<class scalar_type>
+        requires (std::is_same_v<scalar_type, std::int64_t> ||
+                  std::is_same_v<scalar_type, double> ||
+                  std::is_same_v<scalar_type, bool>)
+    void set_scalar(std::size_t index, scalar_type value)
+    {
+        elements_->values[index] = value;
     }
     [[nodiscard]] const void* identity() const noexcept
     {
@@ -86,20 +113,45 @@ public:
     }
 
 private:
+    struct storage
+    {
+        std::vector<std::any> values;
+        bool registered = false;
+
+        storage() = default;
+        explicit storage(std::size_t count) : values(count) {}
+        template<class input_iterator>
+        storage(input_iterator first, input_iterator last) : values(first, last) {}
+    };
+
+    static bool may_contain_cycle(const std::any& value)
+    {
+        return value.has_value() &&
+               value.type() != typeid(std::int64_t) &&
+               value.type() != typeid(double) &&
+               value.type() != typeid(bool) &&
+               value.type() != typeid(std::string);
+    }
+
     void register_storage()
     {
+        if (elements_->registered)
+        {
+            return;
+        }
         register_gc_node(elements_,
             [](const void* object, gc_visit visit, void* context)
             {
-                for (const auto& value : *static_cast<const storage*>(object))
+                for (const auto& value : static_cast<const storage*>(object)->values)
                 {
                     visit(value, context);
                 }
             },
             [](void* object)
             {
-                static_cast<storage*>(object)->clear();
+                static_cast<storage*>(object)->values.clear();
             });
+        elements_->registered = true;
     }
 
     std::shared_ptr<storage> elements_;

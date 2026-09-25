@@ -113,6 +113,14 @@ std::any* tx_dict::find_value(const std::any& key)
                                            : &data_->entries[found->second].second;
 }
 
+std::any* tx_dict::find_value(std::string_view key)
+{
+    const index_key index = std::string(key);
+    const auto found = data_->positions.find(index);
+    return found == data_->positions.end() ? nullptr
+                                           : &data_->entries[found->second].second;
+}
+
 void tx_dict::emplace_back(std::any key, std::any value)
 {
     const auto index = make_key(key);

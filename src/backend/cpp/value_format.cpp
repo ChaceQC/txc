@@ -88,7 +88,10 @@ void append_struct(std::string& output, const dynamic_struct& item,
         {
             output += ", ";
         }
-        output += item->fields[index].name;
+        if (item->fields[index].name)
+        {
+            output += item->fields[index].name;
+        }
         output.push_back('=');
         append_value(output, item->fields[index].value, true, depth + 1);
     }
@@ -146,7 +149,9 @@ void append_value(std::string& output, const std::any& value,
     else if (value.type() == typeid(class_handle))
     {
         const auto& object = std::any_cast<const class_handle&>(value);
-        output += "<" + object->display_name + " object>";
+        output.push_back('<');
+        output += object->display_name;
+        output += " object>";
     }
     else
     {

@@ -13,6 +13,7 @@ using gc_finalize = bool (*)(const std::shared_ptr<void>&);
 
 void register_gc_node(const std::shared_ptr<void>& object, gc_trace trace,
                       gc_clear clear, gc_finalize finalize = nullptr);
+void note_gc_allocation() noexcept;
 void collect_cycles();
 void gc_safepoint();
 

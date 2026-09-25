@@ -27,7 +27,10 @@ void llvm_code_generator::emit_function(const function_decl& function)
     next_label_ = 0;
     random_context_slot_.clear();
     current_method_owner_ = function.owner_class;
+    current_function_body_ = &function.body;
+    entry_scalar_field_cache_.clear();
     terminated_ = false;
+    in_entry_block_ = true;
     push_scope();
 
     std::string parameters;
@@ -38,7 +41,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
                                       function.position);
         write_instruction("store ptr %arg0, ptr " + address);
         scopes_.back().emplace("self",
-            variable_slot{value_type(function.owner_class), address});
+            variable_slot{value_type(function.owner_class), address, true});
     }
     for (std::size_t i = 0; i < function.parameters.size(); ++i)
     {
@@ -54,8 +57,14 @@ void llvm_code_generator::emit_function(const function_decl& function)
         write_instruction("store " + type + " %arg" +
                           std::to_string(argument_index) +
                           ", ptr " + address);
+        const auto array_reference = parameter.type == value_type::array_type
+            ? cache_array_reference("%arg" + std::to_string(argument_index),
+                                    parameter.position) : std::string{};
         scopes_.back().emplace(parameter.name,
-                               variable_slot{parameter.type, address});
+            variable_slot{parameter.type, address,
+                (i == 0 && operator_parameter_borrowed(function)) ||
+                init_parameter_borrowed(function, i) ||
+                ordinary_parameter_borrowed(function, i), array_reference});
     }
     emit_statements(function.body);
     if (!terminated_)
@@ -75,6 +84,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
             << ' ' << function_name(symbol, index) << '(' << parameters
             << ") {\nentry:\n" << allocations_.str() << body_.str() << "}\n\n";
     current_method_owner_.clear();
+    current_function_body_ = nullptr;
 }
 
 } // namespace tx

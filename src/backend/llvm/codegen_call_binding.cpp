@@ -104,6 +104,82 @@ llvm_code_generator::emit_static_arguments(
     return result;
 }
 
+std::optional<std::vector<llvm_code_generator::ir_value>>
+llvm_code_generator::emit_direct_spreads(
+    const expression& item, const call_expression& call,
+    const std::vector<parameter>& parameters)
+{
+    if (parameters.size() < 2 || call.arguments.size() != parameters.size())
+    {
+        return std::nullopt;
+    }
+    const auto fixed_count = parameters.size() - 2;
+    if (parameters[fixed_count].kind != parameter_kind::variadic_array ||
+        parameters[fixed_count + 1].kind != parameter_kind::variadic_dict ||
+        call.arguments[fixed_count].kind != argument_kind::spread_array ||
+        call.arguments[fixed_count + 1].kind != argument_kind::spread_dict)
+    {
+        return std::nullopt;
+    }
+    for (std::size_t index = 0; index < fixed_count; ++index)
+    {
+        if (parameters[index].kind != parameter_kind::ordinary ||
+            call.arguments[index].kind != argument_kind::positional)
+        {
+            return std::nullopt;
+        }
+    }
+
+    std::vector<ir_value> result;
+    result.reserve(parameters.size());
+    for (std::size_t index = 0; index < fixed_count; ++index)
+    {
+        result.push_back(expression_value(*call.arguments[index].value));
+    }
+    const auto spread_array = expression_value(
+        *call.arguments[fixed_count].value);
+    if (spread_array.type == value_type::any_type)
+    {
+        // 动态值先验证 * 类型，再求值后续 ** 实参。
+        write_instruction("call void @txrt_array_require_spread(ptr " +
+                          spread_array.text + ")");
+    }
+    const auto spread_dict = expression_value(
+        *call.arguments[fixed_count + 1].value);
+    std::string names = "null";
+    if (fixed_count != 0)
+    {
+        names = "%slot" + std::to_string(next_slot_++);
+        allocations_ << "  " << names << " = alloca ptr, i64 "
+                     << fixed_count << '\n';
+        for (std::size_t index = 0; index < fixed_count; ++index)
+        {
+            const auto address = temporary();
+            write_instruction(address + " = getelementptr ptr, ptr " + names +
+                              ", i64 " + std::to_string(index));
+            write_instruction("store ptr " + global_bytes(parameters[index].name) +
+                              ", ptr " + address);
+        }
+    }
+    const auto args_slot = allocate(value_type::array_type, item.position);
+    const auto kwargs_slot = allocate(value_type::dict_type, item.position);
+    const auto status = temporary();
+    write_instruction(status + " = call i32 @txrt_call_split_spreads(ptr " +
+        spread_array.text + ", ptr " + spread_dict.text + ", ptr " +
+        names + ", i64 " + std::to_string(fixed_count) + ", ptr " +
+        args_slot + ", ptr " + kwargs_slot + ")");
+    write_instruction("call void @txrt_require_success(i32 " + status + ")");
+    release(spread_array);
+    release(spread_dict);
+    const auto args = temporary();
+    write_instruction(args + " = load ptr, ptr " + args_slot);
+    result.push_back({value_type::array_type, args});
+    const auto kwargs = temporary();
+    write_instruction(kwargs + " = load ptr, ptr " + kwargs_slot);
+    result.push_back({value_type::dict_type, kwargs});
+    return result;
+}
+
 std::vector<llvm_code_generator::ir_value>
 llvm_code_generator::emit_bound_arguments(
     const expression& item, const call_expression& call,
@@ -118,6 +194,10 @@ llvm_code_generator::emit_bound_arguments(
     if (!has_spread)
     {
         return emit_static_arguments(item, call, parameters);
+    }
+    if (auto direct = emit_direct_spreads(item, call, parameters))
+    {
+        return std::move(*direct);
     }
     const auto positional_slot = allocate(value_type::array_type, item.position);
     const auto positional_status = temporary();
