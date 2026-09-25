@@ -21,6 +21,23 @@ bool is_builtin_name(const std::string& name)
 
 void semantic_analyzer::validate_type(const value_type& type, source_pos position) const
 {
+    if (type.is_function())
+    {
+        for (std::size_t index = 0; index < type.parameters.size(); ++index)
+        {
+            const auto& part = type.parameters[index];
+            if (index + 1 == type.parameters.size() && part == value_type::void_type)
+            {
+                continue;
+            }
+            if (part == value_type::void_type)
+            {
+                throw compile_error(position, "fn 的参数不能是 void");
+            }
+            validate_type(part, position);
+        }
+        return;
+    }
     if (type.is_vector() || type.is_typed_container())
     {
         for (const auto& element : type.parameters)
@@ -59,6 +76,10 @@ void semantic_analyzer::register_structs(program& source)
         std::unordered_set<std::string> fields;
         for (const auto& field : definition.fields)
         {
+            if (field.type.is_function())
+            {
+                throw compile_error(field.position, "结构体字段暂不支持 fn 类型");
+            }
             validate_type(field.type, field.position);
             if (!fields.insert(field.name).second)
             {
@@ -132,6 +153,8 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
             validate_type(function.return_type, function.position);
         }
         function_signature signature{{}, function.return_type};
+        signature.external = function.external;
+        signature.position = function.position;
         // 这些标准库边界显式接收 any；其他函数仍使用精确匹配规则。
         signature.accepts_any_value = function.external &&
             (function.external_name == "array.push_back" ||
@@ -140,7 +163,15 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
              function.external_name == "json.stringify_pretty");
         for (const auto& parameter : function.parameters)
         {
-            validate_type(parameter.type, parameter.position);
+            if (!parameter.type.is_inferred_function())
+            {
+                validate_type(parameter.type, parameter.position);
+            }
+            else if (function.external)
+            {
+                throw compile_error(parameter.position,
+                                    "外部接口的 fn 参数必须写出完整签名");
+            }
             signature.parameters.push_back(parameter);
         }
         auto& overloads = functions_[function.name];

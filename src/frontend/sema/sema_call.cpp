@@ -36,7 +36,7 @@ bool semantic_analyzer::matches_signature(
         if (signature.accepts_any_value && expected == value_type::any_type)
         {
             return actual != value_type::void_type &&
-                   actual != value_type::unknown_type;
+                   actual != value_type::unknown_type && !actual.is_function();
         }
         return allow_upcast ? is_assignable(actual, expected)
                             : actual == expected;
@@ -306,6 +306,55 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     }
     const auto& display_name = call.source_name.empty()
         ? call.name : call.source_name;
+    if (auto* callback = find_symbol(display_name);
+        callback != nullptr &&
+        (callback->type.is_function() || callback->type.is_inferred_function()))
+    {
+        if (callback->type.is_inferred_function())
+        {
+            if (!call.expected_result)
+            {
+                throw compile_error(item.position,
+                    "fn 的返回类型无法从当前调用推断，请写出完整签名：" +
+                    display_name);
+            }
+            std::vector<value_type> arguments;
+            for (auto& argument : call.arguments)
+            {
+                if (argument.kind != argument_kind::positional)
+                {
+                    throw compile_error(argument.position,
+                        "fn 签名推断只接受位置实参");
+                }
+                const auto type = check_expression(*argument.value);
+                if (type == value_type::void_type || type.is_inferred_function())
+                {
+                    throw compile_error(argument.position,
+                        "fn 的参数类型无法确定");
+                }
+                arguments.push_back(type);
+            }
+            callback->type = value_type::function_of(std::move(arguments),
+                                                      *call.expected_result);
+        }
+        const auto& signature = callback->type.parameters;
+        if (call.arguments.size() + 1 != signature.size())
+        {
+            throw compile_error(item.position, "函数值调用的参数个数不匹配：" +
+                                               display_name);
+        }
+        for (std::size_t index = 0; index < call.arguments.size(); ++index)
+        {
+            if (call.arguments[index].kind != argument_kind::positional ||
+                check_expression(*call.arguments[index].value) != signature[index])
+            {
+                throw compile_error(call.arguments[index].position,
+                                    "函数值调用需要位置实参与精确类型：" + display_name);
+            }
+        }
+        call.indirect = true;
+        return signature.back();
+    }
     if (call.name == "print" || call.name == "len" ||
         call.name == "to_float" || call.name == "input" ||
         call.name == "input_or_none" ||

@@ -79,7 +79,12 @@ value_type semantic_analyzer::check_literal(expression& item)
     {
         for (auto& element : literal->elements)
         {
-            if (check_expression(*element) == value_type::void_type)
+            const auto type = check_expression(*element);
+            if (type.is_function())
+            {
+                throw compile_error(element->position, "数组暂不支持存放函数值");
+            }
+            if (type == value_type::void_type)
             {
                 throw compile_error(element->position, "数组不能存放无返回值的调用");
             }
@@ -94,7 +99,12 @@ value_type semantic_analyzer::check_literal(expression& item)
         {
             throw compile_error(entry.key->position, "字典键必须是可哈希的值");
         }
-        if (check_expression(*entry.value) == value_type::void_type)
+        const auto value = check_expression(*entry.value);
+        if (value.is_function())
+        {
+            throw compile_error(entry.value->position, "字典暂不支持存放函数值");
+        }
+        if (value == value_type::void_type)
         {
             throw compile_error(item.position, "字典不能存放无返回值的调用");
         }
@@ -325,11 +335,43 @@ value_type semantic_analyzer::check_expression(expression& item)
     else if (auto* name = std::get_if<name_reference>(&item.data))
     {
         const auto* symbol = find_symbol(name->name);
-        if (symbol == nullptr)
+        if (symbol != nullptr)
+        {
+            item.type = symbol->type;
+        }
+        else if (name->ambiguous_function)
+        {
+            throw compile_error(item.position, "导入函数存在歧义，请使用 as 别名：" +
+                                                name->name);
+        }
+        else if (!name->function_symbol.empty())
+        {
+            const auto found = functions_.find(name->function_symbol);
+            if (found == functions_.end() || found->second.size() != 1 ||
+                found->second.front().external)
+            {
+                throw compile_error(item.position,
+                                    "只能引用未重载的普通 TX 函数：" + name->name);
+            }
+            const auto& signature = found->second.front();
+            std::vector<value_type> arguments;
+            for (const auto& parameter : signature.parameters)
+            {
+                if (parameter.kind != parameter_kind::ordinary)
+                {
+                    throw compile_error(item.position,
+                                        "可变参数函数暂不能作为函数值：" + name->name);
+                }
+                arguments.push_back(parameter.type);
+            }
+            name->function_value = true;
+            item.type = value_type::function_of(std::move(arguments),
+                                                signature.result);
+        }
+        else
         {
             throw compile_error(item.position, "未定义变量：" + name->name);
         }
-        item.type = symbol->type;
     }
     else if (auto* access = std::get_if<index_expression>(&item.data))
     {

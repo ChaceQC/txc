@@ -19,7 +19,39 @@ void module_resolver::check_local_name(
 void module_resolver::resolve_expression(
     expression& item, const std::string& module_key)
 {
-    if (auto* literal = std::get_if<array_literal>(&item.data))
+    if (auto* name = std::get_if<name_reference>(&item.data))
+    {
+        // 保留局部变量原名，语义分析先查变量，再采用这里记录的函数候选。
+        if (const auto* own = find_export(module_key, name->name))
+        {
+            if (!own->is_type)
+            {
+                name->function_symbol = own->internal_name;
+            }
+        }
+        else
+        {
+            for (const auto& dependency : scopes_.at(module_key)->imports)
+            {
+                if (!dependency.alias.empty())
+                {
+                    continue;
+                }
+                const auto* candidate = find_export(dependency.target, name->name);
+                if (candidate == nullptr || candidate->is_type)
+                {
+                    continue;
+                }
+                if (!name->function_symbol.empty() &&
+                    name->function_symbol != candidate->internal_name)
+                {
+                    name->ambiguous_function = true;
+                }
+                name->function_symbol = candidate->internal_name;
+            }
+        }
+    }
+    else if (auto* literal = std::get_if<array_literal>(&item.data))
     {
         for (auto& element : literal->elements)
         {
@@ -41,6 +73,23 @@ void module_resolver::resolve_expression(
     }
     else if (auto* access = std::get_if<member_expression>(&item.data))
     {
+        if (const auto* owner = std::get_if<name_reference>(&access->object->data))
+        {
+            for (const auto& dependency : scopes_.at(module_key)->imports)
+            {
+                if (!dependency.alias.empty() && dependency.alias == owner->name)
+                {
+                    const auto qualified = owner->name + "." + access->field;
+                    const auto* symbol = find_symbol(module_key, qualified,
+                                                     item.position, false);
+                    if (symbol != nullptr && !symbol->is_type)
+                    {
+                        item.data = name_reference{qualified, symbol->internal_name};
+                        return;
+                    }
+                }
+            }
+        }
         resolve_expression(*access->object, module_key);
     }
     else if (auto* cast = std::get_if<cast_expression>(&item.data))

@@ -4,7 +4,7 @@
 
 新增类型化容器 `vector<T>` 的规则与本轮支持范围见 [类型化 vector](typed_vectors.md)，示例见 [typed_vectors.tx](../examples/typed_vectors.tx)。
 
-`map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 的类型参数、接口、共享和快照遍历规则见[类型化容器](typed_containers.md)。这些类型在变量、函数及 `.txh` 签名、struct/class 字段中保留完整静态类型。
+`map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 的类型参数、接口、共享和快照遍历规则见[类型化容器](typed_containers.md)。这些类型在变量、函数及 `.txh` 签名、struct/class 字段中保留完整静态类型。普通函数的静态函数类型及作为参数传递的规则见[函数值与函数参数](function_values.md)。
 
 本文描述当前编译器已经实现的语言范围。源码使用 UTF-8；标识符目前只接受 ASCII 字母、数字和下划线，首字符不能是数字，大小写敏感。支持 # 和 // 单行注释。类、接口、抽象方法、多继承及运行时转换见 [class 说明](classes.md)。
 

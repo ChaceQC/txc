@@ -63,6 +63,25 @@ void parser::skip_newlines()
 
 value_type parser::parse_type()
 {
+    if (match(token_kind::keyword_fn))
+    {
+        if (!check(token_kind::left_paren))
+        {
+            return value_type::fn_type;
+        }
+        (void)consume(token_kind::left_paren, "fn 类型需要左括号");
+        std::vector<value_type> arguments;
+        if (!check(token_kind::right_paren))
+        {
+            do
+            {
+                arguments.push_back(parse_type());
+            } while (match(token_kind::comma));
+        }
+        (void)consume(token_kind::right_paren, "fn 类型缺少右括号");
+        (void)consume(token_kind::arrow, "fn 类型需要 -> 返回类型");
+        return value_type::function_of(std::move(arguments), parse_type());
+    }
     if (match(token_kind::keyword_int))
     {
         return value_type::int_type;
@@ -159,7 +178,8 @@ std::vector<stmt_ptr> parser::parse_block()
 bool parser::looks_like_declaration() const
 {
     const auto kind = current().kind;
-    if (kind == token_kind::keyword_auto || kind == token_kind::keyword_int ||
+    if (kind == token_kind::keyword_auto || kind == token_kind::keyword_fn ||
+        kind == token_kind::keyword_int ||
         kind == token_kind::keyword_bool || kind == token_kind::keyword_float ||
         kind == token_kind::keyword_str || kind == token_kind::keyword_dict)
     {

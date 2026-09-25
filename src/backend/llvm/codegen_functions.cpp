@@ -94,6 +94,51 @@ void llvm_code_generator::emit_function(const function_decl& function)
     module_ << "define " << llvm_type(function.return_type, function.position)
             << ' ' << function_name(symbol, index) << '(' << parameters
             << ") {\nentry:\n" << allocations_.str() << body_.str() << "}\n\n";
+    if (function.owner_class.empty() &&
+        std::all_of(function.parameters.begin(), function.parameters.end(),
+            [](const parameter& item)
+            { return item.kind == parameter_kind::ordinary; }))
+    {
+        // 间接调用一律交出实参所有权；包装入口兼容已有的借用参数优化。
+        std::string wrapper_parameters;
+        std::string wrapper_arguments;
+        for (std::size_t i = 0; i < function.parameters.size(); ++i)
+        {
+            const auto type = llvm_type(function.parameters[i].type,
+                                        function.parameters[i].position);
+            if (i != 0)
+            {
+                wrapper_parameters += ", ";
+                wrapper_arguments += ", ";
+            }
+            wrapper_parameters += type + " %value" + std::to_string(i);
+            wrapper_arguments += type + " %value" + std::to_string(i);
+        }
+        const auto result_type = llvm_type(function.return_type, function.position);
+        module_ << "define " << result_type << ' '
+                << callback_name(symbol, index) << '(' << wrapper_parameters
+                << ") {\nentry:\n  ";
+        if (function.return_type != value_type::void_type)
+        {
+            module_ << "%result = ";
+        }
+        module_ << "call " << result_type << ' ' << function_name(symbol, index)
+                << '(' << wrapper_arguments << ")\n";
+        for (std::size_t i = 0; i < function.parameters.size(); ++i)
+        {
+            if (!ordinary_parameter_borrowed(function, i))
+            {
+                continue;
+            }
+            const auto* release_name = function.parameters[i].type ==
+                value_type::str_type ? "txrt_str_release" : "txrt_value_release";
+            module_ << "  call void @" << release_name << "(ptr %value"
+                    << i << ")\n";
+        }
+        module_ << (function.return_type == value_type::void_type
+            ? "  ret void\n" : "  ret " + result_type + " %result\n")
+                << "}\n\n";
+    }
     current_method_owner_.clear();
     current_function_body_ = nullptr;
 }

@@ -84,6 +84,10 @@ void semantic_analyzer::register_class(
     std::unordered_set<std::string> own_fields;
     for (const auto& field : definition.fields)
     {
+        if (field.type.is_function())
+        {
+            throw compile_error(field.position, "类字段暂不支持 fn 类型");
+        }
         validate_type(field.type, field.position);
         if (!own_fields.insert(field.name).second)
         {

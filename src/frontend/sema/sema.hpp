@@ -20,6 +20,8 @@ struct function_signature
     std::vector<parameter> parameters;
     value_type result;
     bool accepts_any_value = false;
+    bool external = false;
+    source_pos position = {};
 };
 
 class semantic_analyzer

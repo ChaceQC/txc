@@ -2,6 +2,10 @@
 
 本文说明当前已实现的标准库接口。后续能力缺口、建议优先级和实现前提见[标准库扩展规划](standard_library_plan.md)。
 
+后续 `httpx` 与 `ws` 客户端、服务端的接口设计见[网络模块设计](network.md)；当前尚未实现。
+
+后续 `bytes`、内存编码与文件流的接口设计见[字节值与文件流设计](bytes_file_stream.md)；当前尚未实现。
+
 内置 `map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
 
 ## 解析与可恢复错误

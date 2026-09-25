@@ -64,6 +64,9 @@ struct dictionary_literal
 struct name_reference
 {
     std::string name;
+    std::string function_symbol = {};
+    bool ambiguous_function = false;
+    bool function_value = false;
 };
 
 struct index_expression
@@ -139,6 +142,8 @@ struct call_expression
     bool is_super_view = false;
     std::string super_type;
     std::optional<value_type> container_type = std::nullopt;
+    bool indirect = false;
+    std::optional<value_type> expected_result = std::nullopt;
 };
 
 using expression_data = std::variant<

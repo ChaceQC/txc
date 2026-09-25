@@ -1,0 +1,15 @@
+def use_text(value: str) -> int
+{
+    return 0
+}
+
+def apply(value: int, operation: fn) -> int
+{
+    return operation(value)
+}
+
+def main() -> int
+{
+    print(apply(1, use_text))
+    return 0
+}

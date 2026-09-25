@@ -273,6 +273,40 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
     return own_direct_value({item.type, result});
 }
 
+llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
+    const expression& item, const call_expression& call)
+{
+    const auto& variable = find_variable(call.source_name, item.position);
+    const auto pointer = temporary();
+    write_instruction(pointer + " = load ptr, ptr " + variable.address);
+    std::string parameters;
+    std::vector<ir_value> arguments;
+    for (const auto& argument : call.arguments)
+    {
+        arguments.push_back(expression_value(*argument.value));
+        if (!parameters.empty())
+        {
+            parameters += ", ";
+        }
+        parameters += llvm_type(arguments.back().type, argument.position) +
+                      " " + arguments.back().text;
+    }
+    const auto invocation = "call " + llvm_type(item.type, item.position) +
+        " " + pointer + "(" + parameters + ")";
+    for (const auto& argument : arguments)
+    {
+        forget_owned_value(argument);
+    }
+    if (item.type == value_type::void_type)
+    {
+        write_instruction(invocation);
+        return {item.type, {}};
+    }
+    const auto result = temporary();
+    write_instruction(result + " = " + invocation);
+    return own_direct_value({item.type, result});
+}
+
 llvm_code_generator::ir_value llvm_code_generator::emit_call(
     const expression& item, const call_expression& call)
 {
@@ -314,6 +348,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
     if (call.receiver)
     {
         return emit_method_call(item, call);
+    }
+    if (call.indirect)
+    {
+        return emit_callback_call(item, call);
     }
     const auto plain_arguments = [&]
     {

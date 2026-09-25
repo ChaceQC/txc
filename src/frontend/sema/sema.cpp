@@ -139,6 +139,36 @@ void semantic_analyzer::check_function(function_decl& function)
         declare_symbol(parameter.name, {parameter.type, false}, parameter.position);
     }
     check_statements(function.body);
+    if (function.owner_class.empty())
+    {
+        auto& signatures = functions_.at(function.name);
+        for (auto& signature : signatures)
+        {
+            if (signature.position.file != function.position.file ||
+                signature.position.line != function.position.line ||
+                signature.position.column != function.position.column)
+            {
+                continue;
+            }
+            for (std::size_t index = 0; index < function.parameters.size(); ++index)
+            {
+                auto& parameter = function.parameters[index];
+                if (!parameter.type.is_inferred_function())
+                {
+                    continue;
+                }
+                const auto* inferred = find_symbol(parameter.name);
+                if (inferred == nullptr || !inferred->type.is_function())
+                {
+                    throw compile_error(parameter.position,
+                        "无法推断 fn 参数的完整签名：" + parameter.name);
+                }
+                parameter.type = inferred->type;
+                signature.parameters[index].type = inferred->type;
+            }
+            break;
+        }
+    }
     if (current_return_type_ != value_type::void_type &&
         !returns_on_all_paths(function.body))
     {
@@ -178,12 +208,28 @@ void semantic_analyzer::check_declaration(statement& item,
         declare_symbol(declaration.name, {value_type::array_type, false}, item.position);
         return;
     }
+    if (declaration.declared_type)
+    {
+        if (auto* call = std::get_if<call_expression>(&declaration.initializer->data))
+        {
+            call->expected_result = *declaration.declared_type;
+        }
+    }
     const auto inferred = check_expression(*declaration.initializer);
     if (inferred == value_type::void_type)
     {
         throw compile_error(item.position, "不能用无返回值的调用初始化变量");
     }
+    if (declaration.declared_type &&
+        declaration.declared_type->is_inferred_function() && inferred.is_function())
+    {
+        declaration.declared_type = inferred;
+    }
     const auto selected = declaration.declared_type.value_or(inferred);
+    if (selected.is_inferred_function())
+    {
+        throw compile_error(item.position, "无法推断 fn 变量的完整签名");
+    }
     if (declaration.declared_type)
     {
         validate_type(selected, item.position);
@@ -204,6 +250,11 @@ value_type semantic_analyzer::check_lvalue(expression& target)
         if (const auto* name = std::get_if<name_reference>(&root->data))
         {
             const auto* symbol = find_symbol(name->name);
+            if (symbol == nullptr)
+            {
+                throw compile_error(target.position, "函数名称不能作为赋值目标：" +
+                                                     name->name);
+            }
             if (symbol->read_only &&
                 ((name->name != "self" && name->name != "super") ||
                  root == &target))
@@ -235,6 +286,10 @@ void semantic_analyzer::check_assignment(statement& item,
                                          variable_assignment& assignment)
 {
     const auto target_type = check_lvalue(*assignment.target);
+    if (auto* call = std::get_if<call_expression>(&assignment.value->data))
+    {
+        call->expected_result = target_type;
+    }
     auto value = check_expression(*assignment.value);
     if (value == value_type::void_type)
     {
@@ -417,6 +472,10 @@ void semantic_analyzer::check_statement(statement& item)
         {
             throw compile_error(item.position, "非 void 函数必须返回值");
         }
+        if (auto* call = std::get_if<call_expression>(&result->value->data))
+        {
+            call->expected_result = current_return_type_;
+        }
         auto actual = check_expression(*result->value);
         if (insert_implicit_value_cast(result->value, actual,
                                         current_return_type_))
@@ -428,6 +487,10 @@ void semantic_analyzer::check_statement(statement& item)
     }
     else if (auto* expression_only = std::get_if<expression_statement>(&item.data))
     {
+        if (auto* call = std::get_if<call_expression>(&expression_only->value->data))
+        {
+            call->expected_result = value_type::void_type;
+        }
         (void)check_expression(*expression_only->value);
     }
 }
@@ -438,9 +501,23 @@ void semantic_analyzer::analyze(program& source, bool require_main)
     register_structs(source);
     register_classes(source);
     register_functions(source, require_main);
+    std::vector<function_decl*> ordinary_functions;
     for (auto& function : source.functions)
     {
-        check_function(function);
+        if (std::any_of(function.parameters.begin(), function.parameters.end(),
+            [](const parameter& item)
+            { return item.type.is_inferred_function(); }))
+        {
+            check_function(function);
+        }
+        else
+        {
+            ordinary_functions.push_back(&function);
+        }
+    }
+    for (auto* function : ordinary_functions)
+    {
+        check_function(*function);
     }
     for (auto& definition : source.classes)
     {

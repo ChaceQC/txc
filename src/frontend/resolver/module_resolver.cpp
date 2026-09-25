@@ -20,7 +20,8 @@ bool is_builtin_type(const std::string& name)
 {
     return name == "int" || name == "float" || name == "str" ||
            name == "bool" || name == "array" || name == "dict" || name == "any" ||
-           name == "none" || name == "void" || name == "unknown";
+           name == "none" || name == "void" || name == "unknown" ||
+           name == "fn";
 }
 
 } // namespace
@@ -178,6 +179,16 @@ value_type module_resolver::resolve_type(
     const std::string& module_key, const value_type& type,
     source_pos position) const
 {
+    if (type.is_function())
+    {
+        std::vector<value_type> arguments;
+        for (std::size_t index = 0; index + 1 < type.parameters.size(); ++index)
+        {
+            arguments.push_back(resolve_type(module_key, type.parameters[index], position));
+        }
+        return value_type::function_of(std::move(arguments),
+            resolve_type(module_key, type.parameters.back(), position));
+    }
     if (type.is_vector() || type.is_typed_container())
     {
         std::vector<value_type> arguments;

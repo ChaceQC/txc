@@ -61,6 +61,8 @@ private:
     [[nodiscard]] static bool is_value_handle(const value_type& type);
     [[nodiscard]] static std::string function_name(const std::string& name,
                                                    std::size_t overload);
+    [[nodiscard]] static std::string callback_name(const std::string& name,
+                                                   std::size_t overload);
     [[nodiscard]] std::string temporary();
     [[nodiscard]] std::string label();
     [[nodiscard]] std::string random_context();
@@ -247,6 +249,8 @@ private:
     [[nodiscard]] ir_value emit_user_call(
         const expression& item, const call_expression& call,
         const function_decl& target, const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value emit_callback_call(
+        const expression& item, const call_expression& call);
     [[nodiscard]] ir_value emit_cast(const expression& item,
                                      const cast_expression& cast);
     [[nodiscard]] ir_value cast_array_element(const index_expression& index,

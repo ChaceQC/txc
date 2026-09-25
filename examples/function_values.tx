@@ -1,0 +1,32 @@
+def twice(value: int) -> int
+{
+    return value * 2
+}
+
+def increase(value: int) -> int
+{
+    return value + 1
+}
+
+def apply(value: int, operation: fn) -> int
+{
+    return operation(value)
+}
+
+def suffix(value: str) -> str
+{
+    return value + "!"
+}
+
+def apply_text(value: str, operation: fn) -> str
+{
+    return operation(value)
+}
+
+def main() -> int
+{
+    print(apply(21, twice))
+    print(apply(21, increase))
+    print(apply_text("TX", suffix))
+    return 0
+}

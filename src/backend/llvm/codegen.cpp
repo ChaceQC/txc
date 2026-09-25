@@ -26,6 +26,10 @@ std::string llvm_code_generator::llvm_type(const value_type& type,
     {
         return "ptr";
     }
+    if (type.is_function())
+    {
+        return "ptr";
+    }
     if (is_value_handle(type))
     {
         return "ptr";
@@ -41,13 +45,20 @@ bool llvm_code_generator::is_value_handle(const value_type& type)
 {
     return type != value_type::int_type && type != value_type::bool_type &&
            type != value_type::float_type && type != value_type::str_type &&
-           type != value_type::void_type && type != value_type::unknown_type;
+           type != value_type::void_type && type != value_type::unknown_type &&
+           !type.is_function();
 }
 
 std::string llvm_code_generator::function_name(const std::string& name,
                                                std::size_t overload)
 {
     return "@tx_fn_" + name + "_" + std::to_string(overload);
+}
+
+std::string llvm_code_generator::callback_name(const std::string& name,
+                                               std::size_t overload)
+{
+    return "@tx_callback_" + name + "_" + std::to_string(overload);
 }
 
 std::string llvm_code_generator::temporary()

@@ -16,6 +16,7 @@ enum class token_kind
     floating,
     string_literal,
     keyword_def,
+    keyword_fn,
     keyword_auto,
     keyword_for,
     keyword_in,

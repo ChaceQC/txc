@@ -116,6 +116,10 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* name = std::get_if<name_reference>(&item.data))
     {
+        if (name->function_value)
+        {
+            return {item.type, callback_name(name->function_symbol, 0)};
+        }
         return load(find_variable(name->name, item.position));
     }
     if (const auto* access = std::get_if<index_expression>(&item.data))

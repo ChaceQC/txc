@@ -28,6 +28,31 @@ struct value_type
     std::string name = "unknown";
     std::vector<value_type> parameters;
 
+    [[nodiscard]] bool is_function() const noexcept
+    {
+        return name.starts_with("fn(") && !parameters.empty();
+    }
+
+    [[nodiscard]] bool is_inferred_function() const noexcept
+    {
+        return name == "fn" && parameters.empty();
+    }
+
+    [[nodiscard]] static value_type function_of(
+        std::vector<value_type> arguments, value_type result)
+    {
+        std::string name = "fn(";
+        for (std::size_t index = 0; index < arguments.size(); ++index)
+        {
+            name += (index == 0 ? "" : ",") + arguments[index].name;
+        }
+        name += ")->" + result.name;
+        arguments.push_back(std::move(result));
+        value_type type(std::move(name));
+        type.parameters = std::move(arguments);
+        return type;
+    }
+
     [[nodiscard]] bool is_vector() const noexcept
     {
         return name.starts_with("vector<") && parameters.size() == 1;
@@ -85,6 +110,7 @@ struct value_type
     static const value_type any_type;
     static const value_type none_type;
     static const value_type void_type;
+    static const value_type fn_type;
     static const value_type unknown_type;
 
     friend bool operator==(const value_type&, const value_type&) = default;
@@ -99,6 +125,7 @@ inline const value_type value_type::dict_type{"dict"};
 inline const value_type value_type::any_type{"any"};
 inline const value_type value_type::none_type{"none"};
 inline const value_type value_type::void_type{"void"};
+inline const value_type value_type::fn_type{"fn"};
 inline const value_type value_type::unknown_type{"unknown"};
 
 [[nodiscard]] inline std::string_view type_name(const value_type& type)
