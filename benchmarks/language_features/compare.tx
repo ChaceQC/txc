@@ -1,0 +1,481 @@
+# 从仓库根目录运行；每项输出名称、内部耗时（毫秒）和校验值。
+import "time.txh" as time
+import "workload.txh" as workload
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_millis() - started)
+    print(checksum)
+}
+
+def add(left: int, right: int) -> int
+{
+    return left + right
+}
+
+def add(left: float, right: float) -> float
+{
+    return left + right
+}
+
+def recursive_sum(value: int) -> int
+{
+    if value == 0
+    {
+        return 0
+    }
+    return value + recursive_sum(value - 1)
+}
+
+def collect(first: int, *args, **kwargs) -> int
+{
+    return first + len(args) + len(kwargs) + (args[0] as int) + (kwargs["bonus"] as int)
+}
+
+struct point
+{
+    x: int
+    y: int
+
+    def operator +(other: point) -> point
+    {
+        return point(self.x + other.x, self.y + other.y)
+    }
+
+    def operator ==(other: point) -> bool
+    {
+        return self.x == other.x && self.y == other.y
+    }
+}
+
+struct record
+{
+    items: dict
+}
+
+interface readable
+{
+    def read() -> int
+}
+
+class counter
+{
+    protected:
+        value: int
+    public:
+        def init(value: int)
+        {
+            self.value = value
+        }
+        def increase(delta: int) -> int
+        {
+            self.value += delta
+            return self.value
+        }
+        def increase(delta: float) -> int
+        {
+            self.value += delta as int
+            return self.value
+        }
+        virtual def read() -> int
+        {
+            return self.value
+        }
+        virtual def operator +(other: counter) -> int
+        {
+            return self.value + other.read()
+        }
+}
+
+class adjusted_counter : counter, readable
+{
+    public:
+        override def read() -> int
+        {
+            return super.read() + 1
+        }
+        override def operator +(other: counter) -> int
+        {
+            return (super + other) + 1
+        }
+}
+
+class tracked
+{
+    public:
+        totals: array
+        def init(totals: array)
+        {
+            self.totals = totals
+        }
+        def deinit()
+        {
+            self.totals[0] = (self.totals[0] as int) + 1
+        }
+}
+
+class cycle_node
+{
+    public:
+        totals: array
+        next: cycle_node
+        def init(totals: array)
+        {
+            self.totals = totals
+        }
+        def deinit()
+        {
+            self.totals[0] = (self.totals[0] as int) + 1
+        }
+}
+
+def make_cycle(totals: array)
+{
+    cycle_node node = cycle_node(totals)
+    node.next = node
+}
+
+def bench_scalar_control()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=500000
+    {
+        if i <= 250000 && i > 0
+        {
+            checksum += i
+        }
+        else
+        {
+            checksum -= i
+        }
+    }
+    report("scalar_control", started, checksum)
+}
+
+def bench_updates()
+{
+    int checksum = 0
+    int value = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=500000
+    {
+        checksum += value++
+        value--
+    }
+    report("updates", started, checksum)
+}
+
+def bench_while_logic()
+{
+    int checksum = 0
+    int index = 0
+    auto started = time.monotonic_millis()
+    while index < 500000
+    {
+        index++
+        if index <= 250000 || (index > 500000 && index < 0)
+        {
+            checksum += index
+        }
+        else
+        {
+            checksum -= index
+        }
+    }
+    report("while_logic", started, checksum)
+}
+
+def bench_float_arithmetic()
+{
+    float checksum = 0.0
+    auto started = time.monotonic_millis()
+    for i in 1..=500000
+    {
+        checksum += (i as float) / 2.0
+    }
+    report("float_arithmetic", started, checksum as int)
+}
+
+def bench_overloads()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=100000
+    {
+        checksum += add(i, 3) + (add(1.0, 2.0) as int)
+    }
+    report("overloads", started, checksum)
+}
+
+def bench_named_arguments()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=200000
+    {
+        checksum += add(right=3, left=i)
+    }
+    report("named_arguments", started, checksum)
+}
+
+def bench_recursion()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=10000
+    {
+        checksum += recursive_sum(24)
+    }
+    report("recursion", started, checksum)
+}
+
+def bench_variadic_unpack()
+{
+    array extra = [2, 3]
+    dict named = {"bonus": 4}
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=10000
+    {
+        checksum += collect(i, *extra, **named)
+    }
+    report("variadic_unpack", started, checksum)
+}
+
+def bench_array_destructure()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=20000
+    {
+        array pair = [i, i + 1]
+        left, right = pair
+        pair[1] = (right as int) + 1
+        for item in pair
+        {
+            checksum += item as int
+        }
+    }
+    report("array_destructure", started, checksum)
+}
+
+def bench_array_padded()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=50000
+    {
+        array[4] values = [i, i + 1]
+        if is_none(values[3])
+        {
+            checksum += len(values)
+        }
+        values[2] = i
+        checksum += values[2] as int
+    }
+    report("array_padded", started, checksum)
+}
+
+def bench_dict_iteration()
+{
+    dict values = {1: 1, "two": 2, true: 3}
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=100000
+    {
+        values["two"] = i
+        for key in values
+        {
+            checksum += 1
+        }
+        checksum += values["two"] as int
+    }
+    report("dict_iteration", started, checksum)
+}
+
+def bench_struct_operators()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=100000
+    {
+        point current = point(y=2, x=i)
+        current += point(3, 4)
+        if current == point(i + 3, 6)
+        {
+            checksum += current.x
+        }
+    }
+    report("struct_operators", started, checksum)
+}
+
+def bench_class_methods()
+{
+    counter value = counter(0)
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=200000
+    {
+        checksum += value.increase(1)
+        checksum += value.increase(1.0)
+    }
+    report("class_methods", started, checksum)
+}
+
+def bench_virtual_interface()
+{
+    adjusted_counter concrete = adjusted_counter(7)
+    readable interface_view = concrete
+    counter parent_view = concrete
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=200000
+    {
+        checksum += interface_view.read() + parent_view.read()
+    }
+    report("virtual_interface", started, checksum)
+}
+
+def bench_class_operator()
+{
+    counter left = adjusted_counter(7)
+    counter right = counter(2)
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=100000
+    {
+        checksum += left + right
+    }
+    report("class_operator", started, checksum)
+}
+
+def bench_runtime_cast()
+{
+    readable interface_view = adjusted_counter(7)
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=100000
+    {
+        counter parent_view = interface_view as counter
+        checksum += parent_view.read()
+    }
+    report("runtime_cast", started, checksum)
+}
+
+def bench_module_call()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=100000
+    {
+        workload.pair item = workload.pair(i, i + 1)
+        checksum += workload.bump(i) + workload.measure(item)
+    }
+    report("module_call", started, checksum)
+}
+
+def bench_string_conversion()
+{
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=50000
+    {
+        str encoded = i as str
+        checksum += encoded as int
+        checksum += len("id:" + encoded)
+    }
+    report("string_conversion", started, checksum)
+}
+
+def bench_deep_copy()
+{
+    array numbers = [1, 2, 3]
+    record source = record({"numbers": numbers})
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=10000
+    {
+        record copied = deep_copy(source)
+        copied.items["numbers"][0] = i
+        checksum += copied.items["numbers"][0] as int
+    }
+    checksum += source.items["numbers"][0] as int
+    report("deep_copy", started, checksum)
+}
+
+def bench_copy_cycle()
+{
+    array source = [none, 7]
+    source[0] = source
+    int checksum = 0
+    auto started = time.monotonic_millis()
+    for i in 1..=10000
+    {
+        array copied = deep_copy(source)
+        # 复制品的第 0 项必须指回复制品自身，而不是原数组。
+        copied[0][1] = i
+        checksum += copied[1] as int
+        copied[0] = none
+    }
+    checksum += source[1] as int
+    report("copy_cycle", started, checksum)
+    source[0] = none
+}
+
+def bench_deinit()
+{
+    array totals = [0]
+    auto started = time.monotonic_millis()
+    for i in 1..=20000
+    {
+        tracked item = tracked(totals)
+    }
+    report("deinit", started, totals[0] as int)
+}
+
+def bench_cycle_gc()
+{
+    array totals = [0]
+    auto started = time.monotonic_millis()
+    for i in 1..=1000
+    {
+        make_cycle(totals)
+    }
+    # 补充安全点，直到本轮创建的环都执行 deinit；设置上限避免故障时无限循环。
+    int attempts = 0
+    while (totals[0] as int) < 1000 && attempts < 4096
+    {
+        array padding = []
+        attempts++
+    }
+    report("cycle_gc", started, totals[0] as int)
+}
+
+def main() -> int
+{
+    bench_scalar_control()
+    bench_updates()
+    bench_while_logic()
+    bench_float_arithmetic()
+    bench_overloads()
+    bench_named_arguments()
+    bench_recursion()
+    bench_variadic_unpack()
+    bench_array_destructure()
+    bench_array_padded()
+    bench_dict_iteration()
+    bench_struct_operators()
+    bench_class_methods()
+    bench_virtual_interface()
+    bench_class_operator()
+    bench_runtime_cast()
+    bench_module_call()
+    bench_string_conversion()
+    bench_deep_copy()
+    bench_copy_cycle()
+    bench_deinit()
+    bench_cycle_gc()
+    return 0
+}

@@ -1,0 +1,9 @@
+def bump(value: int) -> int
+{
+    return value + 7
+}
+
+def measure(value: pair) -> int
+{
+    return value.left + value.right
+}
