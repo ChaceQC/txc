@@ -1,0 +1,6 @@
+def main() -> int
+{
+    vector<int> values = vector<int>()
+    values.push_back("wrong")
+    return 0
+}

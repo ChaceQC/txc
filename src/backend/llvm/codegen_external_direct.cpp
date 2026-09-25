@@ -109,10 +109,20 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     const bool dictionary_key_call = target.external_name == "dictionary.get" ||
         target.external_name == "dictionary.contains" ||
         target.external_name == "dictionary.remove";
+    if (target.external_name == "string.join" && arguments.front().type.is_vector())
+    {
+        symbol = "txrt_string_join_vector";
+    }
     ir_value boxed_key{value_type::void_type, {}};
-    if (dictionary_key_call)
+    const bool string_key = dictionary_key_call &&
+        arguments[1].type == value_type::str_type;
+    if (dictionary_key_call && !string_key)
     {
         boxed_key = box_any(arguments[1], item.position);
+    }
+    if (string_key)
+    {
+        symbol += "_str";
     }
     std::string parameters;
     for (std::size_t index = 0; index < arguments.size(); ++index)
@@ -121,7 +131,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         {
             parameters += ", ";
         }
-        const auto& argument = dictionary_key_call && index == 1
+        const auto& argument = dictionary_key_call && !string_key && index == 1
             ? boxed_key : arguments[index];
         parameters += llvm_type(argument.type, item.position) + " " + argument.text;
     }

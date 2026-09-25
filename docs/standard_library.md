@@ -184,7 +184,8 @@ import "string.txh"
 | slice(text, start, end) | str | 按字符位置取半开区间 [start, end) |
 | replace(text, old, new) | str | 替换所有 old；old 不得为空 |
 | split(text, separator) | array | 按非空分隔符拆分，保留空段 |
-| join(parts, separator) | str | 连接数组中的字符串；其他元素类型报错 |
+| split_vector(text, separator) | vector<str> | 直接生成字符串向量，保留空段，分隔符不得为空 |
+| join(parts, separator) | str | 接受 array 或 vector<str>；array 中其他元素类型报错 |
 | trim(text) | str | 去除首尾 ASCII 空白 |
 | lower(text) / upper(text) | str | 转换 ASCII 字母大小写，其他字符保持原样 |
 

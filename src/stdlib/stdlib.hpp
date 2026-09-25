@@ -6,6 +6,7 @@
 #include <any>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -42,15 +43,17 @@ tx_int tx_to_int(const std::any& value);
 double tx_to_float(const std::any& value);
 std::string tx_to_string(const std::any& value);
 tx_int tx_len(const std::string& text);
+tx_int tx_len(std::string_view text);
 
-bool tx_fn_contains(std::string text, std::string part);
-bool tx_fn_starts_with(std::string text, std::string prefix);
-bool tx_fn_ends_with(std::string text, std::string suffix);
-tx_int tx_fn_find(std::string text, std::string part);
-std::string tx_fn_slice(std::string text, tx_int start, tx_int end);
-std::string tx_fn_replace(std::string text, std::string old, std::string replacement);
-tx_array tx_fn_split(std::string text, std::string separator);
-std::string tx_fn_join(tx_array parts, std::string separator);
+bool tx_fn_contains(std::string_view text, std::string_view part);
+bool tx_fn_starts_with(std::string_view text, std::string_view prefix);
+bool tx_fn_ends_with(std::string_view text, std::string_view suffix);
+tx_int tx_fn_find(std::string_view text, std::string_view part);
+std::string tx_fn_slice(std::string_view text, tx_int start, tx_int end);
+std::string tx_fn_replace(std::string_view text, std::string_view old,
+                          std::string_view replacement);
+tx_array tx_fn_split(std::string_view text, std::string_view separator);
+std::string tx_fn_join(const tx_array& parts, std::string_view separator);
 std::string tx_fn_trim(std::string text);
 std::string tx_fn_lower(std::string text);
 std::string tx_fn_upper(std::string text);

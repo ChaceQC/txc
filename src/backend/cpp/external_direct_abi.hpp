@@ -1,10 +1,15 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 // 外部模块目标和类型已在编译期确定，句柄参数保持现有值语义。
 extern "C"
 {
+int txrt_dictionary_get_concat(const void* values, const void* first,
+                              const void* second, void** result) noexcept;
+int txrt_dictionary_contains_concat(const void* values, const void* first,
+                                   const void* second, bool* result) noexcept;
 
 int txrt_string_contains(const void* text, const void* part, bool* result) noexcept;
 int txrt_string_starts_with(const void* text, const void* prefix,
@@ -21,6 +26,22 @@ int txrt_string_split(const void* text, const void* separator,
                        void** result) noexcept;
 int txrt_string_join(const void* parts, const void* separator,
                       void** result) noexcept;
+int txrt_string_join_literal(const void* parts, const char* separator,
+                            std::size_t length, void** result) noexcept;
+int txrt_string_contains_literal(const void* text, const char* part,
+                                  std::size_t length, bool* result) noexcept;
+int txrt_string_starts_with_literal(const void* text, const char* prefix,
+                                     std::size_t length, bool* result) noexcept;
+int txrt_string_ends_with_literal(const void* text, const char* suffix,
+                                   std::size_t length, bool* result) noexcept;
+int txrt_string_find_literal(const void* text, const char* part,
+                              std::size_t length, std::int64_t* result) noexcept;
+int txrt_string_split_literal(const void* text, const char* separator,
+                               std::size_t length, void** result) noexcept;
+int txrt_string_replace_literal(const void* text, const char* old,
+                                 std::size_t old_length, const char* replacement,
+                                 std::size_t replacement_length,
+                                 void** result) noexcept;
 int txrt_string_trim(const void* text, void** result) noexcept;
 int txrt_string_lower(const void* text, void** result) noexcept;
 int txrt_string_upper(const void* text, void** result) noexcept;
@@ -35,10 +56,16 @@ int txrt_array_reverse(const void* values, void** result) noexcept;
 
 int txrt_dictionary_get(const void* values, const void* key,
                          void** result) noexcept;
+int txrt_dictionary_get_str(const void* values, const void* key,
+                             void** result) noexcept;
 int txrt_dictionary_contains(const void* values, const void* key,
                               bool* result) noexcept;
+int txrt_dictionary_contains_str(const void* values, const void* key,
+                                  bool* result) noexcept;
 int txrt_dictionary_remove(void* values, const void* key,
                             bool* result) noexcept;
+int txrt_dictionary_remove_str(void* values, const void* key,
+                                bool* result) noexcept;
 int txrt_dictionary_keys(const void* values, void** result) noexcept;
 int txrt_dictionary_values(const void* values, void** result) noexcept;
 int txrt_dictionary_clear(void* values) noexcept;

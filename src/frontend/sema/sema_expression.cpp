@@ -200,12 +200,12 @@ value_type semantic_analyzer::check_index(expression&,
     const auto object_type = check_expression(*access.object);
     if (object_type != value_type::array_type &&
         object_type != value_type::dict_type &&
-        object_type != value_type::any_type)
+        object_type != value_type::any_type && !object_type.is_vector())
     {
         throw compile_error(access.object->position, "索引对象需要数组或字典");
     }
     const auto index_type = check_expression(*access.index);
-    if (object_type == value_type::array_type)
+    if (object_type == value_type::array_type || object_type.is_vector())
     {
         require_type(index_type, value_type::int_type,
                      access.index->position, "数组索引");
@@ -219,7 +219,7 @@ value_type semantic_analyzer::check_index(expression&,
     {
         throw compile_error(access.index->position, "字典键不能是 void");
     }
-    return value_type::any_type;
+    return object_type.is_vector() ? object_type.parameters.front() : value_type::any_type;
 }
 
 value_type semantic_analyzer::check_member(expression& item,
@@ -266,6 +266,16 @@ value_type semantic_analyzer::check_member(expression& item,
 
 value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast)
 {
+    if (cast.target.is_vector())
+    {
+        validate_type(cast.target, item.position);
+        const auto source = check_expression(*cast.value);
+        if (source != cast.target && source != value_type::any_type)
+        {
+            throw compile_error(item.position, "vector 转换需要相同类型或 any");
+        }
+        return cast.target;
+    }
     if (classes_.contains(cast.target.name))
     {
         const auto actual = check_expression(*cast.value);

@@ -60,6 +60,10 @@ void require_hashable(const std::any& key)
 std::any* dict_element_address(tx_dict& dict, const std::any& key, bool create)
 {
     require_hashable(key);
+    if (create)
+    {
+        dict.prepare_write();
+    }
     if (auto* found = dict.find_value(key))
     {
         return found;
@@ -90,15 +94,48 @@ extern "C" int txrt_dict_set(void* value, const void* key,
         auto& dict = as_dict(value);
         const auto& actual_key = as_value(key);
         require_hashable(actual_key);
-        if (auto* found = dict.find_value(actual_key))
-        {
-            *found = as_value(item);
-        }
-        else
-        {
-            dict.emplace_back(actual_key, as_value(item));
-        }
+        dict.emplace_back(actual_key, as_value(item));
     });
+}
+
+namespace
+{
+
+template<class value_type>
+int set_string_key(void* value, const void* key, value_type item) noexcept
+{
+    return invoke_checked([&]
+    {
+        as_dict(value).emplace_back(
+            *static_cast<const std::string*>(key), std::move(item));
+    });
+}
+
+} // namespace
+
+extern "C" int txrt_dict_set_i64_str(void* value, const void* key,
+                                        std::int64_t item) noexcept
+{
+    return set_string_key(value, key, item);
+}
+
+extern "C" int txrt_dict_set_f64_str(void* value, const void* key,
+                                        double item) noexcept
+{
+    return set_string_key(value, key, item);
+}
+
+extern "C" int txrt_dict_set_bool_str(void* value, const void* key,
+                                         bool item) noexcept
+{
+    return set_string_key(value, key, item);
+}
+
+extern "C" int txrt_dict_set_str_str(void* value, const void* key,
+                                        const void* item) noexcept
+{
+    return set_string_key(value, key,
+        *static_cast<const std::string*>(item));
 }
 
 extern "C" int txrt_dict_len(const void* value,

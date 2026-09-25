@@ -69,6 +69,8 @@ private:
     [[nodiscard]] value_type check_constructor(expression& item, call_expression& call);
     [[nodiscard]] value_type check_class_constructor(expression& item, call_expression& call);
     [[nodiscard]] value_type check_method_call(expression& item, call_expression& call);
+    [[nodiscard]] value_type check_vector_call(expression& item, call_expression& call,
+                                              const value_type& type);
     [[nodiscard]] std::vector<value_type> check_call_arguments(call_expression& call);
     [[nodiscard]] bool matches_signature(
         const function_signature& signature, const call_expression& call,

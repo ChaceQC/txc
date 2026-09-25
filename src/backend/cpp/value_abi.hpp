@@ -63,6 +63,8 @@ int txrt_array_ref_set_f64(void* value, std::int64_t index,
                            double item) noexcept;
 int txrt_array_ref_set_bool(void* value, std::int64_t index,
                             bool item) noexcept;
+int txrt_array_ref_set_str(void* value, std::int64_t index,
+                           const void* item) noexcept;
 void txrt_array_index_error() noexcept;
 int txrt_local_scalar_array_new(std::int64_t length, void** result) noexcept;
 void txrt_local_scalar_array_release(void* value) noexcept;
@@ -80,6 +82,10 @@ int txrt_array_set_f64(void* value, std::int64_t index,
                        double item) noexcept;
 int txrt_array_set_bool(void* value, std::int64_t index,
                         bool item) noexcept;
+int txrt_array_set_str(void* value, std::int64_t index,
+                       const void* item) noexcept;
+int txrt_array_set_value(void* value, std::int64_t index,
+                         const void* item) noexcept;
 int txrt_array_append(void* value, const void* item) noexcept;
 int txrt_array_extend(void* value, const void* items) noexcept;
 int txrt_array_require_length(const void* value, std::size_t length) noexcept;
@@ -112,6 +118,14 @@ void* txrt_dict_ref_get_str_str(const void* value,
 void* txrt_dict_ref_get_str_literal(const void* value,
     const char* key, std::size_t length) noexcept;
 int txrt_dict_set(void* value, const void* key, const void* item) noexcept;
+int txrt_dict_set_i64_str(void* value, const void* key,
+                          std::int64_t item) noexcept;
+int txrt_dict_set_f64_str(void* value, const void* key,
+                          double item) noexcept;
+int txrt_dict_set_bool_str(void* value, const void* key,
+                           bool item) noexcept;
+int txrt_dict_set_str_str(void* value, const void* key,
+                          const void* item) noexcept;
 int txrt_dict_len(const void* value, std::int64_t* result) noexcept;
 int txrt_dict_element_address(void* value, const void* key, bool create,
                                void** result) noexcept;

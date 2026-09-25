@@ -15,6 +15,7 @@ bool supported_external_call(std::string_view name)
            name == "string.ends_with" || name == "string.find" ||
            name == "string.slice" || name == "string.replace" ||
            name == "string.split" || name == "string.join" ||
+           name == "string.split_vector" ||
            name == "string.trim" || name == "string.lower" ||
            name == "string.upper" || name == "format.format" ||
            name == "file.read_text" ||
@@ -47,6 +48,17 @@ bool is_builtin_call(std::string_view name)
     return name == "print" || name == "len" || name == "is_none" ||
            name == "to_float" || name == "input" ||
            name == "input_or_none" || name == "deep_copy";
+}
+
+bool simple_argument(const call_argument& argument)
+{
+    const auto& value = argument.value->data;
+    return std::holds_alternative<name_reference>(value) ||
+           std::holds_alternative<string_literal>(value) ||
+           std::holds_alternative<integer_literal>(value) ||
+           std::holds_alternative<floating_literal>(value) ||
+           std::holds_alternative<boolean_literal>(value) ||
+           std::holds_alternative<none_literal>(value);
 }
 
 } // namespace
@@ -231,6 +243,21 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
 llvm_code_generator::ir_value llvm_code_generator::emit_call(
     const expression& item, const call_expression& call)
 {
+    if (call.vector_type || (call.receiver && call.receiver->type.is_vector()))
+    {
+        return emit_vector_call(item, call);
+    }
+    if (call.name == "len" && call.arguments.front().value->type.is_vector())
+    {
+        bool borrowed = false;
+        const auto value = container_value(*call.arguments.front().value, true, borrowed);
+        const auto result = vector_length(value, false);
+        if (!borrowed)
+        {
+            release(value);
+        }
+        return result;
+    }
     if (call.is_super_view)
     {
         const auto value = load(find_variable("self", item.position));
@@ -429,6 +456,17 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
             { return value.kind != argument_kind::positional; });
     if (target.external)
     {
+        if (!needs_binding)
+        {
+            if (auto direct = emit_string_key_query(item, call, target))
+            {
+                return *direct;
+            }
+            if (auto direct = emit_literal_string_call(item, call, target))
+            {
+                return *direct;
+            }
+        }
         const auto arguments = needs_binding
             ? emit_bound_arguments(item, call, target.parameters)
             : plain_arguments();
@@ -448,7 +486,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
         {
             bool borrowed = false;
             const auto& argument = *call.arguments[index].value;
-            arguments.push_back(ordinary_parameter_borrowed(target, index)
+            const bool stable_suffix = std::all_of(
+                call.arguments.begin() + index + 1, call.arguments.end(),
+                simple_argument);
+            const bool can_borrow = ordinary_parameter_borrowed(target, index) &&
+                (argument.type != value_type::str_type || stable_suffix);
+            arguments.push_back(can_borrow
                 ? expression_value_or_borrow(argument, borrowed)
                 : expression_value(argument));
             borrowed_arguments.push_back(borrowed);

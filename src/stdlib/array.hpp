@@ -107,6 +107,19 @@ public:
     {
         elements_->values[index] = value;
     }
+    void set_text(std::size_t index, std::string value)
+    {
+        // 字符串不能保存容器引用，写入时无需登记循环回收器。
+        elements_->values[index] = std::move(value);
+    }
+    void set_value(std::size_t index, const std::any& value)
+    {
+        if (may_contain_cycle(value))
+        {
+            register_storage();
+        }
+        elements_->values[index] = value;
+    }
     [[nodiscard]] const void* identity() const noexcept
     {
         return elements_.get();

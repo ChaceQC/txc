@@ -249,6 +249,11 @@ void llvm_code_generator::emit_for(const for_loop& loop)
 
 void llvm_code_generator::emit_for_each(const for_each& loop)
 {
+    if (loop.values->type.is_vector())
+    {
+        emit_vector_for_each(loop);
+        return;
+    }
     if (const auto* name = std::get_if<name_reference>(&loop.values->data))
     {
         const auto array = find_variable(name->name, loop.values->position);

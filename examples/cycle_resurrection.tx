@@ -37,7 +37,8 @@ def main() -> int
     make_cycle(root)
     for index in 0..=70
     {
-        array step = []
+        # 复合值数组保持真实分配，避免局部标量数组优化消去回收触发条件。
+        array step = [root]
     }
     print(root.saved.value)
     return 0

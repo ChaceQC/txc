@@ -5,12 +5,10 @@
 #include "backend/cpp/runtime.hpp"
 
 #include <any>
-#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
-#include <unordered_map>
-#include <vector>
+#include <string_view>
 
 namespace tx_generated::detail
 {
@@ -18,88 +16,35 @@ namespace tx_generated::detail
 thread_local char last_error[256]{};
 namespace
 {
-struct handle_entry
-{
-    void* value;
-    handle_kind kind;
-};
-
-constexpr std::size_t small_handle_limit = 32;
-thread_local std::vector<handle_entry> live_handles;
-thread_local std::unordered_map<void*, std::size_t> handle_positions;
-thread_local bool indexed_handles = false;
+thread_local handle_link* newest_handle = nullptr;
 thread_local bool cleaning_handles = false;
 }
 
-void register_handle(void* value, handle_kind kind)
+void register_handle(handle_link* value, handle_kind kind) noexcept
 {
-    if (!indexed_handles && live_handles.size() == small_handle_limit)
+    value->kind = kind;
+    value->newer = nullptr;
+    value->older = newest_handle;
+    if (newest_handle)
     {
-        std::unordered_map<void*, std::size_t> positions;
-        positions.reserve(small_handle_limit * 2);
-        for (std::size_t index = 0; index < live_handles.size(); ++index)
-        {
-            positions.emplace(live_handles[index].value, index);
-        }
-        handle_positions.swap(positions);
-        indexed_handles = true;
+        newest_handle->newer = value;
     }
-    live_handles.push_back({value, kind});
-    if (indexed_handles)
-    {
-        try
-        {
-            handle_positions.emplace(value, live_handles.size() - 1);
-        }
-        catch (...)
-        {
-            live_handles.pop_back();
-            throw;
-        }
-    }
+    newest_handle = value;
 }
 
-void unregister_handle(void* value) noexcept
+void unregister_handle(handle_link* value) noexcept
 {
-    std::size_t index = live_handles.size();
-    if (indexed_handles)
+    if (value->newer)
     {
-        const auto found = handle_positions.find(value);
-        if (found != handle_positions.end())
-        {
-            index = found->second;
-            handle_positions.erase(found);
-        }
+        value->newer->older = value->older;
     }
     else
     {
-        const auto found = std::find_if(live_handles.begin(), live_handles.end(),
-            [value](const handle_entry& entry)
-            {
-                return entry.value == value;
-            });
-        if (found != live_handles.end())
-        {
-            index = static_cast<std::size_t>(found - live_handles.begin());
-        }
+        newest_handle = value->older;
     }
-    if (index == live_handles.size())
+    if (value->older)
     {
-        return;
-    }
-    if (index + 1 != live_handles.size())
-    {
-        live_handles[index] = live_handles.back();
-        if (indexed_handles)
-        {
-            handle_positions.find(live_handles[index].value)->second = index;
-        }
-    }
-    live_handles.pop_back();
-    if (indexed_handles && live_handles.size() <= small_handle_limit / 2)
-    {
-        handle_positions.clear();
-        indexed_handles = false;
+        value->older->newer = value->newer;
     }
 }
 
@@ -115,25 +60,26 @@ void cleanup_live_handles() noexcept
         return;
     }
     cleaning_handles = true;
-    while (!live_handles.empty())
+    while (newest_handle)
     {
-        const auto [value, kind] = live_handles.back();
-        live_handles.pop_back();
-        if (indexed_handles)
-        {
-            handle_positions.erase(value);
-        }
+        auto* current = newest_handle;
+        const auto kind = current->kind;
+        unregister_handle(current);
         if (kind == handle_kind::text)
         {
-            delete static_cast<std::string*>(value);
+            auto* text = static_cast<handle_record<std::string>*>(current);
+            // 清理根引用不破坏仍由容器或析构函数持有的不可变文本。
+            text->references = 0;
+            if (text->internal_references == 0)
+            {
+                delete text;
+            }
         }
         else
         {
-            delete static_cast<std::any*>(value);
+            delete static_cast<handle_record<std::any>*>(current);
         }
     }
-    handle_positions.clear();
-    indexed_handles = false;
     try
     {
         tx_generated::collect_cycles();
@@ -228,10 +174,15 @@ extern "C" int txrt_str_new(const char* bytes, std::size_t length,
 
 extern "C" int txrt_str_clone(const void* value, void** result) noexcept
 {
-    return invoke_checked([&] {
-        *result = tx_generated::detail::make_handle<std::string>(
-            *static_cast<const std::string*>(value));
-    });
+    *result = tx_generated::detail::retain_text_handle(value);
+    return 0;
+}
+
+extern "C" bool txrt_str_equals_literal(const void* value,
+    const char* bytes, std::size_t length) noexcept
+{
+    return std::string_view(*static_cast<const std::string*>(value)) ==
+           std::string_view(bytes, length);
 }
 
 extern "C" void txrt_str_release(void* value) noexcept

@@ -81,4 +81,40 @@ llvm_code_generator::ir_value llvm_code_generator::cast_dict_element(
     return {target, result};
 }
 
+bool llvm_code_generator::emit_direct_dict_assignment(
+    const statement& item, const variable_assignment& assignment)
+{
+    const auto* index = std::get_if<index_expression>(&assignment.target->data);
+    if (!index || index->object->type != value_type::dict_type ||
+        index->index->type != value_type::str_type ||
+        std::holds_alternative<string_literal>(index->index->data) ||
+        assignment.binding || assignment.operation != token_kind::equal)
+    {
+        return false;
+    }
+    const auto type = assignment.value->type;
+    const auto* suffix = type == value_type::int_type ? "i64"
+        : type == value_type::float_type ? "f64"
+        : type == value_type::bool_type ? "bool"
+        : type == value_type::str_type ? "str" : nullptr;
+    if (!suffix)
+    {
+        return false;
+    }
+
+    lvalue_indices indices;
+    prepare_lvalue_indices(*assignment.target, indices);
+    const auto value = expression_value(*assignment.value);
+    const auto dictionary = lvalue_address(*index->object, indices);
+    const auto key = indices.at(&*assignment.target);
+    const auto status = temporary();
+    write_instruction(status + " = call i32 @txrt_dict_set_" + suffix +
+        "_str(ptr " + dictionary + ", ptr " + key.text + ", " +
+        llvm_type(type, item.position) + " " + value.text + ")");
+    write_instruction("call void @txrt_require_success(i32 " + status + ")");
+    release(key);
+    release(value);
+    return true;
+}
+
 } // namespace tx

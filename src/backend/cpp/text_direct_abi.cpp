@@ -94,6 +94,81 @@ extern "C" int txrt_string_join(const void* parts, const void* separator,
     });
 }
 
+extern "C" int txrt_string_contains_literal(const void* text,
+    const char* part, std::size_t length, bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_contains(text_value(text),
+                                               std::string_view(part, length));
+    });
+}
+
+extern "C" int txrt_string_join_literal(const void* parts,
+    const char* separator, std::size_t length, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_join(array_value(parts),
+                                     std::string_view(separator, length)));
+    });
+}
+
+extern "C" int txrt_string_starts_with_literal(const void* text,
+    const char* prefix, std::size_t length, bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_starts_with(text_value(text),
+                                                 std::string_view(prefix, length));
+    });
+}
+
+extern "C" int txrt_string_ends_with_literal(const void* text,
+    const char* suffix, std::size_t length, bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_ends_with(text_value(text),
+                                               std::string_view(suffix, length));
+    });
+}
+
+extern "C" int txrt_string_find_literal(const void* text,
+    const char* part, std::size_t length, std::int64_t* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_find(text_value(text),
+                                           std::string_view(part, length));
+    });
+}
+
+extern "C" int txrt_string_split_literal(const void* text,
+    const char* separator, std::size_t length, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::any>(
+            tx_generated::tx_fn_split(text_value(text),
+                                      std::string_view(separator, length)));
+    });
+}
+
+extern "C" int txrt_string_replace_literal(const void* text,
+    const char* old, std::size_t old_length, const char* replacement,
+    std::size_t replacement_length, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_replace(text_value(text),
+                std::string_view(old, old_length),
+                std::string_view(replacement, replacement_length)));
+    });
+}
+
 extern "C" int txrt_string_trim(const void* text, void** result) noexcept
 {
     return invoke_checked([&] {

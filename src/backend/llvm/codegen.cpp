@@ -222,7 +222,8 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
         borrowed = true;
         return {item.type, result};
     }
-    if (name && is_value_handle(item.type))
+    if (name && (is_value_handle(item.type) ||
+                 item.type == value_type::str_type))
     {
         const auto variable = find_variable(name->name, item.position);
         if (!variable.snapshot_kind.empty())
@@ -394,6 +395,7 @@ std::string llvm_code_generator::generate(const program& source)
     write_external_declarations();
     module_ << "declare i32 @txrt_str_new(ptr, i64, ptr)\n"
             << "declare i32 @txrt_str_clone(ptr, ptr)\n"
+            << "declare i1 @txrt_str_equals_literal(ptr, ptr, i64)\n"
             << "declare void @txrt_str_release(ptr)\n"
             << "declare i32 @txrt_str_concat(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_str_compare(ptr, ptr, ptr)\n"
@@ -448,6 +450,7 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_array_ref_set_i64(ptr, i64, i64)\n"
             << "declare i32 @txrt_array_ref_set_f64(ptr, i64, double)\n"
             << "declare i32 @txrt_array_ref_set_bool(ptr, i64, i1)\n"
+            << "declare i32 @txrt_array_ref_set_str(ptr, i64, ptr)\n"
             << "declare i32 @txrt_array_resize(i64, ptr, ptr)\n"
             << "declare i32 @txrt_array_len(ptr, ptr)\n"
             << "declare i32 @txrt_array_element_address(ptr, i64, ptr)\n"
@@ -456,6 +459,8 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_array_set_i64(ptr, i64, i64)\n"
             << "declare i32 @txrt_array_set_f64(ptr, i64, double)\n"
             << "declare i32 @txrt_array_set_bool(ptr, i64, i1)\n"
+            << "declare i32 @txrt_array_set_str(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_array_set_value(ptr, i64, ptr)\n"
             << "declare i32 @txrt_array_append(ptr, ptr)\n"
             << "declare i32 @txrt_array_extend(ptr, ptr)\n"
             << "declare void @txrt_array_require_spread(ptr)\n"
@@ -476,13 +481,20 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare ptr @txrt_dict_ref_get_str_str(ptr, ptr)\n"
             << "declare ptr @txrt_dict_ref_get_str_literal(ptr, ptr, i64)\n"
             << "declare i32 @txrt_dict_set(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_dict_set_i64_str(ptr, ptr, i64)\n"
+            << "declare i32 @txrt_dict_set_f64_str(ptr, ptr, double)\n"
+            << "declare i32 @txrt_dict_set_bool_str(ptr, ptr, i1)\n"
+            << "declare i32 @txrt_dict_set_str_str(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dict_len(ptr, ptr)\n"
             << "declare i32 @txrt_dict_element_address(ptr, ptr, i1, ptr)\n"
             << "declare i32 @txrt_dict_element_address_str(ptr, ptr, i1, ptr)\n"
             << "declare i32 @txrt_dict_element_address_literal(ptr, ptr, i64, i1, ptr)\n"
             << "declare i32 @txrt_dictionary_get(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_dictionary_get_str(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dictionary_contains(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_dictionary_contains_str(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dictionary_remove(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_dictionary_remove_str(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dictionary_keys(ptr, ptr)\n"
             << "declare i32 @txrt_dictionary_values(ptr, ptr)\n"
             << "declare i32 @txrt_dictionary_clear(ptr)\n"

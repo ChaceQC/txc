@@ -2,6 +2,7 @@
 
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/value_format.hpp"
+#include "backend/cpp/vector_value.hpp"
 #include "stdlib/stdlib.hpp"
 
 #include <any>
@@ -20,6 +21,23 @@ class copy_context
 public:
     [[nodiscard]] std::any copy(const std::any& value)
     {
+        std::any vector_result;
+        if (visit_vector(value, [&](const auto& vector)
+        {
+            const auto found = copies_.find(vector.identity());
+            if (found != copies_.end())
+            {
+                vector_result = found->second;
+            }
+            else
+            {
+                vector_result = vector.copy();
+                copies_.emplace(vector.identity(), vector_result);
+            }
+        }))
+        {
+            return vector_result;
+        }
         if (value.type() == typeid(tx_array))
         {
             return copy_array(std::any_cast<const tx_array&>(value));

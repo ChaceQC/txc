@@ -1,0 +1,17 @@
+def make() -> holder
+{
+    vector<int> ids = vector<int>(1, 4)
+    return holder(ids, ids, vector<str>(1, "你好，shared text"))
+}
+
+def grow(values: vector<int>) -> int
+{
+    values.resize(1024, 9)
+    return 0
+}
+
+def replace(values: holder) -> int
+{
+    values.first = vector<int>(1, 20)
+    return 8
+}

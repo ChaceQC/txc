@@ -1,0 +1,10 @@
+struct holder
+{
+    first: vector<int>
+    second: vector<int>
+    texts: vector<str>
+}
+
+def make() -> holder
+def grow(values: vector<int>) -> int
+def replace(values: holder) -> int

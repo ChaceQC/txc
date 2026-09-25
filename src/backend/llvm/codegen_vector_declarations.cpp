@@ -1,0 +1,60 @@
+#include "backend/llvm/codegen.hpp"
+
+namespace tx
+{
+
+void llvm_code_generator::write_vector_declarations()
+{
+    module_ << R"txabi(
+declare void @txrt_vector_index_error()
+declare void @txrt_vector_store_str(ptr, ptr)
+declare i32 @txrt_string_split_vector(ptr, ptr, ptr)
+declare i32 @txrt_string_join_vector(ptr, ptr, ptr)
+declare ptr @txrt_vector_ref_i64(ptr)
+declare i32 @txrt_vector_new_i64(i64, i64, ptr)
+declare i32 @txrt_vector_from_array_i64(ptr, ptr)
+declare i32 @txrt_vector_to_array_i64(ptr, ptr)
+declare i32 @txrt_vector_reserve_i64(ptr, i64)
+declare i32 @txrt_vector_push_back_i64(ptr, i64)
+declare i32 @txrt_vector_resize_i64(ptr, i64, i64)
+declare i32 @txrt_vector_clear_i64(ptr)
+declare i32 @txrt_vector_pop_back_i64(ptr)
+declare i32 @txrt_vector_insert_i64(ptr, i64, i64)
+declare i32 @txrt_vector_erase_i64(ptr, i64)
+declare ptr @txrt_vector_ref_f64(ptr)
+declare i32 @txrt_vector_new_f64(i64, double, ptr)
+declare i32 @txrt_vector_from_array_f64(ptr, ptr)
+declare i32 @txrt_vector_to_array_f64(ptr, ptr)
+declare i32 @txrt_vector_reserve_f64(ptr, i64)
+declare i32 @txrt_vector_push_back_f64(ptr, double)
+declare i32 @txrt_vector_resize_f64(ptr, i64, double)
+declare i32 @txrt_vector_clear_f64(ptr)
+declare i32 @txrt_vector_pop_back_f64(ptr)
+declare i32 @txrt_vector_insert_f64(ptr, i64, double)
+declare i32 @txrt_vector_erase_f64(ptr, i64)
+declare ptr @txrt_vector_ref_bool(ptr)
+declare i32 @txrt_vector_new_bool(i64, i1, ptr)
+declare i32 @txrt_vector_from_array_bool(ptr, ptr)
+declare i32 @txrt_vector_to_array_bool(ptr, ptr)
+declare i32 @txrt_vector_reserve_bool(ptr, i64)
+declare i32 @txrt_vector_push_back_bool(ptr, i1)
+declare i32 @txrt_vector_resize_bool(ptr, i64, i1)
+declare i32 @txrt_vector_clear_bool(ptr)
+declare i32 @txrt_vector_pop_back_bool(ptr)
+declare i32 @txrt_vector_insert_bool(ptr, i64, i1)
+declare i32 @txrt_vector_erase_bool(ptr, i64)
+declare ptr @txrt_vector_ref_str(ptr)
+declare i32 @txrt_vector_new_str(i64, ptr, ptr)
+declare i32 @txrt_vector_from_array_str(ptr, ptr)
+declare i32 @txrt_vector_to_array_str(ptr, ptr)
+declare i32 @txrt_vector_reserve_str(ptr, i64)
+declare i32 @txrt_vector_push_back_str(ptr, ptr)
+declare i32 @txrt_vector_resize_str(ptr, i64, ptr)
+declare i32 @txrt_vector_clear_str(ptr)
+declare i32 @txrt_vector_pop_back_str(ptr)
+declare i32 @txrt_vector_insert_str(ptr, i64, ptr)
+declare i32 @txrt_vector_erase_str(ptr, i64)
+)txabi";
+}
+
+} // namespace tx

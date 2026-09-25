@@ -21,7 +21,7 @@ bool is_printable(const value_type& type)
     return is_numeric(type) || type == value_type::bool_type ||
            type == value_type::str_type || type == value_type::none_type ||
            type == value_type::array_type || type == value_type::dict_type ||
-           type == value_type::any_type;
+           type == value_type::any_type || type.is_vector();
 }
 
 } // namespace
@@ -213,7 +213,7 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
         if (actual != value_type::array_type &&
             actual != value_type::dict_type &&
             actual != value_type::str_type &&
-            actual != value_type::any_type)
+            actual != value_type::any_type && !actual.is_vector())
         {
             throw compile_error(argument.position, "len 需要数组、字典或字符串");
         }
@@ -273,6 +273,10 @@ value_type semantic_analyzer::check_constructor(expression& item,
 
 value_type semantic_analyzer::check_call(expression& item, call_expression& call)
 {
+    if (call.vector_type)
+    {
+        return check_vector_call(item, call, *call.vector_type);
+    }
     if (call.is_super_view)
     {
         const auto found = classes_.find(call.super_type);

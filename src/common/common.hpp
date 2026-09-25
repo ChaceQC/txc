@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 namespace tx
 {
@@ -25,6 +26,19 @@ struct value_type
     }
 
     std::string name = "unknown";
+    std::vector<value_type> parameters;
+
+    [[nodiscard]] bool is_vector() const noexcept
+    {
+        return parameters.size() == 1;
+    }
+
+    [[nodiscard]] static value_type vector_of(value_type element)
+    {
+        value_type result("vector<" + element.name + ">");
+        result.parameters.push_back(std::move(element));
+        return result;
+    }
 
     static const value_type int_type;
     static const value_type bool_type;

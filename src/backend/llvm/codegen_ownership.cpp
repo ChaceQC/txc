@@ -84,7 +84,8 @@ bool llvm_code_generator::ordinary_parameter_borrowed(
     return function.owner_class.empty() &&
         index < function.parameters.size() &&
         function.parameters[index].kind == parameter_kind::ordinary &&
-        is_value_handle(function.parameters[index].type) &&
+        (is_value_handle(function.parameters[index].type) ||
+         function.parameters[index].type == value_type::str_type) &&
         !rebinds_name(function.body, function.parameters[index].name);
 }
 

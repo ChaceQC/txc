@@ -1,4 +1,5 @@
 #include "backend/cpp/value_format.hpp"
+#include "backend/cpp/vector_value.hpp"
 
 #include "stdlib/stdlib.hpp"
 
@@ -153,7 +154,37 @@ void append_value(std::string& output, const std::any& value,
         output += object->display_name;
         output += " object>";
     }
-    else
+    else if (!visit_vector(value, [&](const auto& vector)
+    {
+        output.push_back('[');
+        bool first = true;
+        for (const auto& element : vector.data().values)
+        {
+            if (!first)
+            {
+                output += ", ";
+            }
+            first = false;
+            using element_type = std::decay_t<decltype(element)>;
+            if constexpr (std::is_same_v<element_type, text_reference>)
+            {
+                append_quoted(output, element.get());
+            }
+            else if constexpr (std::is_same_v<element_type, std::uint8_t>)
+            {
+                output += tx_bool_to_string(element != 0);
+            }
+            else if constexpr (std::is_same_v<element_type, double>)
+            {
+                output += tx_float_to_string(element);
+            }
+            else
+            {
+                output += tx_int_to_string(element);
+            }
+        }
+        output.push_back(']');
+    }))
     {
         throw std::runtime_error("print 不支持此动态类型");
     }

@@ -11,6 +11,15 @@ namespace tx_generated
 
 tx_dict::tx_dict() : data_(std::make_shared<storage>())
 {
+    note_gc_allocation();
+}
+
+void tx_dict::register_storage()
+{
+    if (data_->registered)
+    {
+        return;
+    }
     register_gc_node(data_,
         [](const void* object, gc_visit visit, void* context)
         {
@@ -33,6 +42,13 @@ tx_dict::tx_dict() : data_(std::make_shared<storage>())
             data.entries.clear();
             data.nan_entries.clear();
         });
+    data_->registered = true;
+}
+
+void tx_dict::prepare_write()
+{
+    // 通用可写地址无法在返回时得知未来写入的类型，必须提前登记。
+    register_storage();
 }
 
 const void* tx_dict::identity() const noexcept
@@ -102,6 +118,12 @@ const std::any* tx_dict::find_value(std::string_view key) const
 
 std::any& tx_dict::emplace_back(std::any key, std::any value)
 {
+    if (value.has_value() && value.type() != typeid(std::int64_t) &&
+        value.type() != typeid(double) && value.type() != typeid(bool) &&
+        value.type() != typeid(std::string))
+    {
+        register_storage();
+    }
     const auto index = make_key(key);
     if (!index)
     {
@@ -128,6 +150,17 @@ bool tx_dict::erase(const std::any& key)
         return false;
     }
     return data_->entries.erase(*index) != 0;
+}
+
+bool tx_dict::erase(std::string_view key)
+{
+    const auto found = data_->entries.find(key);
+    if (found == data_->entries.end())
+    {
+        return false;
+    }
+    data_->entries.erase(found);
+    return true;
 }
 
 void tx_dict::clear() noexcept

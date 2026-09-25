@@ -17,12 +17,16 @@ int txrt_print_bool(bool value, bool newline) noexcept;
 int txrt_print_char(std::uint8_t value) noexcept;
 int txrt_exit_code(std::int64_t value) noexcept;
 int txrt_float_to_int(double value, std::int64_t* result) noexcept;
-// str 句柄由返回方持有；clone 返回独立副本，release 释放句柄。
+// str 句柄由返回方持有；clone 共享不可变文本，release 释放一次持有引用。
 int txrt_str_new(const char* bytes, std::size_t length, void** result) noexcept;
 int txrt_str_clone(const void* value, void** result) noexcept;
+bool txrt_str_equals_literal(const void* value, const char* bytes,
+                              std::size_t length) noexcept;
 void txrt_str_release(void* value) noexcept;
 int txrt_str_concat(const void* left, const void* right,
                     void** result) noexcept;
+int txrt_str_concat_literal(const void* value, const char* bytes,
+    std::size_t length, bool prepend, void** result) noexcept;
 int txrt_str_compare(const void* left, const void* right,
                      int* result) noexcept;
 int txrt_str_len(const void* value, std::int64_t* result) noexcept;

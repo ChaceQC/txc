@@ -56,24 +56,6 @@ std::size_t next_utf8(std::string_view text, std::size_t offset)
     return offset + width;
 }
 
-std::size_t byte_offset(std::string_view text, tx_int character_index)
-{
-    if (character_index < 0)
-    {
-        throw std::out_of_range("字符串位置不能为负");
-    }
-    std::size_t offset = 0;
-    for (tx_int index = 0; index < character_index; ++index)
-    {
-        if (offset == text.size())
-        {
-            throw std::out_of_range("字符串位置越界");
-        }
-        offset = next_utf8(text, offset);
-    }
-    return offset;
-}
-
 bool is_ascii_space(char value)
 {
     return value == ' ' || value == '\t' || value == '\n' ||
@@ -82,7 +64,7 @@ bool is_ascii_space(char value)
 
 } // namespace
 
-tx_int tx_len(const std::string& text)
+tx_int tx_len(std::string_view text)
 {
     tx_int count = 0;
     for (std::size_t offset = 0; offset < text.size();)
@@ -97,22 +79,27 @@ tx_int tx_len(const std::string& text)
     return count;
 }
 
-bool tx_fn_contains(std::string text, std::string part)
+tx_int tx_len(const std::string& text)
+{
+    return tx_len(std::string_view(text));
+}
+
+bool tx_fn_contains(std::string_view text, std::string_view part)
 {
     return text.find(part) != std::string::npos;
 }
 
-bool tx_fn_starts_with(std::string text, std::string prefix)
+bool tx_fn_starts_with(std::string_view text, std::string_view prefix)
 {
     return text.starts_with(prefix);
 }
 
-bool tx_fn_ends_with(std::string text, std::string suffix)
+bool tx_fn_ends_with(std::string_view text, std::string_view suffix)
 {
     return text.ends_with(suffix);
 }
 
-tx_int tx_fn_find(std::string text, std::string part)
+tx_int tx_fn_find(std::string_view text, std::string_view part)
 {
     (void)tx_len(text);
     const auto position = text.find(part);
@@ -123,63 +110,113 @@ tx_int tx_fn_find(std::string text, std::string part)
     return tx_len(text.substr(0, position));
 }
 
-std::string tx_fn_slice(std::string text, tx_int start, tx_int end)
+std::string tx_fn_slice(std::string_view text, tx_int start, tx_int end)
 {
-    const auto length = tx_len(text);
+    tx_int length = 0;
+    std::size_t first = 0;
+    std::size_t last = 0;
+    // 一次验证完整 UTF-8，同时记录两个字符边界，保持原错误优先级。
+    for (std::size_t offset = 0; offset < text.size();)
+    {
+        if (length == start)
+        {
+            first = offset;
+        }
+        if (length == end)
+        {
+            last = offset;
+        }
+        offset = next_utf8(text, offset);
+        if (length == std::numeric_limits<tx_int>::max())
+        {
+            throw std::overflow_error("字符串长度超出 int 范围");
+        }
+        ++length;
+    }
     if (start < 0 || end < start || end > length)
     {
         throw std::out_of_range("字符串切片范围无效");
     }
-    const auto first = byte_offset(text, start);
-    const auto last = byte_offset(text, end);
-    return text.substr(first, last - first);
+    if (start == length)
+    {
+        first = text.size();
+    }
+    if (end == length)
+    {
+        last = text.size();
+    }
+    return std::string(text.substr(first, last - first));
 }
 
-std::string tx_fn_replace(std::string text, std::string old, std::string replacement)
+std::string tx_fn_replace(std::string_view text, std::string_view old,
+                          std::string_view replacement)
 {
     if (old.empty())
     {
         throw std::runtime_error("replace 的旧文本不能为空");
     }
+    std::string result;
+    result.reserve(text.size());
     std::size_t position = 0;
-    while ((position = text.find(old, position)) != std::string::npos)
+    while (true)
     {
-        text.replace(position, old.size(), replacement);
-        position += replacement.size();
+        const auto found = text.find(old, position);
+        if (found == std::string_view::npos)
+        {
+            result.append(text.substr(position));
+            return result;
+        }
+        result.append(text.substr(position, found - position));
+        result.append(replacement);
+        position = found + old.size();
     }
-    return text;
 }
 
-tx_array tx_fn_split(std::string text, std::string separator)
+tx_array tx_fn_split(std::string_view text, std::string_view separator)
 {
     if (separator.empty())
     {
         throw std::runtime_error("split 的分隔符不能为空");
     }
     tx_array parts;
+    std::size_t expected_parts = 1;
+    std::size_t next = 0;
+    while ((next = text.find(separator, next)) != std::string_view::npos)
+    {
+        ++expected_parts;
+        next += separator.size();
+    }
+    parts.reserve(expected_parts);
     std::size_t start = 0;
     while (true)
     {
         const auto position = text.find(separator, start);
         if (position == std::string::npos)
         {
-            parts.emplace_back(text.substr(start));
+            parts.emplace_back(std::string(text.substr(start)));
             return parts;
         }
-        parts.emplace_back(text.substr(start, position - start));
+        parts.emplace_back(std::string(text.substr(start, position - start)));
         start = position + separator.size();
     }
 }
 
-std::string tx_fn_join(tx_array parts, std::string separator)
+std::string tx_fn_join(const tx_array& parts, std::string_view separator)
 {
-    std::string result;
-    for (std::size_t index = 0; index < parts.size(); ++index)
+    std::size_t total = parts.size() == 0 ? 0 :
+        separator.size() * (parts.size() - 1);
+    for (const auto& item : parts)
     {
-        if (parts[index].type() != typeid(std::string))
+        if (item.type() != typeid(std::string))
         {
             throw std::runtime_error("join 的数组只能包含 str");
         }
+        total += std::any_cast<const std::string&>(item).size();
+    }
+    std::string result;
+    result.reserve(total);
+    for (std::size_t index = 0; index < parts.size(); ++index)
+    {
         if (index != 0)
         {
             result += separator;

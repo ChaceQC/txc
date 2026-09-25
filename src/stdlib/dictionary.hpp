@@ -29,7 +29,9 @@ public:
     [[nodiscard]] const std::any* find_value(const std::any& key) const;
     [[nodiscard]] const std::any* find_value(std::string_view key) const;
     std::any& emplace_back(std::any key, std::any value);
+    void prepare_write();
     [[nodiscard]] bool erase(const std::any& key);
+    [[nodiscard]] bool erase(std::string_view key);
     void clear() noexcept;
     [[nodiscard]] const void* identity() const noexcept;
 
@@ -115,8 +117,11 @@ private:
     {
         std::unordered_map<index_key, entry, key_hash, key_equal> entries;
         std::vector<entry> nan_entries;
+        bool registered = false;
     };
     std::shared_ptr<storage> data_;
+
+    void register_storage();
 };
 
 } // namespace tx_generated

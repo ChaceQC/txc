@@ -6,6 +6,8 @@ def slice(text: str, start: int, end: int) -> str
 def replace(text: str, old: str, new: str) -> str
 def split(text: str, separator: str) -> array
 def join(parts: array, separator: str) -> str
+def split_vector(text: str, separator: str) -> vector<str>
+def join(parts: vector<str>, separator: str) -> str
 def trim(text: str) -> str
 def lower(text: str) -> str
 def upper(text: str) -> str

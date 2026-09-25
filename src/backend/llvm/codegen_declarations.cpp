@@ -5,6 +5,13 @@ namespace tx
 
 void llvm_code_generator::write_external_declarations()
 {
+    write_vector_declarations();
+    module_ << "declare i32 @txrt_str_concat_literal(ptr, ptr, i64, i1, ptr)\n";
+    module_ << "declare i32 @txrt_string_split_vector_literal(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_string_join_vector_literal(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_string_join_literal(ptr, ptr, i64, ptr)\n";
+    module_ << "declare i32 @txrt_dictionary_get_concat(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_dictionary_contains_concat(ptr, ptr, ptr, ptr)\n";
     module_ << "declare i32 @txrt_math_abs_i64(i64, ptr)\n"
             << "declare i32 @txrt_math_abs_f64(double, ptr)\n"
             << "declare i32 @txrt_math_min_i64(i64, i64, ptr)\n"
@@ -35,6 +42,12 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_string_replace(ptr, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_string_split(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_string_join(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_string_contains_literal(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_string_starts_with_literal(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_string_ends_with_literal(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_string_find_literal(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_string_split_literal(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_string_replace_literal(ptr, ptr, i64, ptr, i64, ptr)\n"
             << "declare i32 @txrt_string_trim(ptr, ptr)\n"
             << "declare i32 @txrt_string_lower(ptr, ptr)\n"
             << "declare i32 @txrt_string_upper(ptr, ptr)\n"

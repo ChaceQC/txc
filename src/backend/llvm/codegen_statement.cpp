@@ -93,6 +93,18 @@ void llvm_code_generator::emit_composite_assignment(
     {
         return;
     }
+    if (emit_array_copy_assignment(item, assignment))
+    {
+        return;
+    }
+    if (emit_direct_array_assignment(item, assignment))
+    {
+        return;
+    }
+    if (emit_direct_dict_assignment(item, assignment))
+    {
+        return;
+    }
     if (!assignment.binding && direct_scalar_field(*assignment.target))
     {
         const auto value = expression_value(*assignment.value);
@@ -241,6 +253,12 @@ void llvm_code_generator::emit_name_assignment(
 void llvm_code_generator::emit_assignment(
     const statement& item, const variable_assignment& assignment)
 {
+    if (const auto* index = std::get_if<index_expression>(&assignment.target->data);
+        index && index->object->type.is_vector())
+    {
+        emit_vector_assignment(item, assignment);
+        return;
+    }
     if (const auto* name = std::get_if<name_reference>(&assignment.target->data))
     {
         emit_name_assignment(item, assignment, *name);

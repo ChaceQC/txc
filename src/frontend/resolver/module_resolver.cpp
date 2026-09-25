@@ -178,6 +178,11 @@ value_type module_resolver::resolve_type(
     const std::string& module_key, const value_type& type,
     source_pos position) const
 {
+    if (type.is_vector())
+    {
+        return value_type::vector_of(resolve_type(
+            module_key, type.parameters.front(), position));
+    }
     if (is_builtin_type(type.name))
     {
         return type;

@@ -128,12 +128,40 @@ private:
     void release(const ir_value& value);
     void release_slot(const variable_slot& variable);
     [[nodiscard]] ir_value expression_value(const expression& item);
+    [[nodiscard]] static std::string vector_suffix(const value_type& type);
+    [[nodiscard]] static bool stable_value_expression(const expression& item);
+    [[nodiscard]] ir_value container_value(const expression& item, bool allow_borrow,
+                                         bool& borrowed);
+    [[nodiscard]] std::string vector_slot(const ir_value& value, const ir_value& index,
+                                          source_pos position);
+    [[nodiscard]] ir_value vector_read(const ir_value& value, const ir_value& index,
+                                       source_pos position);
+    void vector_write(const ir_value& value, const ir_value& index,
+                      const ir_value& element, source_pos position);
+    [[nodiscard]] ir_value vector_length(const ir_value& value, bool capacity);
+    [[nodiscard]] ir_value emit_vector_index(const index_expression& access,
+                                             source_pos position);
+    [[nodiscard]] ir_value emit_vector_call(const expression& item,
+                                            const call_expression& call);
+    void emit_vector_assignment(const statement& item,
+                                const variable_assignment& assignment);
+    [[nodiscard]] ir_value emit_vector_update(const expression& item,
+                                              const update_expression& update);
+    void emit_vector_for_each(const for_each& loop);
+    void write_vector_declarations();
     void emit_array_elements(const array_literal& literal,
                              const std::string& array, source_pos position);
     [[nodiscard]] ir_value expression_value_or_borrow(
         const expression& item, bool& borrowed);
     [[nodiscard]] ir_value emit_binary(const expression& item,
                                        const binary_operation& operation);
+    [[nodiscard]] std::optional<ir_value> emit_literal_string_compare(
+        const binary_operation& operation);
+    [[nodiscard]] std::optional<ir_value> emit_string_concat(
+        const expression& item, const binary_operation& operation);
+    [[nodiscard]] ir_value read_only_string_value(const expression& item, bool& borrowed);
+    [[nodiscard]] std::optional<ir_value> emit_string_key_query(
+        const expression& item, const call_expression& call, const function_decl& target);
     [[nodiscard]] ir_value emit_operator_call(
         const value_type& result_type, source_pos position,
         const operator_binding& binding, const ir_value& receiver,
@@ -171,6 +199,9 @@ private:
     [[nodiscard]] ir_value emit_direct_external_call(
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
+    [[nodiscard]] std::optional<ir_value> emit_literal_string_call(
+        const expression& item, const call_expression& call,
+        const function_decl& target);
     [[nodiscard]] ir_value emit_user_call(
         const expression& item, const call_expression& call,
         const function_decl& target, const std::vector<ir_value>& arguments);
@@ -247,6 +278,12 @@ private:
                               const name_reference& name);
     void emit_composite_assignment(const statement& item,
                                    const variable_assignment& assignment);
+    [[nodiscard]] bool emit_direct_array_assignment(
+        const statement& item, const variable_assignment& assignment);
+    [[nodiscard]] bool emit_array_copy_assignment(
+        const statement& item, const variable_assignment& assignment);
+    [[nodiscard]] bool emit_direct_dict_assignment(
+        const statement& item, const variable_assignment& assignment);
     void emit_return(const statement& item, const return_statement& result);
     void emit_statements(const std::vector<stmt_ptr>& statements);
     void emit_if(const if_statement& branch);

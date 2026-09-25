@@ -165,6 +165,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_binary(
     {
         return short_circuit(operation);
     }
+    if (auto literal = emit_literal_string_compare(operation))
+    {
+        return *literal;
+    }
+    if (auto concatenated = emit_string_concat(item, operation))
+    {
+        return *concatenated;
+    }
     bool left_borrowed = false;
     bool right_borrowed = false;
     const auto left = operation.binding

@@ -1,4 +1,5 @@
 #include "backend/cpp/runtime.hpp"
+#include "backend/cpp/vector_value.hpp"
 
 #include <limits>
 #include <stdexcept>
@@ -47,6 +48,14 @@ tx_int tx_len(const tx_array& values)
 
 tx_int tx_len(const std::any& value)
 {
+    tx_int vector_size = 0;
+    if (visit_vector(value, [&](const auto& vector)
+    {
+        vector_size = static_cast<tx_int>(vector.data().values.size());
+    }))
+    {
+        return vector_size;
+    }
     if (value.type() == typeid(tx_array))
     {
         return tx_len(std::any_cast<const tx_array&>(value));

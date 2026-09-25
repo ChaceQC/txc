@@ -1,0 +1,63 @@
+import "string.txh"
+import "dictionary.txh" as dictionary
+
+struct text_holder
+{
+    words: vector<str>
+    text: str
+}
+
+def replace_words(holder: text_holder) -> int
+{
+    holder.words = vector<str>(1, "new")
+    return 0
+}
+
+def replace_text(holder: text_holder) -> str
+{
+    holder.text = "changed"
+    return "!"
+}
+
+def main() -> int
+{
+    auto holder = text_holder(vector<str>(1, "old"), "first")
+    vector<str> target = vector<str>(1, "")
+    target[0] = holder.words[replace_words(holder)]
+    print(target[0] == "old" && holder.words[0] == "new")
+    target[0] = vector<str>(1, "temporary")[0]
+    target[0] = target[0]
+    print(target[0] == "temporary")
+    print(holder.text + replace_text(holder) == "first!")
+    str text = "你好🙂world"
+    str alias = "" + text
+    text = "reset"
+    print(alias == "你好🙂world")
+    print("a" + "b" == "ab")
+    print("left-" + alias == "left-你好🙂world")
+    print(alias + "-right" == "你好🙂world-right")
+    print(slice(alias, 1, 3) == "好🙂")
+    print(slice(alias, 8, 8) == "" && slice("", 0, 0) == "")
+    print(join(split_vector("a//b/", "/"), "|") == "a||b|")
+    print(join(split("a//b/", "/"), "|") == "a||b|")
+    str delimiter = "/"
+    print(join(split_vector("a//b/", delimiter), delimiter) == "a//b/")
+    str prefix = "你好:"
+    str key = "entry"
+    dict entries = {prefix + key: 42}
+    int found = dictionary.get(entries, prefix + key)
+    print(found == 42 && dictionary.contains(entries, prefix + key))
+    print(is_none(dictionary.get(entries, prefix + "missing")))
+    vector<str> pieces = vector<str>(1, prefix)
+    found = dictionary.get(entries, pieces[0] + key)
+    print(found == 42 && pieces[0] == prefix)
+    str long_prefix = ""
+    for index in 0..=299
+    {
+        long_prefix += "x"
+    }
+    entries[long_prefix + key] = 9
+    found = dictionary.get(entries, long_prefix + key)
+    print(found == 9 && dictionary.contains(entries, long_prefix + key))
+    return 0
+}

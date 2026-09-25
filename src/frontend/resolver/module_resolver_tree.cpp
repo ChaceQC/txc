@@ -63,6 +63,16 @@ void module_resolver::resolve_expression(
     }
     else if (auto* call = std::get_if<call_expression>(&item.data))
     {
+        if (call->vector_type)
+        {
+            call->vector_type = resolve_type(module_key, *call->vector_type,
+                                             item.position);
+            for (auto& argument : call->arguments)
+            {
+                resolve_expression(*argument.value, module_key);
+            }
+            return;
+        }
         if (!call->receiver && call->name == "super")
         {
             if (call->arguments.size() != 1 ||

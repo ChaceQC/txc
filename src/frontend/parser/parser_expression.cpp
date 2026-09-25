@@ -178,6 +178,19 @@ expr_ptr parser::parse_postfix()
 
 expr_ptr parser::parse_atom()
 {
+    if (check(token_kind::identifier) && current().text == "vector" &&
+        tokens_[index_ + 1].kind == token_kind::less)
+    {
+        const auto position = current().position;
+        auto type = parse_type();
+        (void)consume(token_kind::left_paren, "vector 构造需要左括号");
+        call_expression call;
+        call.name = "vector";
+        call.source_name = type.name;
+        call.vector_type = std::move(type);
+        call.arguments = parse_arguments();
+        return std::make_unique<expression>(position, std::move(call));
+    }
     if (match(token_kind::integer))
     {
         return std::make_unique<expression>(

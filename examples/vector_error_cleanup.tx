@@ -1,0 +1,56 @@
+class witness
+{
+    public:
+        values: vector<str>
+
+        def init(values: vector<str>)
+        {
+            self.values = values
+        }
+
+        def deinit()
+        {
+            print(self.values[0])
+        }
+}
+
+def main() -> int
+{
+    int mode = input() as int
+    vector<str> words = vector<str>(1, "still alive")
+    witness owner = witness(words)
+    str root = words[0]
+    vector<int> values = vector<int>()
+    if mode == 0
+    {
+        print(values[0])
+    }
+    if mode == 1
+    {
+        values.pop_back()
+    }
+    if mode == 2
+    {
+        values.reserve(-1)
+    }
+    if mode == 3
+    {
+        array mixed = [1, "wrong"]
+        auto converted = vector<int>(mixed)
+    }
+    if mode == 4
+    {
+        array wrapped = [words]
+        auto wrong = wrapped[0] as vector<int>
+    }
+    if mode == 5
+    {
+        values.push_back(1)
+        for value in values
+        {
+            values.clear()
+            print(values[0])
+        }
+    }
+    return 0
+}

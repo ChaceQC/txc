@@ -21,6 +21,16 @@ bool is_builtin_name(const std::string& name)
 
 void semantic_analyzer::validate_type(const value_type& type, source_pos position) const
 {
+    if (type.is_vector())
+    {
+        const auto& element = type.parameters.front();
+        if (element == value_type::int_type || element == value_type::float_type ||
+            element == value_type::bool_type || element == value_type::str_type)
+        {
+            return;
+        }
+        throw compile_error(position, "vector 当前支持 int、float、bool、str 元素");
+    }
     if (type == value_type::int_type || type == value_type::bool_type ||
         type == value_type::float_type || type == value_type::str_type ||
         type == value_type::array_type || type == value_type::dict_type ||

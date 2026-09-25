@@ -25,6 +25,16 @@ const std::any& as_value(const void* value)
     return *static_cast<const std::any*>(value);
 }
 
+tx_generated::tx_array& array_for_write(void* value)
+{
+    auto* array = std::any_cast<tx_generated::tx_array>(&as_value(value));
+    if (!array)
+    {
+        throw std::runtime_error("索引对象不是数组");
+    }
+    return *array;
+}
+
 } // namespace
 
 using tx_generated::detail::invoke_checked;
@@ -272,12 +282,23 @@ extern "C" int txrt_array_ref_set_bool(void* value, std::int64_t index,
     });
 }
 
+extern "C" int txrt_array_ref_set_str(void* value, std::int64_t index,
+                                        const void* item) noexcept
+{
+    return invoke_checked([&]
+    {
+        auto& array = *static_cast<tx_generated::tx_array*>(value);
+        array.set_text(scalar_index(array, index),
+                       *static_cast<const std::string*>(item));
+    });
+}
+
 extern "C" int txrt_array_set_i64(void* value, std::int64_t index,
                                     std::int64_t item) noexcept
 {
     return invoke_checked([&]
     {
-        auto& array = std::any_cast<tx_generated::tx_array&>(as_value(value));
+        auto& array = array_for_write(value);
         array.set_scalar(scalar_index(array, index), item);
     });
 }
@@ -287,7 +308,7 @@ extern "C" int txrt_array_set_f64(void* value, std::int64_t index,
 {
     return invoke_checked([&]
     {
-        auto& array = std::any_cast<tx_generated::tx_array&>(as_value(value));
+        auto& array = array_for_write(value);
         array.set_scalar(scalar_index(array, index), item);
     });
 }
@@ -297,8 +318,30 @@ extern "C" int txrt_array_set_bool(void* value, std::int64_t index,
 {
     return invoke_checked([&]
     {
-        auto& array = std::any_cast<tx_generated::tx_array&>(as_value(value));
+        auto& array = array_for_write(value);
         array.set_scalar(scalar_index(array, index), item);
+    });
+}
+
+extern "C" int txrt_array_set_str(void* value, std::int64_t index,
+                                    const void* item) noexcept
+{
+    return invoke_checked([&]
+    {
+        auto& array = array_for_write(value);
+        array.set_text(scalar_index(array, index),
+                       *static_cast<const std::string*>(item));
+    });
+}
+
+extern "C" int txrt_array_set_value(void* value, std::int64_t index,
+                                      const void* item) noexcept
+{
+    return invoke_checked([&]
+    {
+        auto& array = array_for_write(value);
+        array.set_value(scalar_index(array, index),
+                        *static_cast<const std::any*>(item));
     });
 }
 

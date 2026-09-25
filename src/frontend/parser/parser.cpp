@@ -90,6 +90,12 @@ value_type parser::parse_type()
     if (match(token_kind::identifier))
     {
         std::string name = previous().text;
+        if (name == "vector" && match(token_kind::less))
+        {
+            auto element = parse_type();
+            (void)consume(token_kind::greater, "vector 元素类型后需要 >");
+            return value_type::vector_of(std::move(element));
+        }
         while (match(token_kind::dot))
         {
             name += "." + consume(token_kind::identifier, "点号后需要类型名").text;
@@ -154,6 +160,23 @@ bool parser::looks_like_declaration() const
         return false;
     }
     std::size_t next = index_ + 1;
+    if (current().text == "vector" && next < tokens_.size() &&
+        tokens_[next].kind == token_kind::less)
+    {
+        int depth = 0;
+        do
+        {
+            if (tokens_[next].kind == token_kind::less)
+            {
+                ++depth;
+            }
+            else if (tokens_[next].kind == token_kind::greater)
+            {
+                --depth;
+            }
+            ++next;
+        } while (next < tokens_.size() && depth > 0);
+    }
     while (next + 1 < tokens_.size() &&
            tokens_[next].kind == token_kind::dot &&
            tokens_[next + 1].kind == token_kind::identifier)

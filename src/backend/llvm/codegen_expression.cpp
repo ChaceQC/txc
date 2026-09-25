@@ -120,6 +120,10 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* access = std::get_if<index_expression>(&item.data))
     {
+        if (access->object->type.is_vector())
+        {
+            return emit_vector_index(*access, item.position);
+        }
         ir_value object{value_type::void_type, {}};
         bool borrowed_object = false;
         bool native_array = false;
@@ -345,6 +349,11 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* operation = std::get_if<update_expression>(&item.data))
     {
+        if (const auto* index = std::get_if<index_expression>(&operation->target->data);
+            index && index->object->type.is_vector())
+        {
+            return emit_vector_update(item, *operation);
+        }
         return emit_update(item, *operation);
     }
     if (const auto* operation = std::get_if<binary_operation>(&item.data))

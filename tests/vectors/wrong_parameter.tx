@@ -1,0 +1,10 @@
+def take(values: vector<int>) -> int
+{
+    return len(values)
+}
+
+def main() -> int
+{
+    vector<str> values = vector<str>()
+    return take(values)
+}

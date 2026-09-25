@@ -1,0 +1,7 @@
+def main() -> int
+{
+    vector<int> values = vector<int>(1, 0)
+    array dynamic = [1]
+    values[0] = dynamic[0]
+    return 0
+}

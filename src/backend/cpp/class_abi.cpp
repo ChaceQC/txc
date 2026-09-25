@@ -4,6 +4,7 @@
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/runtime_abi.hpp"
 #include "backend/cpp/value_format.hpp"
+#include "stdlib/vector.hpp"
 
 #include <any>
 #include <algorithm>
@@ -112,6 +113,22 @@ std::any default_field(const std::string& type)
     if (type == "dict")
     {
         return tx_generated::tx_dict{};
+    }
+    if (type == "vector<int>")
+    {
+        return tx_generated::int_vector{};
+    }
+    if (type == "vector<float>")
+    {
+        return tx_generated::float_vector{};
+    }
+    if (type == "vector<bool>")
+    {
+        return tx_generated::bool_vector{};
+    }
+    if (type == "vector<str>")
+    {
+        return tx_generated::string_vector{};
     }
     return {};
 }

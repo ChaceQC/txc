@@ -39,6 +39,17 @@ extern "C" int txrt_dictionary_get(const void* values, const void* key,
     });
 }
 
+extern "C" int txrt_dictionary_get_str(const void* values, const void* key,
+                                         void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        const auto* found = dictionary_value(values).find_value(
+            std::string_view(*static_cast<const std::string*>(key)));
+        *result = make_handle<std::any>(found ? *found : std::any{});
+    });
+}
+
 extern "C" int txrt_dictionary_contains(const void* values, const void* key,
                                           bool* result) noexcept
 {
@@ -49,6 +60,16 @@ extern "C" int txrt_dictionary_contains(const void* values, const void* key,
     });
 }
 
+extern "C" int txrt_dictionary_contains_str(const void* values,
+    const void* key, bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = dictionary_value(values).find_value(
+            std::string_view(*static_cast<const std::string*>(key))) != nullptr;
+    });
+}
+
 extern "C" int txrt_dictionary_remove(void* values, const void* key,
                                         bool* result) noexcept
 {
@@ -56,6 +77,16 @@ extern "C" int txrt_dictionary_remove(void* values, const void* key,
     {
         *result = tx_generated::tx_fn_dictionary_remove(
             dictionary_value(values), key_value(key));
+    });
+}
+
+extern "C" int txrt_dictionary_remove_str(void* values,
+    const void* key, bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = dictionary_value(values).erase(
+            std::string_view(*static_cast<const std::string*>(key)));
     });
 }
 

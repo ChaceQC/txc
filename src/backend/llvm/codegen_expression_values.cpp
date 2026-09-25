@@ -16,7 +16,8 @@ void llvm_code_generator::emit_array_elements(const array_literal& literal,
         const auto* direct = element.type == value_type::int_type
             ? "txrt_array_ref_set_i64" : element.type == value_type::float_type
             ? "txrt_array_ref_set_f64" : element.type == value_type::bool_type
-            ? "txrt_array_ref_set_bool" : nullptr;
+            ? "txrt_array_ref_set_bool" : element.type == value_type::str_type
+            ? "txrt_array_ref_set_str" : nullptr;
         if (direct)
         {
             const auto status = temporary();
@@ -26,6 +27,7 @@ void llvm_code_generator::emit_array_elements(const array_literal& literal,
                 element.text + ")");
             write_instruction("call void @txrt_require_success(i32 " +
                               status + ")");
+            release(element);
             continue;
         }
         const auto target = temporary();
@@ -81,6 +83,13 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
 {
     if (is_value_handle(target))
     {
+        if (target.is_vector())
+        {
+            const auto check = temporary();
+            write_instruction(check + " = call i32 @txrt_value_require_type(ptr " +
+                              value.text + ", ptr " + global_bytes(target.name) + ")");
+            write_instruction("call void @txrt_require_success(i32 " + check + ")");
+        }
         const auto address = allocate(target, position);
         const auto status = temporary();
         write_instruction(status + " = call i32 @txrt_value_clone(ptr " +

@@ -15,6 +15,7 @@ add_executable(txc
     src/frontend/resolver/module_resolver.cpp
     src/frontend/resolver/module_resolver_tree.cpp
     src/frontend/sema/sema.cpp
+    src/frontend/sema/sema_vector.cpp
     src/frontend/sema/sema_registration.cpp
     src/frontend/sema/sema_expression.cpp
     src/frontend/sema/sema_operator.cpp
@@ -23,6 +24,10 @@ add_executable(txc
     src/frontend/sema/sema_class_registration.cpp
     src/frontend/sema/sema_class_call.cpp
     src/backend/llvm/codegen.cpp
+    src/backend/llvm/codegen_vector.cpp
+    src/backend/llvm/codegen_vector_calls.cpp
+    src/backend/llvm/codegen_vector_statement.cpp
+    src/backend/llvm/codegen_vector_declarations.cpp
     src/backend/llvm/codegen_functions.cpp
     src/backend/llvm/codegen_declarations.cpp
     src/backend/llvm/codegen_control.cpp
@@ -34,6 +39,7 @@ add_executable(txc
     src/backend/llvm/codegen_local_array.cpp
     src/backend/llvm/codegen_dynamic_local_array.cpp
     src/backend/llvm/codegen_local_array_analysis.cpp
+    src/backend/llvm/codegen_array_assignment.cpp
     src/backend/llvm/codegen_expression.cpp
     src/backend/llvm/codegen_cast.cpp
     src/backend/llvm/codegen_dict.cpp
@@ -44,6 +50,10 @@ add_executable(txc
     src/backend/llvm/codegen_fields.cpp
     src/backend/llvm/codegen_print.cpp
     src/backend/llvm/codegen_external_direct.cpp
+    src/backend/llvm/codegen_string_literal_call.cpp
+    src/backend/llvm/codegen_string_concat.cpp
+    src/backend/llvm/codegen_string_borrow.cpp
+    src/backend/llvm/codegen_string_literal_compare.cpp
     src/backend/llvm/codegen_call_binding.cpp
     src/driver/module_loader.cpp
     src/driver/module_loader_class.cpp
@@ -53,6 +63,14 @@ add_executable(txc
 add_library(txstdlib STATIC
     src/backend/cpp/runtime.cpp
     src/backend/cpp/runtime_abi.cpp
+    src/backend/cpp/text_reference.cpp
+    src/backend/cpp/string_concat_abi.cpp
+    src/backend/cpp/dictionary_string_query.cpp
+    src/backend/cpp/vector_i64_abi.cpp
+    src/backend/cpp/vector_f64_abi.cpp
+    src/backend/cpp/vector_bool_abi.cpp
+    src/backend/cpp/vector_str_abi.cpp
+    src/backend/cpp/vector_text_abi.cpp
     src/backend/cpp/cycle_gc.cpp
     src/backend/cpp/text_direct_abi.cpp
     src/backend/cpp/array_direct_abi.cpp

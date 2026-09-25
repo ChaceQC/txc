@@ -1,0 +1,33 @@
+import "string.txh"
+
+struct vector_holder
+{
+    ids: vector<int>
+    names: vector<str>
+}
+
+def append_name(names: vector<str>, name: str)
+{
+    names.push_back(name)
+}
+
+def main() -> int
+{
+    vector<int> ids = vector<int>(2, 0)
+    ids.reserve(8)
+    ids[1] = 7
+    ids.push_back(9)
+    vector<str> names = split_vector("alpha/beta", "/")
+    vector_holder holder = vector_holder(ids, names)
+    append_name(holder.names, "gamma")
+    print(holder.ids[1])
+    print(join(holder.names, "/"))
+    auto copied = deep_copy(holder)
+    copied.names[0] = "changed"
+    print(holder.names[0])
+    for id in ids
+    {
+        print(id)
+    }
+    return 0
+}
