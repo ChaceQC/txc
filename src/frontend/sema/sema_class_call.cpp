@@ -173,6 +173,10 @@ value_type semantic_analyzer::check_method_call(
     expression& item, call_expression& call)
 {
     const auto receiver_type = check_expression(*call.receiver);
+    if (receiver_type.is_typed_container())
+    {
+        return check_container_call(item, call, receiver_type);
+    }
     if (receiver_type.is_vector())
     {
         return check_vector_call(item, call, receiver_type);

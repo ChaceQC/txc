@@ -3,6 +3,7 @@
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/value_format.hpp"
 #include "backend/cpp/vector_value.hpp"
+#include "backend/cpp/container_value.hpp"
 #include "stdlib/stdlib.hpp"
 
 #include <any>
@@ -21,6 +22,17 @@ class copy_context
 public:
     [[nodiscard]] std::any copy(const std::any& value)
     {
+        if (const auto* container = std::any_cast<container_handle>(&value))
+        {
+            const auto found = copies_.find(container->get());
+            if (found != copies_.end())
+            {
+                return found->second;
+            }
+            std::any result = (*container)->copy();
+            copies_.emplace(container->get(), result);
+            return result;
+        }
         std::any vector_result;
         if (visit_vector(value, [&](const auto& vector)
         {

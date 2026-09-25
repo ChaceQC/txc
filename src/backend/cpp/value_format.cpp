@@ -1,5 +1,6 @@
 #include "backend/cpp/value_format.hpp"
 #include "backend/cpp/vector_value.hpp"
+#include "backend/cpp/container_value.hpp"
 
 #include "stdlib/stdlib.hpp"
 
@@ -153,6 +154,10 @@ void append_value(std::string& output, const std::any& value,
         output.push_back('<');
         output += object->display_name;
         output += " object>";
+    }
+    else if (const auto* container = std::any_cast<container_handle>(&value))
+    {
+        output += (*container)->repr();
     }
     else if (!visit_vector(value, [&](const auto& vector)
     {

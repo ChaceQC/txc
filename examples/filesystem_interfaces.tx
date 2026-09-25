@@ -1,0 +1,31 @@
+import "file.txh" as file
+import "fs.txh" as fs
+import "path.txh" as path
+import "time.txh" as time
+
+def main() -> int
+{
+    # 只操作本示例创建的目录；已有同名目录时退出，避免影响其他文件。
+    str root = path.join("tx_build", "文件接口_" + (time.unix_millis() as str))
+    if fs.exists(root)
+    {
+        return 1
+    }
+    fs.create_directories(path.join(root, "子目录"))
+    str source = path.join(root, "原文.txt")
+    str copied = path.join(root, "副本.txt")
+    str moved = path.join(root, "子目录/移动.txt")
+    file.write_text(source, "你好\n", "utf-8")
+    fs.copy_file(source, copied, false)
+    fs.rename(copied, moved)
+    print(fs.file_size(moved))
+    print(fs.modified_millis(moved))
+    print(fs.list_directory_vector(root))
+    print(fs.walk_directory(root))
+    print(path.normalize("a/./b/../c.txt"))
+    print(path.relative(path.absolute(moved), path.absolute(root)))
+    print(path.replace_extension(moved, "log"))
+    print(fs.remove(source))
+    print(fs.remove_all(root))
+    return 0
+}

@@ -1,0 +1,29 @@
+import "array.txh" as arrays
+import "dictionary.txh" as dictionary
+
+def main() -> int
+{
+    array values = [1, "二"]
+    array shared = values
+    arrays.push_back(values, true)
+    arrays.insert(values, 1, none)
+    arrays.erase(values, 0)
+    arrays.pop_back(values)
+    print(shared)
+
+    dict entries = {none: "空键", "nested": values}
+    print(dictionary.get(entries, none))
+    array pairs = dictionary.items(entries)
+    dictionary.clear(entries)
+    print(pairs)
+    arrays.clear(values)
+    print(pairs)
+
+    array numbers = [1, 2]
+    for value in numbers
+    {
+        arrays.push_back(numbers, value)
+    }
+    print(numbers)
+    return 0
+}

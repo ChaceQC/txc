@@ -178,10 +178,14 @@ value_type module_resolver::resolve_type(
     const std::string& module_key, const value_type& type,
     source_pos position) const
 {
-    if (type.is_vector())
+    if (type.is_vector() || type.is_typed_container())
     {
-        return value_type::vector_of(resolve_type(
-            module_key, type.parameters.front(), position));
+        std::vector<value_type> arguments;
+        for (const auto& argument : type.parameters)
+        {
+            arguments.push_back(resolve_type(module_key, argument, position));
+        }
+        return value_type::container_of(type.container_name(), std::move(arguments));
     }
     if (is_builtin_type(type.name))
     {

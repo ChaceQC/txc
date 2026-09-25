@@ -3,3 +3,11 @@ def is_file(path: str) -> bool
 def is_directory(path: str) -> bool
 def create_directories(path: str) -> void
 def list_directory(path: str) -> array
+def list_directory_vector(path: str) -> vector<str>
+def walk_directory(path: str) -> vector<str>
+def copy_file(source: str, destination: str, overwrite: bool) -> void
+def rename(source: str, destination: str) -> void
+def remove(path: str) -> bool
+def remove_all(path: str) -> int
+def file_size(path: str) -> int
+def modified_millis(path: str) -> int

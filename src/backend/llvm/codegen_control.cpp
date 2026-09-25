@@ -249,7 +249,7 @@ void llvm_code_generator::emit_for(const for_loop& loop)
 
 void llvm_code_generator::emit_for_each(const for_each& loop)
 {
-    if (loop.values->type.is_vector())
+    if (loop.values->type.is_vector() || loop.values->type.is_typed_container())
     {
         emit_vector_for_each(loop);
         return;

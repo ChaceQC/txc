@@ -1,0 +1,50 @@
+#pragma once
+
+#include "backend/cpp/runtime_abi_internal.hpp"
+#include "stdlib/typed_container.hpp"
+#include "stdlib/vector.hpp"
+
+namespace tx_generated::detail
+{
+
+template<class storage_type, class... arguments>
+int container_new(void** result, arguments... values) noexcept
+{
+    return invoke_checked([&]
+    {
+        container_handle container = std::make_shared<storage_type>(values...);
+        *result = make_handle<std::any>(std::move(container));
+        note_gc_allocation();
+    });
+}
+
+template<class storage_type, class operation>
+int container_apply(const void* value, operation&& apply) noexcept
+{
+    return invoke_checked([&]
+    {
+        // 调用符号已由编译器按完整类型选定；any 转换在进入此路径之前检查。
+        const auto& container = std::any_cast<const container_handle&>(
+            *static_cast<const std::any*>(value));
+        apply(static_cast<storage_type&>(*container));
+    });
+}
+
+template<class value_type, class output_type>
+void container_result(const value_type& value, output_type* result)
+{
+    *result = static_cast<output_type>(value);
+}
+
+inline void container_result(const text_reference& value, void** result)
+{
+    *result = retain_text_handle(value.handle());
+}
+
+template<class element_type>
+void container_result(tx_vector<element_type> value, void** result)
+{
+    *result = make_handle<std::any>(std::move(value));
+}
+
+} // namespace tx_generated::detail

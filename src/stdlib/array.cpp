@@ -33,4 +33,41 @@ tx_array tx_fn_reverse(tx_array values)
     return result;
 }
 
+void tx_fn_array_push_back(tx_array values, const std::any& value)
+{
+    values.push_back(value);
+}
+
+void tx_fn_array_pop_back(tx_array values)
+{
+    if (values.size() == 0)
+    {
+        throw std::out_of_range("不能删除空数组的尾元素");
+    }
+    values.pop_back();
+}
+
+void tx_fn_array_insert(tx_array values, tx_int index, const std::any& value)
+{
+    if (index < 0 || static_cast<std::uint64_t>(index) > values.size())
+    {
+        throw std::out_of_range("数组插入位置越界");
+    }
+    values.insert(static_cast<std::size_t>(index), value);
+}
+
+void tx_fn_array_erase(tx_array values, tx_int index)
+{
+    if (index < 0 || static_cast<std::uint64_t>(index) >= values.size())
+    {
+        throw std::out_of_range("数组删除位置越界");
+    }
+    values.erase(static_cast<std::size_t>(index));
+}
+
+void tx_fn_array_clear(tx_array values)
+{
+    values.clear();
+}
+
 } // namespace tx_generated

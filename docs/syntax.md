@@ -2,6 +2,8 @@
 
 新增类型化容器 `vector<T>` 的规则与本轮支持范围见 [类型化 vector](typed_vectors.md)，示例见 [typed_vectors.tx](../examples/typed_vectors.tx)。
 
+`map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 的类型参数、接口、共享和快照遍历规则见[类型化容器](typed_containers.md)。这些类型在变量、函数及 `.txh` 签名、struct/class 字段中保留完整静态类型。
+
 本文描述当前编译器已经实现的语言范围。源码使用 UTF-8；标识符目前只接受 ASCII 字母、数字和下划线，首字符不能是数字，大小写敏感。支持 # 和 // 单行注释。类、接口、抽象方法、多继承及运行时转换见 [class 说明](classes.md)。
 
 顶层可写 import "路径.tx" 导入其他模块；路径、重复导入和命名规则见 [模块说明](modules.md)。
@@ -24,6 +26,10 @@ def add(left: int, right: int) -> int
 ```
 
 返回值类型可写成 `-> int` 等具体类型；无返回值函数既可写 `-> void`，也可省略箭头和返回类型。非 `void` 函数必须在所有执行路径返回对应类型的值；`void` 函数可以自然结束，也可以使用不带表达式的 `return` 提前结束。带值的 `return` 不能用于 `void` 函数，不带值的 `return` 不能用于非 `void` 函数。程序入口仍必须是无参数、返回 int 的 `def main() -> int`。
+
+程序参数通过导入 `system.txh` 后调用 `args() -> vector<str>` 获取，不包含可执行文件名；运行时在调用 main 前完成 UTF-8 参数初始化，详见[系统与环境变量](system_env.md)。
+
+`none` 可用作形参、返回值和字段的类型标注，仅表示 none 值，例如 `def accept(value: none) -> none`。它与不返回值的 `void` 不同；`int` 等其他静态类型不能匹配 none 形参。字典标准库使用该类型补齐 none 键重载。
 
 ```tx
 def greet(name: str) {

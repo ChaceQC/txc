@@ -1,0 +1,140 @@
+import "holder.txh" as module
+
+class box
+{
+    public:
+        names: map<str, str>
+        flags: set<bool>
+        priorities: heap<float>
+        jobs: queue<str>
+}
+
+def check_maps() -> bool
+{
+    auto state = module.make()
+    auto order = vector<int>()
+    state.first[module.replace(state, order)] = module.grow(state.second, order)
+    if state.first[7] != "new" || state.second[7] != "changed"
+    {
+        return false
+    }
+    if order.size() != 2 || order[0] != 1 || order[1] != 2
+    {
+        return false
+    }
+    state.first = state.second
+    auto copied = deep_copy(state)
+    copied.first[7] += "!"
+    if copied.second[7] != "changed!" || state.first[7] != "changed"
+    {
+        return false
+    }
+    auto keys = copied.first.keys()
+    auto values = copied.first.values()
+    for index in 0..=keys.size() - 1
+    {
+        if copied.first[keys[index]] != values[index]
+        {
+            return false
+        }
+    }
+    auto count = 0
+    for key in copied.first
+    {
+        copied.second.remove(key)
+        count++
+    }
+    auto selected = map<float, bool>()
+    selected[-0.0] = true
+    auto weights = map<bool, float>()
+    weights[true] = 2.5
+    weights[true]++
+    weights[true] -= 0.5
+    auto fallback = state.first.get(7, module.grow(state.first, order))
+    return count == 129 && copied.first.empty() && state.first.size() == 129 && selected[0.0] && selected.size() == 1 && weights[true] == 3.0 && fallback == "changed" && order.size() == 3 && !selected.remove(1.0) && selected.remove(0.0)
+}
+
+def check_fields_and_copy() -> bool
+{
+    auto value = box()
+    if !value.names.empty() || !value.flags.empty() || !value.priorities.empty() || !value.jobs.empty()
+    {
+        return false
+    }
+    value.names["中文"] = "内容"
+    value.names["中文"] += "!"
+    value.flags.insert(true)
+    value.flags.insert(false)
+    value.priorities.push(2.5)
+    value.priorities.push(-1.0)
+    value.jobs.push(value.names["中文"])
+    auto alias = module.pass_queue(value.jobs)
+    auto root = alias.front()
+    auto copied = deep_copy(value)
+    auto flags = 0
+    for flag in value.flags
+    {
+        value.flags.clear()
+        flags++
+    }
+    value.names.clear()
+    value.priorities.clear()
+    alias.clear()
+    array boxed = [copied.names, copied.flags, copied.priorities, copied.jobs]
+    dict wrapped = {"jobs": copied.jobs}
+    auto restored = boxed[0] as map<str, str>
+    auto restored_flags = boxed[1] as set<bool>
+    auto restored_heap = boxed[2] as heap<float>
+    auto restored_jobs = wrapped["jobs"] as queue<str>
+    print(restored, restored_flags, restored_heap, restored_jobs)
+    return root == "内容!" && flags == 2 && value.jobs.empty() && restored["中文"] == "内容!" && restored_flags.size() == 2 && restored_heap.top() == -1.0 && restored_jobs.front() == root && len(boxed[3]) == 1
+}
+
+def check_order() -> bool
+{
+    auto pending = heap<str>()
+    pending.push("b")
+    pending.push("中文")
+    pending.push("a")
+    auto highest = heap<bool>(true)
+    highest.push(false)
+    highest.push(true)
+    auto queue = queue<int>()
+    for value in pending
+    {
+        if value != pending.top()
+        {
+            return false
+        }
+        pending.pop()
+        queue.push(queue.size())
+    }
+    auto snapshot = queue.to_vector()
+    auto queue_copy = deep_copy(queue)
+    auto seen = set<float>()
+    auto first = seen.insert(-0.0)
+    auto duplicate = seen.insert(0.0)
+    auto seen_copy = deep_copy(seen)
+    auto visited = 0
+    for value in queue
+    {
+        if value != visited || value != queue.front()
+        {
+            return false
+        }
+        queue.pop()
+        visited++
+    }
+    auto heap_copy = deep_copy(highest)
+    highest.pop()
+    seen.clear()
+    return visited == 3 && queue.empty() && snapshot[2] == 2 && queue_copy.back() == 2 && !highest.top() && heap_copy.top() && first && !duplicate && seen_copy.contains(0.0) && seen_copy.to_vector().size() == 1
+}
+
+def main() -> int
+{
+    print("maps", check_maps())
+    print("fields", check_fields_and_copy())
+    print("order", check_order())
+    return 0
+}

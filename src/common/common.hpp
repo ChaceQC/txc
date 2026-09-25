@@ -30,7 +30,43 @@ struct value_type
 
     [[nodiscard]] bool is_vector() const noexcept
     {
-        return parameters.size() == 1;
+        return name.starts_with("vector<") && parameters.size() == 1;
+    }
+
+    [[nodiscard]] std::string container_name() const
+    {
+        return name.substr(0, name.find('<'));
+    }
+
+    [[nodiscard]] bool is_map() const noexcept
+    {
+        return name.starts_with("map<") && parameters.size() == 2;
+    }
+
+    [[nodiscard]] bool is_typed_container() const noexcept
+    {
+        return is_map() || (parameters.size() == 1 &&
+            (name.starts_with("set<") || name.starts_with("heap<") ||
+             name.starts_with("queue<")));
+    }
+
+    [[nodiscard]] static bool is_container_name(std::string_view name)
+    {
+        return name == "vector" || name == "map" || name == "set" ||
+               name == "heap" || name == "queue";
+    }
+
+    [[nodiscard]] static value_type container_of(
+        std::string name, std::vector<value_type> arguments)
+    {
+        name += "<";
+        for (std::size_t index = 0; index < arguments.size(); ++index)
+        {
+            name += (index == 0 ? "" : ",") + arguments[index].name;
+        }
+        value_type result(name + ">");
+        result.parameters = std::move(arguments);
+        return result;
     }
 
     [[nodiscard]] static value_type vector_of(value_type element)

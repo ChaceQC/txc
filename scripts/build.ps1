@@ -117,10 +117,13 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'io.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'math.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'algorithm.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'array.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'dictionary.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'fs.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'path.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'system.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'env.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'time.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'random.txh')))
 {

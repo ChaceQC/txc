@@ -1,0 +1,16 @@
+import "system.txh" as system
+import "env.txh" as env
+
+def main() -> int
+{
+    vector<str> arguments = system.args()
+    print("程序参数：", arguments)
+    print("工作目录：", system.current_directory())
+    print("可执行文件：", system.executable_path())
+    print("临时目录：", system.temp_directory())
+    print("用户主目录：", system.home_directory())
+
+    # 只读取示例专用变量，不枚举或输出其他环境变量。
+    print("示例标签：", env.get("TX_SYSTEM_ENV_EXAMPLE_LABEL", "未设置"))
+    return 0
+}

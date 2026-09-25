@@ -63,9 +63,9 @@ void module_resolver::resolve_expression(
     }
     else if (auto* call = std::get_if<call_expression>(&item.data))
     {
-        if (call->vector_type)
+        if (call->container_type)
         {
-            call->vector_type = resolve_type(module_key, *call->vector_type,
+            call->container_type = resolve_type(module_key, *call->container_type,
                                              item.position);
             for (auto& argument : call->arguments)
             {

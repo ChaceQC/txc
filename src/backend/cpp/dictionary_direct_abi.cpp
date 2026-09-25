@@ -117,3 +117,12 @@ extern "C" int txrt_dictionary_clear(void* values) noexcept
         tx_generated::tx_fn_dictionary_clear(dictionary_value(values));
     });
 }
+
+extern "C" int txrt_dictionary_items(const void* values, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>(tx_generated::tx_fn_dictionary_items(
+            dictionary_value(values)));
+    });
+}

@@ -1,0 +1,53 @@
+import "algorithm.txh" as algorithm
+
+def main() -> int
+{
+    auto values = vector<int>([4, 1, 4, 2])
+    auto shared = values
+    auto ordered = algorithm.sorted(values)
+    print(values, ordered)
+    algorithm.sort(values)
+    print(shared, algorithm.find(values, 4), algorithm.count(values, 4))
+    print(algorithm.lower_bound(values, 4), algorithm.upper_bound(values, 4))
+    print(algorithm.sum(values), algorithm.min_element(values), algorithm.max_element(values))
+    algorithm.reverse(values)
+    print(shared, ordered)
+
+    auto decimals = vector<float>([2.5, -1.0, 2.5, 0.0])
+    algorithm.sort(decimals)
+    print(decimals, algorithm.sum(decimals))
+    print(algorithm.min_element(decimals), algorithm.max_element(decimals))
+
+    auto words = vector<str>(["梨", "apple", "香蕉", "apple"])
+    auto sorted_words = algorithm.sorted(words)
+    print(words, sorted_words)
+    print(algorithm.find(sorted_words, "apple"), algorithm.count(sorted_words, "apple"))
+    print(algorithm.lower_bound(sorted_words, "apple"), algorithm.upper_bound(sorted_words, "apple"))
+
+    auto flags = vector<bool>([true, false, false])
+    algorithm.reverse(flags)
+    print(flags, algorithm.find(flags, true), algorithm.count(flags, false))
+
+    map<str, int> scores = map<str, int>()
+    scores["bob"] = 80
+    scores["alice"] = 95
+    print(algorithm.sorted(scores.keys()), algorithm.sum(scores.values()))
+    auto unique = set<int>()
+    unique.insert(5)
+    unique.insert(2)
+    print(algorithm.sorted(unique.to_vector()))
+
+    auto jobs = queue<int>()
+    jobs.push(3)
+    jobs.push(1)
+    auto job_snapshot = jobs.to_vector()
+    algorithm.sort(job_snapshot)
+    print(job_snapshot, jobs.front())
+    auto priorities = heap<int>()
+    priorities.push(7)
+    priorities.push(2)
+    auto priority_snapshot = priorities.to_vector()
+    algorithm.reverse(priority_snapshot)
+    print(priority_snapshot, priorities.top())
+    return 0
+}

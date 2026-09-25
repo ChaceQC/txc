@@ -1,0 +1,8 @@
+import "algorithm.txh" as algorithm
+
+def main() -> int
+{
+    auto numbers = vector<int>([1, 2])
+    print(algorithm.find(numbers, 1.0))
+    return 0
+}

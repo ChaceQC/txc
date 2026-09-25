@@ -29,5 +29,10 @@ def main() -> int
     {
         print(id)
     }
+    print(ids.empty())
+    ids.clear()
+    // clear 影响共享向量，deep_copy 得到的独立向量仍保留元素。
+    print(ids.empty(), holder.ids.empty(), copied.ids.empty())
+    print(vector<float>().empty(), vector<bool>().empty(), vector<str>().empty())
     return 0
 }

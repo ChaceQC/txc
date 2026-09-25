@@ -1,0 +1,75 @@
+class vector_box
+{
+    public:
+        values: vector<int>
+}
+
+struct vector_record
+{
+    values: vector<bool>
+}
+
+def make_empty(calls: vector<int>) -> vector<str>
+{
+    calls[0]++
+    return vector<str>()
+}
+
+def is_empty(values: vector<float>) -> bool
+{
+    return values.empty()
+}
+
+def main() -> int
+{
+    print("constructors", vector<int>().empty() && vector<float>().empty() && vector<bool>().empty() && vector<str>().empty())
+
+    auto integers = vector<int>(1, 0)
+    auto decimals = vector<float>(1, 0.0)
+    auto flags = vector<bool>(1, false)
+    auto texts = vector<str>(1, "")
+    // 元素的零值、false 和空字符串都不代表容器为空。
+    print("occupied", !integers.empty() && !is_empty(decimals) && !flags.empty() && !texts.empty())
+
+    integers.reserve(16)
+    int capacity = integers.capacity()
+    auto shared = integers
+    auto copied = deep_copy(integers)
+    texts[0] = "保留字符串"
+    str kept = texts[0]
+    auto copied_texts = deep_copy(texts)
+    integers.clear()
+    decimals.clear()
+    flags.clear()
+    texts.clear()
+    print("cleared", integers.empty() && is_empty(decimals) && flags.empty() && texts.empty())
+    print("ownership", shared.empty() && !copied.empty() && copied[0] == 0 && integers.capacity() == capacity && kept == "保留字符串" && copied_texts[0] == kept)
+
+    integers.clear()
+    integers.push_back(7)
+    bool inserted = !integers.empty()
+    integers.erase(0)
+    decimals.push_back(1.5)
+    flags.push_back(true)
+    texts.push_back(kept)
+    bool reused = !is_empty(decimals) && !flags.empty() && !texts.empty()
+    decimals.pop_back()
+    flags.pop_back()
+    texts.pop_back()
+    print("reuse", inserted && reused && integers.empty() && is_empty(decimals) && flags.empty() && texts.empty())
+
+    auto box = vector_box()
+    bool default_empty = box.values.empty()
+    box.values.push_back(3)
+    bool field_occupied = !box.values.empty()
+    box.values.clear()
+    auto record = vector_record(vector<bool>(1, false))
+    bool record_occupied = !record.values.empty()
+    record.values.clear()
+    print("fields", default_empty && field_occupied && box.values.empty() && record_occupied && record.values.empty())
+
+    auto calls = vector<int>(1, 0)
+    bool result = make_empty(calls).empty()
+    print("receiver", result && calls[0] == 1)
+    return 0
+}

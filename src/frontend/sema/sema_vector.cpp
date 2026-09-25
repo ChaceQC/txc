@@ -18,7 +18,7 @@ value_type semantic_analyzer::check_vector_call(
     const auto& element = type.parameters.front();
     std::vector<value_type> expected;
     value_type result = value_type::void_type;
-    if (call.vector_type)
+    if (call.container_type)
     {
         result = type;
         if (types.size() == 1)
@@ -33,6 +33,10 @@ value_type semantic_analyzer::check_vector_call(
     else if (call.name == "size" || call.name == "capacity")
     {
         result = value_type::int_type;
+    }
+    else if (call.name == "empty")
+    {
+        result = value_type::bool_type;
     }
     else if (call.name == "to_array")
     {

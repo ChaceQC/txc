@@ -2,3 +2,8 @@ def join(left: str, right: str) -> str
 def parent(path: str) -> str
 def file_name(path: str) -> str
 def extension(path: str) -> str
+def normalize(path: str) -> str
+def is_absolute(path: str) -> bool
+def absolute(path: str) -> str
+def relative(path: str, base: str) -> str
+def replace_extension(path: str, extension: str) -> str

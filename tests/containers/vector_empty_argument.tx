@@ -1,0 +1,6 @@
+def main() -> int
+{
+    auto values = vector<int>()
+    values.empty(0)
+    return 0
+}

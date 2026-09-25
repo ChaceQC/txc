@@ -1,0 +1,6 @@
+def args() -> vector<str>
+def current_directory() -> str
+def set_current_directory(path: str) -> void
+def executable_path() -> str
+def temp_directory() -> str
+def home_directory() -> str

@@ -265,8 +265,9 @@ void semantic_analyzer::check_assignment(statement& item,
     else if (target_type != value_type::any_type)
     {
         const auto* index = std::get_if<index_expression>(&assignment.target->data);
-        const bool vector_element = index && index->object->type.is_vector();
-        if (!vector_element && insert_implicit_scalar_cast(assignment.value, value, target_type))
+        const bool typed_element = index &&
+            (index->object->type.is_vector() || index->object->type.is_map());
+        if (!typed_element && insert_implicit_scalar_cast(assignment.value, value, target_type))
         {
             value = target_type;
         }
@@ -318,12 +319,14 @@ void semantic_analyzer::check_for_each(statement& item, for_each& loop)
 {
     const auto values_type = check_expression(*loop.values);
     if (values_type != value_type::array_type &&
-        values_type != value_type::dict_type && !values_type.is_vector())
+        values_type != value_type::dict_type && !values_type.is_vector() &&
+        !values_type.is_typed_container())
     {
-        throw compile_error(loop.values->position, "遍历对象需要数组或字典");
+        throw compile_error(loop.values->position, "遍历对象需要数组、字典或类型化容器");
     }
     push_scope();
-    declare_symbol(loop.name, {values_type.is_vector() ? values_type.parameters.front()
+    declare_symbol(loop.name, {values_type.is_vector() || values_type.is_typed_container()
+                                                     ? values_type.parameters.front()
                                                      : value_type::any_type, true}, item.position);
     check_statements(loop.body);
     pop_scope();

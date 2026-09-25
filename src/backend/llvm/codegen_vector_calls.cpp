@@ -8,7 +8,7 @@ namespace tx
 llvm_code_generator::ir_value llvm_code_generator::emit_vector_call(
     const expression& item, const call_expression& call)
 {
-    const auto& type = call.vector_type ? *call.vector_type : call.receiver->type;
+    const auto& type = call.container_type ? *call.container_type : call.receiver->type;
     bool borrowed = false;
     ir_value vector{value_type::void_type, {}};
     if (call.receiver)
@@ -25,17 +25,24 @@ llvm_code_generator::ir_value llvm_code_generator::emit_vector_call(
     {
         arguments.push_back(expression_value(*argument.value));
     }
-    if (call.receiver && (call.name == "size" || call.name == "capacity"))
+    if (call.receiver && (call.name == "size" || call.name == "capacity" ||
+                          call.name == "empty"))
     {
         const auto result = vector_length(vector, call.name == "capacity");
         if (!borrowed)
         {
             release(vector);
         }
+        if (call.name == "empty")
+        {
+            const auto empty = temporary();
+            write_instruction(empty + " = icmp eq i64 " + result.text + ", 0");
+            return {value_type::bool_type, empty};
+        }
         return result;
     }
     std::string operation = call.name;
-    if (call.vector_type)
+    if (call.container_type)
     {
         operation = arguments.size() == 1 ? "from_array" : "new";
         if (arguments.empty())

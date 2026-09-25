@@ -1,0 +1,43 @@
+import "algorithm.txh" as algorithm
+
+class witness
+{
+    public:
+        words: vector<str>
+
+        def init()
+        {
+            self.words.push_back("algorithm cleanup")
+        }
+
+        def deinit()
+        {
+            print(self.words[0])
+        }
+}
+
+def main() -> int
+{
+    int mode = input() as int
+    auto owner = witness()
+    if mode == 0
+    {
+        print(algorithm.min_element(vector<int>()))
+    }
+    if mode == 1
+    {
+        # 即使最后一个元素会抵消，前一步的整数溢出也必须报错。
+        print(algorithm.sum(vector<int>([9223372036854775807, 1, -1])))
+    }
+    if mode == 2
+    {
+        print(algorithm.sum(vector<float>([1e308, 1e308])))
+    }
+    if mode == 3
+    {
+        auto infinite = 1e308 * 1e308
+        auto nan = infinite - infinite
+        print(algorithm.max_element(vector<float>([1.0, nan])))
+    }
+    return 0
+}

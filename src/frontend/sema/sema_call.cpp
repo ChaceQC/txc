@@ -21,7 +21,7 @@ bool is_printable(const value_type& type)
     return is_numeric(type) || type == value_type::bool_type ||
            type == value_type::str_type || type == value_type::none_type ||
            type == value_type::array_type || type == value_type::dict_type ||
-           type == value_type::any_type || type.is_vector();
+           type == value_type::any_type || type.is_vector() || type.is_typed_container();
 }
 
 } // namespace
@@ -30,9 +30,14 @@ bool semantic_analyzer::matches_signature(
     const function_signature& signature, const call_expression& call,
     const std::vector<value_type>& types, bool allow_upcast) const
 {
-    const auto accepts = [this, allow_upcast](
+    const auto accepts = [this, allow_upcast, &signature](
         const value_type& actual, const value_type& expected)
     {
+        if (signature.accepts_array_value && expected == value_type::any_type)
+        {
+            return actual != value_type::void_type &&
+                   actual != value_type::unknown_type;
+        }
         return allow_upcast ? is_assignable(actual, expected)
                             : actual == expected;
     };
@@ -213,9 +218,10 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
         if (actual != value_type::array_type &&
             actual != value_type::dict_type &&
             actual != value_type::str_type &&
-            actual != value_type::any_type && !actual.is_vector())
+            actual != value_type::any_type && !actual.is_vector() &&
+            !actual.is_typed_container())
         {
-            throw compile_error(argument.position, "len 需要数组、字典或字符串");
+            throw compile_error(argument.position, "len 需要容器或字符串");
         }
         return value_type::int_type;
     }
@@ -273,9 +279,11 @@ value_type semantic_analyzer::check_constructor(expression& item,
 
 value_type semantic_analyzer::check_call(expression& item, call_expression& call)
 {
-    if (call.vector_type)
+    if (call.container_type)
     {
-        return check_vector_call(item, call, *call.vector_type);
+        return call.container_type->is_vector()
+            ? check_vector_call(item, call, *call.container_type)
+            : check_container_call(item, call, *call.container_type);
     }
     if (call.is_super_view)
     {

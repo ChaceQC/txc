@@ -1,0 +1,5 @@
+def main() -> int
+{
+    auto values = map<str, queue<int>>()
+    return 0
+}

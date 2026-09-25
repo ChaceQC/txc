@@ -1,0 +1,65 @@
+import "system.txh" as system
+import "env.txh" as env
+import "path.txh" as path
+import "file.txh" as file
+
+def check_values() -> void
+{
+    vector<str> original = system.args()
+    vector<str> independent = system.args()
+    independent.clear()
+    independent.push_back("局部修改")
+    print(original)
+    print(system.args())
+
+    str directory = system.current_directory()
+    str executable = system.executable_path()
+    print(directory)
+    print(executable)
+    print(system.temp_directory())
+    print(system.home_directory())
+    system.set_current_directory("子目录")
+    print(system.current_directory() == path.join(directory, "子目录"),
+          path.absolute("位置.txt") == path.join(directory, "子目录/位置.txt"),
+          system.executable_path() == executable)
+    file.write_text("位置.txt", "子目录", "utf-8")
+    system.set_current_directory(directory)
+    print(system.current_directory() == directory)
+
+    str name = "TX_SYSTEM_ENV_TEST_中文"
+    print(env.contains(name), env.contains("tx_system_env_test_中文"))
+    print(env.get(name))
+    env.set(value="", name=name)
+    print(env.contains(name), env.get(name) == "", env.get(name, "默认") == "")
+    env.set(*[name, "更新=值😀"])
+    print(env.get(name=name))
+    print(env.remove(name), env.remove(name), env.contains(name))
+    print(env.get(default_value="未设置", name=name))
+}
+
+def main() -> int
+{
+    int mode = input() as int
+    if mode == 0
+    {
+        check_values()
+    }
+    else if mode == 1
+    {
+        env.remove("TX_SYSTEM_ENV_TEST_中文")
+        print(env.get("TX_SYSTEM_ENV_TEST_中文"))
+    }
+    else if mode == 2
+    {
+        print(env.get("bad=name", "不得回退"))
+    }
+    else if mode == 3
+    {
+        env.set("TX_SYSTEM_ENV_TEST_中文", input())
+    }
+    else if mode == 4
+    {
+        system.set_current_directory("不存在的工作目录")
+    }
+    return 0
+}

@@ -1,5 +1,6 @@
 #include "backend/cpp/runtime.hpp"
 #include "backend/cpp/vector_value.hpp"
+#include "backend/cpp/container_value.hpp"
 
 #include <limits>
 #include <stdexcept>
@@ -48,6 +49,10 @@ tx_int tx_len(const tx_array& values)
 
 tx_int tx_len(const std::any& value)
 {
+    if (const auto* container = std::any_cast<container_handle>(&value))
+    {
+        return static_cast<tx_int>((*container)->size());
+    }
     tx_int vector_size = 0;
     if (visit_vector(value, [&](const auto& vector)
     {

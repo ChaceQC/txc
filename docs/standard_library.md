@@ -1,5 +1,15 @@
 # 标准库
 
+本文说明当前已实现的标准库接口。后续能力缺口、建议优先级和实现前提见[标准库扩展规划](standard_library_plan.md)。
+
+内置 `map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
+
+## 容器算法
+
+导入 [algorithm.txh](../tx/stdlib/algorithm.txh)，提供 `sort`、`sorted`、`find`、`count`、`lower_bound`、`upper_bound`、`reverse`，以及数值向量的 `sum`、`min_element`、`max_element`。排序与二分覆盖 `vector<int/float/str>`；查找、计数和原地反转还支持 `vector<bool>`。
+
+`sort`、`reverse` 修改共享向量，`sorted` 返回独立向量。`find` 未命中返回 -1，二分边界未命中返回向量长度；最值函数返回元素值，空向量时报错。求和检查整数溢出与非有限浮点数。字符串按 UTF-8 字节序排序；浮点排序将 NaN 放在末尾。二分输入必须已经升序排列。完整签名、空容器规则、浮点边界和复杂度见[容器算法说明](algorithm.md)，与已有容器组合使用见[示例](../examples/algorithm.tx)。
+
 ## 数学运算
 
 导入 [tx/stdlib/math.txh](../tx/stdlib/math.txh)。int 版本和 float 版本的同名函数按实参类型精确匹配，不进行隐式数值转换。
@@ -25,14 +35,23 @@ abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行�
 | concat(left: array, right: array) -> array | 按顺序拼接两个数组 |
 | slice(values: array, start: int, end: int) -> array | 取半开区间 [start, end) |
 | reverse(values: array) -> array | 反转元素顺序 |
+| push_back(values: array, value: any) -> void | 原地追加一个值，摊还 O(1) |
+| pop_back(values: array) -> void | 原地删除尾元素；空数组报运行错误 |
+| insert(values: array, index: int, value: any) -> void | 在 0 到 len(values) 之间插入，O(n) |
+| erase(values: array, index: int) -> void | 删除有效下标处的元素，O(n) |
+| clear(values: array) -> void | 清空共享数组 |
 
-三者均返回新数组，不修改参数；其中的复合元素仍共享原对象。slice 要求 0 <= start <= end <= len(values)，否则报运行错误。数组默认按引用共享；需要递归复制时使用内置 `deep_copy(values)`。追加单个元素可写为 `values = concat(values, [value])`。
+`concat`、`slice`、`reverse` 返回新数组，不修改参数；其中的复合元素仍共享原对象。slice 要求 0 <= start <= end <= len(values)，否则报运行错误。数组默认按引用共享；需要递归复制时使用内置 `deep_copy(values)`。
+
+新增的原地操作会通过所有共享引用生效。`push_back` 和 `insert` 的 `value` 接受任意非 void 值，包括基础值、none、数组、字典、结构体、类和 vector；编译期确定调用目标，在进入异构容器时保存该值。其他普通函数的参数匹配规则不变。实参从左到右各求值一次，插入位置按全部实参求值后的容器长度检查；复合元素保留共享关系。
+
+`for` 仍记录进入循环时的长度，追加的元素不进入本次遍历；每次迭代按当前下标读取共享数组，插入和删除可能改变后续读取的元素，缩短导致待访问下标越界时报告运行错误。示例见[容器接口](../examples/container_interfaces.tx)。
 
 字符串库也定义了 slice；同时导入两个模块时，建议用 `as` 别名，例如 `text.slice(...)` 和 `arrays.slice(...)`。
 
 ## 字典操作
 
-导入 [tx/stdlib/dictionary.txh](../tx/stdlib/dictionary.txh)，建议使用 `as dictionary` 别名。带键的操作分别提供 `int`、`float`、`bool`、`str` 重载，按键的静态类型选用；字典仍保留原有的索引规则。
+导入 [tx/stdlib/dictionary.txh](../tx/stdlib/dictionary.txh)，建议使用 `as dictionary` 别名。带键的操作分别提供 `int`、`float`、`bool`、`str`、`none` 重载，按键的静态类型选用；字典仍保留原有的索引规则。
 
 | 函数 | 行为 |
 | --- | --- |
@@ -41,15 +60,18 @@ abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行�
 | `remove(values: dict, key) -> bool` | 删除键并返回 `true`；缺键返回 `false` |
 | `keys(values: dict) -> array` | 返回键的快照，顺序不保证 |
 | `values(values: dict) -> array` | 返回值的快照，顺序不保证 |
+| `items(values: dict) -> array` | 返回条目快照，每个元素是 `[键, 值]` 数组，顺序不保证 |
 | `clear(values: dict) -> void` | 清空共享字典 |
 
 `get` 返回 `none` 时，可用 `contains` 区分缺键与已存储的 `none`。`keys` 和 `values` 返回独立数组，其中的复合值仍与原字典共享对象；两次独立调用的排列不能当作彼此配对的保证。`remove` 和 `clear` 会通过共享引用生效。普通键的查找、插入与删除平均为 O(1)，哈希碰撞极端情况下可能退化。完整用法见[字典操作示例](../examples/dictionary_operations.tx)。
+
+`items` 的外层数组及每个键值对数组均独立于字典；替换快照中的键或值不会更新原字典，但快照内的复合值仍与原对象共享。它在一次遍历中取得成对条目，也保留无法再次按键查询的 NaN 条目。none 键可直接写为 `dictionary.get(values, none)`。
 
 浮点 `NaN` 键保留现有语义：可以存入并计入长度与遍历，但由于它不等于自身，后续查找和删除都不会命中它。
 
 ## 文件系统与路径
 
-导入 [tx/stdlib/fs.txh](../tx/stdlib/fs.txh) 和 [tx/stdlib/path.txh](../tx/stdlib/path.txh)，表中分别以 `fs` 和 `path` 为导入别名。路径参数使用 UTF-8 字符串，空路径或含 NUL 的路径会报运行错误。路径操作只处理路径文本，不访问磁盘。
+导入 [tx/stdlib/fs.txh](../tx/stdlib/fs.txh) 和 [tx/stdlib/path.txh](../tx/stdlib/path.txh)，表中分别以 `fs` 和 `path` 为导入别名。路径参数使用 UTF-8 字符串，空路径或含 NUL 的路径会报运行错误。路径操作不查询目标文件；`absolute` 在处理相对路径时读取进程工作目录。
 
 | 函数 | 行为 |
 | --- | --- |
@@ -58,12 +80,35 @@ abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行�
 | fs.is_directory(path) -> bool | 路径指向目录时返回 true |
 | fs.create_directories(path) -> void | 创建路径及缺失的父目录；目录已存在则无操作 |
 | fs.list_directory(path) -> array | 返回目录下直接子项的名称，按 UTF-8 字节序排序 |
+| fs.list_directory_vector(path) -> vector<str> | 与 list_directory 相同，直接返回字符串向量 |
+| fs.walk_directory(path) -> vector<str> | 递归列举所有子项，返回相对根目录的路径，按 UTF-8 字节序排序 |
+| fs.copy_file(source: str, destination: str, overwrite: bool) -> void | 复制普通文件；overwrite 为 false 时目标已存在即报错 |
+| fs.rename(source: str, destination: str) -> void | 重命名或在同一文件系统内移动文件、目录；目标已存在时报错 |
+| fs.remove(path) -> bool | 删除文件、符号链接或空目录；不存在返回 false |
+| fs.remove_all(path) -> int | 递归删除并返回删除的文件、目录和链接数量；不存在返回 0 |
+| fs.file_size(path) -> int | 返回普通文件的字节数 |
+| fs.modified_millis(path) -> int | 返回最后修改时间的 Unix 毫秒时间戳 |
 | path.join(left, right) -> str | 拼接两个路径；right 为绝对路径时以 right 为准 |
 | path.parent(path) -> str | 返回父路径；没有父路径时返回空字符串 |
 | path.file_name(path) -> str | 返回末级名称 |
 | path.extension(path) -> str | 返回末级扩展名，含开头的点；没有则返回空字符串 |
+| path.normalize(path) -> str | 词法整理分隔符、`.` 和可消去的 `..`，不解析符号链接 |
+| path.is_absolute(path) -> bool | 判断是否为当前平台的绝对路径 |
+| path.absolute(path) -> str | 基于当前工作目录生成规范化绝对路径，不要求目标存在 |
+| path.relative(path: str, base: str) -> str | 规范化后计算词法相对路径；二者需同为相对路径或同根绝对路径 |
+| path.replace_extension(path: str, extension: str) -> str | 替换扩展名；空字符串移除扩展名，缺少开头的点时自动补点 |
 
-目录列表不递归，数组元素均为 str。文件系统操作遇到权限、非目录或其他 I/O 错误时会报运行错误；is_file 和 is_directory 对不存在的路径返回 false。路径函数的结果统一使用正斜杠作分隔符，便于直接写入 .tx 源码中的路径字符串。
+`list_directory` 及其 vector 版本不递归，元素均为 str。文件系统操作遇到权限、非目录或其他 I/O 错误时会报运行错误；is_file 和 is_directory 对不存在的路径返回 false。路径函数的结果统一使用正斜杠作分隔符，便于直接写入 .tx 源码中的路径字符串。
+
+`walk_directory` 包含文件、子目录和链接本身，不进入子目录符号链接；结果不含根目录本身。读取中遇到错误即报错，不静默跳过。`remove_all` 删除符号链接本身，不递归其目标。复制、移动和写文件均不自动创建父目录；移动跨文件系统时报告错误。修改时间精度由文件系统决定，文件大小和删除数量超出 int 范围时报错。文件系统变更失败可能已经产生部分效果，接口不提供事务或并发隔离保证。
+
+`relative` 不访问磁盘、不消解符号链接；相同路径返回 `.`，不同盘符等无法表达相对关系的情况报错。`replace_extension` 的扩展名不得含路径分隔符或 NUL。完整操作见[文件系统接口示例](../examples/filesystem_interfaces.tx)。
+
+## 系统与环境变量
+
+导入 [system.txh](../tx/stdlib/system.txh) 获取程序参数、当前工作目录、可执行文件路径、临时目录和用户主目录，或切换进程工作目录。`args()` 返回不含可执行文件名的独立 `vector<str>` 快照；入口仍为 `def main() -> int`。
+
+导入 [env.txh](../tx/stdlib/env.txh) 使用 `contains/get/set/remove` 查询和修改当前进程的环境变量。`get(name)` 在缺失时报错，`get(name, default_value)` 仅在缺失时使用默认值，已设置的空字符串不会被默认值替换。所有文本采用 UTF-8，Windows 上通过宽字符 API 访问；完整签名、失败和进程范围规则见[系统与环境变量](system_env.md)，组合用法见[示例](../examples/system_env.tx)。
 
 ## 时间
 

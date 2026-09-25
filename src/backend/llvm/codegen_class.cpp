@@ -157,6 +157,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
     const auto object = temporary();
     write_instruction(object + " = load ptr, ptr " + address);
+    initialize_container_fields(definition, object, item.position);
     if (!call.constructor_init_symbol.empty())
     {
         std::string parameters = "ptr " + object;

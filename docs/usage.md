@@ -30,7 +30,25 @@ txc check <源码.tx>
 
 程序展示当前语言的各类语法并以退出码 0 结束。省略 -o 时，输出到仓库根目录的 tx_build/，主文件名与源码相同；例如编译 example.tx 会生成 tx_build/example.exe。指定 -o 时可使用自选位置，txc 会创建其父目录。
 
+路径含空格时，在 PowerShell 中用双引号包裹；执行带引号的程序路径时使用 `&`：
+
+```powershell
+& ".\tx\txc.exe" ".\examples\system_env.tx" -o ".\tx_build\中文 输出\中文 程序.exe"
+& ".\tx_build\中文 输出\中文 程序.exe" "输入 文件.txt"
+```
+
+txc 启动 clang 和链接器时会为各个参数添加必要的引号并处理反斜杠转义，保留完整的工具路径、临时文件路径和输出路径。
+
 编译器先解析并检查 .tx，再生成 LLVM IR，由同目录的 `clang.exe` 将 IR 编为 Windows 目标文件，最后用 `tx/link/ld.exe` 与运行时库链接为原生可执行文件。生成程序需要的 MinGW 运行时 DLL 会复制到输出目录。语法或类型错误会以“文件:行:列: 错误：原因”的形式报告；后端失败时会显示目标文件生成器或链接器的输出。
+
+程序参数传给生成的可执行文件，通过 `system.args()` 读取，不写在 txc 编译命令后：
+
+```powershell
+.\tx\txc.exe .\examples\system_env.tx
+.\tx_build\system_env.exe "输入 文件.txt" --output "输出目录"
+```
+
+接口语义见[系统与环境变量](system_env.md)，main 仍声明为无参数的 `def main() -> int`。
 
 ## 只检查源码
 

@@ -43,3 +43,46 @@ extern "C" int txrt_array_reverse(const void* values,
             tx_generated::tx_fn_reverse(array_value(values)));
     });
 }
+
+extern "C" int txrt_array_push_back(void* values, const void* value) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::tx_fn_array_push_back(array_value(values),
+            *static_cast<const std::any*>(value));
+    });
+}
+
+extern "C" int txrt_array_pop_back(void* values) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::tx_fn_array_pop_back(array_value(values));
+    });
+}
+
+extern "C" int txrt_array_insert(void* values, std::int64_t index,
+                                 const void* value) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::tx_fn_array_insert(array_value(values), index,
+            *static_cast<const std::any*>(value));
+    });
+}
+
+extern "C" int txrt_array_erase(void* values, std::int64_t index) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::tx_fn_array_erase(array_value(values), index);
+    });
+}
+
+extern "C" int txrt_array_clear(void* values) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::tx_fn_array_clear(array_value(values));
+    });
+}

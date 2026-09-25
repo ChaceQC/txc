@@ -1,0 +1,7 @@
+import "env.txh" as env
+
+def main() -> int
+{
+    print(env.get("TX_SYSTEM_ENV_TEST", 7))
+    return 0
+}

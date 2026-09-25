@@ -1,0 +1,6 @@
+def main() -> int
+{
+    auto values = heap<int>()
+    values.push(1.5)
+    return 0
+}

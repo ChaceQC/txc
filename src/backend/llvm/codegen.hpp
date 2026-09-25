@@ -149,6 +149,24 @@ private:
                                               const update_expression& update);
     void emit_vector_for_each(const for_each& loop);
     void write_vector_declarations();
+    void write_container_declarations();
+    void write_algorithm_declarations();
+    [[nodiscard]] static std::string container_symbol(const value_type& type,
+                                                      std::string_view operation);
+    [[nodiscard]] ir_value container_operation(const value_type& type,
+        std::string_view operation, const std::vector<ir_value>& arguments,
+        const value_type& result_type, source_pos position);
+    [[nodiscard]] ir_value emit_container_call(const expression& item,
+                                               const call_expression& call);
+    [[nodiscard]] ir_value emit_map_index(const index_expression& access,
+                                          source_pos position);
+    void emit_map_assignment(const statement& item, const variable_assignment& assignment);
+    [[nodiscard]] ir_value emit_map_update(const expression& item,
+                                           const update_expression& update);
+    [[nodiscard]] ir_value map_update_value(const ir_value& current, const ir_value& value,
+                                            bool add, source_pos position);
+    void initialize_container_fields(const class_decl& definition,
+                                      const std::string& object, source_pos position);
     void emit_array_elements(const array_literal& literal,
                              const std::string& array, source_pos position);
     [[nodiscard]] ir_value expression_value_or_borrow(

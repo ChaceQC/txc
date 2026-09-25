@@ -550,6 +550,8 @@ std::string llvm_code_generator::generate(const program& source)
     module_ << "define i32 @main() {\nentry:\n"
             << "  %prepare = call i32 @txrt_prepare_console()\n"
             << "  call void @txrt_require_success(i32 %prepare)\n"
+            << "  %system = call i32 @txrt_system_initialize()\n"
+            << "  call void @txrt_require_success(i32 %system)\n"
             << "  %result = call i64 " << function_name("main", 0) << "()\n"
             << "  %exit = call i32 @txrt_exit_code(i64 %result)\n"
             << "  ret i32 %exit\n}\n";

@@ -16,6 +16,7 @@ add_executable(txc
     src/frontend/resolver/module_resolver_tree.cpp
     src/frontend/sema/sema.cpp
     src/frontend/sema/sema_vector.cpp
+    src/frontend/sema/sema_container.cpp
     src/frontend/sema/sema_registration.cpp
     src/frontend/sema/sema_expression.cpp
     src/frontend/sema/sema_operator.cpp
@@ -28,6 +29,10 @@ add_executable(txc
     src/backend/llvm/codegen_vector_calls.cpp
     src/backend/llvm/codegen_vector_statement.cpp
     src/backend/llvm/codegen_vector_declarations.cpp
+    src/backend/llvm/codegen_algorithm_declarations.cpp
+    src/backend/llvm/codegen_container.cpp
+    src/backend/llvm/codegen_container_declarations.cpp
+    src/backend/llvm/codegen_map.cpp
     src/backend/llvm/codegen_functions.cpp
     src/backend/llvm/codegen_declarations.cpp
     src/backend/llvm/codegen_control.cpp
@@ -71,6 +76,14 @@ add_library(txstdlib STATIC
     src/backend/cpp/vector_bool_abi.cpp
     src/backend/cpp/vector_str_abi.cpp
     src/backend/cpp/vector_text_abi.cpp
+    src/backend/cpp/algorithm_abi.cpp
+    src/backend/cpp/map_i64_abi.cpp
+    src/backend/cpp/map_f64_abi.cpp
+    src/backend/cpp/map_bool_abi.cpp
+    src/backend/cpp/map_str_abi.cpp
+    src/backend/cpp/set_abi.cpp
+    src/backend/cpp/heap_abi.cpp
+    src/backend/cpp/queue_abi.cpp
     src/backend/cpp/cycle_gc.cpp
     src/backend/cpp/text_direct_abi.cpp
     src/backend/cpp/array_direct_abi.cpp
@@ -78,6 +91,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/array_abi.cpp
     src/backend/cpp/local_scalar_array_abi.cpp
     src/backend/cpp/filesystem_direct_abi.cpp
+    src/backend/cpp/system_env_direct_abi.cpp
     src/backend/cpp/file_direct_abi.cpp
     src/backend/cpp/format_direct_abi.cpp
     src/backend/cpp/io_time_direct_abi.cpp
@@ -101,7 +115,13 @@ add_library(txstdlib STATIC
     src/stdlib/file.cpp
     src/stdlib/math.cpp
     src/stdlib/array.cpp
+    src/stdlib/algorithm_numeric.cpp
     src/stdlib/filesystem.cpp
+    src/stdlib/filesystem_listing.cpp
+    src/stdlib/filesystem_operations.cpp
+    src/stdlib/path.cpp
+    src/stdlib/system.cpp
+    src/stdlib/env.cpp
     src/stdlib/time.cpp
     src/stdlib/random.cpp
 )

@@ -1,0 +1,5 @@
+def main() -> int
+{
+    int value = vector<str>().empty()
+    return 0
+}

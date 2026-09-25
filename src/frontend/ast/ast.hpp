@@ -137,7 +137,7 @@ struct call_expression
     std::size_t constructor_init_index = 0;
     bool is_super_view = false;
     std::string super_type;
-    std::optional<value_type> vector_type = std::nullopt;
+    std::optional<value_type> container_type = std::nullopt;
 };
 
 using expression_data = std::variant<

@@ -87,14 +87,24 @@ value_type parser::parse_type()
     {
         return value_type::dict_type;
     }
+    if (match(token_kind::keyword_none))
+    {
+        return value_type::none_type;
+    }
     if (match(token_kind::identifier))
     {
         std::string name = previous().text;
-        if (name == "vector" && match(token_kind::less))
+        if (value_type::is_container_name(name) && match(token_kind::less))
         {
-            auto element = parse_type();
-            (void)consume(token_kind::greater, "vector 元素类型后需要 >");
-            return value_type::vector_of(std::move(element));
+            std::vector<value_type> arguments;
+            arguments.push_back(parse_type());
+            if (name == "map")
+            {
+                (void)consume(token_kind::comma, "map 的键和值类型之间需要逗号");
+                arguments.push_back(parse_type());
+            }
+            (void)consume(token_kind::greater, "容器类型参数后需要 >");
+            return value_type::container_of(std::move(name), std::move(arguments));
         }
         while (match(token_kind::dot))
         {
@@ -160,7 +170,7 @@ bool parser::looks_like_declaration() const
         return false;
     }
     std::size_t next = index_ + 1;
-    if (current().text == "vector" && next < tokens_.size() &&
+    if (value_type::is_container_name(current().text) && next < tokens_.size() &&
         tokens_[next].kind == token_kind::less)
     {
         int depth = 0;

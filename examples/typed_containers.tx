@@ -1,0 +1,46 @@
+def main() -> int
+{
+    map<str, int> counts = map<str, int>()
+    counts["apple"] = 2
+    counts["apple"] += 1
+    print(counts["apple"], counts.get("pear", 0), counts.contains("apple"))
+    auto shared = counts
+    auto copied = deep_copy(counts)
+    shared["apple"]++
+    print(counts["apple"], copied["apple"])
+
+    set<str> visited = set<str>()
+    print(visited.insert("上海"), visited.insert("上海"))
+    for city in visited
+    {
+        visited.clear()
+        print(city)
+    }
+
+    auto pending = heap<int>()
+    pending.push(8)
+    pending.push(2)
+    pending.push(5)
+    print(pending.to_vector())
+    pending.pop()
+    print(pending.top())
+    auto largest = heap<int>(true)
+    largest.push(8)
+    largest.push(2)
+    print(largest.top())
+
+    queue<str> jobs = queue<str>()
+    jobs.push("first")
+    jobs.push("second")
+    print(jobs.front(), jobs.back())
+    for job in jobs
+    {
+        jobs.pop()
+        print(job)
+    }
+    print(jobs.empty(), len(jobs))
+    array boxed = [counts]
+    auto restored = boxed[0] as map<str, int>
+    print(restored["apple"])
+    return 0
+}

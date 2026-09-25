@@ -53,6 +53,11 @@ int txrt_array_concat(const void* left, const void* right,
 int txrt_array_slice(const void* values, std::int64_t start,
                       std::int64_t end, void** result) noexcept;
 int txrt_array_reverse(const void* values, void** result) noexcept;
+int txrt_array_push_back(void* values, const void* value) noexcept;
+int txrt_array_pop_back(void* values) noexcept;
+int txrt_array_insert(void* values, std::int64_t index, const void* value) noexcept;
+int txrt_array_erase(void* values, std::int64_t index) noexcept;
+int txrt_array_clear(void* values) noexcept;
 
 int txrt_dictionary_get(const void* values, const void* key,
                          void** result) noexcept;
@@ -68,6 +73,7 @@ int txrt_dictionary_remove_str(void* values, const void* key,
                                 bool* result) noexcept;
 int txrt_dictionary_keys(const void* values, void** result) noexcept;
 int txrt_dictionary_values(const void* values, void** result) noexcept;
+int txrt_dictionary_items(const void* values, void** result) noexcept;
 int txrt_dictionary_clear(void* values) noexcept;
 
 int txrt_file_read_text(const void* path, const void* encoding,
@@ -82,11 +88,39 @@ int txrt_fs_is_file(const void* path, bool* result) noexcept;
 int txrt_fs_is_directory(const void* path, bool* result) noexcept;
 int txrt_fs_create_directories(const void* path) noexcept;
 int txrt_fs_list_directory(const void* path, void** result) noexcept;
+int txrt_fs_list_directory_vector(const void* path, void** result) noexcept;
+int txrt_fs_walk_directory(const void* path, void** result) noexcept;
+int txrt_fs_copy_file(const void* source, const void* destination, bool overwrite) noexcept;
+int txrt_fs_rename(const void* source, const void* destination) noexcept;
+int txrt_fs_remove(const void* path, bool* result) noexcept;
+int txrt_fs_remove_all(const void* path, std::int64_t* result) noexcept;
+int txrt_fs_file_size(const void* path, std::int64_t* result) noexcept;
+int txrt_fs_modified_millis(const void* path, std::int64_t* result) noexcept;
 int txrt_path_join(const void* left, const void* right,
                     void** result) noexcept;
 int txrt_path_parent(const void* path, void** result) noexcept;
 int txrt_path_file_name(const void* path, void** result) noexcept;
 int txrt_path_extension(const void* path, void** result) noexcept;
+int txrt_path_normalize(const void* path, void** result) noexcept;
+int txrt_path_is_absolute(const void* path, bool* result) noexcept;
+int txrt_path_absolute(const void* path, void** result) noexcept;
+int txrt_path_relative(const void* path, const void* base, void** result) noexcept;
+int txrt_path_replace_extension(const void* path, const void* extension,
+                                 void** result) noexcept;
+
+int txrt_system_initialize() noexcept;
+int txrt_system_args(void** result) noexcept;
+int txrt_system_current_directory(void** result) noexcept;
+int txrt_system_set_current_directory(const void* path) noexcept;
+int txrt_system_executable_path(void** result) noexcept;
+int txrt_system_temp_directory(void** result) noexcept;
+int txrt_system_home_directory(void** result) noexcept;
+int txrt_env_contains(const void* name, bool* result) noexcept;
+int txrt_env_get(const void* name, void** result) noexcept;
+int txrt_env_get_default(const void* name, const void* default_value,
+                          void** result) noexcept;
+int txrt_env_set(const void* name, const void* value) noexcept;
+int txrt_env_remove(const void* name, bool* result) noexcept;
 
 int txrt_io_write(const void* text) noexcept;
 int txrt_io_write_line(const void* text) noexcept;

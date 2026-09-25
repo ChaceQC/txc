@@ -1,0 +1,78 @@
+import "array.txh" as arrays
+import "dictionary.txh" as dictionary
+import "file.txh" as file
+import "fs.txh" as fs
+
+class on_drop
+{
+    public:
+        values: array
+
+        def init(values: array)
+        {
+            self.values = values
+        }
+
+        def deinit()
+        {
+            arrays.push_back(self.values, "released")
+        }
+}
+
+def change(values: array) -> int
+{
+    arrays.erase(values, 0)
+    return 9
+}
+
+def main() -> int
+{
+    int mode = input() as int
+    if mode == 0
+    {
+        array values = [1, 2]
+        array shared = values
+        arrays.insert(values, 1, change(values))
+        arrays.push_back(value="三", values=values)
+        arrays.insert(*[values, 0, none])
+        print(shared)
+
+        dict entries = {none: values}
+        array snapshot = dictionary.items(entries)
+        print(dictionary.contains(entries, none))
+        print(dictionary.get(entries, none))
+        print(dictionary.remove(entries, none))
+        print(dictionary.remove(entries, none))
+        print(is_none(dictionary.get(entries, none)))
+        arrays.clear(values)
+        print(snapshot)
+
+        array callbacks = []
+        arrays.push_back(callbacks, on_drop(callbacks))
+        arrays.pop_back(callbacks)
+        print(callbacks)
+        return 0
+    }
+    if mode == 1
+    {
+        arrays.pop_back([])
+    }
+    else if mode == 2
+    {
+        arrays.erase([1], 1)
+    }
+    else
+    {
+        file.write_text("source.txt", "source", "utf-8")
+        file.write_text("target.txt", "keep", "utf-8")
+        if mode == 3
+        {
+            fs.copy_file("source.txt", "target.txt", false)
+        }
+        else
+        {
+            fs.rename("source.txt", "target.txt")
+        }
+    }
+    return 0
+}

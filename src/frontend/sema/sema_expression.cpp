@@ -198,6 +198,12 @@ value_type semantic_analyzer::check_index(expression&,
                                           index_expression& access)
 {
     const auto object_type = check_expression(*access.object);
+    if (object_type.is_map())
+    {
+        require_type(check_expression(*access.index), object_type.parameters[0],
+                     access.index->position, "map 键");
+        return object_type.parameters[1];
+    }
     if (object_type != value_type::array_type &&
         object_type != value_type::dict_type &&
         object_type != value_type::any_type && !object_type.is_vector())
@@ -266,13 +272,13 @@ value_type semantic_analyzer::check_member(expression& item,
 
 value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast)
 {
-    if (cast.target.is_vector())
+    if (cast.target.is_vector() || cast.target.is_typed_container())
     {
         validate_type(cast.target, item.position);
         const auto source = check_expression(*cast.value);
         if (source != cast.target && source != value_type::any_type)
         {
-            throw compile_error(item.position, "vector 转换需要相同类型或 any");
+            throw compile_error(item.position, "类型化容器转换需要相同类型或 any");
         }
         return cast.target;
     }

@@ -2,6 +2,12 @@
 import "modules/offset.txh"
 import "modules/overload.txh" as math
 import "dictionary.txh" as dictionary
+import "array.txh" as arrays
+import "algorithm.txh" as algorithm
+import "file.txh" as file
+import "fs.txh" as fs
+import "path.txh" as path
+import "time.txh" as time
 
 struct record
 {
@@ -190,6 +196,148 @@ def count_extra(*args: array, **kwargs: dict) -> int
     return len(args) + len(kwargs)
 }
 
+def empty_key(value: none) -> none
+{
+    return value
+}
+
+def container_library_demo()
+{
+    array values = [1, "二"]
+    array shared = values
+    arrays.push_back(values, true)
+    arrays.insert(values, 1, none)
+    arrays.erase(values, 0)
+    arrays.pop_back(values)
+    print("数组共享：", shared)
+
+    # none 是合法键；items 一次取得配对快照，复合值继续共享。
+    dict entries = {none: "空键", "nested": values}
+    print("空键：", dictionary.get(entries, empty_key(none)))
+    print("空键存在：", dictionary.contains(entries, none))
+    array pairs = dictionary.items(entries)
+    print("删除空键：", dictionary.remove(entries, none))
+    dictionary.clear(entries)
+    arrays.clear(values)
+    print("清空后快照：", pairs)
+
+    # 遍历记录初始长度，本次循环不会读取新追加的元素。
+    array numbers = [1, 2]
+    for value in numbers
+    {
+        arrays.push_back(numbers, value)
+    }
+    print("遍历追加：", numbers)
+}
+
+def typed_container_demo()
+{
+    # 内置类型化容器无需 import，键和值在编译期检查。
+    map<str, int> counts = map<str, int>()
+    counts["apple"] = 2
+    counts["apple"] += 1
+    print("类型化 map：", counts["apple"], counts.get("pear", 0), counts.contains("apple"))
+    auto shared = counts
+    auto copied = deep_copy(counts)
+    shared["apple"]++
+    print("map 共享与复制：", counts["apple"], copied["apple"])
+
+    set<str> visited = set<str>()
+    print("set 去重：", visited.insert("上海"), visited.insert("上海"))
+    # 遍历使用快照，清空共享容器不会中断当前遍历。
+    for city in visited
+    {
+        visited.clear()
+        print("set 快照遍历：", city)
+    }
+
+    auto smallest = heap<int>()
+    smallest.push(8)
+    smallest.push(2)
+    smallest.push(5)
+    print("小顶堆顺序：", smallest.to_vector())
+    smallest.pop()
+    print("删除后的堆顶：", smallest.top())
+    auto largest = heap<int>(true)
+    largest.push(8)
+    largest.push(2)
+    print("大顶堆堆顶：", largest.top())
+
+    queue<str> jobs = queue<str>()
+    jobs.push("first")
+    jobs.push("second")
+    print("队首与队尾：", jobs.front(), jobs.back())
+    for job in jobs
+    {
+        jobs.pop()
+        print("FIFO 出队：", job)
+    }
+    print("队列已空：", jobs.empty(), len(jobs))
+    array boxed = [counts]
+    auto restored = boxed[0] as map<str, int>
+    print("any 恢复 map：", restored["apple"])
+}
+
+def algorithm_demo()
+{
+    auto numbers = vector<int>([4, 1, 4, 2])
+    auto shared = numbers
+    auto ordered = algorithm.sorted(numbers)
+    print("排序副本：", numbers, ordered)
+    # 原地排序和反转通过共享引用生效，ordered 保持独立。
+    algorithm.sort(numbers)
+    print("原地排序：", shared)
+    print("查找与计数：", algorithm.find(numbers, 4), algorithm.count(numbers, 4))
+    print("二分边界：", algorithm.lower_bound(numbers, 4), algorithm.upper_bound(numbers, 4))
+    print("整数统计：", algorithm.sum(numbers), algorithm.min_element(numbers), algorithm.max_element(numbers))
+    algorithm.reverse(numbers)
+    print("原地反转：", shared, ordered)
+
+    auto decimals = vector<float>([2.5, -1.0, 2.5])
+    print("浮点统计：", algorithm.sum(decimals), algorithm.min_element(decimals), algorithm.max_element(decimals))
+    auto words = vector<str>(["梨", "apple", "香蕉", "apple"])
+    print("字符串排序：", algorithm.sorted(words))
+    auto flags = vector<bool>([true, false, false])
+    algorithm.reverse(flags)
+    print("布尔查找：", flags, algorithm.find(flags, true), algorithm.count(flags, false))
+
+    # 已有容器可通过类型化快照交给算法，快照排序不修改 map。
+    map<str, int> scores = map<str, int>()
+    scores["bob"] = 80
+    scores["alice"] = 95
+    print("map 快照算法：", algorithm.sorted(scores.keys()), algorithm.sum(scores.values()))
+}
+
+def filesystem_library_demo() -> bool
+{
+    # 仅操作新建的示例目录，结束时删除；同名目录已存在则退出。
+    str root = path.join("tx_build", "example_interfaces_" + (time.unix_millis() as str))
+    if fs.exists(root)
+    {
+        print("示例目录已存在：", root)
+        return false
+    }
+    fs.create_directories(path.join(root, "子目录"))
+    str source = path.join(root, "原文.txt")
+    str copied = path.join(root, "副本.txt")
+    str moved = path.join(root, "子目录/移动.txt")
+    file.write_text(source, "你好\n", "utf-8")
+    fs.copy_file(source, copied, false)
+    fs.rename(copied, moved)
+    print("文件大小：", fs.file_size(moved))
+    print("修改时间：", fs.modified_millis(moved))
+    vector<str> names = fs.list_directory_vector(root)
+    print("目录列表：", names)
+    print("递归列表：", fs.walk_directory(root))
+    print("规范路径：", path.normalize("a/./b/../c.txt"))
+    print("绝对路径：", path.is_absolute(path.absolute(root)))
+    print("相对路径：", path.relative(path.absolute(moved), path.absolute(root)))
+    print("替换扩展名：", path.replace_extension(moved, "log"))
+    print("删除文件：", fs.remove(source))
+    print("递归删除数量：", fs.remove_all(root))
+    return !fs.exists(root)
+}
+
 def main() -> int
 {
     int count = 0
@@ -342,6 +490,13 @@ def main() -> int
     # 位置实参、命名实参、数组和字典展开可组合使用。
     show("展开", *[1, 2], **{"status": "完成"})
     print(count_extra(1, 2, note="额外命名参数"))
+    container_library_demo()
+    typed_container_demo()
+    algorithm_demo()
+    if !filesystem_library_demo()
+    {
+        return 1
+    }
     write_message(message="结束")
     stop_early(true)
     return 0

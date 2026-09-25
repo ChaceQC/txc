@@ -19,6 +19,7 @@ struct function_signature
 {
     std::vector<parameter> parameters;
     value_type result;
+    bool accepts_array_value = false;
 };
 
 class semantic_analyzer
@@ -71,6 +72,8 @@ private:
     [[nodiscard]] value_type check_method_call(expression& item, call_expression& call);
     [[nodiscard]] value_type check_vector_call(expression& item, call_expression& call,
                                               const value_type& type);
+    [[nodiscard]] value_type check_container_call(expression& item, call_expression& call,
+                                                 const value_type& type);
     [[nodiscard]] std::vector<value_type> check_call_arguments(call_expression& call);
     [[nodiscard]] bool matches_signature(
         const function_signature& signature, const call_expression& call,

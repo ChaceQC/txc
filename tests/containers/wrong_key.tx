@@ -1,0 +1,6 @@
+def main() -> int
+{
+    auto values = map<str, int>()
+    values[1] = 2
+    return 0
+}

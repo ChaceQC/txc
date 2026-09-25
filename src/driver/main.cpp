@@ -133,6 +133,28 @@ fs::path temporary_path(std::string_view extension)
 }
 
 
+std::wstring quote_tool_argument(std::wstring_view argument)
+{
+    std::wstring result = L"\"";
+    std::size_t backslashes = 0;
+    for (const auto character : argument)
+    {
+        if (character == L'\\')
+        {
+            ++backslashes;
+            continue;
+        }
+        // Windows CRT 在引号前将成对反斜杠还原，奇数个反斜杠转义引号。
+        result.append(character == L'\"' ? backslashes * 2 + 1 : backslashes, L'\\');
+        result.push_back(character);
+        backslashes = 0;
+    }
+    // 尾部反斜杠需要成对传递，避免把我们添加的结束引号转义掉。
+    result.append(backslashes * 2, L'\\');
+    result.push_back(L'\"');
+    return result;
+}
+
 int run_local_tool(const fs::path& executable,
                    const std::vector<std::wstring>& parameters)
 {
@@ -142,8 +164,12 @@ int run_local_tool(const fs::path& executable,
     }
     std::vector<std::wstring> arguments;
     arguments.reserve(parameters.size() + 1);
-    arguments.push_back(executable.wstring());
-    arguments.insert(arguments.end(), parameters.begin(), parameters.end());
+    // _wspawnv 只用空格拼接参数，调用方必须为每一项保留命令行边界。
+    arguments.push_back(quote_tool_argument(executable.wstring()));
+    for (const auto& parameter : parameters)
+    {
+        arguments.push_back(quote_tool_argument(parameter));
+    }
     std::vector<const wchar_t*> raw_arguments;
     raw_arguments.reserve(arguments.size() + 1);
     for (const auto& argument : arguments)

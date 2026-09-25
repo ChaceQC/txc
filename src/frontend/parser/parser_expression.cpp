@@ -178,16 +178,16 @@ expr_ptr parser::parse_postfix()
 
 expr_ptr parser::parse_atom()
 {
-    if (check(token_kind::identifier) && current().text == "vector" &&
+    if (check(token_kind::identifier) && value_type::is_container_name(current().text) &&
         tokens_[index_ + 1].kind == token_kind::less)
     {
         const auto position = current().position;
         auto type = parse_type();
-        (void)consume(token_kind::left_paren, "vector 构造需要左括号");
+        (void)consume(token_kind::left_paren, "容器构造需要左括号");
         call_expression call;
-        call.name = "vector";
+        call.name = type.container_name();
         call.source_name = type.name;
-        call.vector_type = std::move(type);
+        call.container_type = std::move(type);
         call.arguments = parse_arguments();
         return std::make_unique<expression>(position, std::move(call));
     }

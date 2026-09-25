@@ -1,0 +1,10 @@
+struct holder
+{
+    first: map<int, str>
+    second: map<int, str>
+}
+
+def make() -> holder
+def replace(values: holder, order: vector<int>) -> int
+def grow(values: map<int, str>, order: vector<int>) -> str
+def pass_queue(values: queue<str>) -> queue<str>

@@ -1,5 +1,6 @@
 #include "backend/cpp/value_abi.hpp"
 #include "backend/cpp/vector_value.hpp"
+#include "backend/cpp/container_value.hpp"
 
 #include "backend/cpp/runtime.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
@@ -256,6 +257,7 @@ extern "C" int txrt_value_require_type(const void* value,
             (type == "bool" && item.type() == typeid(bool)) ||
             (type == "str" && item.type() == typeid(std::string)) ||
             tx_generated::vector_matches(item, type) ||
+            tx_generated::container_matches(item, type) ||
             (type == "array" && item.type() == typeid(tx_generated::tx_array)) ||
             (type == "dict" && item.type() == typeid(tx_generated::tx_dict)) ||
             (type == "none" && !item.has_value()) ||

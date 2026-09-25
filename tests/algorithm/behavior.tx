@@ -1,0 +1,91 @@
+import "algorithm.txh" as algorithm
+
+struct holder
+{
+    numbers: vector<int>
+}
+
+def replace_numbers(state: holder) -> int
+{
+    state.numbers = vector<int>([2, 9])
+    return 9
+}
+
+def check_empty_and_integers() -> bool
+{
+    auto empty = vector<int>()
+    algorithm.sort(empty)
+    algorithm.reverse(empty)
+    auto copied = algorithm.sorted(empty)
+    copied.push_back(7)
+    if empty.size() != 0 || algorithm.sum(empty) != 0 || algorithm.sum(vector<float>()) != 0.0
+    {
+        return false
+    }
+    if algorithm.find(empty, 1) != -1 || algorithm.count(empty, 1) != 0 || algorithm.lower_bound(empty, 1) != 0 || algorithm.upper_bound(empty, 1) != 0
+    {
+        return false
+    }
+    auto limits = vector<int>([-9223372036854775808, 9223372036854775807])
+    return algorithm.sum(limits) == -1 && algorithm.min_element(limits) == -9223372036854775808 && algorithm.max_element(limits) == 9223372036854775807 && algorithm.lower_bound(limits, 0) == 1 && algorithm.upper_bound(limits, 9223372036854775807) == 2
+}
+
+def check_float_order() -> bool
+{
+    auto infinite = 1e308 * 1e308
+    auto nan = infinite - infinite
+    auto source = vector<float>([nan, 1.0, -0.0, infinite, -infinite, 0.0, nan])
+    auto ordered = algorithm.sorted(source)
+    if ordered[0] != -infinite || ordered[3] != 1.0 || ordered[4] != infinite || source[0] == source[0]
+    {
+        return false
+    }
+    if algorithm.lower_bound(ordered, nan) != 5 || algorithm.upper_bound(ordered, nan) != 7 || algorithm.lower_bound(ordered, 0.0) != 1 || algorithm.upper_bound(ordered, -0.0) != 3
+    {
+        return false
+    }
+    if algorithm.find(ordered, nan) != -1 || algorithm.count(ordered, nan) != 0 || algorithm.find(ordered, -0.0) != 1 || algorithm.count(ordered, 0.0) != 2
+    {
+        return false
+    }
+    algorithm.reverse(ordered)
+    return ordered[0] != ordered[0] && ordered[6] == -infinite && source[1] == 1.0
+}
+
+def check_string_ownership() -> bool
+{
+    auto source = vector<str>(["中", "a", "", "a"])
+    source.reserve(16)
+    auto capacity = source.capacity()
+    auto shared = source
+    auto saved = source[0]
+    auto copied = algorithm.sorted(source)
+    algorithm.sort(source)
+    source[3] = "changed"
+    algorithm.reverse(source)
+    if shared[0] != "changed" || shared[3] != "" || source.capacity() != capacity
+    {
+        return false
+    }
+    source.clear()
+    return saved == "中" && copied[3] == "中" && algorithm.find(copied, "missing") == -1 && algorithm.count(copied, "a") == 2 && algorithm.lower_bound(copied, "b") == 3 && algorithm.upper_bound(copied, "中") == 4
+}
+
+def check_argument_order() -> bool
+{
+    auto state = holder(vector<int>([9, 2]))
+    auto first = algorithm.find(values=state.numbers, value=replace_numbers(state))
+    state.numbers = vector<int>([9, 2])
+    auto second = algorithm.find(value=replace_numbers(state), values=state.numbers)
+    auto expanded = algorithm.find(state.numbers, *[9])
+    return first == 0 && second == 1 && expanded == 1
+}
+
+def main() -> int
+{
+    print("empty and integers", check_empty_and_integers())
+    print("float order", check_float_order())
+    print("string ownership", check_string_ownership())
+    print("argument order", check_argument_order())
+    return 0
+}

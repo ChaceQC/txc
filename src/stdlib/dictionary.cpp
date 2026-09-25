@@ -214,4 +214,19 @@ void tx_fn_dictionary_clear(tx_dict values) noexcept
     values.clear();
 }
 
+tx_array tx_fn_dictionary_items(const tx_dict& values)
+{
+    tx_array result;
+    result.reserve(values.size());
+    values.for_each([&](const std::any& key, const std::any& value)
+    {
+        tx_array pair;
+        pair.reserve(2);
+        pair.push_back(key);
+        pair.push_back(value);
+        result.push_back(std::move(pair));
+    });
+    return result;
+}
+
 } // namespace tx_generated

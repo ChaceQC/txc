@@ -14,6 +14,8 @@
 
 check 会检查语法和静态类型；`example.tx` 是当前语言的完整可运行语法展示。完整构建步骤和命令参数见 [编译与运行](docs/usage.md)，当前语言支持的语法和类型规则见 [语法说明](docs/syntax.md)。
 
+主示例也展示容器原地操作、字典条目快照和 none 键、类型化 map/set、大小顶堆、FIFO 队列、algorithm 排序查找与数值统计，以及文件系统与路径接口；运行时在 `tx_build/` 下创建独立示例目录，完成文件操作后自行清理。
+
 最终编译器产物 `txc.exe`、`clang.exe`、`libtxstdlib.a`、链接组件和运行时 DLL 位于 `tx/`；构建成功后清理 `build/` 中间文件。txc 默认将 .tx 程序放在 `tx_build/`。
 
 txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的链接组件；运行 txc 编译 `.tx` 时不需要安装 g++。构建与发行结构见 [编译与运行](docs/usage.md)和[原生后端说明](docs/native_backend.md)。
@@ -26,11 +28,15 @@ txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的
 `struct` 与 `class` 在 `.txh` 和配对 `.tx` 中的不同写法见 [模块文件分工](docs/modules.md)，对应的可运行示例为 [struct 模块](examples/struct_module/main.tx)和 [class 模块](examples/class_module/main.tx)。
 `+=`、`-=`、`++`、`--` 的用法见 [更新运算符示例](examples/update_operators.tx)。
 数组解包、字典、命名实参与 `*args`、`**kwargs` 见 [可变参数示例](examples/variadic_unpack.tx)。
+类型化 `map/set`、小顶堆和大顶堆、FIFO 队列见[类型化容器说明](docs/typed_containers.md)及[示例](examples/typed_containers.tx)。
+基于现有类型化 vector 的排序、查找、二分、反转和数值统计见[algorithm 说明](docs/algorithm.md)及[示例](examples/algorithm.tx)；其他类型化容器可通过已有快照接口组合使用。
 
 模块导入、终端输入输出、可指定字符集的文本文件读写、字符串、数学、数组、文件系统、时间和随机数操作见 [模块说明](docs/modules.md)、[标准库说明](docs/standard_library.md)和[可运行示例](examples/import_io.tx)。
 终端与文件操作的单独示例见 [终端 I/O](examples/terminal_io.tx)、[文件 I/O](examples/file_io.tx)和[指定字符集读写](examples/file_encodings.tx)。
 两个模块拥有同名函数时的调用见 [别名导入示例](examples/import_alias.tx)。
 数学、数组、目录与路径标准库的组合用法见 [标准库示例](examples/stdlib_modules.tx)；运行时会在 tx_build/ 下创建示例目录。
+数组原地增删、字典条目快照和 none 键见[容器接口示例](examples/container_interfaces.tx)；文件复制、移动、删除、递归列举和路径转换见[文件系统接口示例](examples/filesystem_interfaces.tx)。
+程序参数、环境变量、工作目录和常用系统路径见[系统接口说明](docs/system_env.md)与[示例](examples/system_env.tx)。
 毫秒计时和可设种子的随机数用法见 [时间与随机数示例](examples/time_random.tx)。
 语言特性和运行时的 TX/C++ 性能对照见 [语言特性基准](benchmarks/language_features/README.md)；标准库与 C++ Release 的对照见 [标准库基准](benchmarks/library_compare/README.md)。
 `import "io.txh"` 和 `import "xx/xx.txh"` 会先查找源码同目录的接口，再查找 `tx/stdlib/` 下的对应路径；见 [本地接口优先示例](examples/local_priority/main.tx)。

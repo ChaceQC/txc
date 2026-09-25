@@ -98,7 +98,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_vector_update(
 void llvm_code_generator::emit_vector_for_each(const for_each& loop)
 {
     push_scope();
-    const auto vector = expression_value(*loop.values);
+    auto vector = expression_value(*loop.values);
+    if (vector.type.is_typed_container())
+    {
+        const auto source = vector;
+        vector = container_operation(source.type, source.type.is_map() ? "keys" : "to_vector",
+            {source}, value_type::vector_of(source.type.parameters.front()), loop.values->position);
+        release(source);
+    }
     const auto owner = allocate(vector.type, loop.values->position);
     write_instruction("store ptr " + vector.text + ", ptr " + owner);
     scopes_.back().emplace("$vector", variable_slot{vector.type, owner});

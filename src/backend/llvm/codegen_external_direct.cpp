@@ -106,6 +106,15 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         symbol = "txrt_" + target.external_name;
         std::replace(symbol.begin(), symbol.end(), '.', '_');
     }
+    if (target.external_name.starts_with("algorithm."))
+    {
+        // 重载已由语义分析确定，元素类型直接选定 ABI，不把选择推迟到运行时。
+        symbol += "_" + vector_suffix(target.parameters.front().type);
+    }
+    if (target.external_name == "env.get" && target.parameters.size() == 2)
+    {
+        symbol = "txrt_env_get_default";
+    }
     const bool dictionary_key_call = target.external_name == "dictionary.get" ||
         target.external_name == "dictionary.contains" ||
         target.external_name == "dictionary.remove";
@@ -125,14 +134,21 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         symbol += "_str";
     }
     std::string parameters;
+    std::vector<ir_value> boxed_values;
     for (std::size_t index = 0; index < arguments.size(); ++index)
     {
         if (!parameters.empty())
         {
             parameters += ", ";
         }
-        const auto& argument = dictionary_key_call && !string_key && index == 1
+        auto argument = dictionary_key_call && !string_key && index == 1
             ? boxed_key : arguments[index];
+        if (target.parameters[index].type == value_type::any_type)
+        {
+            // 静态选定的异构容器入口只在保存值的边界进行装箱。
+            argument = box_any(argument, item.position);
+            boxed_values.push_back(argument);
+        }
         parameters += llvm_type(argument.type, item.position) + " " + argument.text;
     }
     if (target.external_name.starts_with("random."))
@@ -170,6 +186,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     write_instruction(status + " = call i32 @" + symbol + "(" + parameters + ")");
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
     release(boxed_key);
+    for (const auto& value : boxed_values)
+    {
+        release(value);
+    }
     for (const auto& argument : arguments)
     {
         release(argument);

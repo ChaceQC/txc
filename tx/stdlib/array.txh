@@ -1,3 +1,8 @@
 def concat(left: array, right: array) -> array
 def slice(values: array, start: int, end: int) -> array
 def reverse(values: array) -> array
+def push_back(values: array, value: any) -> void
+def pop_back(values: array) -> void
+def insert(values: array, index: int, value: any) -> void
+def erase(values: array, index: int) -> void
+def clear(values: array) -> void

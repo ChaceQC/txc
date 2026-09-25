@@ -25,16 +25,38 @@ bool supported_external_call(std::string_view name)
            name == "math.mod" || name == "math.sqrt" ||
            name == "math.pow" || name == "math.floor" ||
            name == "math.ceil" || name == "array.concat" ||
+           name == "algorithm.sort" || name == "algorithm.sorted" ||
+           name == "algorithm.find" || name == "algorithm.count" ||
+           name == "algorithm.lower_bound" || name == "algorithm.upper_bound" ||
+           name == "algorithm.reverse" || name == "algorithm.sum" ||
+           name == "algorithm.min_element" || name == "algorithm.max_element" ||
            name == "array.slice" || name == "array.reverse" ||
+           name == "array.push_back" || name == "array.pop_back" ||
+           name == "array.insert" || name == "array.erase" ||
+           name == "array.clear" ||
            name == "dictionary.get" || name == "dictionary.contains" ||
            name == "dictionary.remove" || name == "dictionary.keys" ||
            name == "dictionary.values" || name == "dictionary.clear" ||
+           name == "dictionary.items" ||
            name == "fs.exists" || name == "fs.is_file" ||
            name == "fs.is_directory" ||
            name == "fs.create_directories" ||
            name == "fs.list_directory" ||
+           name == "fs.list_directory_vector" || name == "fs.walk_directory" ||
+           name == "fs.copy_file" || name == "fs.rename" ||
+           name == "fs.remove" || name == "fs.remove_all" ||
+           name == "fs.file_size" || name == "fs.modified_millis" ||
            name == "path.join" || name == "path.parent" ||
            name == "path.file_name" || name == "path.extension" ||
+           name == "path.normalize" || name == "path.is_absolute" ||
+           name == "path.absolute" || name == "path.relative" ||
+           name == "path.replace_extension" ||
+           name == "system.args" || name == "system.current_directory" ||
+           name == "system.set_current_directory" ||
+           name == "system.executable_path" || name == "system.temp_directory" ||
+           name == "system.home_directory" ||
+           name == "env.contains" || name == "env.get" ||
+           name == "env.set" || name == "env.remove" ||
            name == "time.unix_millis" ||
            name == "time.monotonic_millis" ||
            name == "time.monotonic_micros" ||
@@ -243,11 +265,26 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
 llvm_code_generator::ir_value llvm_code_generator::emit_call(
     const expression& item, const call_expression& call)
 {
-    if (call.vector_type || (call.receiver && call.receiver->type.is_vector()))
+    if ((call.container_type && call.container_type->is_typed_container()) ||
+        (call.receiver && call.receiver->type.is_typed_container()))
+    {
+        return emit_container_call(item, call);
+    }
+    if (call.container_type || (call.receiver && call.receiver->type.is_vector()))
     {
         return emit_vector_call(item, call);
     }
-    if (call.name == "len" && call.arguments.front().value->type.is_vector())
+    if (call.name == "len" && !call.receiver && !call.arguments.empty() &&
+        call.arguments.front().value->type.is_typed_container())
+    {
+        const auto value = expression_value(*call.arguments.front().value);
+        const auto result = container_operation(value.type, "size", {value},
+                                                value_type::int_type, item.position);
+        release(value);
+        return result;
+    }
+    if (call.name == "len" && !call.receiver && !call.arguments.empty() &&
+        call.arguments.front().value->type.is_vector())
     {
         bool borrowed = false;
         const auto value = container_value(*call.arguments.front().value, true, borrowed);

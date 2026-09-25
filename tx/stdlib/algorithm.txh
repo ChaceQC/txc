@@ -1,0 +1,33 @@
+def sort(values: vector<int>) -> void
+def sorted(values: vector<int>) -> vector<int>
+def find(values: vector<int>, value: int) -> int
+def count(values: vector<int>, value: int) -> int
+def lower_bound(values: vector<int>, value: int) -> int
+def upper_bound(values: vector<int>, value: int) -> int
+def reverse(values: vector<int>) -> void
+def sum(values: vector<int>) -> int
+def min_element(values: vector<int>) -> int
+def max_element(values: vector<int>) -> int
+
+def sort(values: vector<float>) -> void
+def sorted(values: vector<float>) -> vector<float>
+def find(values: vector<float>, value: float) -> int
+def count(values: vector<float>, value: float) -> int
+def lower_bound(values: vector<float>, value: float) -> int
+def upper_bound(values: vector<float>, value: float) -> int
+def reverse(values: vector<float>) -> void
+def sum(values: vector<float>) -> float
+def min_element(values: vector<float>) -> float
+def max_element(values: vector<float>) -> float
+
+def sort(values: vector<str>) -> void
+def sorted(values: vector<str>) -> vector<str>
+def find(values: vector<str>, value: str) -> int
+def count(values: vector<str>, value: str) -> int
+def lower_bound(values: vector<str>, value: str) -> int
+def upper_bound(values: vector<str>, value: str) -> int
+def reverse(values: vector<str>) -> void
+
+def find(values: vector<bool>, value: bool) -> int
+def count(values: vector<bool>, value: bool) -> int
+def reverse(values: vector<bool>) -> void

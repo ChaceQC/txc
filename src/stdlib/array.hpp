@@ -93,6 +93,30 @@ public:
         std::any value(std::forward<arguments>(values)...);
         push_back(std::move(value));
     }
+    void insert(std::size_t index, std::any value)
+    {
+        if (may_contain_cycle(value))
+        {
+            register_storage();
+        }
+        elements_->values.insert(elements_->values.begin() + index, std::move(value));
+    }
+    void pop_back()
+    {
+        // 先完成容器修改，再释放元素；类析构可能重新访问这个共享数组。
+        auto removed = std::move(elements_->values.back());
+        elements_->values.pop_back();
+    }
+    void erase(std::size_t index)
+    {
+        auto removed = std::move(elements_->values[index]);
+        elements_->values.erase(elements_->values.begin() + index);
+    }
+    void clear()
+    {
+        std::vector<std::any> removed;
+        removed.swap(elements_->values);
+    }
     void insert(iterator where, const_iterator first, const_iterator last)
     {
         // 任意范围可能包含复合值，并且会使现有元素地址失效。

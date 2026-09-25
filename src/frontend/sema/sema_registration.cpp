@@ -21,20 +21,23 @@ bool is_builtin_name(const std::string& name)
 
 void semantic_analyzer::validate_type(const value_type& type, source_pos position) const
 {
-    if (type.is_vector())
+    if (type.is_vector() || type.is_typed_container())
     {
-        const auto& element = type.parameters.front();
-        if (element == value_type::int_type || element == value_type::float_type ||
-            element == value_type::bool_type || element == value_type::str_type)
+        for (const auto& element : type.parameters)
         {
-            return;
+            if (element != value_type::int_type && element != value_type::float_type &&
+                element != value_type::bool_type && element != value_type::str_type)
+            {
+                throw compile_error(position, type.container_name() +
+                    " 当前支持 int、float、bool、str 类型参数");
+            }
         }
-        throw compile_error(position, "vector 当前支持 int、float、bool、str 元素");
+        return;
     }
     if (type == value_type::int_type || type == value_type::bool_type ||
         type == value_type::float_type || type == value_type::str_type ||
         type == value_type::array_type || type == value_type::dict_type ||
-        type == value_type::any_type ||
+        type == value_type::any_type || type == value_type::none_type ||
         structs_.contains(type.name) || classes_.contains(type.name))
     {
         return;
@@ -129,6 +132,10 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
             validate_type(function.return_type, function.position);
         }
         function_signature signature{{}, function.return_type};
+        // 异构数组的写入边界接收任意值，不改变普通函数的精确匹配规则。
+        signature.accepts_array_value = function.external &&
+            (function.external_name == "array.push_back" ||
+             function.external_name == "array.insert");
         for (const auto& parameter : function.parameters)
         {
             validate_type(parameter.type, parameter.position);

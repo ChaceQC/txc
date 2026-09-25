@@ -1,0 +1,55 @@
+class witness
+{
+    public:
+        words: queue<str>
+
+        def init()
+        {
+            self.words.push("still alive")
+        }
+
+        def deinit()
+        {
+            print(self.words.front())
+        }
+}
+
+def main() -> int
+{
+    int mode = input() as int
+    auto owner = witness()
+    auto values = map<str, int>()
+    auto infinite = 1e308 * 1e308
+    auto nan = infinite - infinite
+    if mode == 0
+    {
+        print(values["missing"])
+    }
+    if mode == 1
+    {
+        heap<int>().pop()
+    }
+    if mode == 2
+    {
+        print(queue<str>().front())
+    }
+    if mode == 3
+    {
+        auto mapping = map<float, int>()
+        mapping[nan] = 1
+    }
+    if mode == 4
+    {
+        set<float>().insert(nan)
+    }
+    if mode == 5
+    {
+        heap<float>().push(nan)
+    }
+    if mode == 6
+    {
+        array wrapped = [values]
+        auto wrong = wrapped[0] as map<str, str>
+    }
+    return 0
+}
