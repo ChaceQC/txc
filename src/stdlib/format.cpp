@@ -4,6 +4,7 @@
 #include <charconv>
 #include <stdexcept>
 #include <string_view>
+#include <unordered_map>
 
 namespace tx_generated
 {
@@ -15,6 +16,14 @@ struct field
     std::string_view name;
     std::string_view spec;
     char conversion = 0;
+};
+
+struct field_state
+{
+    std::size_t next_auto = 0;
+    bool used_auto = false;
+    bool used_manual = false;
+    std::unordered_map<std::string, std::size_t> positional_names;
 };
 
 bool is_digit(char value)
@@ -86,43 +95,42 @@ field parse_field(std::string_view text)
     return result;
 }
 
-const std::any& find_keyword(const tx_dict& kwargs, std::string_view name)
+const std::any* find_keyword(const tx_dict& kwargs, std::string_view name)
 {
     for (const auto& [key, value] : kwargs)
     {
         if (key.type() == typeid(std::string) &&
             std::any_cast<const std::string&>(key) == name)
         {
-            return value;
+            return &value;
         }
     }
-    throw std::runtime_error("format 缺少命名参数：" + std::string(name));
+    return nullptr;
 }
 
 const std::any& resolve_field(const field& item, const tx_array& args,
-                              const tx_dict& kwargs, std::size_t& next_auto,
-                              bool& used_auto, bool& used_manual)
+                              const tx_dict& kwargs, field_state& state)
 {
     if (item.name.empty())
     {
-        if (used_manual)
+        if (state.used_manual)
         {
             throw std::runtime_error("format 不能混用自动和手动位置编号");
         }
-        used_auto = true;
-        if (next_auto >= args.size())
+        state.used_auto = true;
+        if (state.next_auto >= args.size())
         {
             throw std::runtime_error("format 缺少位置参数");
         }
-        return args[next_auto++];
+        return args[state.next_auto++];
     }
     if (is_digit(item.name.front()))
     {
-        if (used_auto)
+        if (state.used_auto)
         {
             throw std::runtime_error("format 不能混用自动和手动位置编号");
         }
-        used_manual = true;
+        state.used_manual = true;
         const auto index = parse_index(item.name);
         if (index >= args.size())
         {
@@ -135,7 +143,28 @@ const std::any& resolve_field(const field& item, const tx_array& args,
         throw std::runtime_error("format 不支持此字段名称或字段访问：" +
                                  std::string(item.name));
     }
-    return find_keyword(kwargs, item.name);
+    if (const auto* keyword = find_keyword(kwargs, item.name))
+    {
+        return *keyword;
+    }
+    if (state.used_manual)
+    {
+        throw std::runtime_error("format 不能混用自动和手动位置编号");
+    }
+    state.used_auto = true;
+    const auto name = std::string(item.name);
+    if (const auto found = state.positional_names.find(name);
+        found != state.positional_names.end())
+    {
+        return args[found->second];
+    }
+    if (state.next_auto >= args.size())
+    {
+        throw std::runtime_error("format 缺少位置参数供字段：" + name);
+    }
+    const auto index = state.next_auto++;
+    state.positional_names.emplace(name, index);
+    return args[index];
 }
 
 } // namespace
@@ -145,9 +174,7 @@ std::string tx_fn_format(const std::string& text, const tx_array& args,
 {
     (void)tx_len(text);
     std::string result;
-    std::size_t next_auto = 0;
-    bool used_auto = false;
-    bool used_manual = false;
+    field_state state;
     for (std::size_t offset = 0; offset < text.size();)
     {
         const char current = text[offset];
@@ -173,8 +200,7 @@ std::string tx_fn_format(const std::string& text, const tx_array& args,
             }
             const auto item = parse_field(std::string_view(text).substr(
                 offset + 1, closing - offset - 1));
-            const auto& value = resolve_field(item, args, kwargs, next_auto,
-                                              used_auto, used_manual);
+            const auto& value = resolve_field(item, args, kwargs, state);
             result += format_field_value(value, item.spec, item.conversion);
             offset = closing + 1;
         }

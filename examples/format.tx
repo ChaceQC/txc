@@ -3,6 +3,8 @@ import "format.txh" as fmt
 def main() -> int {
     print(fmt.format("你好，{}！", "世界"))
     print(fmt.format("{name}: {score:.2f}", name="Ada", score=9.875))
+    print(fmt.format("{name}: {score:.2f}", "Ada", 9.875))
+    print(fmt.format("{name} / {} / {name}", "Ada", 7))
     print(fmt.format("{0:>6} | {1:04d} | {{完成}}", "TX", 7))
     print(fmt.format("{0!r}", "第一行\n第二行"))
     print(fmt.format("{0:x} {0:X} {0:b} {0:o}", 31))
