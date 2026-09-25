@@ -275,6 +275,10 @@ def main() -> int
     {
         print((ratio * 2.0) as str)
     }
+    else if ready
+    {
+        print("已就绪，但计数不大于零")
+    }
     else
     {
         print("未就绪")

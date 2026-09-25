@@ -215,7 +215,16 @@ stmt_ptr parser::parse_if(source_pos position)
     std::vector<stmt_ptr> else_body;
     if (has_else)
     {
-        else_body = parse_block();
+        skip_newlines();
+        if (match(token_kind::keyword_if))
+        {
+            // 将 else if 表示为 else 中的嵌套分支，复用类型和控制流检查。
+            else_body.push_back(parse_if(previous().position));
+        }
+        else
+        {
+            else_body = parse_block();
+        }
     }
     else
     {

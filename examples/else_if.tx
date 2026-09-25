@@ -1,0 +1,86 @@
+# 连续分支和末尾 else 覆盖全部返回路径。
+def classify(value: int) -> str
+{
+    if value < 0
+    {
+        str result = "negative"
+        return result
+    }
+    else if value == 0
+    {
+        str result = "zero"
+        return result
+    }
+    else if value < 10
+    {
+        str result = "small"
+        return result
+    }
+    else
+    {
+        str result = "large"
+        return result
+    }
+}
+
+def main() -> int
+{
+    print(classify(-1), classify(0), classify(5), classify(10))
+
+    # 后置 ++ 返回更新后的值；命中第二个条件后不再求值。
+    int checks = 0
+    if checks++ == 2
+    {
+        print("unexpected first")
+    }
+    else if checks++ == 2
+    {
+        print("second")
+    }
+    else if checks++ == 3
+    {
+        print("unexpected third")
+    }
+    else
+    {
+        print("unexpected else")
+    }
+    print(checks)
+
+    # 不带末尾 else；整条链未命中后继续执行下一条语句。
+    int selected = 0
+    if false
+    {
+        selected = 1
+    }
+    else if false
+    {
+        selected = 2
+    }
+    print(selected)
+
+    # 注释和换行不打断 else if；内层与外层的 else 各自配对。
+    if true
+    {
+        if false
+        {
+            selected = 3
+        }
+        else
+        # else 和 if 之间允许换行。
+        if true
+        {
+            selected = 4
+        }
+        else
+        {
+            selected = 5
+        }
+    }
+    else if true
+    {
+        selected = 6
+    }
+    print(selected)
+    return 0
+}
