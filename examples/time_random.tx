@@ -1,11 +1,13 @@
 import "time.txh" as time
 import "random.txh" as random
 
-def main() -> int {
+def main() -> int
+{
     auto start = time.monotonic_millis()
     time.sleep_millis(1)
     auto finish = time.monotonic_millis()
-    if finish < start {
+    if finish < start
+    {
         return 1
     }
 
@@ -14,16 +16,20 @@ def main() -> int {
     auto number = random.random_int(-10, 10)
     auto fraction = random.random_float()
     random.seed(12345)
-    if number != random.random_int(-10, 10) {
+    if number != random.random_int(-10, 10)
+    {
         return 2
     }
-    if fraction != random.random_float() {
+    if fraction != random.random_float()
+    {
         return 3
     }
-    if number < -10 || number > 10 {
+    if number < -10 || number > 10
+    {
         return 4
     }
-    if fraction < 0.0 || fraction >= 1.0 {
+    if fraction < 0.0 || fraction >= 1.0
+    {
         return 5
     }
 

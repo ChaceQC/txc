@@ -14,6 +14,7 @@ int txrt_value_box_f64(double value, void** result) noexcept;
 int txrt_value_box_bool(bool value, void** result) noexcept;
 int txrt_value_box_str(const void* value, void** result) noexcept;
 int txrt_value_clone(const void* value, void** result) noexcept;
+int txrt_value_deep_copy(const void* value, void** result) noexcept;
 void txrt_value_release(void* value) noexcept;
 int txrt_value_assign(void* target, const void* value) noexcept;
 int txrt_value_to_i64(const void* value, std::int64_t* result) noexcept;

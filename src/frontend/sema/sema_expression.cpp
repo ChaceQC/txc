@@ -126,6 +126,12 @@ value_type semantic_analyzer::check_unary(expression& item,
     {
         return value_type::bool_type;
     }
+    if (structs_.contains(actual.name) || classes_.contains(actual.name))
+    {
+        return bind_operator(operation.operation, actual, std::nullopt,
+                             *operation.operand, item.position,
+                             operation.binding);
+    }
     throw compile_error(item.position, "一元运算符与操作数类型不匹配");
 }
 
@@ -175,6 +181,13 @@ value_type semantic_analyzer::check_binary(expression& item,
         break;
     default:
         break;
+    }
+    if ((structs_.contains(left.name) || classes_.contains(left.name)) &&
+        !operator_method_name(operation.operation).empty())
+    {
+        return bind_operator(operation.operation, left, right,
+                             *operation.left, item.position,
+                             operation.binding);
     }
     throw compile_error(item.position, "二元运算符与操作数类型不匹配：" +
                                        std::string(type_name(left)) + " 和 " +

@@ -77,7 +77,10 @@ using tx_generated::detail::invoke_checked;
 
 extern "C" int txrt_dict_new(void** result) noexcept
 {
-    return invoke_checked([&] { *result = new std::any(tx_dict{}); });
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::any>(tx_dict{});
+    });
 }
 
 extern "C" int txrt_dict_set(void* value, const void* key,

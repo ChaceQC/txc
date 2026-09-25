@@ -185,6 +185,13 @@ void llvm_code_generator::write_instruction(const std::string& text)
     body_ << "  " << text << '\n';
 }
 
+void llvm_code_generator::emit_gc_safepoint()
+{
+    const auto status = temporary();
+    write_instruction(status + " = call i32 @txrt_gc_safepoint()");
+    write_instruction("call void @txrt_require_success(i32 " + status + ")");
+}
+
 void llvm_code_generator::start_block(const std::string& name)
 {
     body_ << name << ":\n";
@@ -228,6 +235,11 @@ std::string llvm_code_generator::generate(const program& source)
     for (const auto& definition : source.structs)
     {
         structs_.emplace(definition.name, &definition);
+        for (const auto& method : definition.methods)
+        {
+            functions_[class_method_symbol(definition.name, method.name)]
+                .push_back(&method);
+        }
     }
     for (const auto& definition : source.classes)
     {
@@ -241,6 +253,7 @@ std::string llvm_code_generator::generate(const program& source)
     module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
             << "declare i32 @txrt_prepare_console()\n"
             << "declare void @txrt_require_success(i32)\n"
+            << "declare i32 @txrt_gc_safepoint()\n"
             << "declare i32 @txrt_print_i64(i64, i1)\n"
             << "declare i32 @txrt_print_f64(double, i1)\n"
             << "declare i32 @txrt_print_bool(i1, i1)\n"
@@ -277,6 +290,7 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_value_box_bool(i1, ptr)\n"
             << "declare i32 @txrt_value_box_str(ptr, ptr)\n"
             << "declare i32 @txrt_value_clone(ptr, ptr)\n"
+            << "declare i32 @txrt_value_deep_copy(ptr, ptr)\n"
             << "declare void @txrt_value_release(ptr)\n"
             << "declare i32 @txrt_value_assign(ptr, ptr)\n"
             << "declare i32 @txrt_value_to_i64(ptr, ptr)\n"
@@ -321,6 +335,13 @@ std::string llvm_code_generator::generate(const program& source)
     for (const auto& function : source.functions)
     {
         emit_function(function);
+    }
+    for (const auto& definition : source.structs)
+    {
+        for (const auto& method : definition.methods)
+        {
+            emit_function(method);
+        }
     }
     for (const auto& definition : source.classes)
     {

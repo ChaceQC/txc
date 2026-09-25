@@ -26,7 +26,8 @@ private:
     [[nodiscard]] struct_decl parse_struct();
     [[nodiscard]] class_decl parse_class(bool is_abstract = false,
                                          bool is_interface = false);
-    [[nodiscard]] function_decl parse_function(bool declaration_only = false);
+    [[nodiscard]] function_decl parse_function(bool declaration_only = false,
+                                               bool member = false);
     [[nodiscard]] std::vector<stmt_ptr> parse_block();
     [[nodiscard]] stmt_ptr parse_statement();
     [[nodiscard]] bool looks_like_declaration() const;

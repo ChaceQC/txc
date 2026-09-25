@@ -1,7 +1,9 @@
-def twice(value: int) -> int {
+def twice(value: int) -> int
+{
     return value * 2
 }
 
-def twice(value: float) -> float {
+def twice(value: float) -> float
+{
     return value * 2.0
 }

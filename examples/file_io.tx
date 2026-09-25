@@ -1,6 +1,7 @@
 import "file.txh" as file
 
-def main() -> int {
+def main() -> int
+{
     file.write_text("示例记录.txt", "你好\n", "utf-8")
     file.append_text("示例记录.txt", "世界\n", "utf-8")
     print(file.read_text("示例记录.txt", "utf-8"))

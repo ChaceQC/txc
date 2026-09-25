@@ -63,7 +63,12 @@ class_decl parser::parse_class(bool is_abstract, bool is_interface)
                 throw compile_error(current().position,
                                     "interface 方法直接使用 def 声明");
             }
-            auto method = parse_function(is_interface || is_abstract_method);
+            auto method = parse_function(is_interface || is_abstract_method, true);
+            if (is_interface && method.operator_kind)
+            {
+                throw compile_error(method.position,
+                                    "interface 暂不支持运算符成员");
+            }
             method.owner_class = name;
             method.access = access;
             method.is_virtual = is_virtual || is_interface || is_abstract_method;

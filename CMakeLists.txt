@@ -9,6 +9,7 @@ add_executable(txc
     src/frontend/lexer/lexer.cpp
     src/frontend/ast/ast.cpp
     src/frontend/parser/parser.cpp
+    src/frontend/parser/parser_declarations.cpp
     src/frontend/parser/parser_expression.cpp
     src/frontend/parser/parser_class.cpp
     src/frontend/resolver/module_resolver.cpp
@@ -16,6 +17,7 @@ add_executable(txc
     src/frontend/sema/sema.cpp
     src/frontend/sema/sema_registration.cpp
     src/frontend/sema/sema_expression.cpp
+    src/frontend/sema/sema_operator.cpp
     src/frontend/sema/sema_call.cpp
     src/frontend/sema/sema_class.cpp
     src/frontend/sema/sema_class_registration.cpp
@@ -41,6 +43,7 @@ add_executable(txc
 add_library(txstdlib STATIC
     src/backend/cpp/runtime.cpp
     src/backend/cpp/runtime_abi.cpp
+    src/backend/cpp/cycle_gc.cpp
     src/backend/cpp/text_direct_abi.cpp
     src/backend/cpp/array_direct_abi.cpp
     src/backend/cpp/filesystem_direct_abi.cpp
@@ -48,6 +51,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/format_direct_abi.cpp
     src/backend/cpp/io_time_direct_abi.cpp
     src/backend/cpp/value_abi.cpp
+    src/backend/cpp/deep_copy.cpp
     src/backend/cpp/class_abi.cpp
     src/backend/cpp/value_format.cpp
     src/backend/cpp/dictionary_abi.cpp

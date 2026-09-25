@@ -75,7 +75,23 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
     return {target, result};
 }
 
-std::string llvm_code_generator::lvalue_address(const expression& item)
+void llvm_code_generator::prepare_lvalue_indices(
+    const expression& item, lvalue_indices& indices)
+{
+    if (const auto* member = std::get_if<member_expression>(&item.data))
+    {
+        prepare_lvalue_indices(*member->object, indices);
+    }
+    else if (const auto* index = std::get_if<index_expression>(&item.data))
+    {
+        prepare_lvalue_indices(*index->object, indices);
+        // 所有可能产生副作用的索引先各求值一次，再取得容器内部地址。
+        indices.emplace(&item, expression_value(*index->index));
+    }
+}
+
+std::string llvm_code_generator::lvalue_address(
+    const expression& item, const lvalue_indices& indices)
 {
     if (const auto* name = std::get_if<name_reference>(&item.data))
     {
@@ -92,7 +108,7 @@ std::string llvm_code_generator::lvalue_address(const expression& item)
     std::string invocation;
     if (const auto* member = std::get_if<member_expression>(&item.data))
     {
-        base = lvalue_address(*member->object);
+        base = lvalue_address(*member->object, indices);
         if (member->object->type == value_type::any_type)
         {
             invocation = "@txrt_struct_field_address(ptr " + base + ", ptr " +
@@ -120,8 +136,8 @@ std::string llvm_code_generator::lvalue_address(const expression& item)
     }
     else if (const auto* index = std::get_if<index_expression>(&item.data))
     {
-        base = lvalue_address(*index->object);
-        const auto position = expression_value(*index->index);
+        base = lvalue_address(*index->object, indices);
+        const auto position = indices.at(&item);
         const bool static_array = index->object->type == value_type::array_type;
         ir_value boxed{value_type::void_type, {}};
         if (static_array)
@@ -169,9 +185,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_update(
     const expression& item, const update_expression& operation)
 {
     const auto* name = std::get_if<name_reference>(&operation.target->data);
+    lvalue_indices indices;
+    if (!name)
+    {
+        prepare_lvalue_indices(*operation.target, indices);
+    }
     const auto address = name
         ? find_variable(name->name, item.position).address
-        : lvalue_address(*operation.target);
+        : lvalue_address(*operation.target, indices);
     const auto current = name
         ? load({item.type, address})
         : from_any({value_type::any_type, address}, item.type, item.position);

@@ -1,6 +1,7 @@
 import "format.txh" as fmt
 
-def main() -> int {
+def main() -> int
+{
     print(fmt.format("你好，{}！", "世界"))
     print(fmt.format("{name}: {score:.2f}", name="Ada", score=9.875))
     print(fmt.format("{name}: {score:.2f}", "Ada", 9.875))

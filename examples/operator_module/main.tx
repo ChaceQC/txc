@@ -1,0 +1,11 @@
+import "point.txh" as geometry
+
+def main() -> int
+{
+    auto sum = geometry.point(1, 2) + geometry.point(3, 4)
+    if !(sum == geometry.point(4, 6))
+    {
+        return 1
+    }
+    return 0
+}

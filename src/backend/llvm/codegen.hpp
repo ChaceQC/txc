@@ -51,6 +51,10 @@ private:
     [[nodiscard]] ir_value expression_value(const expression& item);
     [[nodiscard]] ir_value emit_binary(const expression& item,
                                        const binary_operation& operation);
+    [[nodiscard]] ir_value emit_operator_call(
+        const value_type& result_type, source_pos position,
+        const operator_binding& binding, const ir_value& receiver,
+        const std::optional<ir_value>& argument);
     [[nodiscard]] ir_value emit_call(const expression& item,
                                      const call_expression& call);
     [[nodiscard]] ir_value emit_builtin_call(
@@ -99,7 +103,10 @@ private:
     [[nodiscard]] ir_value from_any(const ir_value& value,
                                     const value_type& target,
                                     source_pos position);
-    [[nodiscard]] std::string lvalue_address(const expression& item);
+    using lvalue_indices = std::unordered_map<const expression*, ir_value>;
+    void prepare_lvalue_indices(const expression& item, lvalue_indices& indices);
+    [[nodiscard]] std::string lvalue_address(
+        const expression& item, const lvalue_indices& indices);
     [[nodiscard]] ir_value emit_update(const expression& item,
                                        const update_expression& operation);
     void emit_statement(const statement& item);
@@ -134,6 +141,7 @@ private:
     void emit_function(const function_decl& function);
     void write_external_declarations();
     void write_instruction(const std::string& text);
+    void emit_gc_safepoint();
     void start_block(const std::string& name);
     void push_scope();
     void pop_scope();

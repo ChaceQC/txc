@@ -57,41 +57,57 @@ void llvm_code_generator::emit_declaration(
 void llvm_code_generator::emit_composite_assignment(
     const statement& item, const variable_assignment& assignment)
 {
-    const auto target = lvalue_address(*assignment.target);
-    auto value = expression_value(*assignment.value);
-    if (assignment.operation == token_kind::plus_equal ||
-        assignment.operation == token_kind::minus_equal)
+    lvalue_indices indices;
+    prepare_lvalue_indices(*assignment.target, indices);
+    ir_value value{value_type::void_type, {}};
+    std::string target;
+    if (assignment.binding)
     {
-        const bool add = assignment.operation == token_kind::plus_equal;
+        target = lvalue_address(*assignment.target, indices);
         const auto current = from_any({value_type::any_type, target},
                                       assignment.target->type, item.position);
-        ir_value combined{value_type::void_type, {}};
-        if (current.type == value_type::int_type)
+        const auto right = expression_value(*assignment.value);
+        value = emit_operator_call(assignment.target->type, item.position,
+                                   *assignment.binding, current, right);
+    }
+    else
+    {
+        value = expression_value(*assignment.value);
+        target = lvalue_address(*assignment.target, indices);
+        if (assignment.operation == token_kind::plus_equal ||
+            assignment.operation == token_kind::minus_equal)
         {
-            combined = checked_binary(add ? "txrt_add_i64" : "txrt_sub_i64",
-                                      current, value,
-                                      current.type, item.position);
+            const bool add = assignment.operation == token_kind::plus_equal;
+            const auto current = from_any({value_type::any_type, target},
+                                          assignment.target->type, item.position);
+            ir_value combined{value_type::void_type, {}};
+            if (current.type == value_type::int_type)
+            {
+                combined = checked_binary(add ? "txrt_add_i64" : "txrt_sub_i64",
+                                          current, value,
+                                          current.type, item.position);
+            }
+            else if (current.type == value_type::float_type)
+            {
+                const auto result = temporary();
+                write_instruction(result +
+                    (add ? " = fadd double " : " = fsub double ") +
+                    current.text + ", " + value.text);
+                combined = {current.type, result};
+            }
+            else if (add && current.type == value_type::str_type)
+            {
+                combined = checked_binary("txrt_str_concat", current, value,
+                                          current.type, item.position);
+            }
+            else
+            {
+                throw compile_error(item.position, "LLVM 后端暂不支持此复合赋值类型");
+            }
+            release(current);
+            release(value);
+            value = combined;
         }
-        else if (current.type == value_type::float_type)
-        {
-            const auto result = temporary();
-            write_instruction(result +
-                (add ? " = fadd double " : " = fsub double ") +
-                current.text + ", " + value.text);
-            combined = {current.type, result};
-        }
-        else if (add && current.type == value_type::str_type)
-        {
-            combined = checked_binary("txrt_str_concat", current, value,
-                                      current.type, item.position);
-        }
-        else
-        {
-            throw compile_error(item.position, "LLVM 后端暂不支持此复合赋值类型");
-        }
-        release(current);
-        release(value);
-        value = combined;
     }
     const auto boxed = box_any(value, item.position);
     const auto status = temporary();
@@ -107,8 +123,18 @@ void llvm_code_generator::emit_name_assignment(
     const name_reference& name)
 {
     const auto variable = find_variable(name.name, item.position);
+    ir_value old{value_type::void_type, {}};
+    if (assignment.binding)
+    {
+        old = load(variable);
+    }
     auto value = expression_value(*assignment.value);
-    if (assignment.operation == token_kind::plus_equal ||
+    if (assignment.binding)
+    {
+        value = emit_operator_call(variable.type, item.position,
+                                   *assignment.binding, old, value);
+    }
+    else if (assignment.operation == token_kind::plus_equal ||
         assignment.operation == token_kind::minus_equal)
     {
         const bool add = assignment.operation == token_kind::plus_equal;
@@ -274,6 +300,10 @@ void llvm_code_generator::emit_statement(const statement& item)
     {
         const auto& expression_only = std::get<expression_statement>(item.data);
         release(expression_value(*expression_only.value));
+    }
+    if (!terminated_)
+    {
+        emit_gc_safepoint();
     }
 }
 

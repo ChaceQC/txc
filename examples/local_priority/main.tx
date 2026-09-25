@@ -1,6 +1,7 @@
 import "io.txh" as io
 
-def main() -> int {
+def main() -> int
+{
     print(io.source())
     return 0
 }

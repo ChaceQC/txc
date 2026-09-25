@@ -34,12 +34,12 @@ def main() -> int {
 
 | 声明 | `name.txh` | 配对的 `name.tx` |
 | --- | --- | --- |
-| `struct` | 写一次完整的字段定义 | **不要重写**该结构体；可在函数体中使用它 |
+| `struct` | 写完整字段定义及运算符签名 | 有运算符时重写相同字段和运算符签名，并提供运算符方法体；没有运算符时**不要重写**该结构体 |
 | 普通函数 | 只写签名，不写 `{ ... }` | 按相同参数名、参数类型及返回类型写函数体；所有接口重载都要实现 |
 | `class` | 写完整的继承列表、访问修饰符、字段和方法签名；方法不写 `{ ... }` | **重新写出同一个类声明**，保持继承列表、字段顺序、访问修饰符、方法顺序和签名一致，并给具体方法写函数体 |
 | `interface` / `abstract class` | 接口方法和抽象方法只写签名 | 若有配对文件，同样重新声明；抽象方法仍不写函数体，具体方法写函数体 |
 
-配对 `.tx` 不能增加 `.txh` 未声明的函数重载、类或接口，也不能遗漏 `.txh` 中的类或接口。`struct` 是特例：它的定义只保留在 `.txh`。函数和方法的无返回值类型可写 `-> void` 或省略；返回类型不能单独用于区分重载。
+配对 `.tx` 不能增加 `.txh` 未声明的函数重载、类或接口，也不能遗漏 `.txh` 中的类或接口。含运算符的 `struct` 必须在配对文件中逐字段、逐运算符对应；不含运算符的 `struct` 只保留在 `.txh`。函数和方法的无返回值类型可写 `-> void` 或省略；返回类型不能单独用于区分重载。
 
 ### `struct` 文件示例
 
@@ -54,7 +54,7 @@ struct point {
 def move_x(value: point, delta: int) -> point
 ```
 
-同名 [point.tx](../examples/struct_module/point.tx) **不重复** `struct point`，直接使用接口中的类型：
+同名 [point.tx](../examples/struct_module/point.tx) **不重复**没有运算符成员的 `struct point`，直接使用接口中的类型：
 
 ```tx
 def move_x(value: point, delta: int) -> point {
@@ -62,7 +62,7 @@ def move_x(value: point, delta: int) -> point {
 }
 ```
 
-入口文件导入接口，例如 [struct 模块示例](../examples/struct_module/main.tx) 中的 `import "point.txh" as geometry`，然后使用 `geometry.point(...)` 与 `geometry.move_x(...)`。如果 `.txh` 只有 `struct`、没有需要实现的函数，可以不创建配对 `.tx`。
+入口文件导入接口，例如 [struct 模块示例](../examples/struct_module/main.tx) 中的 `import "point.txh" as geometry`，然后使用 `geometry.point(...)` 与 `geometry.move_x(...)`。如果 `.txh` 只有没有运算符的 `struct`、没有需要实现的函数，可以不创建配对 `.tx`。含运算符成员的结构体模块见[运算符模块示例](../examples/operator_module/main.tx)。
 
 ### `class` 文件示例
 

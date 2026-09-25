@@ -1,0 +1,81 @@
+# 赋值和传参共享复合对象，deep_copy 创建独立对象图。
+struct record
+{
+    items: array
+}
+
+class box
+{
+    public:
+        items: dict
+
+        def insert() -> int
+        {
+            self.items["other"] = 1
+            return 2
+        }
+
+        def deinit()
+        {
+            print("box deinit")
+        }
+}
+
+class node
+{
+    public:
+        value: int
+        next: node
+
+        def init(value: int)
+        {
+            self.value = value
+        }
+}
+
+def main() -> int
+{
+    int number = 2
+    auto copied_number = number
+    copied_number = 3
+    print(number, copied_number)
+
+    array values = [1, 2]
+    auto alias = values
+    alias[0] = 2
+    print(values[0], alias[0])
+
+    array separate = deep_copy(values)
+    alias[0] = 3
+    print(separate[0])
+
+    record source = record([5])
+    record shared = source
+    shared.items[0] = 6
+    record detached = deep_copy(source)
+    detached.items[0] = 7
+    print(source.items[0], detached.items[0])
+
+    dict loop = {"self": none}
+    loop["self"] = loop
+    loop["self"]["added"] = 8
+    print(loop["added"])
+    loop["self"] = none
+
+    box original = box()
+    original.items["target"] = original.insert()
+    print(original.items["target"], original.items["other"])
+
+    box copied = deep_copy(original)
+    copied.items["other"] = 4
+    print(original.items["other"], copied.items["other"])
+
+    node first = node(1)
+    first.next = first
+    node second = deep_copy(first)
+    second.value = 2
+    print(first.value, second.next.value)
+    first.next = node(0)
+    second.next = node(0)
+    return 0
+}

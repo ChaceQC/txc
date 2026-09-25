@@ -336,6 +336,7 @@ extern "C" int txrt_call_external(const char* name,
                                     void** result) noexcept
 {
     return tx_generated::detail::invoke_checked([&] {
-        *result = new std::any(dispatch(name, arguments, count));
+        *result = tx_generated::detail::make_handle<std::any>(
+            dispatch(name, arguments, count));
     });
 }

@@ -35,8 +35,7 @@ private:
                    program& header, program& result);
     [[nodiscard]] static program parse_file(const std::filesystem::path& path);
     static void append_program(program& target, program& source);
-    static void validate_pair(const program& header, const program& implementation,
-                              const std::filesystem::path& source_path);
+    static void validate_pair(const program& header, const program& implementation);
     [[nodiscard]] static std::string read_source(const std::filesystem::path& path);
     [[nodiscard]] static std::string path_text(const std::filesystem::path& path);
     [[nodiscard]] std::filesystem::path resolve_import_path(

@@ -1,6 +1,7 @@
 import "tagged.txh"
 
-class holder : tagged {
+class holder : tagged
+{
     public:
         value: str
         def init(value: str)

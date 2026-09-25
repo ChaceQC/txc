@@ -1,0 +1,77 @@
+# 不可达的类、数组和字典循环在安全点回收；可达的自引用数组仍可使用。
+class link
+{
+    public:
+        id: int
+        next: link
+
+        def init(id: int)
+        {
+            self.id = id
+        }
+
+        def deinit()
+        {
+            print("link deinit", self.id)
+        }
+}
+
+class array_owner
+{
+    public:
+        values: array
+
+        def deinit()
+        {
+            print("array owner deinit")
+        }
+}
+
+class dict_owner
+{
+    public:
+        values: dict
+
+        def deinit()
+        {
+            print("dict owner deinit")
+        }
+}
+
+def make_cycles()
+{
+    link first = link(1)
+    link second = link(2)
+    first.next = second
+    second.next = first
+    link copied = deep_copy(first)
+    copied.id = 3
+    copied.next.id = 4
+
+    array values = [none]
+    array_owner owner = array_owner()
+    owner.values = values
+    values[0] = owner
+
+    dict mapping = {"owner": none}
+    dict_owner holder = dict_owner()
+    holder.values = mapping
+    mapping["owner"] = holder
+}
+
+def main() -> int
+{
+    array live = [none]
+    live[0] = live
+    make_cycles()
+    for index in 0..=70
+    {
+        array step = []
+    }
+    print(len(live[0]))
+    live[0] = none
+    print("after gc")
+    # 第二组循环留给正常退出路径回收。
+    make_cycles()
+    return 0
+}

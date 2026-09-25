@@ -1,4 +1,5 @@
-struct point {
+struct point
+{
     x: int
     y: int
 }

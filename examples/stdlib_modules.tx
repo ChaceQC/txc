@@ -6,7 +6,8 @@ import "string.txh" as strings
 import "file.txh" as file
 import "io.txh" as io
 
-def main() -> int {
+def main() -> int
+{
     print(math.abs(-7))
     print(math.abs(-2.5))
     print(math.min(4, 8))
@@ -37,8 +38,10 @@ def main() -> int {
     print(paths.file_name(directory))
     print(paths.file_name("example.txt"))
     print(paths.extension("example.txt"))
-    for name in fs.list_directory("tx_build") {
-        if (name as str) == "标准库示例" {
+    for name in fs.list_directory("tx_build")
+    {
+        if (name as str) == "标准库示例"
+        {
             print(name)
         }
     }

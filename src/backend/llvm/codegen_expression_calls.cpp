@@ -42,7 +42,7 @@ bool is_builtin_call(std::string_view name)
 {
     return name == "print" || name == "len" || name == "is_none" ||
            name == "to_float" || name == "input" ||
-           name == "input_or_none";
+           name == "input_or_none" || name == "deep_copy";
 }
 
 } // namespace
@@ -55,6 +55,23 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
     {
         emit_print_call(item, call, arguments);
         return {value_type::void_type, {}};
+    }
+    if (call.name == "deep_copy")
+    {
+        const auto& argument = arguments.front();
+        if (!is_value_handle(argument.type))
+        {
+            return argument;
+        }
+        const auto address = allocate(argument.type, item.position);
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_value_deep_copy(ptr " +
+                          argument.text + ", ptr " + address + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        release(argument);
+        const auto result = temporary();
+        write_instruction(result + " = load ptr, ptr " + address);
+        return {item.type, result};
     }
     if (call.name == "len")
     {

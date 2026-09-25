@@ -9,8 +9,9 @@ namespace tx_generated
 
 tx_array tx_fn_concat(tx_array left, tx_array right)
 {
-    left.insert(left.end(), right.begin(), right.end());
-    return left;
+    tx_array result(left.begin(), left.end());
+    result.insert(result.end(), right.begin(), right.end());
+    return result;
 }
 
 tx_array tx_fn_array_slice(tx_array values, tx_int start, tx_int end)
@@ -27,8 +28,9 @@ tx_array tx_fn_array_slice(tx_array values, tx_int start, tx_int end)
 
 tx_array tx_fn_reverse(tx_array values)
 {
-    std::reverse(values.begin(), values.end());
-    return values;
+    tx_array result(values.begin(), values.end());
+    std::reverse(result.begin(), result.end());
+    return result;
 }
 
 } // namespace tx_generated

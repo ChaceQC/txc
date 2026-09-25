@@ -200,6 +200,14 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
     }
     auto& argument = *call.arguments.front().value;
     const auto actual = check_expression(argument);
+    if (call.name == "deep_copy")
+    {
+        if (actual == value_type::void_type)
+        {
+            throw compile_error(argument.position, "deep_copy 不能复制 void 值");
+        }
+        return actual;
+    }
     if (call.name == "len")
     {
         if (actual != value_type::array_type &&
@@ -289,7 +297,7 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     if (call.name == "print" || call.name == "len" ||
         call.name == "to_float" || call.name == "input" ||
         call.name == "input_or_none" ||
-        call.name == "is_none")
+        call.name == "is_none" || call.name == "deep_copy")
     {
         return check_builtin(item, call);
     }

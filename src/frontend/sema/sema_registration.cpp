@@ -31,7 +31,7 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
     throw compile_error(position, "未知类型：" + type.name);
 }
 
-void semantic_analyzer::register_structs(const program& source)
+void semantic_analyzer::register_structs(program& source)
 {
     structs_.clear();
     for (const auto& definition : source.structs)
@@ -53,6 +53,47 @@ void semantic_analyzer::register_structs(const program& source)
         }
         // 只允许字段引用已经完成声明的结构体，避免生成递归值类型。
         structs_.emplace(definition.name, &definition);
+    }
+    for (auto& definition : source.structs)
+    {
+        for (std::size_t index = 0; index < definition.methods.size(); ++index)
+        {
+            auto& method = definition.methods[index];
+            if (method.return_type != value_type::void_type)
+            {
+                validate_type(method.return_type, method.position);
+            }
+            std::unordered_set<std::string> names;
+            for (const auto& parameter : method.parameters)
+            {
+                validate_type(parameter.type, parameter.position);
+                if (parameter.name == "self" || parameter.name == "super" ||
+                    !names.insert(parameter.name).second)
+                {
+                    throw compile_error(parameter.position,
+                                        "重复或保留的运算符参数名：" +
+                                        parameter.name);
+                }
+            }
+            validate_operator_method(method);
+            std::size_t overload = 0;
+            for (std::size_t prior = 0; prior < index; ++prior)
+            {
+                const auto& previous = definition.methods[prior];
+                if (previous.name != method.name)
+                {
+                    continue;
+                }
+                if (same_overload_key(previous, method))
+                {
+                    throw compile_error(method.position,
+                                        "重复的运算符重载签名：" +
+                                        method.source_name);
+                }
+                ++overload;
+            }
+            method.overload_index = overload;
+        }
     }
 }
 

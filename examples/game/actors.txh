@@ -1,4 +1,5 @@
-interface combatant {
+interface combatant
+{
     def name() -> str
     def health() -> int
     def max_health() -> int
@@ -6,7 +7,8 @@ interface combatant {
     def take_damage(amount: int) -> int
 }
 
-class entity : combatant {
+class entity : combatant
+{
     protected:
         label_value: str
         health_value: int
@@ -21,7 +23,8 @@ class entity : combatant {
         def heal(amount: int) -> int
 }
 
-class hero : entity {
+class hero : entity
+{
     private:
         energy_value: int
         potion_count: int
@@ -47,7 +50,8 @@ class hero : entity {
         override def take_damage(amount: int) -> int
 }
 
-class monster : entity {
+class monster : entity
+{
     private:
         floor_value: int
         encounter_value: int

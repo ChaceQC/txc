@@ -1,8 +1,11 @@
 #pragma once
 
+#include "backend/cpp/cycle_gc.hpp"
+
 #include <any>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace tx_generated
@@ -14,11 +17,43 @@ struct dynamic_field
     std::any value;
 };
 
-struct dynamic_struct
+struct dynamic_struct_data
 {
     std::string type_name;
     std::string display_name;
     std::vector<dynamic_field> fields;
+};
+
+struct dynamic_struct
+{
+    explicit dynamic_struct(dynamic_struct_data value)
+        : data(std::make_shared<dynamic_struct_data>(std::move(value)))
+    {
+        register_gc_node(data,
+            [](const void* object, gc_visit visit, void* context)
+            {
+                for (const auto& field :
+                     static_cast<const dynamic_struct_data*>(object)->fields)
+                {
+                    visit(field.value, context);
+                }
+            },
+            [](void* object)
+            {
+                static_cast<dynamic_struct_data*>(object)->fields.clear();
+            });
+    }
+
+    [[nodiscard]] dynamic_struct_data* operator->() const noexcept
+    {
+        return data.get();
+    }
+    [[nodiscard]] const void* identity() const noexcept
+    {
+        return data.get();
+    }
+
+    std::shared_ptr<dynamic_struct_data> data;
 };
 
 struct dynamic_class
@@ -50,8 +85,14 @@ public:
     }
     ~class_handle();
 
-    [[nodiscard]] dynamic_class& operator*() const noexcept { return *object_; }
-    [[nodiscard]] dynamic_class* operator->() const noexcept { return object_.get(); }
+    [[nodiscard]] dynamic_class& operator*() const noexcept
+    {
+        return *object_;
+    }
+    [[nodiscard]] dynamic_class* operator->() const noexcept
+    {
+        return object_.get();
+    }
     [[nodiscard]] explicit operator bool() const noexcept
     {
         return static_cast<bool>(object_);
@@ -60,6 +101,8 @@ public:
 private:
     std::shared_ptr<dynamic_class> object_;
 };
+
+void register_class_gc(const std::shared_ptr<dynamic_class>& object);
 
 [[nodiscard]] std::string format_print_value(const std::any& value);
 [[nodiscard]] std::string format_repr_value(const std::any& value);

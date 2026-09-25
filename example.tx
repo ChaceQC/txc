@@ -9,6 +9,28 @@ struct record
     meta: dict
 }
 
+# struct 只声明运算符成员；self 是隐含的左操作数。
+struct vector2
+{
+    x: int
+    y: int
+
+    def operator +(other: vector2) -> vector2
+    {
+        return vector2(self.x + other.x, self.y + other.y)
+    }
+
+    def operator -() -> vector2
+    {
+        return vector2(-self.x, -self.y)
+    }
+
+    def operator ==(other: vector2) -> bool
+    {
+        return self.x == other.x && self.y == other.y
+    }
+}
+
 # 接口只声明方法；抽象类保留待子类实现的 speak。
 interface labeled
 {
@@ -44,6 +66,10 @@ class counted
         {
             return self.count
         }
+        virtual def operator +(other: counted) -> int
+        {
+            return self.count + other.count
+        }
         def deinit()
         {
             print("counted deinit")
@@ -66,6 +92,10 @@ class dog : animal, counted
         override def count_value() -> int
         {
             return super(counted).count_value()
+        }
+        override def operator +(other: counted) -> int
+        {
+            return super(counted) + other
         }
         def describe(value: int) -> str
         {
@@ -95,10 +125,14 @@ def class_demo()
     counted other_parent = pet as counted
     print(recovered.speak())
     print(other_parent.count_value())
+    # 静态类型决定重载；运行时分派到 dog 的 override。
+    counted left_counted = concrete
+    print(left_counted + other_parent)
     # 离开函数时最后一个对象引用释放，依次执行 dog、counted、animal 的 deinit。
 }
 
-def sum_to(n: int) -> int {
+def sum_to(n: int) -> int
+{
     int total = 0
     for i in 1..=n
     {
@@ -107,41 +141,51 @@ def sum_to(n: int) -> int {
     return total
 }
 
-def factorial(n: int) -> int {
-    if n <= 1 {
+def factorial(n: int) -> int
+{
+    if n <= 1
+    {
         return 1
     }
     return n * factorial(n - 1)
 }
 
-def describe(value: int) -> str {
+def describe(value: int) -> str
+{
     return "int=" + (value as str)
 }
 
-def describe(value: float) -> str {
+def describe(value: float) -> str
+{
     return "float=" + (value as str)
 }
 
-def write_message(message: str) {
+def write_message(message: str)
+{
     print(message)
 }
 
-def stop_early(done: bool) -> void {
-    if done {
+def stop_early(done: bool) -> void
+{
+    if done
+    {
         return
     }
     print("未结束")
 }
 
-def show(label: str, *args, **kwargs) {
+def show(label: str, *args, **kwargs)
+{
     print(label)
-    for value in args {
+    for value in args
+    {
         print(value)
     }
     print(kwargs["status"])
 }
 
-def count_extra(*args: array, **kwargs: dict) -> int {
+def count_extra(*args: array, **kwargs: dict) -> int
+{
     return len(args) + len(kwargs)
 }
 
@@ -159,6 +203,8 @@ def main() -> int
     dict settings = {"status": "完成", 7: false}
     dict empty_dict = {}
     auto user = record(name="Ada", scores=[8.5, 9.0], meta={"active": true})
+    auto position = vector2(2, 3) + vector2(4, 5)
+    position += vector2(1, 1)
     array nested = [[1, 2], user]
     class_demo()
 
@@ -174,6 +220,9 @@ def main() -> int
     print(user.name + "：" + heading)
     print(user.scores[1])
     print(user.meta["active"])
+    print(position.x, position.y)
+    print(-position)
+    print(position == vector2(7, 9))
     print(len(nested[0]))
     print(nested[1].name)
     print(len(values))
@@ -208,21 +257,25 @@ def main() -> int
     {
         print("未就绪")
     }
-    if !ready || count == 0 {
+    if !ready || count == 0
+    {
         print("不会输出")
     }
-    if count >= 3 && count != 0 && count <= 3 {
+    if count >= 3 && count != 0 && count <= 3
+    {
         print(8 / 2)
         print(7 - 2)
         print(-count)
         print(ratio / 0.5)
     }
-    if false {
+    if false
+    {
         # 保留 input 的调用示例，执行时不会等待终端输入。
         str answer = input("请输入：")
         print(answer)
         auto optional_answer = input_or_none("再输入一行：")
-        if !is_none(optional_answer) {
+        if !is_none(optional_answer)
+        {
             print(optional_answer as str)
         }
         str escaped = "第一行\\n第二行"
@@ -236,7 +289,8 @@ def main() -> int
     {
         print(value)
     }
-    for key in settings {
+    for key in settings
+    {
         print(key)
     }
 

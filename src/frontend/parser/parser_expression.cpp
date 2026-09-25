@@ -46,7 +46,8 @@ expr_ptr parser::parse_expression(int min_precedence)
         auto right = parse_expression(precedence(operation.kind) + 1);
         left = std::make_unique<expression>(
             operation.position,
-            binary_operation{operation.kind, std::move(left), std::move(right)});
+            binary_operation{operation.kind, std::move(left),
+                             std::move(right), std::nullopt});
     }
     return left;
 }
@@ -62,7 +63,8 @@ expr_ptr parser::parse_unary()
         const auto operation = previous();
         return std::make_unique<expression>(
             operation.position,
-            unary_operation{operation.kind, parse_unary(), false});
+            unary_operation{operation.kind, parse_unary(), false,
+                            std::nullopt});
     }
     return parse_postfix();
 }

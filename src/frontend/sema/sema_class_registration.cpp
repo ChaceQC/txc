@@ -166,6 +166,10 @@ void semantic_analyzer::register_class_method(
                                 "重复或保留的方法参数名：" + parameter.name);
         }
     }
+    if (method.operator_kind)
+    {
+        validate_operator_method(method);
+    }
     if (method.name == "init" || method.name == "deinit")
     {
         if (definition.is_interface ||

@@ -32,7 +32,7 @@ private:
         const class_field* field;
         const class_decl* owner;
     };
-    void register_structs(const program& source);
+    void register_structs(program& source);
     void index_classes(program& source);
     void register_classes(program& source);
     void register_class(class_decl& definition, program& source,
@@ -58,6 +58,12 @@ private:
     [[nodiscard]] value_type check_literal(expression& item);
     [[nodiscard]] value_type check_unary(expression& item, unary_operation& operation);
     [[nodiscard]] value_type check_binary(expression& item, binary_operation& operation);
+    void validate_operator_method(const function_decl& method) const;
+    [[nodiscard]] value_type bind_operator(
+        token_kind kind, const value_type& receiver,
+        const std::optional<value_type>& argument,
+        const expression& receiver_expression, source_pos position,
+        std::optional<operator_binding>& binding) const;
     [[nodiscard]] value_type check_call(expression& item, call_expression& call);
     [[nodiscard]] value_type check_builtin(expression& item, call_expression& call);
     [[nodiscard]] value_type check_constructor(expression& item, call_expression& call);

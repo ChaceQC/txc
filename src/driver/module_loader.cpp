@@ -65,8 +65,7 @@ void module_loader::append_program(program& target, program& source)
 }
 
 void module_loader::validate_pair(const program& header,
-                                  const program& implementation,
-                                  const std::filesystem::path& source_path)
+                                  const program& implementation)
 {
     for (const auto& declaration : header.functions)
     {
@@ -110,10 +109,37 @@ void module_loader::validate_pair(const program& header,
                                 "实现包含接口未声明的重载：" + definition.name);
         }
     }
-    if (!implementation.structs.empty())
+    for (const auto& declaration : header.structs)
     {
-        throw compile_error(implementation.structs.front().position,
-                            "配对 .tx 的结构体应声明在 .txh：" + path_text(source_path));
+        const auto found = std::find_if(implementation.structs.begin(),
+            implementation.structs.end(), [&](const struct_decl& item)
+            { return item.name == declaration.name; });
+        if (declaration.methods.empty())
+        {
+            if (found != implementation.structs.end())
+            {
+                throw compile_error(found->position,
+                                    "没有运算符的结构体只应声明在 .txh：" +
+                                    declaration.name);
+            }
+        }
+        else if (found == implementation.structs.end() ||
+                 !same_struct_layout(declaration, *found))
+        {
+            throw compile_error(declaration.position,
+                                "接口结构体与实现不匹配：" + declaration.name);
+        }
+    }
+    for (const auto& definition : implementation.structs)
+    {
+        const auto found = std::find_if(header.structs.begin(),
+            header.structs.end(), [&](const struct_decl& item)
+            { return item.name == definition.name; });
+        if (found == header.structs.end())
+        {
+            throw compile_error(definition.position,
+                                "实现包含接口未声明的结构体：" + definition.name);
+        }
     }
     for (const auto& declaration : header.classes)
     {
@@ -217,6 +243,15 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
     source_path.replace_extension(".tx");
     if (!fs::exists(source_path))
     {
+        for (const auto& definition : header.structs)
+        {
+            if (!definition.methods.empty())
+            {
+                throw compile_error(definition.position,
+                                    "结构体运算符需要配对 .tx 实现：" +
+                                    definition.name);
+            }
+        }
         for (const auto& definition : header.classes)
         {
             for (const auto& method : definition.methods)
@@ -259,10 +294,19 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
     result.file_modules[key] = path_text(header_path);
     auto implementation = parse_file(source_path);
     load_dependencies(implementation, source_path, path_text(header_path), result);
-    validate_pair(header, implementation, source_path);
-    result.structs.insert(result.structs.end(),
-                          std::make_move_iterator(header.structs.begin()),
-                          std::make_move_iterator(header.structs.end()));
+    validate_pair(header, implementation);
+    for (auto& declaration : header.structs)
+    {
+        if (declaration.methods.empty())
+        {
+            result.structs.push_back(std::move(declaration));
+            continue;
+        }
+        auto found = std::find_if(implementation.structs.begin(),
+            implementation.structs.end(), [&](const struct_decl& item)
+            { return item.name == declaration.name; });
+        result.structs.push_back(std::move(*found));
+    }
     result.classes.insert(result.classes.end(),
                           std::make_move_iterator(implementation.classes.begin()),
                           std::make_move_iterator(implementation.classes.end()));

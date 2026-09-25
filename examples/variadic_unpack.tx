@@ -1,16 +1,20 @@
-def report(title: str, *args, **kwargs) {
+def report(title: str, *args, **kwargs)
+{
     print(title)
-    for value in args {
+    for value in args
+    {
         print(value)
     }
     print(kwargs["status"])
 }
 
-def add(left: int, right: int) -> int {
+def add(left: int, right: int) -> int
+{
     return left + right
 }
 
-def main() -> int {
+def main() -> int
+{
     array parts = ["左", "右"]
     left, right = parts
     print(left)
@@ -31,7 +35,8 @@ def main() -> int {
     dict mixed = {true: "布尔键", 3.5: 23, none: "空键"}
     print(mixed[true])
     print(mixed[none])
-    for key in options {
+    for key in options
+    {
         print(key)
     }
     return 0

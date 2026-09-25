@@ -9,5 +9,7 @@ namespace tx
                                         const function_decl& right);
 [[nodiscard]] bool same_class_layout(const class_decl& left,
                                      const class_decl& right);
+[[nodiscard]] bool same_struct_layout(const struct_decl& left,
+                                      const struct_decl& right);
 
 } // namespace tx

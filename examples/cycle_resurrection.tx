@@ -1,0 +1,44 @@
+# deinit 把对象放回可达的 keeper 后，回收器必须保留该对象。
+class keeper
+{
+    public:
+        saved: victim
+}
+
+class victim
+{
+    public:
+        anchor: keeper
+        next: victim
+        value: int
+
+        def init(anchor: keeper)
+        {
+            self.anchor = anchor
+            self.value = 7
+        }
+
+        def deinit()
+        {
+            self.anchor.saved = self
+            print("victim deinit")
+        }
+}
+
+def make_cycle(target: keeper)
+{
+    victim item = victim(target)
+    item.next = item
+}
+
+def main() -> int
+{
+    keeper root = keeper()
+    make_cycle(root)
+    for index in 0..=70
+    {
+        array step = []
+    }
+    print(root.saved.value)
+    return 0
+}

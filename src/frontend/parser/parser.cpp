@@ -116,113 +116,6 @@ import_decl parser::parse_import()
     return {value, alias, position};
 }
 
-struct_decl parser::parse_struct()
-{
-    const auto position = consume(token_kind::keyword_struct, "需要 struct").position;
-    const auto name = consume(token_kind::identifier, "需要结构体名称").text;
-    skip_newlines();
-    (void)consume(token_kind::left_brace, "结构体需要左大括号");
-    skip_newlines();
-    std::vector<struct_field> fields;
-    while (!check(token_kind::right_brace))
-    {
-        if (check(token_kind::end_of_file))
-        {
-            throw compile_error(current().position, "结构体缺少右大括号");
-        }
-        const auto field = consume(token_kind::identifier, "需要字段名");
-        (void)consume(token_kind::colon, "字段名后需要冒号");
-        fields.push_back({field.text, parse_type(), field.position});
-        if (!check(token_kind::right_brace) && !match(token_kind::newline))
-        {
-            throw compile_error(current().position, "字段结束处需要换行");
-        }
-        skip_newlines();
-    }
-    (void)advance();
-    return {name, std::move(fields), position};
-}
-
-function_decl parser::parse_function(bool declaration_only)
-{
-    const auto position = consume(token_kind::keyword_def, "需要 def").position;
-    const auto name = consume(token_kind::identifier, "需要函数名").text;
-    (void)consume(token_kind::left_paren, "函数名后需要左括号");
-    std::vector<parameter> parameters;
-    if (!check(token_kind::right_paren))
-    {
-        bool seen_array = false;
-        bool seen_dict = false;
-        do
-        {
-            parameter_kind kind = parameter_kind::ordinary;
-            if (match(token_kind::double_star))
-            {
-                kind = parameter_kind::variadic_dict;
-                if (seen_dict)
-                {
-                    throw compile_error(previous().position, "只能有一个 **kwargs 参数");
-                }
-                seen_dict = true;
-            }
-            else if (match(token_kind::star))
-            {
-                kind = parameter_kind::variadic_array;
-                if (seen_array || seen_dict)
-                {
-                    throw compile_error(previous().position, "*args 必须位于普通参数后、**kwargs 前");
-                }
-                seen_array = true;
-            }
-            else if (seen_array || seen_dict)
-            {
-                throw compile_error(current().position, "普通参数必须位于 *args 和 **kwargs 前");
-            }
-            const auto& parameter_name = consume(token_kind::identifier, "需要参数名");
-            value_type type;
-            if (kind == parameter_kind::ordinary)
-            {
-                (void)consume(token_kind::colon, "参数名后需要冒号");
-                type = parse_type();
-            }
-            else
-            {
-                type = kind == parameter_kind::variadic_array
-                    ? value_type::array_type : value_type::dict_type;
-                if (match(token_kind::colon))
-                {
-                    const auto annotated = parse_type();
-                    if (annotated != type)
-                    {
-                        throw compile_error(parameter_name.position,
-                                            "可变参数类型必须为 " + type.name);
-                    }
-                }
-            }
-            parameters.push_back({parameter_name.text, type,
-                                  parameter_name.position, kind});
-        } while (match(token_kind::comma));
-    }
-    (void)consume(token_kind::right_paren, "参数列表缺少右括号");
-    const auto return_type = match(token_kind::arrow)
-        ? parse_type() : value_type::void_type;
-    if (interface_mode_ || declaration_only)
-    {
-        if (!check(token_kind::newline) && !check(token_kind::end_of_file))
-        {
-            throw compile_error(current().position,
-                                "接口或抽象方法声明后不能写方法体");
-        }
-        return {name, std::move(parameters), return_type, {}, position, true,
-                name, {}, {}, member_access::public_access, false, false,
-                false, {}, 0};
-    }
-    auto body = parse_block();
-    return {name, std::move(parameters), return_type, std::move(body),
-            position, false, name, {}, {}, member_access::public_access,
-            false, false, false, {}, 0};
-}
-
 std::vector<stmt_ptr> parser::parse_block()
 {
     // 只有等待代码块左大括号时才跨越换行，普通语句仍按行结束。
@@ -397,7 +290,8 @@ stmt_ptr parser::parse_statement()
     {
         const auto operation = previous().kind;
         return std::make_unique<statement>(
-            position, variable_assignment{std::move(target), operation, parse_expression()});
+            position, variable_assignment{std::move(target), operation,
+                                          parse_expression(), std::nullopt});
     }
     return std::make_unique<statement>(
         position, expression_statement{std::move(target)});

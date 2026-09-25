@@ -1,61 +1,76 @@
 # class 是引用类型；父类引用的虚调用会进入子类实现。
-class animal {
+class animal
+{
     private:
         id: int
     protected:
         name: str
     public:
-        def init(name: str, id: int) {
+        def init(name: str, id: int)
+        {
             self.name = name
             self.id = id
         }
-        virtual def speak() -> str {
+        virtual def speak() -> str
+        {
             return self.name
         }
-        def badge() -> str {
+        def badge() -> str
+        {
             return self.speak() + ":" + (self.id as str)
         }
-        def rename(value: str) {
+        def rename(value: str)
+        {
             self.name = value
         }
 }
 
-class dog : animal {
+class dog : animal
+{
     private:
         breed: str
     public:
-        def init(name: str, id: int, breed: str) {
+        def init(name: str, id: int, breed: str)
+        {
             super.init(name, id)
             self.breed = breed
         }
-        override def speak() -> str {
+        override def speak() -> str
+        {
             return super.speak() + " 汪"
         }
-        def breed_name() -> str {
+        def breed_name() -> str
+        {
             return self.breed
         }
 }
 
-class collector {
+class collector
+{
     public:
         values: array
-        def init(*items) {
+        def init(*items)
+        {
             self.values = items
         }
-        def count() -> int {
+        def count() -> int
+        {
             return len(self.values)
         }
 }
 
-def identify(value: animal) -> str {
+def identify(value: animal) -> str
+{
     return "animal:" + value.speak()
 }
 
-def identify(value: dog) -> str {
+def identify(value: dog) -> str
+{
     return "dog:" + value.speak()
 }
 
-def main() -> int {
+def main() -> int
+{
     dog actual = dog(name="豆豆", id=7, breed="柴犬")
     animal base = actual
     actual.rename("球球")

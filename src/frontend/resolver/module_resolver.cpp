@@ -212,6 +212,19 @@ void module_resolver::resolve(program& source)
         {
             field.type = resolve_type(key, field.type, field.position);
         }
+        for (auto& method : definition.methods)
+        {
+            for (auto& parameter : method.parameters)
+            {
+                check_local_name(key, parameter.name, parameter.position);
+                parameter.type = resolve_type(key, parameter.type,
+                                              parameter.position);
+            }
+            method.return_type = resolve_type(
+                key, method.return_type, method.position);
+            resolve_statements(method.body, key);
+            method.owner_class = exports_.at(key).at(definition.name).internal_name;
+        }
         definition.name = exports_.at(key).at(definition.name).internal_name;
     }
     for (auto& definition : source.classes)

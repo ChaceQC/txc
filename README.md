@@ -19,6 +19,9 @@ check 会检查语法和静态类型；`example.tx` 是当前语言的完整可�
 txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的链接组件；运行 txc 编译 `.tx` 时不需要安装 g++。构建与发行结构见 [编译与运行](docs/usage.md)和[原生后端说明](docs/native_backend.md)。
 
 字符串、浮点数、混合类型数组和结构体的用法见 [数据类型示例](examples/data_types.tx)。
+复合值的默认共享、显式 `deep_copy` 和循环关系见 [内存管理示例](examples/memory_management.tx)；运行时错误时的析构见 [错误清理示例](examples/memory_error_cleanup.tx)，后者预期以非零状态退出。
+循环引用的自动回收规则见 [垃圾回收说明](docs/garbage_collection.md)。
+类、数组和字典循环的运行示例见 [循环回收示例](examples/cycle_collection.tx)。
 类的封装、多继承、接口、抽象方法、方法重载、析构与运行时转换见 [class 说明](docs/classes.md)和 [综合示例](examples/advanced_classes.tx)；跨模块接口与实现见 [模块示例](examples/advanced_class_module/main.tx)。
 `struct` 与 `class` 在 `.txh` 和配对 `.tx` 中的不同写法见 [模块文件分工](docs/modules.md)，对应的可运行示例为 [struct 模块](examples/struct_module/main.tx)和 [class 模块](examples/class_module/main.tx)。
 `+=`、`-=`、`++`、`--` 的用法见 [更新运算符示例](examples/update_operators.tx)。

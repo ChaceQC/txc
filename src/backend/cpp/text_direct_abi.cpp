@@ -61,7 +61,7 @@ extern "C" int txrt_string_slice(const void* text, std::int64_t start,
                                    std::int64_t end, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_slice(text_value(text),
+        *result = tx_generated::detail::make_handle<std::string>(tx_generated::tx_fn_slice(text_value(text),
                                                               start, end));
     });
 }
@@ -71,7 +71,7 @@ extern "C" int txrt_string_replace(const void* text, const void* old,
                                      void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_replace(
+        *result = tx_generated::detail::make_handle<std::string>(tx_generated::tx_fn_replace(
             text_value(text), text_value(old), text_value(replacement)));
     });
 }
@@ -80,7 +80,7 @@ extern "C" int txrt_string_split(const void* text, const void* separator,
                                    void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::any(tx_generated::tx_fn_split(
+        *result = tx_generated::detail::make_handle<std::any>(tx_generated::tx_fn_split(
             text_value(text), text_value(separator)));
     });
 }
@@ -89,7 +89,7 @@ extern "C" int txrt_string_join(const void* parts, const void* separator,
                                   void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_join(
+        *result = tx_generated::detail::make_handle<std::string>(tx_generated::tx_fn_join(
             array_value(parts), text_value(separator)));
     });
 }
@@ -97,20 +97,23 @@ extern "C" int txrt_string_join(const void* parts, const void* separator,
 extern "C" int txrt_string_trim(const void* text, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_trim(text_value(text)));
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_trim(text_value(text)));
     });
 }
 
 extern "C" int txrt_string_lower(const void* text, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_lower(text_value(text)));
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_lower(text_value(text)));
     });
 }
 
 extern "C" int txrt_string_upper(const void* text, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_upper(text_value(text)));
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_upper(text_value(text)));
     });
 }

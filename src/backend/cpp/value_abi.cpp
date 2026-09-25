@@ -17,6 +17,7 @@ namespace
 
 using tx_generated::dynamic_field;
 using tx_generated::dynamic_struct;
+using tx_generated::dynamic_struct_data;
 using tx_generated::class_handle;
 
 std::any& as_value(void* value)
@@ -42,42 +43,58 @@ dynamic_struct& as_struct(void* value)
 } // namespace
 
 using tx_generated::detail::invoke_checked;
+using tx_generated::detail::make_handle;
 
 extern "C" int txrt_value_none(void** result) noexcept
 {
-    return invoke_checked([&] { *result = new std::any; });
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>();
+    });
 }
 
 extern "C" int txrt_value_box_i64(std::int64_t value, void** result) noexcept
 {
-    return invoke_checked([&] { *result = new std::any(value); });
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>(value);
+    });
 }
 
 extern "C" int txrt_value_box_f64(double value, void** result) noexcept
 {
-    return invoke_checked([&] { *result = new std::any(value); });
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>(value);
+    });
 }
 
 extern "C" int txrt_value_box_bool(bool value, void** result) noexcept
 {
-    return invoke_checked([&] { *result = new std::any(value); });
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>(value);
+    });
 }
 
 extern "C" int txrt_value_box_str(const void* value, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::any(*static_cast<const std::string*>(value));
+        *result = make_handle<std::any>(*static_cast<const std::string*>(value));
     });
 }
 
 extern "C" int txrt_value_clone(const void* value, void** result) noexcept
 {
-    return invoke_checked([&] { *result = new std::any(as_value(value)); });
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>(as_value(value));
+    });
 }
 
 extern "C" void txrt_value_release(void* value) noexcept
 {
-    delete static_cast<std::any*>(value);
+    tx_generated::detail::destroy_handle(static_cast<std::any*>(value));
 }
 
 extern "C" int txrt_value_assign(void* target, const void* value) noexcept
@@ -111,7 +128,7 @@ extern "C" int txrt_value_to_bool(const void* value, bool* result) noexcept
 extern "C" int txrt_value_to_str(const void* value, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_to_string(as_value(value)));
+        *result = make_handle<std::string>(tx_generated::tx_to_string(as_value(value)));
     });
 }
 
@@ -156,7 +173,7 @@ extern "C" int txrt_value_require_type(const void* value,
             (type == "dict" && item.type() == typeid(tx_generated::tx_dict)) ||
             (type == "none" && !item.has_value()) ||
             (item.type() == typeid(dynamic_struct) &&
-             std::any_cast<const dynamic_struct&>(item).type_name == type) ||
+             std::any_cast<const dynamic_struct&>(item)->type_name == type) ||
             (item.type() == typeid(class_handle) &&
              [&]
              {
@@ -173,7 +190,7 @@ extern "C" int txrt_value_require_type(const void* value,
 extern "C" int txrt_array_new(std::int64_t length, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::any(tx_generated::tx_make_array(length));
+        *result = make_handle<std::any>(tx_generated::tx_make_array(length));
     });
 }
 
@@ -186,7 +203,7 @@ extern "C" int txrt_array_resize(std::int64_t length, const void* initial,
         {
             throw std::runtime_error("数组初值需要数组类型");
         }
-        *result = new std::any(tx_generated::tx_make_array(
+        *result = make_handle<std::any>(tx_generated::tx_make_array(
             length, std::any_cast<const tx_generated::tx_array&>(source)));
     });
 }
@@ -237,7 +254,15 @@ extern "C" int txrt_array_extend(void* value, const void* items) noexcept
             throw std::runtime_error("* 展开需要数组");
         }
         const auto& more = std::any_cast<const tx_generated::tx_array&>(source);
-        values.insert(values.end(), more.begin(), more.end());
+        if (values.identity() == more.identity())
+        {
+            const tx_generated::tx_array snapshot(more.begin(), more.end());
+            values.insert(values.end(), snapshot.begin(), snapshot.end());
+        }
+        else
+        {
+            values.insert(values.end(), more.begin(), more.end());
+        }
     });
 }
 
@@ -263,8 +288,8 @@ extern "C" int txrt_struct_new(const char* type_name,
                                  std::size_t field_count, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::any(dynamic_struct{
-            type_name, display_name, std::vector<dynamic_field>(field_count)});
+        *result = make_handle<std::any>(dynamic_struct(dynamic_struct_data{
+            type_name, display_name, std::vector<dynamic_field>(field_count)}));
     });
 }
 
@@ -274,11 +299,11 @@ extern "C" int txrt_struct_set_field(void* value, std::size_t index,
 {
     return invoke_checked([&] {
         auto& definition = as_struct(value);
-        if (index >= definition.fields.size())
+        if (index >= definition->fields.size())
         {
             throw std::runtime_error("结构体字段索引越界");
         }
-        definition.fields[index] = {field_name, as_value(field)};
+        definition->fields[index] = {field_name, as_value(field)};
     });
 }
 
@@ -288,7 +313,7 @@ extern "C" int txrt_struct_field_address(void* value,
 {
     return invoke_checked([&] {
         auto& definition = as_struct(value);
-        for (auto& field : definition.fields)
+        for (auto& field : definition->fields)
         {
             if (field.name == field_name)
             {
@@ -306,10 +331,10 @@ extern "C" int txrt_struct_field_address_index(void* value,
 {
     return invoke_checked([&] {
         auto& definition = as_struct(value);
-        if (index >= definition.fields.size())
+        if (index >= definition->fields.size())
         {
             throw std::runtime_error("结构体字段索引越界");
         }
-        *result = &definition.fields[index].value;
+        *result = &definition->fields[index].value;
     });
 }

@@ -1,49 +1,76 @@
 #include "stdlib/dictionary.hpp"
 
+#include "backend/cpp/cycle_gc.hpp"
+
 #include <cmath>
 #include <stdexcept>
 
 namespace tx_generated
 {
 
+tx_dict::tx_dict() : data_(std::make_shared<storage>())
+{
+    register_gc_node(data_,
+        [](const void* object, gc_visit visit, void* context)
+        {
+            for (const auto& [key, value] :
+                 static_cast<const storage*>(object)->entries)
+            {
+                visit(key, context);
+                visit(value, context);
+            }
+        },
+        [](void* object)
+        {
+            auto& data = *static_cast<storage*>(object);
+            data.entries.clear();
+            data.positions.clear();
+        });
+}
+
+const void* tx_dict::identity() const noexcept
+{
+    return data_.get();
+}
+
 std::size_t tx_dict::size() const noexcept
 {
-    return entries_.size();
+    return data_->entries.size();
 }
 
 tx_dict::entry& tx_dict::operator[](std::size_t index)
 {
-    return entries_[index];
+    return data_->entries[index];
 }
 
 const tx_dict::entry& tx_dict::operator[](std::size_t index) const
 {
-    return entries_[index];
+    return data_->entries[index];
 }
 
 tx_dict::entry& tx_dict::back()
 {
-    return entries_.back();
+    return data_->entries.back();
 }
 
 tx_dict::iterator tx_dict::begin() noexcept
 {
-    return entries_.begin();
+    return data_->entries.begin();
 }
 
 tx_dict::iterator tx_dict::end() noexcept
 {
-    return entries_.end();
+    return data_->entries.end();
 }
 
 tx_dict::const_iterator tx_dict::begin() const noexcept
 {
-    return entries_.begin();
+    return data_->entries.begin();
 }
 
 tx_dict::const_iterator tx_dict::end() const noexcept
 {
-    return entries_.end();
+    return data_->entries.end();
 }
 
 std::optional<tx_dict::index_key> tx_dict::make_key(const std::any& key)
@@ -81,24 +108,24 @@ std::any* tx_dict::find_value(const std::any& key)
     {
         return nullptr;
     }
-    const auto found = positions_.find(*index);
-    return found == positions_.end() ? nullptr
-                                     : &entries_[found->second].second;
+    const auto found = data_->positions.find(*index);
+    return found == data_->positions.end() ? nullptr
+                                           : &data_->entries[found->second].second;
 }
 
 void tx_dict::emplace_back(std::any key, std::any value)
 {
     const auto index = make_key(key);
-    entries_.emplace_back(std::move(key), std::move(value));
+    data_->entries.emplace_back(std::move(key), std::move(value));
     if (index)
     {
         try
         {
-            positions_.emplace(*index, entries_.size() - 1);
+            data_->positions.emplace(*index, data_->entries.size() - 1);
         }
         catch (...)
         {
-            entries_.pop_back();
+            data_->entries.pop_back();
             throw;
         }
     }

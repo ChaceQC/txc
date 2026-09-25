@@ -334,6 +334,13 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* operation = std::get_if<unary_operation>(&item.data))
     {
+        if (operation->binding)
+        {
+            const auto receiver = expression_value(*operation->operand);
+            return emit_operator_call(item.type, item.position,
+                                      *operation->binding, receiver,
+                                      std::nullopt);
+        }
         if (operation->is_min_int_literal)
         {
             return {item.type, "-9223372036854775808"};

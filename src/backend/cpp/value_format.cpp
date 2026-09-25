@@ -80,17 +80,17 @@ void append_dict(std::string& output, const tx_dict& items,
 void append_struct(std::string& output, const dynamic_struct& item,
                    std::size_t depth)
 {
-    output += item.display_name;
+    output += item->display_name;
     output.push_back('(');
-    for (std::size_t index = 0; index < item.fields.size(); ++index)
+    for (std::size_t index = 0; index < item->fields.size(); ++index)
     {
         if (index != 0)
         {
             output += ", ";
         }
-        output += item.fields[index].name;
+        output += item->fields[index].name;
         output.push_back('=');
-        append_value(output, item.fields[index].value, true, depth + 1);
+        append_value(output, item->fields[index].value, true, depth + 1);
     }
     output.push_back(')');
 }

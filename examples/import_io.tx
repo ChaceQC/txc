@@ -1,6 +1,7 @@
 import "string.txh"
 
-def main() -> int {
+def main() -> int
+{
     auto text = input("number> ")
     auto number = text as int
     print(number as float)

@@ -1,13 +1,16 @@
-struct person {
+struct person
+{
     name: str
     scores: array
 }
 
-def score_count(user: person) -> int {
+def score_count(user: person) -> int
+{
     return len(user.scores)
 }
 
-def main() -> int {
+def main() -> int
+{
     str greeting = "你好，"
     auto user = person("Ada", [8.5, 9.0])
     user.scores[1] = 9.5
@@ -33,7 +36,8 @@ def main() -> int {
     print(2 as float)
     print(3.75 as int)
     print(1e2 / 4.0)
-    for value in numbers {
+    for value in numbers
+    {
         print(value)
     }
     return 0

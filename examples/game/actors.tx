@@ -1,6 +1,7 @@
 import "random.txh" as random
 
-interface combatant {
+interface combatant
+{
     def name() -> str
     def health() -> int
     def max_health() -> int
@@ -8,54 +9,67 @@ interface combatant {
     def take_damage(amount: int) -> int
 }
 
-class entity : combatant {
+class entity : combatant
+{
     protected:
         label_value: str
         health_value: int
         health_limit: int
     public:
-        def init(label: str, max_health: int) {
+        def init(label: str, max_health: int)
+        {
             self.label_value = label
             self.health_limit = max_health
             self.health_value = max_health
         }
-        override def name() -> str {
+        override def name() -> str
+        {
             return self.label_value
         }
-        override def health() -> int {
+        override def health() -> int
+        {
             return self.health_value
         }
-        override def max_health() -> int {
+        override def max_health() -> int
+        {
             return self.health_limit
         }
-        override def is_alive() -> bool {
+        override def is_alive() -> bool
+        {
             return self.health_value > 0
         }
-        override def take_damage(amount: int) -> int {
-            if amount <= 0 {
+        override def take_damage(amount: int) -> int
+        {
+            if amount <= 0
+            {
                 return 0
             }
             int before = self.health_value
             self.health_value -= amount
-            if self.health_value < 0 {
+            if self.health_value < 0
+            {
                 self.health_value = 0
             }
             return before - self.health_value
         }
-        def heal(amount: int) -> int {
-            if amount <= 0 {
+        def heal(amount: int) -> int
+        {
+            if amount <= 0
+            {
                 return 0
             }
             int before = self.health_value
             self.health_value += amount
-            if self.health_value > self.health_limit {
+            if self.health_value > self.health_limit
+            {
                 self.health_value = self.health_limit
             }
             return self.health_value - before
         }
 }
 
-class hero : entity {
+class hero : entity
+{
     private:
         energy_value: int
         potion_count: int
@@ -63,7 +77,8 @@ class hero : entity {
         weapon_rank: int
         armor_rank: int
     public:
-        def init() {
+        def init()
+        {
             super.init("探险者", 60)
             self.energy_value = 0
             self.potion_count = 3
@@ -71,138 +86,176 @@ class hero : entity {
             self.weapon_rank = 0
             self.armor_rank = 0
         }
-        def energy() -> int {
+        def energy() -> int
+        {
             return self.energy_value
         }
-        def potions() -> int {
+        def potions() -> int
+        {
             return self.potion_count
         }
-        def gold() -> int {
+        def gold() -> int
+        {
             return self.gold_value
         }
-        def weapon_level() -> int {
+        def weapon_level() -> int
+        {
             return self.weapon_rank
         }
-        def armor_level() -> int {
+        def armor_level() -> int
+        {
             return self.armor_rank
         }
-        def can_power_strike() -> bool {
+        def can_power_strike() -> bool
+        {
             return self.energy_value >= 3
         }
-        def strike(power: bool) -> int {
-            if power {
-                if self.energy_value < 3 {
+        def strike(power: bool) -> int
+        {
+            if power
+            {
+                if self.energy_value < 3
+                {
                     return 0
                 }
                 self.energy_value -= 3
                 return random.random_int(12, 17) + self.weapon_rank * 2
             }
-            if self.energy_value < 3 {
+            if self.energy_value < 3
+            {
                 self.energy_value++
             }
             return random.random_int(5, 8) + self.weapon_rank * 2
         }
-        def guard() -> void {
-            if self.energy_value < 3 {
+        def guard() -> void
+        {
+            if self.energy_value < 3
+            {
                 self.energy_value++
             }
         }
-        def drink_potion() -> bool {
-            if self.potion_count <= 0 || self.health_value >= self.health_limit {
+        def drink_potion() -> bool
+        {
+            if self.potion_count <= 0 || self.health_value >= self.health_limit
+            {
                 return false
             }
             self.potion_count--
             self.heal(random.random_int(16, 22))
             return true
         }
-        def add_gold(amount: int) -> void {
+        def add_gold(amount: int) -> void
+        {
             self.gold_value += amount
         }
-        def buy_potion() -> bool {
-            if self.potion_count >= 4 || self.gold_value < 10 {
+        def buy_potion() -> bool
+        {
+            if self.potion_count >= 4 || self.gold_value < 10
+            {
                 return false
             }
             self.gold_value -= 10
             self.potion_count++
             return true
         }
-        def upgrade_weapon() -> bool {
-            if self.weapon_rank >= 4 || self.gold_value < 18 {
+        def upgrade_weapon() -> bool
+        {
+            if self.weapon_rank >= 4 || self.gold_value < 18
+            {
                 return false
             }
             self.gold_value -= 18
             self.weapon_rank++
             return true
         }
-        def upgrade_armor() -> bool {
-            if self.armor_rank >= 3 || self.gold_value < 16 {
+        def upgrade_armor() -> bool
+        {
+            if self.armor_rank >= 3 || self.gold_value < 16
+            {
                 return false
             }
             self.gold_value -= 16
             self.armor_rank++
             return true
         }
-        def rest() -> int {
-            if self.health_value >= self.health_limit || self.gold_value < 8 {
+        def rest() -> int
+        {
+            if self.health_value >= self.health_limit || self.gold_value < 8
+            {
                 return 0
             }
             self.gold_value -= 8
             return self.heal(random.random_int(16, 22))
         }
-        override def take_damage(amount: int) -> int {
+        override def take_damage(amount: int) -> int
+        {
             int reduced = amount - self.armor_rank
-            if reduced < 1 {
+            if reduced < 1
+            {
                 reduced = 1
             }
             return super.take_damage(reduced)
         }
 }
 
-class monster : entity {
+class monster : entity
+{
     private:
         floor_value: int
         encounter_value: int
         route_value: int
         intent_value: int
     public:
-        def init(floor: int, encounter: int, route: int) {
+        def init(floor: int, encounter: int, route: int)
+        {
             str monster_name = ""
             int monster_health = 0
 
-            if floor == 1 {
-                if encounter == 1 {
+            if floor == 1
+            {
+                if encounter == 1
+                {
                     monster_name = "洞穴史莱姆"
                     monster_health = 16
                 }
-                else {
+                else
+                {
                     monster_name = "守门哥布林"
                     monster_health = 22
                 }
             }
-            else {
-                if floor == 2 {
-                    if encounter == 1 {
+            else
+            {
+                if floor == 2
+                {
+                    if encounter == 1
+                    {
                         monster_name = "骷髅武士"
                         monster_health = 28
                     }
-                    else {
+                    else
+                    {
                         monster_name = "墓穴术士"
                         monster_health = 36
                     }
                 }
-                else {
-                    if encounter == 1 {
+                else
+                {
+                    if encounter == 1
+                    {
                         monster_name = "黑曜石骑士"
                         monster_health = 42
                     }
-                    else {
+                    else
+                    {
                         monster_name = "遗迹领主"
                         monster_health = 52
                     }
                 }
             }
 
-            if route == 1 {
+            if route == 1
+            {
                 monster_health += 8
             }
             super.init(monster_name, monster_health)
@@ -211,44 +264,57 @@ class monster : entity {
             self.route_value = route
             self.intent_value = 0
         }
-        def telegraph() -> int {
-            if self.floor_value == 3 && self.encounter_value == 2 {
+        def telegraph() -> int
+        {
+            if self.floor_value == 3 && self.encounter_value == 2
+            {
                 int roll = random.random_int(0, 2)
-                if roll > 0 {
+                if roll > 0
+                {
                     self.intent_value = 1
                 }
-                else {
+                else
+                {
                     self.intent_value = 0
                 }
             }
-            else {
+            else
+            {
                 self.intent_value = random.random_int(0, 1)
             }
             return self.intent_value
         }
-        def attack_damage(defending: bool) -> int {
+        def attack_damage(defending: bool) -> int
+        {
             int damage = 0
-            if self.intent_value == 1 {
+            if self.intent_value == 1
+            {
                 damage = random.random_int(7, 9) + self.floor_value
-                if self.floor_value == 3 && self.encounter_value == 2 {
+                if self.floor_value == 3 && self.encounter_value == 2
+                {
                     damage += 2
                 }
             }
-            else {
+            else
+            {
                 damage = random.random_int(3, 5) + self.floor_value
             }
 
-            if self.route_value == 1 {
+            if self.route_value == 1
+            {
                 damage += 2
             }
-            if defending {
+            if defending
+            {
                 damage = damage / 2
             }
             return damage
         }
-        def reward() -> int {
+        def reward() -> int
+        {
             int value = random.random_int(8, 12) + self.floor_value * 2 + self.encounter_value
-            if self.route_value == 1 {
+            if self.route_value == 1
+            {
                 value += 10
             }
             return value

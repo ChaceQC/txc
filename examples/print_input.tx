@@ -1,27 +1,33 @@
 # 多值与复合值输出，以及可区分 EOF 的逐行输入。
-struct sample {
+struct sample
+{
     label: str
     values: array
 }
 
-def main() -> int {
+def main() -> int
+{
     print()
     print("count", 2, true, none)
     print([1, "a\n"], {"name": "甲"},
           sample(label="x", values=[false]), sep=" | ", end="!\n")
 
     auto first = input_or_none(">")
-    if is_none(first) {
+    if is_none(first)
+    {
         print("EOF")
     }
-    else {
+    else
+    {
         print(first as str)
     }
     auto second = input_or_none()
-    if is_none(second) {
+    if is_none(second)
+    {
         print("EOF")
     }
-    else {
+    else
+    {
         print(second as str)
     }
     return 0

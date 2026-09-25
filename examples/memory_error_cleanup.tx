@@ -1,0 +1,25 @@
+# 预期发生运行时错误；错误信息之后仍应执行 deinit。
+class guard
+{
+    public:
+        next: guard
+
+        def deinit()
+        {
+            print("guard deinit")
+        }
+}
+
+def fail()
+{
+    array items = [1]
+    print(items[9])
+}
+
+def main() -> int
+{
+    guard value = guard()
+    value.next = value
+    fail()
+    return 0
+}

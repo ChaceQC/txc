@@ -1,142 +1,181 @@
-interface named {
+interface named
+{
     def label() -> str
 }
 
-interface numbered {
+interface numbered
+{
     def number() -> int
 }
 
-abstract class animal : named {
+abstract class animal : named
+{
     protected:
         name: str
     public:
-        def init(name: str) {
+        def init(name: str)
+        {
             self.name = name
         }
         abstract def speak() -> str
-        override def label() -> str {
+        override def label() -> str
+        {
             return self.name + ":" + self.speak()
         }
-        def deinit() {
+        def deinit()
+        {
             print("animal deinit")
         }
 }
 
-class counter {
+class counter
+{
     protected:
         count: int
     public:
-        virtual def number() -> int {
+        virtual def number() -> int
+        {
             return self.count
         }
-        def deinit() {
+        def deinit()
+        {
             print("counter deinit")
         }
 }
 
-class dog : animal, counter, numbered {
+class dog : animal, counter, numbered
+{
     public:
-        def init(name: str, start: int) {
+        def init(name: str, start: int)
+        {
             super.init(name)
             self.count = start
         }
-        override def speak() -> str {
+        override def speak() -> str
+        {
             return "汪"
         }
-        override def number() -> int {
+        override def number() -> int
+        {
             return super(counter).number()
         }
-        def show(value: int) -> str {
+        def show(value: int) -> str
+        {
             return "int=" + (value as str)
         }
-        def show(value: str) -> str {
+        def show(value: str) -> str
+        {
             return "str=" + value
         }
-        def deinit() {
+        def deinit()
+        {
             print("dog deinit")
         }
 }
 
-class origin {
+class origin
+{
     public:
         value: int
-        def init(value: int) {
+        def init(value: int)
+        {
             self.value = value
         }
-        virtual def measure() -> int {
+        virtual def measure() -> int
+        {
             return self.value
         }
-        virtual def show(value: int) -> str {
+        virtual def show(value: int) -> str
+        {
             return "origin-int"
         }
-        virtual def show(value: str) -> str {
+        virtual def show(value: str) -> str
+        {
             return "origin-str"
         }
 }
 
-class left : origin {
+class left : origin
+{
     public:
-        override def measure() -> int {
+        override def measure() -> int
+        {
             return super.measure() + 1
         }
 }
 
-class right : origin {
+class right : origin
+{
     public:
-        override def measure() -> int {
+        override def measure() -> int
+        {
             return super.measure() + 2
         }
 }
 
-class diamond : left, right {
+class diamond : left, right
+{
     public:
-        override def measure() -> int {
+        override def measure() -> int
+        {
             return super(left).measure() + super(right).measure()
         }
-        override def show(value: int) -> str {
+        override def show(value: int) -> str
+        {
             return "diamond-int"
         }
 }
 
-class first_box {
+class first_box
+{
     public:
         content: int
-        def init(value: int) {
+        def init(value: int)
+        {
             self.content = value
         }
 }
 
-class second_box {
+class second_box
+{
     public:
         content: int
-        def init(value: int) {
+        def init(value: int)
+        {
             self.content = value
         }
 }
 
-class paired_box : first_box, second_box {
+class paired_box : first_box, second_box
+{
     public:
-        def init(first: int, second: int) {
+        def init(first: int, second: int)
+        {
             super.init(first)
             (self as second_box).init(second)
         }
 }
 
-class configured {
+class configured
+{
     public:
         value: int
-        def init(value: int) {
+        def init(value: int)
+        {
             self.value = value
         }
-        def init(value: str) {
+        def init(value: str)
+        {
             self.value = len(value)
         }
-        def read() -> int {
+        def read() -> int
+        {
             return self.value
         }
 }
 
-def demo() {
+def demo()
+{
     dog actual = dog("豆豆", 7)
     named item = actual
     numbered number = actual
@@ -162,7 +201,8 @@ def demo() {
     print(from_str.read())
 }
 
-def main() -> int {
+def main() -> int
+{
     demo()
     return 0
 }

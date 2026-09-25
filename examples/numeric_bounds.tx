@@ -1,10 +1,13 @@
-def main() -> int {
+def main() -> int
+{
     auto minimum = -9223372036854775808
     auto maximum = 9223372036854775807
-    if minimum + 1 != -9223372036854775807 {
+    if minimum + 1 != -9223372036854775807
+    {
         return 1
     }
-    if maximum - 1 != 9223372036854775806 {
+    if maximum - 1 != 9223372036854775806
+    {
         return 2
     }
     print(minimum)

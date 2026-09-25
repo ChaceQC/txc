@@ -1,10 +1,13 @@
-class counter {
+class counter
+{
     public:
         value: int
-        def init(start: int) {
+        def init(start: int)
+        {
             self.value = start
         }
-        def increment() -> int {
+        def increment() -> int
+        {
             self.value++
             return self.value
         }

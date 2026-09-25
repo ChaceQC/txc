@@ -2,7 +2,8 @@ import "actors.txh" as actor
 import "camp.txh" as camp
 import "route.txh" as route
 
-def run() -> int {
+def run() -> int
+{
     actor.hero player = actor.hero()
     int floor = 1
     int encounter = 1
@@ -15,7 +16,8 @@ def run() -> int {
     print("穿过三层地宫、击败六名守卫。战斗中可以撤退。")
     print("快攻积攒能量；能量满 3 点可施展重击。敌人的蓄力会提前提示。")
 
-    while playing && player.is_alive() && floor <= 3 {
+    while playing && player.is_alive() && floor <= 3
+    {
         int intent = enemy.telegraph()
 
         print()
@@ -25,34 +27,43 @@ def run() -> int {
         print("你的生命：", player.health(), "/", player.max_health())
         print("能量：", player.energy(), "/ 3   药水：", player.potions(), "   金币：", player.gold())
         print("武器等级：", player.weapon_level(), "   护甲等级：", player.armor_level())
-        if intent == 1 {
+        if intent == 1
+        {
             print(enemy.name(), "正在蓄力，下一击会很重！")
         }
-        else {
+        else
+        {
             print(enemy.name(), "准备发动普通攻击。")
         }
 
         auto action = input("[1]快攻 [2]重击 [3]格挡 [4]药水 [0]撤退> ")
-        if action == "0" || action == "q" || action == "Q" {
+        if action == "0" || action == "q" || action == "Q"
+        {
             playing = false
         }
-        else {
+        else
+        {
             bool take_turn = false
             bool defending = false
 
-            if action == "1" {
+            if action == "1"
+            {
                 take_turn = true
                 int damage = player.strike(false)
                 actor.combatant target = enemy
                 int dealt = target.take_damage(damage)
                 print("快攻造成", dealt, "点伤害。能量：", player.energy(), "/ 3。")
             }
-            else {
-                if action == "2" {
-                    if !player.can_power_strike() {
+            else
+            {
+                if action == "2"
+                {
+                    if !player.can_power_strike()
+                    {
                         print("能量不足：重击需要 3 点能量。")
                     }
-                    else {
+                    else
+                    {
                         take_turn = true
                         int damage = player.strike(true)
                         actor.combatant target = enemy
@@ -60,24 +71,31 @@ def run() -> int {
                         print("重击命中，造成", dealt, "点伤害！")
                     }
                 }
-                else {
-                    if action == "3" {
+                else
+                {
+                    if action == "3"
+                    {
                         take_turn = true
                         defending = true
                         player.guard()
                         print("你架起盾牌，能量恢复到", player.energy(), "/ 3。")
                     }
-                    else {
-                        if action == "4" {
-                            if player.drink_potion() {
+                    else
+                    {
+                        if action == "4"
+                        {
+                            if player.drink_potion()
+                            {
                                 take_turn = true
                                 print("喝下药水，当前生命：", player.health(), "/", player.max_health())
                             }
-                            else {
+                            else
+                            {
                                 print("没有药水，或生命值已经满了。")
                             }
                         }
-                        else {
+                        else
+                        {
                             print("无效指令，请输入 1、2、3、4 或 0。")
                         }
                     }
@@ -85,27 +103,33 @@ def run() -> int {
             }
 
             # 通过 combatant 接口承受攻击，hero 的覆盖方法会计算护甲减伤。
-            if take_turn {
+            if take_turn
+            {
                 turns++
-                if enemy.is_alive() {
+                if enemy.is_alive()
+                {
                     int attack = enemy.attack_damage(defending)
                     actor.combatant target = player
                     int received = target.take_damage(attack)
                     print(enemy.name(), "造成", received, "点伤害。你的生命：", player.health(), "/", player.max_health())
                 }
 
-                if !enemy.is_alive() {
+                if !enemy.is_alive()
+                {
                     int reward = enemy.reward()
                     player.add_gold(reward)
                     print(enemy.name(), "被击败，获得", reward, "金币。当前金币：", player.gold())
 
-                    if encounter == 1 {
+                    if encounter == 1
+                    {
                         encounter++
                         enemy = actor.monster(floor, encounter, route_choice)
                         print("更深处的守卫挡住了去路：", enemy.name())
                     }
-                    else {
-                        if floor < 3 {
+                    else
+                    {
+                        if floor < 3
+                        {
                             int recovered = player.heal(8)
                             print("本层清理完成，休整恢复", recovered, "点生命。")
                             camp.visit(player)
@@ -115,7 +139,8 @@ def run() -> int {
                             enemy = actor.monster(floor, encounter, route_choice)
                             print("你进入第", floor, "层。")
                         }
-                        else {
+                        else
+                        {
                             floor++
                             playing = false
                         }
@@ -126,14 +151,18 @@ def run() -> int {
     }
 
     print()
-    if !player.is_alive() {
+    if !player.is_alive()
+    {
         print("你倒在地宫深处。远征止步于第", floor, "层，共行动", turns, "回合。")
     }
-    else {
-        if floor > 3 {
+    else
+    {
+        if floor > 3
+        {
             print("六名守卫全部击败！你带着地宫宝藏凯旋。")
         }
-        else {
+        else
+        {
             print("你选择撤退，带出", player.gold(), "金币。")
         }
         print("结算：生命", player.health(), "/", player.max_health(), "，金币", player.gold(), "，武器", player.weapon_level(), "级，护甲", player.armor_level(), "级，行动", turns, "回合。")

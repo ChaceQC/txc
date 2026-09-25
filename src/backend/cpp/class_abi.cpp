@@ -14,22 +14,55 @@
 namespace tx_generated
 {
 
-class_handle::~class_handle()
+namespace
 {
-    if (!object_ || object_.use_count() != 1 || object_->destroying)
+bool finalize_class_object(const std::shared_ptr<dynamic_class>& object)
+{
+    if (!object || object->destroying)
     {
-        return;
+        return false;
     }
-    object_->destroying = true;
-    for (std::size_t index = 0; index < object_->destructor_count; ++index)
+    object->destroying = true;
+    for (std::size_t index = 0; index < object->destructor_count; ++index)
     {
         // 接收者由生成方法持有并释放；回调期间额外引用保证字段仍然有效。
-        auto* receiver = new std::any(*this);
+        auto* receiver = detail::make_handle<std::any>(class_handle(object));
         using destructor_fn = void (*)(void*);
         auto callback = reinterpret_cast<destructor_fn>(
-            const_cast<void*>(object_->destructor_targets[index]));
+            const_cast<void*>(object->destructor_targets[index]));
         callback(receiver);
     }
+    return true;
+}
+} // namespace
+
+class_handle::~class_handle()
+{
+    if (object_ && object_.use_count() == 1)
+    {
+        (void)finalize_class_object(object_);
+    }
+}
+
+void register_class_gc(const std::shared_ptr<dynamic_class>& object)
+{
+    register_gc_node(object,
+        [](const void* value, gc_visit visit, void* context)
+        {
+            for (const auto& field : static_cast<const dynamic_class*>(value)->fields)
+            {
+                visit(field, context);
+            }
+        },
+        [](void* value)
+        {
+            static_cast<dynamic_class*>(value)->fields.clear();
+        },
+        [](const std::shared_ptr<void>& value)
+        {
+            return finalize_class_object(
+                std::static_pointer_cast<dynamic_class>(value));
+        });
 }
 
 } // namespace tx_generated
@@ -112,7 +145,9 @@ extern "C" int txrt_class_new(
         object->virtual_count = virtual_count;
         object->destructor_targets = destructor_targets;
         object->destructor_count = destructor_count;
-        *result = new std::any(tx_generated::class_handle(std::move(object)));
+        tx_generated::register_class_gc(object);
+        *result = tx_generated::detail::make_handle<std::any>(
+            tx_generated::class_handle(std::move(object)));
     });
 }
 

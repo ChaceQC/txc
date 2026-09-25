@@ -1,3 +1,4 @@
-def source() -> str {
+def source() -> str
+{
     return "本地 io.txh"
 }

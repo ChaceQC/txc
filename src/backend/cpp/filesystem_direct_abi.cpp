@@ -49,7 +49,7 @@ extern "C" int txrt_fs_list_directory(const void* path,
                                         void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::any(tx_generated::tx_fn_list_directory(
+        *result = tx_generated::detail::make_handle<std::any>(tx_generated::tx_fn_list_directory(
             text_value(path)));
     });
 }
@@ -58,7 +58,7 @@ extern "C" int txrt_path_join(const void* left, const void* right,
                                 void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_path_join(
+        *result = tx_generated::detail::make_handle<std::string>(tx_generated::tx_fn_path_join(
             text_value(left), text_value(right)));
     });
 }
@@ -66,7 +66,8 @@ extern "C" int txrt_path_join(const void* left, const void* right,
 extern "C" int txrt_path_parent(const void* path, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_parent(text_value(path)));
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_parent(text_value(path)));
     });
 }
 
@@ -74,7 +75,8 @@ extern "C" int txrt_path_file_name(const void* path,
                                      void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_file_name(text_value(path)));
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_file_name(text_value(path)));
     });
 }
 
@@ -82,6 +84,7 @@ extern "C" int txrt_path_extension(const void* path,
                                      void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = new std::string(tx_generated::tx_fn_extension(text_value(path)));
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_extension(text_value(path)));
     });
 }

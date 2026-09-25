@@ -1,5 +1,6 @@
 #pragma once
 
+#include "stdlib/array.hpp"
 #include "stdlib/dictionary.hpp"
 
 #include <any>
@@ -12,7 +13,6 @@ namespace tx_generated
 {
 
 using tx_int = std::int64_t;
-using tx_array = std::vector<std::any>;
 
 std::string tx_input();
 std::string tx_input(const std::string& prompt);

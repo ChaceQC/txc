@@ -26,7 +26,7 @@ abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行�
 | slice(values: array, start: int, end: int) -> array | 取半开区间 [start, end) |
 | reverse(values: array) -> array | 反转元素顺序 |
 
-三者均返回新数组，不修改参数；元素保留原有类型和值。slice 要求 0 <= start <= end <= len(values)，否则报运行错误。现有数组按值传递，追加单个元素可写为 `values = concat(values, [value])`。
+三者均返回新数组，不修改参数；其中的复合元素仍共享原对象。slice 要求 0 <= start <= end <= len(values)，否则报运行错误。数组默认按引用共享；需要递归复制时使用内置 `deep_copy(values)`。追加单个元素可写为 `values = concat(values, [value])`。
 
 字符串库也定义了 slice；同时导入两个模块时，建议用 `as` 别名，例如 `text.slice(...)` 和 `arrays.slice(...)`。
 

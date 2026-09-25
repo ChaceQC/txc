@@ -52,6 +52,10 @@ void llvm_code_generator::emit_while(const while_statement& loop)
     pop_scope();
     if (!terminated_)
     {
+        if (loop.body.empty())
+        {
+            emit_gc_safepoint();
+        }
         write_instruction("br label %" + check_label);
     }
     start_block(end_label);
@@ -85,6 +89,10 @@ void llvm_code_generator::emit_for(const for_loop& loop)
     pop_scope();
     if (!terminated_)
     {
+        if (loop.body.empty())
+        {
+            emit_gc_safepoint();
+        }
         write_instruction("br label %" + increment_label);
     }
 
@@ -163,6 +171,10 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
     pop_scope();
     if (!terminated_)
     {
+        if (loop.body.empty())
+        {
+            emit_gc_safepoint();
+        }
         const auto next = checked_binary("txrt_add_i64", index,
             {value_type::int_type, "1"}, value_type::int_type,
             loop.values->position);

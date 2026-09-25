@@ -1,4 +1,5 @@
-class counter {
+class counter
+{
     public:
         value: int
         def init(start: int)

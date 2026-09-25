@@ -86,15 +86,20 @@ void semantic_analyzer::check_function(function_decl& function)
     scopes_.clear();
     push_scope();
     current_return_type_ = function.return_type;
-    current_class_ = function.owner_class.empty()
-        ? nullptr : classes_.at(function.owner_class);
-    if (current_class_ != nullptr)
+    const auto found_class = classes_.find(function.owner_class);
+    current_class_ = found_class == classes_.end()
+        ? nullptr : found_class->second;
+    if (!function.owner_class.empty())
     {
-        scopes_.back().emplace("self", symbol_info{value_type(current_class_->name), true});
-        if (const auto* base = first_class_base(*current_class_))
+        scopes_.back().emplace("self",
+            symbol_info{value_type(function.owner_class), true});
+        if (current_class_ != nullptr)
         {
-            scopes_.back().emplace("super",
-                symbol_info{value_type(base->name), true});
+            if (const auto* base = first_class_base(*current_class_))
+            {
+                scopes_.back().emplace("super",
+                    symbol_info{value_type(base->name), true});
+            }
         }
     }
     for (const auto& parameter : function.parameters)
@@ -202,6 +207,14 @@ void semantic_analyzer::check_assignment(statement& item,
     }
     if (assignment.operation == token_kind::plus_equal)
     {
+        if (structs_.contains(target_type.name) ||
+            classes_.contains(target_type.name))
+        {
+            const auto result = bind_operator(token_kind::plus, target_type,
+                value, *assignment.target, item.position, assignment.binding);
+            require_type(result, target_type, item.position, "+= 结果");
+            return;
+        }
         if (target_type != value_type::int_type &&
             target_type != value_type::float_type &&
             target_type != value_type::str_type)
@@ -212,6 +225,14 @@ void semantic_analyzer::check_assignment(statement& item,
     }
     else if (assignment.operation == token_kind::minus_equal)
     {
+        if (structs_.contains(target_type.name) ||
+            classes_.contains(target_type.name))
+        {
+            const auto result = bind_operator(token_kind::minus, target_type,
+                value, *assignment.target, item.position, assignment.binding);
+            require_type(result, target_type, item.position, "-= 结果");
+            return;
+        }
         if (target_type != value_type::int_type &&
             target_type != value_type::float_type)
         {
@@ -367,6 +388,13 @@ void semantic_analyzer::analyze(program& source, bool require_main)
         check_function(function);
     }
     for (auto& definition : source.classes)
+    {
+        for (auto& method : definition.methods)
+        {
+            check_method(method);
+        }
+    }
+    for (auto& definition : source.structs)
     {
         for (auto& method : definition.methods)
         {

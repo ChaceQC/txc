@@ -9,43 +9,51 @@ import "random.txh" as random
 import "string.txh" as strings
 import "time.txh" as time
 
-def report_int(name: str, started: int, checksum: int) {
+def report_int(name: str, started: int, checksum: int)
+{
     auto elapsed = time.monotonic_millis() - started
     print(name)
     print(elapsed)
     print(checksum)
 }
 
-def report_float(name: str, started: int, checksum: float) {
+def report_float(name: str, started: int, checksum: float)
+{
     auto elapsed = time.monotonic_millis() - started
     print(name)
     print(elapsed)
     print(checksum)
 }
 
-def bench_math() {
+def bench_math()
+{
     auto checksum = 0.0
     auto started = time.monotonic_millis()
-    for i in 1..=1000000 {
+    for i in 1..=1000000
+    {
         checksum += math.sqrt(i as float)
     }
     report_float("math", started, checksum)
 }
 
-def bench_random() {
+def bench_random()
+{
     random.seed(12345)
     auto checksum = 0
     auto started = time.monotonic_millis()
-    for i in 1..=200000 {
+    for i in 1..=200000
+    {
         checksum += random.random_int(0, 1000)
     }
     report_int("random", started, checksum)
 }
 
-def bench_string() {
+def bench_string()
+{
     auto checksum = 0
     auto started = time.monotonic_millis()
-    for i in 1..=10000 {
+    for i in 1..=10000
+    {
         auto replaced = strings.replace("alpha,beta,alpha", "alpha", "x")
         auto parts = strings.split(replaced, ",")
         checksum += len(parts)
@@ -53,14 +61,17 @@ def bench_string() {
     report_int("string", started, checksum)
 }
 
-def bench_array() {
+def bench_array()
+{
     array[64] values
-    for i in 0..=63 {
+    for i in 0..=63
+    {
         values[i] = i
     }
     auto checksum = 0
     auto started = time.monotonic_millis()
-    for i in 1..=3000 {
+    for i in 1..=3000
+    {
         auto combined = arrays.concat(values, values)
         auto reversed = arrays.reverse(combined)
         auto middle = arrays.slice(reversed, 16, 112)
@@ -69,12 +80,15 @@ def bench_array() {
     report_int("array", started, checksum)
 }
 
-def bench_dict() {
+def bench_dict()
+{
     dict values = {}
     auto checksum = 0
     auto started = time.monotonic_millis()
-    for repetition in 1..=100 {
-        for i in 0..=127 {
+    for repetition in 1..=100
+    {
+        for i in 0..=127
+        {
             values[i] = i + repetition
             checksum += values[i] as int
         }
@@ -82,34 +96,41 @@ def bench_dict() {
     report_int("dict", started, checksum)
 }
 
-def bench_path() {
+def bench_path()
+{
     auto checksum = 0
     auto started = time.monotonic_millis()
-    for i in 1..=10000 {
+    for i in 1..=10000
+    {
         auto joined = paths.join("tx_build", "sub/data.txt")
         checksum += len(paths.extension(joined))
     }
     report_int("path", started, checksum)
 }
 
-def bench_fs() {
+def bench_fs()
+{
     auto checksum = 0
     auto started = time.monotonic_millis()
-    for i in 1..=200 {
+    for i in 1..=200
+    {
         auto entries = fs.list_directory("tx/stdlib")
         checksum += len(entries)
-        if fs.is_file("tx/stdlib/math.txh") {
+        if fs.is_file("tx/stdlib/math.txh")
+        {
             checksum += 1
         }
     }
     report_int("fs", started, checksum)
 }
 
-def bench_file() {
+def bench_file()
+{
     auto content = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     auto checksum = 0
     auto started = time.monotonic_millis()
-    for i in 1..=300 {
+    for i in 1..=300
+    {
         file.write_text("tx_build/library_compare_tx.txt", content, "utf-8")
         auto loaded = file.read_text("tx_build/library_compare_tx.txt", "utf-8")
         checksum += len(loaded)
@@ -117,26 +138,32 @@ def bench_file() {
     report_int("file", started, checksum)
 }
 
-def bench_io() {
+def bench_io()
+{
     auto started = time.monotonic_millis()
-    for i in 1..=5000 {
+    for i in 1..=5000
+    {
         io.write_error("x")
     }
     report_int("io", started, 5000)
 }
 
-def bench_time() {
+def bench_time()
+{
     auto checksum = 0
     auto started = time.monotonic_millis()
-    for i in 1..=100000 {
-        if time.unix_millis() > 0 {
+    for i in 1..=100000
+    {
+        if time.unix_millis() > 0
+        {
             checksum += 1
         }
     }
     report_int("time", started, checksum)
 }
 
-def main() -> int {
+def main() -> int
+{
     bench_math()
     bench_random()
     bench_string()

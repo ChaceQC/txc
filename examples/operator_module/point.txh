@@ -1,0 +1,8 @@
+struct point
+{
+    x: int
+    y: int
+
+    def operator +(other: point) -> point
+    def operator ==(other: point) -> bool
+}

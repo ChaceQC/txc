@@ -84,11 +84,19 @@ struct cast_expression
     value_type target;
 };
 
+struct operator_binding
+{
+    std::string symbol;
+    std::size_t overload_index = 0;
+    std::optional<std::size_t> virtual_slot;
+};
+
 struct unary_operation
 {
     token_kind operation;
     expr_ptr operand;
     bool is_min_int_literal = false;
+    std::optional<operator_binding> binding;
 };
 
 struct update_expression
@@ -102,6 +110,7 @@ struct binary_operation
     token_kind operation;
     expr_ptr left;
     expr_ptr right;
+    std::optional<operator_binding> binding;
 };
 
 enum class argument_kind { positional, keyword, spread_array, spread_dict };
@@ -170,6 +179,7 @@ struct variable_assignment
     expr_ptr target;
     token_kind operation;
     expr_ptr value;
+    std::optional<operator_binding> binding;
 };
 
 struct unpack_assignment
@@ -255,13 +265,6 @@ struct struct_field
     source_pos position;
 };
 
-struct struct_decl
-{
-    std::string name;
-    std::vector<struct_field> fields;
-    source_pos position;
-};
-
 enum class member_access { private_access, protected_access, public_access };
 
 struct class_field
@@ -290,6 +293,15 @@ struct function_decl
     bool is_abstract = false;
     std::vector<std::size_t> virtual_slots;
     std::size_t overload_index = 0;
+    std::optional<token_kind> operator_kind;
+};
+
+struct struct_decl
+{
+    std::string name;
+    std::vector<struct_field> fields;
+    source_pos position;
+    std::vector<function_decl> methods;
 };
 
 struct virtual_target
@@ -318,6 +330,25 @@ struct class_decl
 {
     return "$class$" + std::to_string(owner.size()) + "$" +
            std::string(owner) + "$" + std::string(method);
+}
+
+[[nodiscard]] inline std::string operator_method_name(token_kind kind)
+{
+    switch (kind)
+    {
+    case token_kind::plus: return "$operator_plus";
+    case token_kind::minus: return "$operator_minus";
+    case token_kind::star: return "$operator_multiply";
+    case token_kind::slash: return "$operator_divide";
+    case token_kind::equal_equal: return "$operator_equal";
+    case token_kind::bang_equal: return "$operator_not_equal";
+    case token_kind::less: return "$operator_less";
+    case token_kind::less_equal: return "$operator_less_equal";
+    case token_kind::greater: return "$operator_greater";
+    case token_kind::greater_equal: return "$operator_greater_equal";
+    case token_kind::bang: return "$operator_not";
+    default: return {};
+    }
 }
 
 struct import_decl

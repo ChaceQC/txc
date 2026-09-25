@@ -178,6 +178,6 @@ extern "C" int txrt_call_bind(const void* positional,
             bound[fixed_count + static_cast<std::size_t>(accepts_args)] =
                 std::move(extra);
         }
-        *result = new std::any(std::move(bound));
+        *result = tx_generated::detail::make_handle<std::any>(std::move(bound));
     });
 }

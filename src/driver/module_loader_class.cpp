@@ -48,6 +48,44 @@ bool same_class_layout(const class_decl& left, const class_decl& right)
             a.access != b.access || a.is_virtual != b.is_virtual ||
             a.is_override != b.is_override ||
             a.is_abstract != b.is_abstract ||
+            a.operator_kind != b.operator_kind ||
+            !same_parameter_types(a, b))
+        {
+            return false;
+        }
+        for (std::size_t parameter = 0; parameter < a.parameters.size(); ++parameter)
+        {
+            if (a.parameters[parameter].name != b.parameters[parameter].name)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool same_struct_layout(const struct_decl& left, const struct_decl& right)
+{
+    if (left.fields.size() != right.fields.size() ||
+        left.methods.size() != right.methods.size())
+    {
+        return false;
+    }
+    for (std::size_t index = 0; index < left.fields.size(); ++index)
+    {
+        const auto& a = left.fields[index];
+        const auto& b = right.fields[index];
+        if (a.name != b.name || a.type != b.type)
+        {
+            return false;
+        }
+    }
+    for (std::size_t index = 0; index < left.methods.size(); ++index)
+    {
+        const auto& a = left.methods[index];
+        const auto& b = right.methods[index];
+        if (a.name != b.name || a.operator_kind != b.operator_kind ||
+            a.return_type != b.return_type ||
             !same_parameter_types(a, b))
         {
             return false;
