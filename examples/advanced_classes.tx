@@ -1,0 +1,168 @@
+interface named {
+    def label() -> str
+}
+
+interface numbered {
+    def number() -> int
+}
+
+abstract class animal : named {
+    protected:
+        name: str
+    public:
+        def init(name: str) {
+            self.name = name
+        }
+        abstract def speak() -> str
+        override def label() -> str {
+            return self.name + ":" + self.speak()
+        }
+        def deinit() {
+            print("animal deinit")
+        }
+}
+
+class counter {
+    protected:
+        count: int
+    public:
+        virtual def number() -> int {
+            return self.count
+        }
+        def deinit() {
+            print("counter deinit")
+        }
+}
+
+class dog : animal, counter, numbered {
+    public:
+        def init(name: str, start: int) {
+            super.init(name)
+            self.count = start
+        }
+        override def speak() -> str {
+            return "汪"
+        }
+        override def number() -> int {
+            return super(counter).number()
+        }
+        def show(value: int) -> str {
+            return "int=" + (value as str)
+        }
+        def show(value: str) -> str {
+            return "str=" + value
+        }
+        def deinit() {
+            print("dog deinit")
+        }
+}
+
+class origin {
+    public:
+        value: int
+        def init(value: int) {
+            self.value = value
+        }
+        virtual def measure() -> int {
+            return self.value
+        }
+        virtual def show(value: int) -> str {
+            return "origin-int"
+        }
+        virtual def show(value: str) -> str {
+            return "origin-str"
+        }
+}
+
+class left : origin {
+    public:
+        override def measure() -> int {
+            return super.measure() + 1
+        }
+}
+
+class right : origin {
+    public:
+        override def measure() -> int {
+            return super.measure() + 2
+        }
+}
+
+class diamond : left, right {
+    public:
+        override def measure() -> int {
+            return super(left).measure() + super(right).measure()
+        }
+        override def show(value: int) -> str {
+            return "diamond-int"
+        }
+}
+
+class first_box {
+    public:
+        content: int
+        def init(value: int) {
+            self.content = value
+        }
+}
+
+class second_box {
+    public:
+        content: int
+        def init(value: int) {
+            self.content = value
+        }
+}
+
+class paired_box : first_box, second_box {
+    public:
+        def init(first: int, second: int) {
+            super.init(first)
+            (self as second_box).init(second)
+        }
+}
+
+class configured {
+    public:
+        value: int
+        def init(value: int) {
+            self.value = value
+        }
+        def init(value: str) {
+            self.value = len(value)
+        }
+        def read() -> int {
+            return self.value
+        }
+}
+
+def demo() {
+    dog actual = dog("豆豆", 7)
+    named item = actual
+    numbered number = actual
+    print(item.label())
+    print(number.number())
+    print(actual.show(3))
+    print(actual.show("好"))
+    dog recovered = item as dog
+    counter other_base = item as counter
+    print(recovered.speak())
+    print(other_base.number())
+    diamond shared = diamond(10)
+    origin root = shared
+    print(root.measure())
+    print(root.show(1))
+    print(root.show("x"))
+    paired_box pair = paired_box(1, 2)
+    print((pair as first_box).content)
+    print((pair as second_box).content)
+    configured from_int = configured(5)
+    configured from_str = configured("abc")
+    print(from_int.read())
+    print(from_str.read())
+}
+
+def main() -> int {
+    demo()
+    return 0
+}

@@ -1,0 +1,7 @@
+import "counter.txh" as meter
+
+def main() -> int {
+    meter.counter value = meter.counter(4)
+    print(value.increment())
+    return 0
+}

@@ -191,6 +191,15 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
 llvm_code_generator::ir_value llvm_code_generator::emit_call(
     const expression& item, const call_expression& call)
 {
+    if (call.is_super_view)
+    {
+        const auto value = load(find_variable("self", item.position));
+        return {item.type, value.text};
+    }
+    if (call.receiver)
+    {
+        return emit_method_call(item, call);
+    }
     const auto plain_arguments = [&]
     {
         std::vector<ir_value> values;
@@ -207,6 +216,25 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
     }
     if (call.is_constructor)
     {
+        if (const auto found_class = classes_.find(call.name);
+            found_class != classes_.end())
+        {
+            const function_decl* init = call.constructor_init_symbol.empty()
+                ? nullptr
+                : functions_.at(call.constructor_init_symbol).at(
+                    call.constructor_init_index);
+            const bool needs_binding = init != nullptr &&
+                (std::any_of(init->parameters.begin(), init->parameters.end(),
+                    [](const parameter& parameter)
+                    { return parameter.kind != parameter_kind::ordinary; }) ||
+                 std::any_of(call.arguments.begin(), call.arguments.end(),
+                    [](const call_argument& argument)
+                    { return argument.kind != argument_kind::positional; }));
+            const auto arguments = needs_binding
+                ? emit_bound_arguments(item, call, init->parameters)
+                : plain_arguments();
+            return emit_class_constructor(item, call, arguments);
+        }
         const auto& definition = *structs_.at(call.name);
         std::vector<parameter> parameters;
         for (const auto& field : definition.fields)

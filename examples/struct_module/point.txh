@@ -1,0 +1,6 @@
+struct point {
+    x: int
+    y: int
+}
+
+def move_x(value: point, delta: int) -> point

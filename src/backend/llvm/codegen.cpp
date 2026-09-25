@@ -86,6 +86,16 @@ std::string llvm_code_generator::global_bytes(std::string_view bytes)
 llvm_code_generator::variable_slot llvm_code_generator::find_variable(
     const std::string& name, source_pos position) const
 {
+    if (name == "super" && !current_method_owner_.empty())
+    {
+        for (const auto& base : classes_.at(current_method_owner_)->bases)
+        {
+            if (!classes_.at(base)->is_interface)
+            {
+                return {value_type(base), scopes_.front().at("self").address};
+            }
+        }
+    }
     for (auto scope = scopes_.rbegin(); scope != scopes_.rend(); ++scope)
     {
         if (const auto found = scope->find(name); found != scope->end())
@@ -199,72 +209,18 @@ void llvm_code_generator::pop_scope()
     scopes_.pop_back();
 }
 
-void llvm_code_generator::emit_function(const function_decl& function)
-{
-    if (function.external)
-    {
-        return;
-    }
-    const auto& overloads = functions_.at(function.name);
-    const auto found = std::find(overloads.begin(), overloads.end(), &function);
-    const auto index = static_cast<std::size_t>(found - overloads.begin());
-    return_type_ = function.return_type;
-    allocations_.str({});
-    allocations_.clear();
-    body_.str({});
-    body_.clear();
-    scopes_.clear();
-    next_value_ = 0;
-    next_slot_ = 0;
-    next_label_ = 0;
-    random_context_slot_.clear();
-    terminated_ = false;
-    push_scope();
-
-    std::string parameters;
-    for (std::size_t i = 0; i < function.parameters.size(); ++i)
-    {
-        const auto& parameter = function.parameters[i];
-        if (i != 0)
-        {
-            parameters += ", ";
-        }
-        const auto type = llvm_type(parameter.type, parameter.position);
-        parameters += type + " %arg" + std::to_string(i);
-        const auto address = allocate(parameter.type, parameter.position);
-        write_instruction("store " + type + " %arg" + std::to_string(i) +
-                          ", ptr " + address);
-        scopes_.back().emplace(parameter.name,
-                               variable_slot{parameter.type, address});
-    }
-    emit_statements(function.body);
-    if (!terminated_)
-    {
-        for (const auto& [name, variable] : scopes_.back())
-        {
-            (void)name;
-            release_slot(variable);
-        }
-        write_instruction(function.return_type == value_type::void_type
-            ? "ret void" : "unreachable");
-        terminated_ = true;
-    }
-    pop_scope();
-
-    module_ << "define " << llvm_type(function.return_type, function.position)
-            << ' ' << function_name(function.name, index) << '(' << parameters
-            << ") {\nentry:\n" << allocations_.str() << body_.str() << "}\n\n";
-}
-
 std::string llvm_code_generator::generate(const program& source)
 {
     functions_.clear();
     structs_.clear();
+    classes_.clear();
     module_.str({});
     module_.clear();
     globals_.str({});
     globals_.clear();
     next_string_ = 0;
+    field_slot_count_ = source.field_slot_count;
+    virtual_slot_count_ = source.virtual_slot_count;
     for (const auto& function : source.functions)
     {
         functions_[function.name].push_back(&function);
@@ -272,6 +228,15 @@ std::string llvm_code_generator::generate(const program& source)
     for (const auto& definition : source.structs)
     {
         structs_.emplace(definition.name, &definition);
+    }
+    for (const auto& definition : source.classes)
+    {
+        classes_.emplace(definition.name, &definition);
+        for (const auto& method : definition.methods)
+        {
+            functions_[class_method_symbol(definition.name, method.name)]
+                .push_back(&method);
+        }
     }
     module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
             << "declare i32 @txrt_prepare_console()\n"
@@ -342,11 +307,27 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_struct_set_field(ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_struct_field_address(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_struct_field_address_index(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_class_new(ptr, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_class_field_address_index(ptr, i64, i1, ptr)\n"
+            << "declare i32 @txrt_class_virtual_target(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_class_require_type(ptr, ptr)\n"
             << "\n";
+
+    for (const auto& definition : source.classes)
+    {
+        emit_class_metadata(definition);
+    }
 
     for (const auto& function : source.functions)
     {
         emit_function(function);
+    }
+    for (const auto& definition : source.classes)
+    {
+        for (const auto& method : definition.methods)
+        {
+            emit_function(method);
+        }
     }
     module_ << "define i32 @main() {\nentry:\n"
             << "  %prepare = call i32 @txrt_prepare_console()\n"

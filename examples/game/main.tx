@@ -1,0 +1,5 @@
+import "game.txh" as game
+
+def main() -> int {
+    return game.run()
+}

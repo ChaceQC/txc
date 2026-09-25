@@ -13,13 +13,15 @@ def main() -> int {
     auto first = input_or_none(">")
     if is_none(first) {
         print("EOF")
-    } else {
+    }
+    else {
         print(first as str)
     }
     auto second = input_or_none()
     if is_none(second) {
         print("EOF")
-    } else {
+    }
+    else {
         print(second as str)
     }
     return 0

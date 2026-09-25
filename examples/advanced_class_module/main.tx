@@ -1,0 +1,8 @@
+import "tagged.txh" as types
+import "holder.txh" as implementation
+
+def main() -> int {
+    types.tagged item = implementation.holder("module")
+    print(item.tag())
+    return 0
+}

@@ -24,7 +24,9 @@ private:
     [[nodiscard]] value_type parse_type();
     [[nodiscard]] import_decl parse_import();
     [[nodiscard]] struct_decl parse_struct();
-    [[nodiscard]] function_decl parse_function();
+    [[nodiscard]] class_decl parse_class(bool is_abstract = false,
+                                         bool is_interface = false);
+    [[nodiscard]] function_decl parse_function(bool declaration_only = false);
     [[nodiscard]] std::vector<stmt_ptr> parse_block();
     [[nodiscard]] stmt_ptr parse_statement();
     [[nodiscard]] bool looks_like_declaration() const;

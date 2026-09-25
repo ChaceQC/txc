@@ -6,6 +6,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -74,6 +75,7 @@ struct member_expression
 {
     expr_ptr object;
     std::string field;
+    std::optional<std::size_t> field_slot;
 };
 
 struct cast_expression
@@ -119,6 +121,13 @@ struct call_expression
     bool is_constructor = false;
     std::string source_name;
     std::optional<std::size_t> overload_index = std::nullopt;
+    expr_ptr receiver;
+    bool virtual_dispatch = false;
+    std::size_t virtual_slot = 0;
+    std::string constructor_init_symbol;
+    std::size_t constructor_init_index = 0;
+    bool is_super_view = false;
+    std::string super_type;
 };
 
 using expression_data = std::variant<
@@ -253,6 +262,17 @@ struct struct_decl
     source_pos position;
 };
 
+enum class member_access { private_access, protected_access, public_access };
+
+struct class_field
+{
+    std::string name;
+    value_type type;
+    source_pos position;
+    member_access access = member_access::private_access;
+    std::size_t slot = 0;
+};
+
 struct function_decl
 {
     std::string name;
@@ -263,7 +283,42 @@ struct function_decl
     bool external = false;
     std::string source_name;
     std::string external_name;
+    std::string owner_class;
+    member_access access = member_access::public_access;
+    bool is_virtual = false;
+    bool is_override = false;
+    bool is_abstract = false;
+    std::vector<std::size_t> virtual_slots;
+    std::size_t overload_index = 0;
 };
+
+struct virtual_target
+{
+    std::string symbol;
+    std::size_t overload_index = 0;
+    std::string owner_class;
+};
+
+struct class_decl
+{
+    std::string name;
+    std::vector<std::string> bases;
+    std::vector<class_field> fields;
+    std::vector<function_decl> methods;
+    source_pos position;
+    std::vector<virtual_target> virtual_targets;
+    std::vector<std::size_t> known_virtual_slots;
+    bool is_interface = false;
+    bool is_abstract = false;
+    std::string source_name;
+};
+
+[[nodiscard]] inline std::string class_method_symbol(
+    std::string_view owner, std::string_view method)
+{
+    return "$class$" + std::to_string(owner.size()) + "$" +
+           std::string(owner) + "$" + std::string(method);
+}
 
 struct import_decl
 {
@@ -289,10 +344,13 @@ struct program
 {
     std::vector<import_decl> imports;
     std::vector<struct_decl> structs;
+    std::vector<class_decl> classes;
     std::vector<function_decl> functions;
     std::vector<module_scope> modules;
     std::unordered_map<std::string, std::string> file_modules;
     std::string root_module;
+    std::size_t field_slot_count = 0;
+    std::size_t virtual_slot_count = 0;
 };
 
 } // namespace tx

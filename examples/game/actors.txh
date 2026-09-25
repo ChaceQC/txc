@@ -1,0 +1,61 @@
+interface combatant {
+    def name() -> str
+    def health() -> int
+    def max_health() -> int
+    def is_alive() -> bool
+    def take_damage(amount: int) -> int
+}
+
+class entity : combatant {
+    protected:
+        label_value: str
+        health_value: int
+        health_limit: int
+    public:
+        def init(label: str, max_health: int)
+        override def name() -> str
+        override def health() -> int
+        override def max_health() -> int
+        override def is_alive() -> bool
+        override def take_damage(amount: int) -> int
+        def heal(amount: int) -> int
+}
+
+class hero : entity {
+    private:
+        energy_value: int
+        potion_count: int
+        gold_value: int
+        weapon_rank: int
+        armor_rank: int
+    public:
+        def init()
+        def energy() -> int
+        def potions() -> int
+        def gold() -> int
+        def weapon_level() -> int
+        def armor_level() -> int
+        def can_power_strike() -> bool
+        def strike(power: bool) -> int
+        def guard() -> void
+        def drink_potion() -> bool
+        def add_gold(amount: int) -> void
+        def buy_potion() -> bool
+        def upgrade_weapon() -> bool
+        def upgrade_armor() -> bool
+        def rest() -> int
+        override def take_damage(amount: int) -> int
+}
+
+class monster : entity {
+    private:
+        floor_value: int
+        encounter_value: int
+        route_value: int
+        intent_value: int
+    public:
+        def init(floor: int, encounter: int, route: int)
+        def telegraph() -> int
+        def attack_damage(defending: bool) -> int
+        def reward() -> int
+}

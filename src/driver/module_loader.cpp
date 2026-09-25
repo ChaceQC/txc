@@ -1,4 +1,5 @@
 #include "driver/module_loader.hpp"
+#include "driver/module_loader_class.hpp"
 
 #include "frontend/lexer/lexer.hpp"
 #include "frontend/parser/parser.hpp"
@@ -11,29 +12,6 @@
 
 namespace tx
 {
-namespace
-{
-
-bool same_parameter_types(const function_decl& left,
-                          const function_decl& right)
-{
-    if (left.parameters.size() != right.parameters.size())
-    {
-        return false;
-    }
-    for (std::size_t index = 0; index < left.parameters.size(); ++index)
-    {
-        if (left.parameters[index].type != right.parameters[index].type ||
-            left.parameters[index].kind != right.parameters[index].kind)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-} // namespace
-
 module_loader::module_loader(std::filesystem::path standard_library_dir)
     : standard_library_dir_(std::move(standard_library_dir))
 {
@@ -78,6 +56,9 @@ void module_loader::append_program(program& target, program& source)
     target.structs.insert(target.structs.end(),
                           std::make_move_iterator(source.structs.begin()),
                           std::make_move_iterator(source.structs.end()));
+    target.classes.insert(target.classes.end(),
+                          std::make_move_iterator(source.classes.begin()),
+                          std::make_move_iterator(source.classes.end()));
     target.functions.insert(target.functions.end(),
                             std::make_move_iterator(source.functions.begin()),
                             std::make_move_iterator(source.functions.end()));
@@ -133,6 +114,29 @@ void module_loader::validate_pair(const program& header,
     {
         throw compile_error(implementation.structs.front().position,
                             "配对 .tx 的结构体应声明在 .txh：" + path_text(source_path));
+    }
+    for (const auto& declaration : header.classes)
+    {
+        const auto found = std::find_if(implementation.classes.begin(),
+            implementation.classes.end(), [&](const class_decl& item)
+            { return item.name == declaration.name; });
+        if (found == implementation.classes.end() ||
+            !same_class_layout(declaration, *found))
+        {
+            throw compile_error(declaration.position,
+                                "接口类与实现不匹配：" + declaration.name);
+        }
+    }
+    for (const auto& definition : implementation.classes)
+    {
+        const auto found = std::find_if(header.classes.begin(),
+            header.classes.end(), [&](const class_decl& item)
+            { return item.name == definition.name; });
+        if (found == header.classes.end())
+        {
+            throw compile_error(definition.position,
+                                "实现包含接口未声明的类：" + definition.name);
+        }
     }
 }
 
@@ -213,6 +217,18 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
     source_path.replace_extension(".tx");
     if (!fs::exists(source_path))
     {
+        for (const auto& definition : header.classes)
+        {
+            for (const auto& method : definition.methods)
+            {
+                if (!method.is_abstract)
+                {
+                    throw compile_error(method.position,
+                                        "类的具体方法需要配对 .tx 实现：" +
+                                        method.name);
+                }
+            }
+        }
         std::error_code error;
         const auto library_dir = fs::canonical(standard_library_dir_, error);
         if (!error)
@@ -247,6 +263,9 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
     result.structs.insert(result.structs.end(),
                           std::make_move_iterator(header.structs.begin()),
                           std::make_move_iterator(header.structs.end()));
+    result.classes.insert(result.classes.end(),
+                          std::make_move_iterator(implementation.classes.begin()),
+                          std::make_move_iterator(implementation.classes.end()));
     result.functions.insert(result.functions.end(),
                             std::make_move_iterator(implementation.functions.begin()),
                             std::make_move_iterator(implementation.functions.end()));

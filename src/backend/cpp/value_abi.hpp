@@ -53,6 +53,19 @@ int txrt_struct_field_address(void* value, const char* field_name,
                                void** result) noexcept;
 int txrt_struct_field_address_index(void* value, std::size_t index,
                                      void** result) noexcept;
+int txrt_class_new(const char* type_name, const char* display_name,
+                   const char* const* ancestors, std::size_t ancestor_count,
+                   const char* const* field_types, std::size_t field_count,
+                   const void* const* virtual_targets, std::size_t virtual_count,
+                   const void* const* destructor_targets,
+                   std::size_t destructor_count,
+                   void** result) noexcept;
+int txrt_class_field_address_index(void* value, std::size_t index,
+                                    bool for_write, void** result) noexcept;
+int txrt_class_virtual_target(const void* value, std::size_t slot,
+                               void** result) noexcept;
+int txrt_class_require_type(const void* value,
+                            const char* type_name) noexcept;
 int txrt_call_external(const char* name, const void* const* arguments,
                        std::size_t count, void** result) noexcept;
 

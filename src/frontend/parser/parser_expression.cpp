@@ -117,26 +117,26 @@ expr_ptr parser::parse_postfix()
             const auto position = value->position;
             const auto* name = std::get_if<name_reference>(&value->data);
             std::string callable;
+            expr_ptr receiver;
             if (name != nullptr)
             {
                 callable = name->name;
             }
-            else if (const auto* member = std::get_if<member_expression>(&value->data))
+            else if (auto* member = std::get_if<member_expression>(&value->data))
             {
-                const auto* module = std::get_if<name_reference>(&member->object->data);
-                if (module != nullptr)
-                {
-                    callable = module->name + "." + member->field;
-                }
+                callable = member->field;
+                receiver = std::move(member->object);
             }
             if (callable.empty())
             {
-                throw compile_error(previous().position, "只能调用函数或结构体");
+                throw compile_error(previous().position, "只能调用函数、构造函数或方法");
             }
             auto arguments = parse_arguments();
             value = std::make_unique<expression>(
                 position, call_expression{callable, std::move(arguments),
-                                          false, callable});
+                                          false, callable, std::nullopt,
+                                          std::move(receiver), false, 0, {}, 0,
+                                          false, {}});
         }
         else if (match(token_kind::left_bracket))
         {
@@ -151,7 +151,7 @@ expr_ptr parser::parse_postfix()
             const auto position = value->position;
             const auto field = consume(token_kind::identifier, "点号后需要字段名").text;
             value = std::make_unique<expression>(
-                position, member_expression{std::move(value), field});
+                position, member_expression{std::move(value), field, std::nullopt});
         }
         else if (match(token_kind::keyword_as))
         {

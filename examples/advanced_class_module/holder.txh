@@ -1,0 +1,8 @@
+import "tagged.txh"
+
+class holder : tagged {
+    public:
+        value: str
+        def init(value: str)
+        override def tag() -> str
+}

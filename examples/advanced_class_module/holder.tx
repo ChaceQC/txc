@@ -1,0 +1,10 @@
+class holder : tagged {
+    public:
+        value: str
+        def init(value: str) {
+            self.value = value
+        }
+        override def tag() -> str {
+            return self.value
+        }
+}

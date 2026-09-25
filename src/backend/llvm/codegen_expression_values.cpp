@@ -100,10 +100,22 @@ std::string llvm_code_generator::lvalue_address(const expression& item)
         }
         else
         {
-            invocation = "@txrt_struct_field_address_index(ptr " + base +
-                         ", i64 " + std::to_string(field_index(
-                             member->object->type, member->field,
-                             item.position));
+            if (classes_.contains(member->object->type.name))
+            {
+                if (!member->field_slot)
+                {
+                    throw compile_error(item.position, "类字段缺少静态槽位");
+                }
+                invocation = "@txrt_class_field_address_index(ptr " + base +
+                    ", i64 " + std::to_string(*member->field_slot) +
+                    ", i1 true";
+            }
+            else
+            {
+                invocation = "@txrt_struct_field_address_index(ptr " + base +
+                    ", i64 " + std::to_string(field_index(
+                        member->object->type, member->field, item.position));
+            }
         }
     }
     else if (const auto* index = std::get_if<index_expression>(&item.data))

@@ -1,0 +1,29 @@
+def choose(floor: int) -> int {
+    bool choosing = true
+    int route = 0
+
+    while choosing {
+        print()
+        print("第", floor, "层：选择前进路线。")
+        print("[1]安全小径：敌人较弱，金币较少。")
+        print("[2]藏宝暗道：敌人更强，但奖励更多金币。")
+        auto choice = input("选择路线> ")
+
+        if choice == "1" {
+            route = 0
+            choosing = false
+            print("你选择了安全小径。")
+        }
+        else {
+            if choice == "2" {
+                route = 1
+                choosing = false
+                print("你选择了藏宝暗道，做好苦战的准备。")
+            }
+            else {
+                print("请输入 1 或 2。")
+            }
+        }
+    }
+    return route
+}

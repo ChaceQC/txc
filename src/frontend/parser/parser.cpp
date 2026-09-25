@@ -120,6 +120,7 @@ struct_decl parser::parse_struct()
 {
     const auto position = consume(token_kind::keyword_struct, "需要 struct").position;
     const auto name = consume(token_kind::identifier, "需要结构体名称").text;
+    skip_newlines();
     (void)consume(token_kind::left_brace, "结构体需要左大括号");
     skip_newlines();
     std::vector<struct_field> fields;
@@ -142,7 +143,7 @@ struct_decl parser::parse_struct()
     return {name, std::move(fields), position};
 }
 
-function_decl parser::parse_function()
+function_decl parser::parse_function(bool declaration_only)
 {
     const auto position = consume(token_kind::keyword_def, "需要 def").position;
     const auto name = consume(token_kind::identifier, "需要函数名").text;
@@ -205,22 +206,27 @@ function_decl parser::parse_function()
     (void)consume(token_kind::right_paren, "参数列表缺少右括号");
     const auto return_type = match(token_kind::arrow)
         ? parse_type() : value_type::void_type;
-    if (interface_mode_)
+    if (interface_mode_ || declaration_only)
     {
         if (!check(token_kind::newline) && !check(token_kind::end_of_file))
         {
-            throw compile_error(current().position, ".txh 只允许函数声明");
+            throw compile_error(current().position,
+                                "接口或抽象方法声明后不能写方法体");
         }
         return {name, std::move(parameters), return_type, {}, position, true,
-                name, {}};
+                name, {}, {}, member_access::public_access, false, false,
+                false, {}, 0};
     }
     auto body = parse_block();
     return {name, std::move(parameters), return_type, std::move(body),
-            position, false, name, {}};
+            position, false, name, {}, {}, member_access::public_access,
+            false, false, false, {}, 0};
 }
 
 std::vector<stmt_ptr> parser::parse_block()
 {
+    // 只有等待代码块左大括号时才跨越换行，普通语句仍按行结束。
+    skip_newlines();
     (void)consume(token_kind::left_brace, "需要左大括号");
     skip_newlines();
     std::vector<stmt_ptr> body;
@@ -414,6 +420,18 @@ program parser::parse_program()
         else if (check(token_kind::keyword_struct))
         {
             result.structs.push_back(parse_struct());
+        }
+        else if (check(token_kind::keyword_class))
+        {
+            result.classes.push_back(parse_class());
+        }
+        else if (check(token_kind::keyword_interface))
+        {
+            result.classes.push_back(parse_class(false, true));
+        }
+        else if (match(token_kind::keyword_abstract))
+        {
+            result.classes.push_back(parse_class(true, false));
         }
         else
         {

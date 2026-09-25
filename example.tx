@@ -2,15 +2,106 @@
 import "modules/offset.txh"
 import "modules/overload.txh" as math
 
-struct record {
+struct record
+{
     name: str
     scores: array
     meta: dict
 }
 
+# 接口只声明方法；抽象类保留待子类实现的 speak。
+interface labeled
+{
+    def label() -> str
+}
+
+abstract class animal : labeled
+{
+    protected:
+        name: str
+    public:
+        def init(name: str)
+        {
+            self.name = name
+        }
+        abstract def speak() -> str
+        override def label() -> str
+        {
+            return self.name + ":" + self.speak()
+        }
+        def deinit()
+        {
+            print("animal deinit")
+        }
+}
+
+class counted
+{
+    protected:
+        count: int
+    public:
+        virtual def count_value() -> int
+        {
+            return self.count
+        }
+        def deinit()
+        {
+            print("counted deinit")
+        }
+}
+
+# 多继承、虚方法覆盖、同名方法重载和各层析构。
+class dog : animal, counted
+{
+    public:
+        def init(name: str, count: int)
+        {
+            super.init(name)
+            self.count = count
+        }
+        override def speak() -> str
+        {
+            return self.name + " 汪"
+        }
+        override def count_value() -> int
+        {
+            return super(counted).count_value()
+        }
+        def describe(value: int) -> str
+        {
+            return "int=" + (value as str)
+        }
+        def describe(value: str) -> str
+        {
+            return "str=" + value
+        }
+        def deinit()
+        {
+            print("dog deinit")
+        }
+}
+
+def class_demo()
+{
+    dog concrete = dog("豆豆", 2)
+    labeled pet = concrete
+    animal parent = concrete
+    print(pet.label())
+    print(parent.speak())
+    print(concrete.describe(1))
+    print(concrete.describe("好"))
+    # as 在运行时确认实际对象类型，也可跨父类转换。
+    dog recovered = pet as dog
+    counted other_parent = pet as counted
+    print(recovered.speak())
+    print(other_parent.count_value())
+    # 离开函数时最后一个对象引用释放，依次执行 dog、counted、animal 的 deinit。
+}
+
 def sum_to(n: int) -> int {
     int total = 0
-    for i in 1..=n {
+    for i in 1..=n
+    {
         total += i
     }
     return total
@@ -54,7 +145,8 @@ def count_extra(*args: array, **kwargs: dict) -> int {
     return len(args) + len(kwargs)
 }
 
-def main() -> int {
+def main() -> int
+{
     int count = 0
     float ratio = 1.5
     bool ready = true
@@ -68,6 +160,7 @@ def main() -> int {
     dict empty_dict = {}
     auto user = record(name="Ada", scores=[8.5, 9.0], meta={"active": true})
     array nested = [[1, 2], user]
+    class_demo()
 
     # 数组和字典都能按索引读写；结构体字段可赋值。
     values[0] = 3
@@ -107,9 +200,12 @@ def main() -> int {
     ratio++
     ratio--
 
-    if ready && count > 0 {
+    if ready && count > 0
+    {
         print((ratio * 2.0) as str)
-    } else {
+    }
+    else
+    {
         print("未就绪")
     }
     if !ready || count == 0 {
@@ -132,10 +228,12 @@ def main() -> int {
         str escaped = "第一行\\n第二行"
         print(escaped)
     }
-    while count < 5 {
+    while count < 5
+    {
         count += 1
     }
-    for value in values {
+    for value in values
+    {
         print(value)
     }
     for key in settings {

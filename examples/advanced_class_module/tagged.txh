@@ -1,0 +1,3 @@
+interface tagged {
+    def tag() -> str
+}

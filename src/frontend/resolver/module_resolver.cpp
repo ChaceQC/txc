@@ -12,7 +12,8 @@ bool is_builtin_call(const std::string& name)
 {
     return name == "print" || name == "len" || name == "input" ||
            name == "input_or_none" ||
-           name == "to_float" || name == "is_none";
+           name == "to_float" || name == "is_none" ||
+           name == "self" || name == "super";
 }
 
 bool is_builtin_type(const std::string& name)
@@ -63,6 +64,22 @@ void module_resolver::build_index(const program& source)
                                 "模块内重复声明：" + definition.name);
         }
     }
+    for (const auto& definition : source.classes)
+    {
+        const auto key = module_of(definition.position);
+        if (is_builtin_type(definition.name) || is_builtin_call(definition.name))
+        {
+            throw compile_error(definition.position, "保留的类名：" + definition.name);
+        }
+        const auto internal = prefixes_.at(key) + definition.name;
+        if (!exports_[key].emplace(
+                definition.name,
+                export_entry{internal, true, definition.position}).second)
+        {
+            throw compile_error(definition.position,
+                                "模块内重复声明：" + definition.name);
+        }
+    }
     for (const auto& function : source.functions)
     {
         const auto key = module_of(function.position);
@@ -74,7 +91,7 @@ void module_resolver::build_index(const program& source)
             ? "main" : prefixes_.at(key) + function.name;
         const auto [found, inserted] = exports_[key].emplace(
             function.name, export_entry{internal, false, function.position});
-        if (!inserted && found->second.is_struct)
+        if (!inserted && found->second.is_type)
         {
             throw compile_error(function.position,
                                 "模块内重复声明：" + function.name);
@@ -120,7 +137,7 @@ const module_resolver::export_entry* module_resolver::find_symbol(
             if (dependency.alias == alias && !alias.empty())
             {
                 const auto* result = find_export(dependency.target, member);
-                if (result == nullptr || (type_only && !result->is_struct))
+                if (result == nullptr || (type_only && !result->is_type))
                 {
                     throw compile_error(position, "模块中不存在该名称：" + name);
                 }
@@ -130,7 +147,7 @@ const module_resolver::export_entry* module_resolver::find_symbol(
         throw compile_error(position, "未知模块别名：" + alias);
     }
     if (const auto* own = find_export(module_key, name);
-        own != nullptr && (!type_only || own->is_struct))
+        own != nullptr && (!type_only || own->is_type))
     {
         return own;
     }
@@ -143,7 +160,7 @@ const module_resolver::export_entry* module_resolver::find_symbol(
             continue;
         }
         const auto* candidate = find_export(dependency.target, name);
-        if (candidate == nullptr || (type_only && !candidate->is_struct))
+        if (candidate == nullptr || (type_only && !candidate->is_type))
         {
             continue;
         }
@@ -194,6 +211,31 @@ void module_resolver::resolve(program& source)
         for (auto& field : definition.fields)
         {
             field.type = resolve_type(key, field.type, field.position);
+        }
+        definition.name = exports_.at(key).at(definition.name).internal_name;
+    }
+    for (auto& definition : source.classes)
+    {
+        const auto key = module_of(definition.position);
+        for (auto& base : definition.bases)
+        {
+            base = resolve_type(key, value_type(base), definition.position).name;
+        }
+        for (auto& field : definition.fields)
+        {
+            field.type = resolve_type(key, field.type, field.position);
+        }
+        for (auto& method : definition.methods)
+        {
+            for (auto& parameter : method.parameters)
+            {
+                check_local_name(key, parameter.name, parameter.position);
+                parameter.type = resolve_type(key, parameter.type, parameter.position);
+            }
+            method.return_type = resolve_type(
+                key, method.return_type, method.position);
+            resolve_statements(method.body, key);
+            method.owner_class = exports_.at(key).at(definition.name).internal_name;
         }
         definition.name = exports_.at(key).at(definition.name).internal_name;
     }

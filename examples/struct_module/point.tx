@@ -1,0 +1,3 @@
+def move_x(value: point, delta: int) -> point {
+    return point(value.x + delta, value.y)
+}

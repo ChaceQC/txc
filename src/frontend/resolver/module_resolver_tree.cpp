@@ -63,12 +63,74 @@ void module_resolver::resolve_expression(
     }
     else if (auto* call = std::get_if<call_expression>(&item.data))
     {
+        if (!call->receiver && call->name == "super")
+        {
+            if (call->arguments.size() != 1 ||
+                call->arguments.front().kind != argument_kind::positional)
+            {
+                throw compile_error(item.position,
+                                    "super(类型) 需要一个父类类型名");
+            }
+            const auto& type_value = *call->arguments.front().value;
+            std::string type_text;
+            if (const auto* name = std::get_if<name_reference>(&type_value.data))
+            {
+                type_text = name->name;
+            }
+            else if (const auto* member =
+                         std::get_if<member_expression>(&type_value.data))
+            {
+                const auto* module =
+                    std::get_if<name_reference>(&member->object->data);
+                if (module != nullptr)
+                {
+                    type_text = module->name + "." + member->field;
+                }
+            }
+            if (type_text.empty())
+            {
+                throw compile_error(item.position,
+                                    "super(类型) 需要父类类型名");
+            }
+            call->is_super_view = true;
+            call->super_type = resolve_type(module_key,
+                value_type(type_text), item.position).name;
+            return;
+        }
+        if (call->receiver)
+        {
+            const auto* name = std::get_if<name_reference>(&call->receiver->data);
+            bool module_alias = false;
+            if (name)
+            {
+                for (const auto& dependency : scopes_.at(module_key)->imports)
+                {
+                    if (!dependency.alias.empty() && dependency.alias == name->name)
+                    {
+                        module_alias = true;
+                        break;
+                    }
+                }
+            }
+            if (module_alias)
+            {
+                call->name = name->name + "." + call->name;
+                call->receiver.reset();
+            }
+            else
+            {
+                resolve_expression(*call->receiver, module_key);
+            }
+        }
         for (auto& argument : call->arguments)
         {
             resolve_expression(*argument.value, module_key);
         }
         call->source_name = call->name;
-        call->name = resolve_call_name(module_key, call->name, item.position);
+        if (!call->receiver)
+        {
+            call->name = resolve_call_name(module_key, call->name, item.position);
+        }
     }
 }
 

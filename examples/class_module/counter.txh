@@ -1,0 +1,6 @@
+class counter {
+    public:
+        value: int
+        def init(start: int)
+        def increment() -> int
+}

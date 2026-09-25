@@ -1,0 +1,8 @@
+import "point.txh" as geometry
+
+def main() -> int {
+    geometry.point original = geometry.point(2, 3)
+    geometry.point moved = geometry.move_x(original, 5)
+    print(moved.x)
+    return 0
+}

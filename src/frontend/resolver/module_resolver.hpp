@@ -18,7 +18,7 @@ private:
     struct export_entry
     {
         std::string internal_name;
-        bool is_struct = false;
+        bool is_type = false;
         source_pos position;
     };
 

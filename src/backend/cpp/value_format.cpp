@@ -143,6 +143,11 @@ void append_value(std::string& output, const std::any& value,
     {
         append_struct(output, std::any_cast<const dynamic_struct&>(value), depth);
     }
+    else if (value.type() == typeid(class_handle))
+    {
+        const auto& object = std::any_cast<const class_handle&>(value);
+        output += "<" + object->display_name + " object>";
+    }
     else
     {
         throw std::runtime_error("print 不支持此动态类型");

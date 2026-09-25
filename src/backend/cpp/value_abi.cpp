@@ -5,6 +5,7 @@
 #include "backend/cpp/value_format.hpp"
 
 #include <any>
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <typeinfo>
@@ -16,6 +17,7 @@ namespace
 
 using tx_generated::dynamic_field;
 using tx_generated::dynamic_struct;
+using tx_generated::class_handle;
 
 std::any& as_value(void* value)
 {
@@ -154,7 +156,15 @@ extern "C" int txrt_value_require_type(const void* value,
             (type == "dict" && item.type() == typeid(tx_generated::tx_dict)) ||
             (type == "none" && !item.has_value()) ||
             (item.type() == typeid(dynamic_struct) &&
-             std::any_cast<const dynamic_struct&>(item).type_name == type);
+             std::any_cast<const dynamic_struct&>(item).type_name == type) ||
+            (item.type() == typeid(class_handle) &&
+             [&]
+             {
+                 const auto& ancestors =
+                     std::any_cast<const class_handle&>(item)->ancestors;
+                 return std::find(ancestors.begin(), ancestors.end(), type) !=
+                        ancestors.end();
+             }());
         if (!valid)
             throw std::runtime_error("展开值与目标参数或变量类型不匹配：" + type);
     });

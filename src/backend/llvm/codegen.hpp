@@ -64,6 +64,16 @@ private:
     [[nodiscard]] ir_value emit_constructor_call(
         const expression& item, const call_expression& call,
         const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value emit_class_constructor(
+        const expression& item, const call_expression& call,
+        const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value emit_method_call(
+        const expression& item, const call_expression& call);
+    void emit_class_metadata(const class_decl& definition);
+    void collect_class_nodes(const class_decl& definition,
+                             std::vector<const class_decl*>& result) const;
+    [[nodiscard]] bool class_is_assignable(const value_type& actual,
+                                           const value_type& expected) const;
     [[nodiscard]] ir_value emit_external_call(
         const expression& item, const call_expression& call,
         const function_decl& target, const std::vector<ir_value>& arguments);
@@ -130,6 +140,7 @@ private:
 
     std::unordered_map<std::string, std::vector<const function_decl*>> functions_;
     std::unordered_map<std::string, const struct_decl*> structs_;
+    std::unordered_map<std::string, const class_decl*> classes_;
     std::vector<std::unordered_map<std::string, variable_slot>> scopes_;
     std::ostringstream module_;
     std::ostringstream globals_;
@@ -141,6 +152,9 @@ private:
     std::size_t next_label_ = 0;
     std::size_t next_string_ = 0;
     std::string random_context_slot_;
+    std::string current_method_owner_;
+    std::size_t field_slot_count_ = 0;
+    std::size_t virtual_slot_count_ = 0;
     bool terminated_ = false;
 };
 

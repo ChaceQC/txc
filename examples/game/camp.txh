@@ -1,0 +1,3 @@
+import "actors.txh" as actor
+
+def visit(player: actor.hero) -> void

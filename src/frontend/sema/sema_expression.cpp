@@ -217,6 +217,25 @@ value_type semantic_analyzer::check_member(expression& item,
     {
         return value_type::any_type;
     }
+    if (const auto found_class = classes_.find(object_type.name);
+        found_class != classes_.end())
+    {
+        const auto fields = collect_fields(*found_class->second, access.field);
+        if (fields.empty())
+        {
+            throw compile_error(item.position, "未知类字段：" + access.field);
+        }
+        if (fields.size() != 1)
+        {
+            throw compile_error(item.position,
+                                "多继承字段存在歧义，请转换到指定父类型：" +
+                                access.field);
+        }
+        check_access(fields.front().field->access, *fields.front().owner,
+                     item.position, access.field);
+        access.field_slot = fields.front().field->slot;
+        return fields.front().field->type;
+    }
     const auto found = structs_.find(object_type.name);
     if (found == structs_.end())
     {
@@ -234,6 +253,16 @@ value_type semantic_analyzer::check_member(expression& item,
 
 value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast)
 {
+    if (classes_.contains(cast.target.name))
+    {
+        const auto actual = check_expression(*cast.value);
+        if (actual != value_type::any_type && !classes_.contains(actual.name))
+        {
+            throw compile_error(item.position,
+                                "类或接口转换需要对象引用或 any");
+        }
+        return cast.target;
+    }
     const auto numeric_target = is_numeric(cast.target);
     if (!numeric_target && cast.target != value_type::str_type)
     {

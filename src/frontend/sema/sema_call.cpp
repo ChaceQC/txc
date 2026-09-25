@@ -1,6 +1,8 @@
 #include "frontend/sema/sema.hpp"
 
+#include <algorithm>
 #include <string>
+#include <limits>
 #include <unordered_set>
 #include <vector>
 
@@ -22,10 +24,18 @@ bool is_printable(const value_type& type)
            type == value_type::any_type;
 }
 
-bool matches_signature(const function_signature& signature,
-                       const call_expression& call,
-                       const std::vector<value_type>& types)
+} // namespace
+
+bool semantic_analyzer::matches_signature(
+    const function_signature& signature, const call_expression& call,
+    const std::vector<value_type>& types, bool allow_upcast) const
 {
+    const auto accepts = [this, allow_upcast](
+        const value_type& actual, const value_type& expected)
+    {
+        return allow_upcast ? is_assignable(actual, expected)
+                            : actual == expected;
+    };
     std::size_t fixed_count = 0;
     bool accepts_args = false;
     bool accepts_kwargs = false;
@@ -66,7 +76,7 @@ bool matches_signature(const function_signature& signature,
             }
             if (positional < fixed_count)
             {
-                if (signature.parameters[positional].type != type)
+                if (!accepts(type, signature.parameters[positional].type))
                 {
                     return false;
                 }
@@ -98,7 +108,7 @@ bool matches_signature(const function_signature& signature,
             continue;
         }
         if (filled[parameter_index] ||
-            signature.parameters[parameter_index].type != type)
+            !accepts(type, signature.parameters[parameter_index].type))
         {
             return false;
         }
@@ -117,8 +127,6 @@ bool matches_signature(const function_signature& signature,
     return true;
 }
 
-} // namespace
-
 value_type semantic_analyzer::check_builtin(expression& item, call_expression& call)
 {
     if (call.name == "print")
@@ -136,7 +144,8 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
                                         "print 的值必须写在 sep 和 end 前面");
                 }
                 const auto actual = check_expression(*argument.value);
-                if (!is_printable(actual) && !structs_.contains(actual.name))
+                if (!is_printable(actual) && !structs_.contains(actual.name) &&
+                    !classes_.contains(actual.name))
                 {
                     throw compile_error(argument.position, "print 不支持此类型：" +
                                                         std::string(type_name(actual)));
@@ -214,15 +223,8 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
     return value_type::bool_type;
 }
 
-value_type semantic_analyzer::check_constructor(expression& item,
-                                                call_expression& call)
+std::vector<value_type> semantic_analyzer::check_call_arguments(call_expression& call)
 {
-    const auto& definition = *structs_.at(call.name);
-    function_signature signature{{}, value_type(call.name)};
-    for (const auto& field : definition.fields)
-    {
-        signature.parameters.push_back({field.name, field.type, field.position});
-    }
     std::vector<value_type> types;
     for (auto& argument : call.arguments)
     {
@@ -240,7 +242,20 @@ value_type semantic_analyzer::check_constructor(expression& item,
             throw compile_error(argument.position, "** 需要字典");
         }
     }
-    if (!matches_signature(signature, call, types))
+    return types;
+}
+
+value_type semantic_analyzer::check_constructor(expression& item,
+                                                call_expression& call)
+{
+    const auto& definition = *structs_.at(call.name);
+    function_signature signature{{}, value_type(call.name)};
+    for (const auto& field : definition.fields)
+    {
+        signature.parameters.push_back({field.name, field.type, field.position});
+    }
+    const auto types = check_call_arguments(call);
+    if (!matches_signature(signature, call, types, false))
     {
         throw compile_error(item.position, "结构体构造参数不匹配：" + call.source_name);
     }
@@ -250,6 +265,25 @@ value_type semantic_analyzer::check_constructor(expression& item,
 
 value_type semantic_analyzer::check_call(expression& item, call_expression& call)
 {
+    if (call.is_super_view)
+    {
+        const auto found = classes_.find(call.super_type);
+        if (current_class_ == nullptr || found == classes_.end() ||
+            found->second->is_interface ||
+            class_distance(value_type(current_class_->name),
+                           value_type(call.super_type)) ==
+                std::numeric_limits<std::size_t>::max() ||
+            current_class_->name == call.super_type)
+        {
+            throw compile_error(item.position,
+                                "super(类型) 需要当前类的具体父类");
+        }
+        return value_type(call.super_type);
+    }
+    if (call.receiver)
+    {
+        return check_method_call(item, call);
+    }
     const auto& display_name = call.source_name.empty()
         ? call.name : call.source_name;
     if (call.name == "print" || call.name == "len" ||
@@ -263,34 +297,21 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     {
         return check_constructor(item, call);
     }
+    if (classes_.contains(call.name))
+    {
+        return check_class_constructor(item, call);
+    }
     const auto found = functions_.find(call.name);
     if (found == functions_.end())
     {
         throw compile_error(item.position, "未定义函数：" + display_name);
     }
-    std::vector<value_type> actual_types;
-    actual_types.reserve(call.arguments.size());
-    for (auto& argument : call.arguments)
-    {
-        actual_types.push_back(check_expression(*argument.value));
-        if (argument.kind == argument_kind::spread_array &&
-            actual_types.back() != value_type::array_type &&
-            actual_types.back() != value_type::any_type)
-        {
-            throw compile_error(argument.position, "* 需要数组");
-        }
-        if (argument.kind == argument_kind::spread_dict &&
-            actual_types.back() != value_type::dict_type &&
-            actual_types.back() != value_type::any_type)
-        {
-            throw compile_error(argument.position, "** 需要字典");
-        }
-    }
+    const auto actual_types = check_call_arguments(call);
     std::vector<std::size_t> candidates;
     for (std::size_t index = 0; index < found->second.size(); ++index)
     {
         const auto& signature = found->second[index];
-        if (matches_signature(signature, call, actual_types))
+        if (matches_signature(signature, call, actual_types, true))
         {
             candidates.push_back(index);
         }
@@ -302,6 +323,67 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     }
     if (candidates.size() > 1)
     {
+        const bool has_spread = std::any_of(call.arguments.begin(),
+            call.arguments.end(), [](const call_argument& argument)
+            {
+                return argument.kind == argument_kind::spread_array ||
+                       argument.kind == argument_kind::spread_dict;
+            });
+        if (!has_spread)
+        {
+            std::size_t best_cost = std::numeric_limits<std::size_t>::max();
+            std::optional<std::size_t> best;
+            for (const auto candidate : candidates)
+            {
+                const auto& parameters = found->second[candidate].parameters;
+                std::size_t positional = 0;
+                std::size_t cost = 0;
+                for (std::size_t i = 0; i < call.arguments.size(); ++i)
+                {
+                    const auto& argument = call.arguments[i];
+                    const parameter* target = nullptr;
+                    if (argument.kind == argument_kind::positional)
+                    {
+                        if (positional < parameters.size() &&
+                            parameters[positional].kind == parameter_kind::ordinary)
+                        {
+                            target = &parameters[positional];
+                        }
+                        ++positional;
+                    }
+                    else if (argument.kind == argument_kind::keyword)
+                    {
+                        for (const auto& parameter : parameters)
+                        {
+                            if (parameter.kind == parameter_kind::ordinary &&
+                                parameter.name == argument.name)
+                            {
+                                target = &parameter;
+                                break;
+                            }
+                        }
+                    }
+                    if (target != nullptr && target->type != actual_types[i])
+                    {
+                        cost += class_distance(actual_types[i], target->type);
+                    }
+                }
+                if (cost < best_cost)
+                {
+                    best_cost = cost;
+                    best = candidate;
+                }
+                else if (cost == best_cost)
+                {
+                    best.reset();
+                }
+            }
+            if (best)
+            {
+                call.overload_index = *best;
+                return found->second[*best].result;
+            }
+        }
         throw compile_error(item.position, "函数调用的重载不唯一：" + display_name);
     }
     std::string actual = display_name + "(";

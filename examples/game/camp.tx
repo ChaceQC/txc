@@ -1,0 +1,59 @@
+def visit(player: actor.hero) -> void {
+    bool shopping = true
+
+    while shopping {
+        print()
+        print("=== 营地商店 ===")
+        print("生命：", player.health(), "/", player.max_health(), " 药水：", player.potions(), " 金币：", player.gold())
+        print("[1]药水 10G [2]武器升级 18G [3]护甲升级 16G [4]休息 8G [0]出发")
+        auto choice = input("购买什么？> ")
+
+        if choice == "0" || choice == "q" || choice == "Q" {
+            shopping = false
+        }
+        else {
+            if choice == "1" {
+                if player.buy_potion() {
+                    print("买到一瓶药水。")
+                }
+                else {
+                    print("金币不足，或药水已携带到上限。")
+                }
+            }
+            else {
+                if choice == "2" {
+                    if player.upgrade_weapon() {
+                        print("武器强化完成，每次攻击伤害提高。")
+                    }
+                    else {
+                        print("金币不足，或武器已经满级。")
+                    }
+                }
+                else {
+                    if choice == "3" {
+                        if player.upgrade_armor() {
+                            print("护甲强化完成，受到的伤害降低。")
+                        }
+                        else {
+                            print("金币不足，或护甲已经满级。")
+                        }
+                    }
+                    else {
+                        if choice == "4" {
+                            int restored = player.rest()
+                            if restored == 0 {
+                                print("生命值已满，或金币不足以支付休息费用。")
+                            }
+                            else {
+                                print("休息恢复了", restored, "点生命。")
+                            }
+                        }
+                        else {
+                            print("没有这个选项，请重新选择。")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

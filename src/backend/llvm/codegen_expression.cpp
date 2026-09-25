@@ -38,6 +38,18 @@ llvm_code_generator::ir_value llvm_code_generator::emit_cast(
     const expression& item, const cast_expression& cast)
 {
     const auto value = expression_value(*cast.value);
+    if (classes_.contains(cast.target.name))
+    {
+        if (!class_is_assignable(value.type, cast.target))
+        {
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @txrt_class_require_type(ptr " +
+                              value.text + ", ptr " +
+                              global_bytes(cast.target.name) + ")");
+            write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        }
+        return {cast.target, value.text};
+    }
     if (value.type == cast.target)
     {
         return value;
@@ -294,10 +306,19 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
         }
         else
         {
-            write_instruction(status +
-                " = call i32 @txrt_struct_field_address_index(ptr " +
-                object.text + ", i64 " + std::to_string(field_index(
-                    access->object->type, access->field, item.position)) +
+            const auto class_field = classes_.contains(access->object->type.name);
+            if (class_field && !access->field_slot)
+            {
+                throw compile_error(item.position, "类字段缺少静态槽位");
+            }
+            write_instruction(status + " = call i32 @" +
+                std::string(class_field ? "txrt_class_field_address_index"
+                                        : "txrt_struct_field_address_index") +
+                "(ptr " + object.text + ", i64 " +
+                std::to_string(class_field ? *access->field_slot
+                    : field_index(access->object->type,
+                                  access->field, item.position)) +
+                (class_field ? ", i1 false" : "") +
                 ", ptr " + address + ")");
         }
         write_instruction("call void @txrt_require_success(i32 " + status + ")");

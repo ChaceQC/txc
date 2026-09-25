@@ -10,12 +10,18 @@ add_executable(txc
     src/frontend/ast/ast.cpp
     src/frontend/parser/parser.cpp
     src/frontend/parser/parser_expression.cpp
+    src/frontend/parser/parser_class.cpp
     src/frontend/resolver/module_resolver.cpp
     src/frontend/resolver/module_resolver_tree.cpp
     src/frontend/sema/sema.cpp
+    src/frontend/sema/sema_registration.cpp
     src/frontend/sema/sema_expression.cpp
     src/frontend/sema/sema_call.cpp
+    src/frontend/sema/sema_class.cpp
+    src/frontend/sema/sema_class_registration.cpp
+    src/frontend/sema/sema_class_call.cpp
     src/backend/llvm/codegen.cpp
+    src/backend/llvm/codegen_functions.cpp
     src/backend/llvm/codegen_declarations.cpp
     src/backend/llvm/codegen_control.cpp
     src/backend/llvm/codegen_statement.cpp
@@ -23,10 +29,12 @@ add_executable(txc
     src/backend/llvm/codegen_expression_ops.cpp
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
+    src/backend/llvm/codegen_class.cpp
     src/backend/llvm/codegen_print.cpp
     src/backend/llvm/codegen_external_direct.cpp
     src/backend/llvm/codegen_call_binding.cpp
     src/driver/module_loader.cpp
+    src/driver/module_loader_class.cpp
     src/driver/main.cpp
 )
 
@@ -40,6 +48,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/format_direct_abi.cpp
     src/backend/cpp/io_time_direct_abi.cpp
     src/backend/cpp/value_abi.cpp
+    src/backend/cpp/class_abi.cpp
     src/backend/cpp/value_format.cpp
     src/backend/cpp/dictionary_abi.cpp
     src/backend/cpp/call_abi.cpp
