@@ -32,6 +32,8 @@ std::optional<token_kind> keyword_kind(std::string_view text)
         {"if", token_kind::keyword_if},
         {"else", token_kind::keyword_else},
         {"while", token_kind::keyword_while},
+        {"try", token_kind::keyword_try},
+        {"exception", token_kind::keyword_exception},
         {"true", token_kind::keyword_true},
         {"false", token_kind::keyword_false},
         {"int", token_kind::keyword_int},

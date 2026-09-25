@@ -1,0 +1,6 @@
+import "parse.txh" as parse
+
+def parse_number(text: str) -> int
+{
+    return parse.parse_int(text)
+}

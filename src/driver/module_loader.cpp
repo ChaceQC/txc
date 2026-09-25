@@ -274,6 +274,24 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
             {
                 relative.replace_extension();
                 const auto module_name = path_text(relative);
+                if (module_name == "error")
+                {
+                    for (auto& definition : header.structs)
+                    {
+                        if (definition.name == "runtime_error")
+                        {
+                            definition.exception_kind = error_kind::runtime;
+                        }
+                        else if (definition.name == "parse_error")
+                        {
+                            definition.exception_kind = error_kind::parse;
+                        }
+                        else if (definition.name == "io_error")
+                        {
+                            definition.exception_kind = error_kind::io;
+                        }
+                    }
+                }
                 for (auto& function : header.functions)
                 {
                     function.external_name = module_name + "." + function.name;

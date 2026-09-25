@@ -213,7 +213,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
         }
         else
         {
-            const auto address = allocate(value_type::any_type, item.position);
+            const auto address = allocate(value_type::any_type, item.position, false);
             const auto status = temporary();
             if (literal_key)
             {
@@ -281,7 +281,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
         {
             object = expression_value(*access->object);
         }
-        const auto address = allocate(value_type::any_type, item.position);
+        const auto address = allocate(value_type::any_type, item.position, false);
         const auto status = temporary();
         if (access->object->type == value_type::any_type)
         {

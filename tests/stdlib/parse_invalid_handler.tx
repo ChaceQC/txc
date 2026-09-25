@@ -1,0 +1,12 @@
+def main() -> int
+{
+    try
+    {
+        print(1)
+    }
+    exception int as e
+    {
+        print(e)
+    }
+    return 0
+}

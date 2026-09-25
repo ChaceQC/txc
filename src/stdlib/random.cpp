@@ -1,4 +1,5 @@
 #include "backend/cpp/numeric_abi.hpp"
+#include "backend/cpp/runtime_abi.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "stdlib/stdlib.hpp"
 
@@ -112,20 +113,12 @@ namespace
 template<class operation>
 auto invoke_direct(operation&& run) noexcept -> decltype(run())
 {
-    try
+    decltype(run()) result{};
+    txrt_require_success(invoke_checked([&]
     {
-        return run();
-    }
-    catch (const std::exception& error)
-    {
-        std::cerr << "运行错误：" << error.what() << '\n';
-        std::exit(1);
-    }
-    catch (...)
-    {
-        std::cerr << "运行错误：未知运行时错误\n";
-        std::exit(1);
-    }
+        result = run();
+    }));
+    return result;
 }
 
 } // namespace

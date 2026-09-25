@@ -116,6 +116,21 @@ bool uses_name(const statement& item, std::string_view name)
     {
         return uses_name(*loop->values, name) || uses_name(loop->body, name);
     }
+    if (const auto* guarded = std::get_if<try_statement>(&item.data))
+    {
+        if (uses_name(guarded->body, name))
+        {
+            return true;
+        }
+        for (const auto& handler : guarded->handlers)
+        {
+            if (uses_name(handler.body, name))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     if (const auto* result = std::get_if<return_statement>(&item.data))
     {
         return result->value && uses_name(*result->value, name);
@@ -286,7 +301,7 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
         }
     }
     const auto values_address = allocate(values.type,
-                                         loop.values->position);
+                                         loop.values->position, !borrowed_values);
     write_instruction("store ptr " + values.text + ", ptr " + values_address);
     scopes_.back().emplace("$foreach", variable_slot{
         values.type, values_address, borrowed_values});

@@ -4,6 +4,10 @@
 
 内置 `map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
 
+## 解析与可恢复错误
+
+解析及可恢复错误使用 `parse.txh`、`error.txh`，完整规则见[解析与可恢复错误](errors_and_parse.md)。`try_parse_int` 支持十进制和显式 2～36 进制，`try_parse_float` 支持有限十进制浮点数；返回具体的 `ok/value/error` 结果。严格 `parse_int/parse_float` 可由 `try { } exception 类型 as e { }` 捕获。文件库新增 `try_read_text/try_write_text/try_append_text`，复用相同的错误字段和结果结构。
+
 ## 容器算法
 
 导入 [algorithm.txh](../tx/stdlib/algorithm.txh)，提供 `sort`、`sorted`、`find`、`count`、`lower_bound`、`upper_bound`、`reverse`，以及数值向量的 `sum`、`min_element`、`max_element`。排序与二分覆盖 `vector<int/float/str>`；查找、计数和原地反转还支持 `vector<bool>`。

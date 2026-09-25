@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "common/error_kind.hpp"
 #include "frontend/lexer/token.hpp"
 
 #include <memory>
@@ -224,6 +225,21 @@ struct return_statement
     expr_ptr value;
 };
 
+struct exception_clause
+{
+    value_type type;
+    std::string name;
+    std::vector<stmt_ptr> body;
+    source_pos position;
+    error_kind kind = error_kind::none;
+};
+
+struct try_statement
+{
+    std::vector<stmt_ptr> body;
+    std::vector<exception_clause> handlers;
+};
+
 struct expression_statement
 {
     expr_ptr value;
@@ -237,6 +253,7 @@ using statement_data = std::variant<
     for_each,
     if_statement,
     while_statement,
+    try_statement,
     return_statement,
     expression_statement>;
 
@@ -303,6 +320,7 @@ struct struct_decl
     std::vector<struct_field> fields;
     source_pos position;
     std::vector<function_decl> methods;
+    error_kind exception_kind = error_kind::none;
 };
 
 struct virtual_target

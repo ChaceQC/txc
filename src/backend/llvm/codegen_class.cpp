@@ -166,11 +166,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
             parameters += ", " + llvm_type(argument.type, item.position) +
                           " " + argument.text;
         }
+        const auto& init = *functions_.at(call.constructor_init_symbol).at(
+            call.constructor_init_index);
+        auto owned_arguments = arguments;
+        owned_arguments.insert(owned_arguments.begin(), {item.type, object});
+        transfer_call_arguments(init, owned_arguments);
         write_instruction("call void " + function_name(
             call.constructor_init_symbol, call.constructor_init_index) +
             "(" + parameters + ")");
-        const auto& init = *functions_.at(call.constructor_init_symbol).at(
-            call.constructor_init_index);
         for (std::size_t index = 0; index < arguments.size(); ++index)
         {
             if (init_parameter_borrowed(init, index) &&
@@ -230,6 +233,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     }
     const auto invocation = "call " + llvm_type(item.type, item.position) +
         " " + target_address + "(" + parameters + ")";
+    transfer_call_arguments(target, arguments);
     if (item.type == value_type::void_type)
     {
         write_instruction(invocation);
@@ -241,11 +245,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     }
     const auto result = temporary();
     write_instruction(result + " = " + invocation);
+    const auto owned_result = own_direct_value({item.type, result});
     if (!borrowed)
     {
         release(receiver);
     }
-    return {item.type, result};
+    return owned_result;
 }
 
 } // namespace tx

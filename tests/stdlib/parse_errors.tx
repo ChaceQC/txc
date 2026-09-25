@@ -1,0 +1,242 @@
+import "parse.txh" as parse
+import "error.txh" as errors
+import "file.txh" as file
+import "fs.txh" as fs
+import "random.txh" as random
+import "system.txh" as system
+import "parse_helper.txh" as helper
+
+def expect(condition: bool, label: str)
+{
+    if !condition
+    {
+        print("FAIL", label)
+        print(1 / 0)
+    }
+}
+
+class witness
+{
+    public:
+        log: vector<int>
+        marker: int
+        fails: bool
+
+        def init(log: vector<int>, marker: int, fails: bool)
+        {
+            self.log = log
+            self.marker = marker
+            self.fails = fails
+        }
+
+        def deinit()
+        {
+            self.log.push_back(self.marker)
+            if self.fails
+            {
+                print(parse.parse_int("destructor error"))
+            }
+        }
+}
+
+class cleanup_echo
+{
+    public:
+        def deinit()
+        {
+            print("UNHANDLED_CLEANUP")
+        }
+}
+
+def parse_values()
+{
+    auto maximum = parse.try_parse_int("+9223372036854775807")
+    auto minimum = parse.try_parse_int(" -8000000000000000 ", 16)
+    expect(maximum.ok && maximum.value == 9223372036854775807, "maximum")
+    expect(minimum.ok && minimum.value == -9223372036854775808, "minimum")
+    expect(maximum.error.kind == "" && maximum.error.code == "" && maximum.error.message == "", "success error")
+    expect(parse.try_parse_int("10101", 2).value == 21, "base 2")
+    expect(parse.try_parse_int("Zz", 36).value == 1295, "base 36")
+    expect(parse.try_parse_int("9223372036854775808").error.code == "out_of_range", "overflow")
+    expect(parse.try_parse_int("-9223372036854775809").error.code == "out_of_range", "underflow")
+    expect(parse.try_parse_int("1", 1).error.code == "invalid_base", "base too low")
+    expect(parse.try_parse_int("1", 37).error.code == "invalid_base", "base too high")
+    expect(parse.try_parse_int(" ").error.code == "empty_input", "empty integer")
+    for text in ["+", "--1", "+-1", "1_2", "0xff", "12x", "1 2"]
+    {
+        auto result = parse.try_parse_int(text as str)
+        expect(!result.ok && result.value == 0 && result.error.kind == "parse_error", "invalid integer")
+    }
+    expect(parse.try_parse_float(" +1.25e2 ").value == 125.0, "float")
+    expect(parse.try_parse_float("").error.code == "empty_input", "empty float")
+    expect(parse.try_parse_float("1e9999").error.code == "out_of_range", "float range")
+    expect(parse.try_parse_float("nan").error.code == "non_finite", "non finite")
+    expect(!parse.try_parse_float("+-1").ok, "float signs")
+    expect(!parse.try_parse_float("1.2suffix").ok, "float suffix")
+    expect(parse.parse_int(base=16, text="ff") == 255, "named arguments")
+    expect(parse.parse_float(*["1.5"]) == 1.5, "spread arguments")
+}
+
+def recover_return() -> int
+{
+    try
+    {
+        return helper.parse_number("not a number")
+    }
+    exception errors.parse_error as e
+    {
+        return 23
+    }
+}
+
+def consume_owned(value: witness)
+{
+    value = value
+    print(helper.parse_number("failed owned argument"))
+}
+
+def consume_temporary(value: witness, number: int)
+{
+    print("FAIL callee must not run", number, value.marker)
+}
+
+def error_lifetimes()
+{
+    auto log = vector<int>()
+    auto outer = witness(log, 99, false)
+    try
+    {
+        consume_temporary(witness(log, 1, false), helper.parse_number("bad"))
+    }
+    exception errors.parse_error as e
+    {
+        expect(log.size() == 1 && log[0] == 1, "temporary cleanup")
+    }
+    try
+    {
+        consume_owned(witness(log, 2, false))
+    }
+    exception errors.parse_error as e
+    {
+        expect(log.size() == 2 && log[1] == 2, "owned argument cleanup")
+    }
+    for index in 3..=5
+    {
+        try
+        {
+            auto local = witness(log, index, true)
+            print(1 / 0)
+        }
+        exception errors.runtime_error as e
+        {
+            expect(e.kind == "runtime_error", "original error survives destructor")
+            expect(log.size() == index, "loop cleanup")
+        }
+    }
+    auto replacing = witness(log, 6, true)
+    try
+    {
+        replacing = witness(log, 7, false)
+    }
+    exception errors.parse_error as e
+    {
+        expect(replacing.marker == 7, "assignment survives destructor failure")
+    }
+    expect(log.size() == 6 && outer.marker == 99, "outer scope survives")
+    expect(recover_return() == 23, "cross module and return")
+}
+
+def nested_and_fast_errors()
+{
+    int caught = 0
+    try
+    {
+        try
+        {
+            print("bad" as int)
+        }
+        exception errors.io_error as e
+        {
+            print("FAIL wrong handler")
+        }
+    }
+    exception errors.parse_error as e
+    {
+        caught += 1
+    }
+    try
+    {
+        try
+        {
+            print(parse.parse_float("inf"))
+        }
+        exception errors.parse_error as e
+        {
+            print(1 / 0)
+        }
+    }
+    exception errors.runtime_error as e
+    {
+        expect(e.kind == "runtime_error", "handler errors propagate")
+        caught += 1
+    }
+    try
+    {
+        auto values = vector<str>(["kept"])
+        print(values[4])
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    try
+    {
+        print(random.random_int(2, 1))
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    expect(caught == 4, "nested and fast paths")
+}
+
+def file_results()
+{
+    auto missing = file.try_read_text("missing.txt", "utf-8")
+    expect(!missing.ok && missing.value == "" && missing.error.kind == "io_error", "missing file")
+    expect(file.try_write_text("empty.txt", "", "utf-8").value, "write")
+    auto empty = file.try_read_text("empty.txt", "utf-8")
+    expect(empty.ok && empty.value == "", "empty file")
+    expect(file.try_append_text("empty.txt", "中文", "utf-8").ok, "append")
+    expect(file.read_text("empty.txt", "utf-8") == "中文", "read back")
+    expect(!file.try_read_text("empty.txt", "bad-encoding").ok, "encoding failure")
+    int caught = 0
+    try
+    {
+        print(file.read_text("missing.txt", "utf-8"))
+    }
+    exception errors.io_error as e
+    {
+        expect(e.code == "operation_failed", "io code")
+        caught = 1
+    }
+    expect(caught == 1, "strict file catch")
+    expect(fs.remove("empty.txt"), "remove temporary file")
+}
+
+def main() -> int
+{
+    auto args = system.args()
+    if args.size() > 0
+    {
+        auto owner = cleanup_echo()
+        print(helper.parse_number("unhandled"))
+        return 9
+    }
+    parse_values()
+    error_lifetimes()
+    nested_and_fast_errors()
+    file_results()
+    print("PARSE_ERRORS_OK")
+    return 0
+}

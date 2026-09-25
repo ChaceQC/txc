@@ -1,0 +1,55 @@
+struct error_info
+{
+    kind: str
+    code: str
+    message: str
+}
+
+struct runtime_error
+{
+    kind: str
+    code: str
+    message: str
+}
+
+struct parse_error
+{
+    kind: str
+    code: str
+    message: str
+}
+
+struct io_error
+{
+    kind: str
+    code: str
+    message: str
+}
+
+struct int_result
+{
+    ok: bool
+    value: int
+    error: error_info
+}
+
+struct float_result
+{
+    ok: bool
+    value: float
+    error: error_info
+}
+
+struct str_result
+{
+    ok: bool
+    value: str
+    error: error_info
+}
+
+struct bool_result
+{
+    ok: bool
+    value: bool
+    error: error_info
+}

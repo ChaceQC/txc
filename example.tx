@@ -8,6 +8,26 @@ import "file.txh" as file
 import "fs.txh" as fs
 import "path.txh" as path
 import "time.txh" as time
+import "parse.txh" as parse
+import "error.txh" as errors
+
+def parse_error_demo()
+{
+    auto result = parse.try_parse_int("7f", 16)
+    if result.ok
+    {
+        print("解析结果", result.value)
+    }
+    try
+    {
+        print(parse.parse_float("invalid"))
+    }
+    exception errors.parse_error as e
+    {
+        print("已处理解析错误", e.code, e.message)
+    }
+    print("异常处理后继续")
+}
 
 struct record
 {
@@ -493,6 +513,7 @@ def main() -> int
     container_library_demo()
     typed_container_demo()
     algorithm_demo()
+    parse_error_demo()
     if !filesystem_library_demo()
     {
         return 1

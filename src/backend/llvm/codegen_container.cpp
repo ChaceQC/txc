@@ -90,7 +90,7 @@ void llvm_code_generator::initialize_container_fields(
             }
             // 字段默认值同样在编译期选定构造入口，不按类型名称在运行时分派。
             const auto value = container_operation(field.type, "new", arguments, field.type, position);
-            const auto address = allocate(value_type::any_type, position);
+            const auto address = allocate(value_type::any_type, position, false);
             const auto status = temporary();
             write_instruction(status + " = call i32 @txrt_class_field_address_index(ptr " +
                 object + ", i64 " + std::to_string(field.slot) + ", i1 true, ptr " + address + ")");

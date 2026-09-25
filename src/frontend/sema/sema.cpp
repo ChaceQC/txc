@@ -1,6 +1,7 @@
 #include "frontend/sema/sema.hpp"
 
 #include <string>
+#include <algorithm>
 #include <unordered_set>
 #include <utility>
 
@@ -14,6 +15,16 @@ bool returns_on_all_paths(const std::vector<stmt_ptr>& statements)
     for (const auto& item : statements)
     {
         if (std::holds_alternative<return_statement>(item->data))
+        {
+            return true;
+        }
+        if (const auto* guarded = std::get_if<try_statement>(&item->data);
+            guarded && returns_on_all_paths(guarded->body) &&
+            std::all_of(guarded->handlers.begin(), guarded->handlers.end(),
+                [](const exception_clause& handler)
+                {
+                    return returns_on_all_paths(handler.body);
+                }))
         {
             return true;
         }
@@ -385,6 +396,10 @@ void semantic_analyzer::check_statement(statement& item)
     else if (auto* loop = std::get_if<while_statement>(&item.data))
     {
         check_while(item, *loop);
+    }
+    else if (auto* guarded = std::get_if<try_statement>(&item.data))
+    {
+        check_try(*guarded);
     }
     else if (auto* result = std::get_if<return_statement>(&item.data))
     {

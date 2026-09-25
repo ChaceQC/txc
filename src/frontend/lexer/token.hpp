@@ -23,6 +23,8 @@ enum class token_kind
     keyword_if,
     keyword_else,
     keyword_while,
+    keyword_try,
+    keyword_exception,
     keyword_true,
     keyword_false,
     keyword_int,

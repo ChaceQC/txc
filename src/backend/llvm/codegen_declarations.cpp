@@ -8,6 +8,16 @@ void llvm_code_generator::write_external_declarations()
     write_vector_declarations();
     write_container_declarations();
     write_algorithm_declarations();
+    module_ << "declare i32 @txrt_parse_try_parse_int(ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_try_parse_float(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_parse_int(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_parse_parse_float(ptr, ptr)\n"
+            << "declare i32 @txrt_file_try_read_text(ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_file_try_write_text(ptr, ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_file_try_append_text(ptr, ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_error_status()\n"
+            << "declare void @txrt_error_propagation(i1)\n"
+            << "declare i32 @txrt_error_take(ptr, ptr)\n";
     module_ << "declare i32 @txrt_str_concat_literal(ptr, ptr, i64, i1, ptr)\n";
     module_ << "declare i32 @txrt_string_split_vector_literal(ptr, ptr, i64, ptr)\n"
             << "declare i32 @txrt_string_join_vector_literal(ptr, ptr, i64, ptr)\n"

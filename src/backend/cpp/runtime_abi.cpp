@@ -104,6 +104,15 @@ extern "C" void txrt_require_success(int status) noexcept
 {
     if (status != 0)
     {
+        if (tx_generated::detail::last_error_kind == tx::error_kind::none)
+        {
+            tx_generated::detail::last_error_kind = tx::error_kind::runtime;
+            std::snprintf(tx_generated::detail::last_error_code, 64, "%s", "operation_failed");
+        }
+        if (tx_generated::detail::propagate_errors)
+        {
+            return;
+        }
         std::cerr << "运行错误：" << tx_generated::detail::last_error << '\n';
         if (tx_generated::detail::cleanup_in_progress())
         {
@@ -247,14 +256,14 @@ extern "C" int txrt_parse_int(const void* value,
 {
     return invoke_checked([&] {
         *result = tx_generated::tx_parse_int(*static_cast<const std::string*>(value));
-    });
+    }, tx::error_kind::parse);
 }
 
 extern "C" int txrt_parse_float(const void* value, double* result) noexcept
 {
     return invoke_checked([&] {
         *result = tx_generated::tx_parse_float(*static_cast<const std::string*>(value));
-    });
+    }, tx::error_kind::parse);
 }
 
 extern "C" int txrt_int_to_str(std::int64_t value, void** result) noexcept

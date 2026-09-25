@@ -1,5 +1,8 @@
 #pragma once
 
+#include "backend/cpp/error_abi.hpp"
+#include "stdlib/error.hpp"
+
 #include <cstdio>
 #include <cstddef>
 #include <any>
@@ -82,25 +85,35 @@ void destroy_handle(value_type* value) noexcept
         return;
     }
     unregister_handle(record);
+    error_cleanup_guard error_guard;
     delete record;
 }
 
 template<class operation>
-int invoke_checked(operation&& run) noexcept
+int invoke_checked(operation&& run,
+                   tx::error_kind fallback = tx::error_kind::runtime) noexcept
 {
     try
     {
         std::forward<operation>(run)();
-        // 调用方只在失败状态读取错误文本，成功路径无需访问线程局部缓冲区。
-        return 0;
+        // 回调中的 TX 函数可能通过状态返回；成功不清空错误，避免丢失析构错误。
+        return static_cast<int>(last_error_kind);
+    }
+    catch (const runtime_failure& error)
+    {
+        set_error(error.error().kind, error.error().code.c_str(), error.what());
+    }
+    catch (const std::bad_alloc& error)
+    {
+        set_error(tx::error_kind::runtime, "allocation_failed", error.what());
     }
     catch (const std::exception& error)
     {
-        std::snprintf(last_error, 256, "%s", error.what());
+        set_error(fallback, "operation_failed", error.what());
     }
     catch (...)
     {
-        std::snprintf(last_error, 256, "%s", "未知运行时错误");
+        set_error(tx::error_kind::runtime, "unknown_error", "未知运行时错误");
     }
     return 1;
 }

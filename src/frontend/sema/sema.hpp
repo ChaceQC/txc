@@ -54,6 +54,7 @@ private:
     void check_for_each(statement& item, for_each& loop);
     void check_if(statement& item, if_statement& branch);
     void check_while(statement& item, while_statement& loop);
+    void check_try(try_statement& guarded);
     [[nodiscard]] value_type check_lvalue(expression& target);
     [[nodiscard]] value_type check_expression(expression& item);
     [[nodiscard]] value_type check_literal(expression& item);

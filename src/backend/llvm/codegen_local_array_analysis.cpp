@@ -118,6 +118,11 @@ bool safe_statement(const statement& item, std::string_view name,
                     const variable_declaration& candidate,
                     std::size_t length)
 {
+    if (std::holds_alternative<try_statement>(item.data))
+    {
+        // 异常块先走统一句柄清理，避免栈数组的逃逸分析遗漏新的作用域。
+        return false;
+    }
     if (const auto* declaration =
             std::get_if<variable_declaration>(&item.data))
     {
@@ -249,7 +254,7 @@ std::optional<std::size_t> llvm_code_generator::eligible_local_array_length(
 bool llvm_code_generator::eligible_dynamic_local_array(
     const variable_declaration& declaration) const
 {
-    if (!current_function_body_ || !declaration.array_length ||
+    if (recoverable_errors_ || !current_function_body_ || !declaration.array_length ||
         declaration.initializer ||
         declaration.declared_type.value_or(value_type::array_type) !=
             value_type::array_type ||

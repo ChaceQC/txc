@@ -1,0 +1,42 @@
+import "parse.txh" as parse
+import "error.txh" as errors
+import "file.txh" as file
+
+def read_number(text: str) -> int
+{
+    return parse.parse_int(text, 16)
+}
+
+def main() -> int
+{
+    auto number = parse.try_parse_int("  -7f  ", 16)
+    if number.ok
+    {
+        print(number.value)
+    }
+    else
+    {
+        print(number.error.code, number.error.message)
+    }
+    auto decimal = parse.try_parse_float("1.25e2")
+    print(decimal.ok, decimal.value)
+    try
+    {
+        print(read_number("xyz"))
+    }
+    exception errors.parse_error as e
+    {
+        print(e.kind, e.code, e.message)
+    }
+    exception errors.runtime_error as e
+    {
+        print(e.message)
+    }
+    auto text = file.try_read_text("missing_parse_example.txt", "utf-8")
+    if !text.ok
+    {
+        print(text.error.kind, text.error.message)
+    }
+    print("错误处理后继续执行")
+    return 0
+}

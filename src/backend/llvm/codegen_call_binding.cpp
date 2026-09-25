@@ -301,7 +301,7 @@ llvm_code_generator::emit_bound_arguments(
     result.reserve(parameters.size());
     for (std::size_t index = 0; index < parameters.size(); ++index)
     {
-        const auto address = allocate(value_type::any_type, item.position);
+        const auto address = allocate(value_type::any_type, item.position, false);
         const auto status = temporary();
         write_instruction(status + " = call i32 @txrt_array_element_address(ptr " +
                           bound + ", i64 " + std::to_string(index) +

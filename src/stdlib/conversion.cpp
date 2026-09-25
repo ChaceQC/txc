@@ -1,4 +1,5 @@
 #include "stdlib/stdlib.hpp"
+#include "stdlib/error.hpp"
 
 #include <charconv>
 #include <cmath>
@@ -45,7 +46,7 @@ tx_int tx_parse_int(const std::string& text)
         std::from_chars(value.data(), value.data() + value.size(), result);
     if (value.empty() || error != std::errc{} || end != value.data() + value.size())
     {
-        throw std::runtime_error("字符串不能转换为 int");
+        throw runtime_failure({tx::error_kind::parse, "invalid_syntax", "字符串不能转换为 int"});
     }
     return result;
 }
@@ -64,7 +65,7 @@ double tx_parse_float(const std::string& text)
     if (value.empty() || error != std::errc{} ||
         end != value.data() + value.size() || !std::isfinite(result))
     {
-        throw std::runtime_error("字符串不能转换为 float");
+        throw runtime_failure({tx::error_kind::parse, "invalid_syntax", "字符串不能转换为 float"});
     }
     return result;
 }

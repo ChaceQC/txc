@@ -143,8 +143,13 @@ llvm_code_generator::ir_value llvm_code_generator::emit_operator_call(
                      " " + argument->text;
     }
     const auto result = temporary();
+    if (argument && !operator_argument_borrowed(binding))
+    {
+        forget_owned_value(*argument);
+    }
     write_instruction(result + " = call " + llvm_type(result_type, position) +
                       " " + callee + "(" + arguments + ")");
+    const auto owned_result = own_direct_value({result_type, result});
     if (!receiver_borrowed)
     {
         release(receiver);
@@ -154,7 +159,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_operator_call(
     {
         release(*argument);
     }
-    return {result_type, result};
+    return owned_result;
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_binary(

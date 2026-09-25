@@ -92,11 +92,7 @@ void llvm_code_generator::emit_unpack(
         else
         {
             const auto slot = find_variable(assignment.names[index], item.position);
-            release_slot(slot);
-            write_instruction("store " + llvm_type(slot.type, item.position) +
-                              " " + values[index].text + ", ptr " + slot.address);
-            refresh_array_reference(slot, values[index].text);
-            refresh_dict_reference(slot, values[index].text);
+            store_variable(slot, values[index], item.position);
         }
     }
     if (!borrowed_source)

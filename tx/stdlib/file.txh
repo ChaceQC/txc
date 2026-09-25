@@ -1,3 +1,9 @@
+import "error.txh" as errors
+
 def read_text(path: str, encoding: str) -> str
 def write_text(path: str, text: str, encoding: str) -> void
 def append_text(path: str, text: str, encoding: str)
+
+def try_read_text(path: str, encoding: str) -> errors.str_result
+def try_write_text(path: str, text: str, encoding: str) -> errors.bool_result
+def try_append_text(path: str, text: str, encoding: str) -> errors.bool_result

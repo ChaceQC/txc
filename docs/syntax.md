@@ -1,5 +1,7 @@
 # .tx 语法与类型规则
 
+`try { } exception type as e { }` 的类型匹配、作用域和传播规则见[解析与可恢复错误](errors_and_parse.md)。`try`、`exception` 为保留关键字。
+
 新增类型化容器 `vector<T>` 的规则与本轮支持范围见 [类型化 vector](typed_vectors.md)，示例见 [typed_vectors.tx](../examples/typed_vectors.tx)。
 
 `map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 的类型参数、接口、共享和快照遍历规则见[类型化容器](typed_containers.md)。这些类型在变量、函数及 `.txh` 签名、struct/class 字段中保留完整静态类型。

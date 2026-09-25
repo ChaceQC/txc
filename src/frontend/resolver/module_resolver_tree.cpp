@@ -201,6 +201,16 @@ void module_resolver::resolve_statement(
         resolve_expression(*loop->condition, module_key);
         resolve_statements(loop->body, module_key);
     }
+    else if (auto* guarded = std::get_if<try_statement>(&item.data))
+    {
+        resolve_statements(guarded->body, module_key);
+        for (auto& handler : guarded->handlers)
+        {
+            check_local_name(module_key, handler.name, handler.position);
+            handler.type = resolve_type(module_key, handler.type, handler.position);
+            resolve_statements(handler.body, module_key);
+        }
+    }
     else if (auto* result = std::get_if<return_statement>(&item.data))
     {
         if (result->value)

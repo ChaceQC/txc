@@ -1,0 +1,18 @@
+import "error.txh" as errors
+
+def main() -> int
+{
+    try
+    {
+        print(1)
+    }
+    exception errors.parse_error as e
+    {
+        print(e.message)
+    }
+    exception errors.parse_error as e
+    {
+        print(e.message)
+    }
+    return 0
+}

@@ -22,6 +22,10 @@ void llvm_code_generator::emit_function(const function_decl& function)
     body_.str({});
     body_.clear();
     scopes_.clear();
+    error_roots_.clear();
+    error_root_indices_.clear();
+    pointer_owners_.clear();
+    error_targets_.clear();
     next_value_ = 0;
     next_slot_ = 0;
     next_label_ = 0;
@@ -38,7 +42,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
     {
         parameters = "ptr %arg0";
         const auto address = allocate(value_type(function.owner_class),
-                                      function.position);
+                                      function.position, false);
         write_instruction("store ptr %arg0, ptr " + address);
         scopes_.back().emplace("self",
             variable_slot{value_type(function.owner_class), address, true});
@@ -53,7 +57,9 @@ void llvm_code_generator::emit_function(const function_decl& function)
         const auto type = llvm_type(parameter.type, parameter.position);
         const auto argument_index = i + (function.owner_class.empty() ? 0 : 1);
         parameters += type + " %arg" + std::to_string(argument_index);
-        const auto address = allocate(parameter.type, parameter.position);
+        const bool borrowed = (i == 0 && operator_parameter_borrowed(function)) ||
+            init_parameter_borrowed(function, i) || ordinary_parameter_borrowed(function, i);
+        const auto address = allocate(parameter.type, parameter.position, !borrowed);
         write_instruction("store " + type + " %arg" +
                           std::to_string(argument_index) +
                           ", ptr " + address);

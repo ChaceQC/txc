@@ -33,6 +33,7 @@ bool finalize_class_object(const std::shared_ptr<dynamic_class>& object)
         using destructor_fn = void (*)(void*);
         auto callback = reinterpret_cast<destructor_fn>(
             const_cast<void*>(object->destructor_targets[index]));
+        detail::error_cleanup_guard error_guard;
         callback(&receiver);
     }
     return true;

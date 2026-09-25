@@ -34,6 +34,7 @@ private:
     [[nodiscard]] stmt_ptr parse_for(source_pos position);
     [[nodiscard]] stmt_ptr parse_if(source_pos position);
     [[nodiscard]] stmt_ptr parse_while(source_pos position);
+    [[nodiscard]] stmt_ptr parse_try(source_pos position);
     [[nodiscard]] expr_ptr parse_expression(int min_precedence = 0);
     [[nodiscard]] expr_ptr parse_unary();
     [[nodiscard]] expr_ptr parse_postfix();

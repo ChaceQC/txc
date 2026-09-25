@@ -151,6 +151,18 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         }
         parameters += llvm_type(argument.type, item.position) + " " + argument.text;
     }
+    if ((target.external_name == "parse.try_parse_int" ||
+         target.external_name == "parse.parse_int") && arguments.size() == 1)
+    {
+        parameters += ", i64 10";
+    }
+    if (target.external_name.starts_with("parse.try_") ||
+        target.external_name.starts_with("file.try_"))
+    {
+        const auto& fields = structs_.at(item.type.name)->fields;
+        parameters += ", ptr " + global_bytes(item.type.name) +
+                      ", ptr " + global_bytes(fields.at(2).type.name);
+    }
     if (target.external_name.starts_with("random."))
     {
         const auto context = random_context();

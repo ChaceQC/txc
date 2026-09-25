@@ -10,6 +10,20 @@ bool llvm_code_generator::rebinds_name(const std::vector<stmt_ptr>& body,
 {
     for (const auto& item : body)
     {
+        if (const auto* guarded = std::get_if<try_statement>(&item->data))
+        {
+            if (rebinds_name(guarded->body, name))
+            {
+                return true;
+            }
+            for (const auto& handler : guarded->handlers)
+            {
+                if (rebinds_name(handler.body, name))
+                {
+                    return true;
+                }
+            }
+        }
         if (const auto* assignment =
                 std::get_if<variable_assignment>(&item->data))
         {

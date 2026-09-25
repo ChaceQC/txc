@@ -256,6 +256,14 @@ stmt_ptr parser::parse_while(source_pos position)
 stmt_ptr parser::parse_statement()
 {
     const auto position = current().position;
+    if (match(token_kind::keyword_try))
+    {
+        return parse_try(position);
+    }
+    if (check(token_kind::keyword_exception))
+    {
+        throw compile_error(position, "exception 必须紧跟 try 或前一个 exception 分支");
+    }
     if (match(token_kind::keyword_for))
     {
         return parse_for(position);

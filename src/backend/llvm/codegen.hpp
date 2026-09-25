@@ -65,7 +65,29 @@ private:
     [[nodiscard]] std::string label();
     [[nodiscard]] std::string random_context();
     [[nodiscard]] std::string allocate(const value_type& type,
-                                       source_pos position);
+                                       source_pos position, bool owned = true);
+    struct error_root
+    {
+        value_type type;
+        std::string address;
+        std::size_t depth;
+    };
+    struct error_target
+    {
+        std::string label;
+        std::size_t depth;
+    };
+    void emit_try(const try_statement& guarded);
+    void emit_error_check(const std::string& status);
+    void emit_pending_error_check();
+    void emit_error_exit();
+    void emit_error_cleanup(std::size_t minimum_depth);
+    void track_pointer_instruction(const std::string& text);
+    void forget_owned_value(const ir_value& value);
+    [[nodiscard]] ir_value own_direct_value(ir_value value);
+    void transfer_call_arguments(const function_decl& target,
+                                  const std::vector<ir_value>& arguments);
+    [[nodiscard]] static bool contains_try(const std::vector<stmt_ptr>& body);
     [[nodiscard]] std::string global_bytes(std::string_view bytes);
     [[nodiscard]] static std::string decode_string_literal(
         std::string_view quoted);
@@ -127,6 +149,8 @@ private:
         source_pos position);
     void release(const ir_value& value);
     void release_slot(const variable_slot& variable);
+    void store_variable(const variable_slot& variable, const ir_value& value,
+                         source_pos position);
     [[nodiscard]] ir_value expression_value(const expression& item);
     [[nodiscard]] static std::string vector_suffix(const value_type& type);
     [[nodiscard]] static bool stable_value_expression(const expression& item);
@@ -338,6 +362,11 @@ private:
     std::unordered_set<const function_decl*> gc_visiting_;
     std::unordered_map<const function_decl*, bool> gc_neutral_cache_;
     const std::vector<stmt_ptr>* current_function_body_ = nullptr;
+    bool recoverable_errors_ = false;
+    std::vector<error_root> error_roots_;
+    std::unordered_map<std::string, std::size_t> error_root_indices_;
+    std::unordered_map<std::string, std::string> pointer_owners_;
+    std::vector<error_target> error_targets_;
 };
 
 } // namespace tx

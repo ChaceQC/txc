@@ -12,11 +12,13 @@ add_executable(txc
     src/frontend/parser/parser_declarations.cpp
     src/frontend/parser/parser_expression.cpp
     src/frontend/parser/parser_class.cpp
+    src/frontend/parser/parser_exception.cpp
     src/frontend/resolver/module_resolver.cpp
     src/frontend/resolver/module_resolver_tree.cpp
     src/frontend/sema/sema.cpp
     src/frontend/sema/sema_vector.cpp
     src/frontend/sema/sema_container.cpp
+    src/frontend/sema/sema_exception.cpp
     src/frontend/sema/sema_registration.cpp
     src/frontend/sema/sema_expression.cpp
     src/frontend/sema/sema_operator.cpp
@@ -34,6 +36,8 @@ add_executable(txc
     src/backend/llvm/codegen_container_declarations.cpp
     src/backend/llvm/codegen_map.cpp
     src/backend/llvm/codegen_functions.cpp
+    src/backend/llvm/codegen_exception.cpp
+    src/backend/llvm/codegen_error_ownership.cpp
     src/backend/llvm/codegen_declarations.cpp
     src/backend/llvm/codegen_control.cpp
     src/backend/llvm/codegen_statement.cpp
@@ -68,6 +72,9 @@ add_executable(txc
 add_library(txstdlib STATIC
     src/backend/cpp/runtime.cpp
     src/backend/cpp/runtime_abi.cpp
+    src/backend/cpp/error_abi.cpp
+    src/backend/cpp/parse_abi.cpp
+    src/backend/cpp/file_result_abi.cpp
     src/backend/cpp/text_reference.cpp
     src/backend/cpp/string_concat_abi.cpp
     src/backend/cpp/dictionary_string_query.cpp
@@ -110,6 +117,7 @@ add_library(txstdlib STATIC
     src/stdlib/format_spec.cpp
     src/stdlib/dictionary.cpp
     src/stdlib/conversion.cpp
+    src/stdlib/parse.cpp
     src/stdlib/io.cpp
     src/stdlib/encoding.cpp
     src/stdlib/file.cpp

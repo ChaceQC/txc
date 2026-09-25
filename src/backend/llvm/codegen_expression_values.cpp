@@ -275,7 +275,7 @@ std::string llvm_code_generator::lvalue_address(
             invocation = "@" + std::string(function) + "(ptr " + base +
                          ", ptr " + boxed.text + ", i1 true";
         }
-        const auto address = allocate(value_type::any_type, item.position);
+        const auto address = allocate(value_type::any_type, item.position, false);
         const auto status = temporary();
         write_instruction(status + " = call i32 " + invocation +
                           ", ptr " + address + ")");
@@ -296,7 +296,7 @@ std::string llvm_code_generator::lvalue_address(
     {
         throw compile_error(item.position, "赋值左侧必须是变量、字段或数组元素");
     }
-    const auto address = allocate(value_type::any_type, item.position);
+    const auto address = allocate(value_type::any_type, item.position, false);
     const auto status = temporary();
     write_instruction(status + " = call i32 " + invocation +
                       ", ptr " + address + ")");

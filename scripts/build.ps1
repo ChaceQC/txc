@@ -116,6 +116,8 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'format.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'io.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'error.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'parse.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'math.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'algorithm.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'array.txh')) -or

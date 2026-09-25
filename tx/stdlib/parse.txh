@@ -1,0 +1,8 @@
+import "error.txh" as errors
+
+def try_parse_int(text: str) -> errors.int_result
+def try_parse_int(text: str, base: int) -> errors.int_result
+def try_parse_float(text: str) -> errors.float_result
+def parse_int(text: str) -> int
+def parse_int(text: str, base: int) -> int
+def parse_float(text: str) -> float

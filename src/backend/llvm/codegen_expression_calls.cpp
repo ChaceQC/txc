@@ -18,7 +18,10 @@ bool supported_external_call(std::string_view name)
            name == "string.split_vector" ||
            name == "string.trim" || name == "string.lower" ||
            name == "string.upper" || name == "format.format" ||
-           name == "file.read_text" ||
+           name == "parse.try_parse_int" || name == "parse.try_parse_float" ||
+           name == "parse.parse_int" || name == "parse.parse_float" ||
+           name == "file.try_read_text" || name == "file.try_write_text" ||
+           name == "file.try_append_text" || name == "file.read_text" ||
            name == "file.write_text" || name == "file.append_text" ||
            name == "math.abs" || name == "math.min" ||
            name == "math.max" || name == "math.clamp" ||
@@ -252,6 +255,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
     const auto invocation = "call " + llvm_type(target.return_type, item.position) +
         " " + function_name(call.name, *call.overload_index) +
         "(" + arguments_text + ")";
+    transfer_call_arguments(target, arguments);
     if (target.return_type == value_type::void_type)
     {
         write_instruction(invocation);
@@ -259,7 +263,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
     }
     const auto result = temporary();
     write_instruction(result + " = " + invocation);
-    return {item.type, result};
+    return own_direct_value({item.type, result});
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_call(

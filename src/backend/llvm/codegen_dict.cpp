@@ -6,7 +6,7 @@ namespace tx
 std::string llvm_code_generator::cache_dict_reference(
     const std::string& handle, source_pos position)
 {
-    const auto address = allocate(value_type::dict_type, position);
+    const auto address = allocate(value_type::dict_type, position, false);
     const auto reference = temporary();
     write_instruction(reference + " = call ptr @txrt_dict_ref(ptr " +
                       handle + ")");
@@ -76,9 +76,10 @@ llvm_code_generator::ir_value llvm_code_generator::cast_dict_element(
     write_instruction(result + " = call " + llvm_type(target, position) +
                       " @" + conversion + suffix + "(ptr " + dictionary +
                       ", " + argument + ")");
+    const auto owned_result = own_direct_value({target, result});
     release(boxed);
     release(key);
-    return {target, result};
+    return owned_result;
 }
 
 bool llvm_code_generator::emit_direct_dict_assignment(

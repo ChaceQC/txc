@@ -198,7 +198,7 @@ llvm_code_generator::ir_value llvm_code_generator::cast_array_element(
         {
             throw compile_error(position, "类字段缺少静态槽位");
         }
-        const auto field = allocate(value_type::any_type, position);
+        const auto field = allocate(value_type::any_type, position, false);
         const auto status = temporary();
         write_instruction(status + " = call i32 @" +
             std::string(class_field ? "txrt_class_field_address_index"
@@ -226,8 +226,9 @@ llvm_code_generator::ir_value llvm_code_generator::cast_array_element(
         write_instruction(result + " = call " +
             llvm_type(target, position) + " @" + function +
             "(ptr " + array + ", i64 " + element_index.text + ")");
+        const auto owned_result = own_direct_value({target, result});
         release(element_index);
-        return {target, result};
+        return owned_result;
     }
     const auto borrowed = temporary();
     write_instruction(borrowed +

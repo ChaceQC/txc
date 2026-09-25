@@ -243,11 +243,7 @@ void llvm_code_generator::emit_name_assignment(
             throw compile_error(item.position, "LLVM 后端暂不支持此复合赋值类型");
         }
     }
-    release_slot(variable);
-    write_instruction("store " + llvm_type(variable.type, item.position) +
-                      " " + value.text + ", ptr " + variable.address);
-    refresh_array_reference(variable, value.text);
-    refresh_dict_reference(variable, value.text);
+    store_variable(variable, value, item.position);
 }
 
 void llvm_code_generator::emit_assignment(
@@ -283,18 +279,25 @@ void llvm_code_generator::emit_return(const statement& item,
     {
         value = expression_value(*result.value);
     }
-    for (const auto& scope : scopes_)
+    const auto saved_targets = error_targets_;
+    for (std::size_t depth = scopes_.size(); depth > 0; --depth)
     {
-        for (const auto& [name, variable] : scope)
+        const auto index = recoverable_errors_ ? depth - 1 : scopes_.size() - depth;
+        for (const auto& [name, variable] : scopes_[index])
         {
             (void)name;
             release_slot(variable);
+        }
+        while (!error_targets_.empty() && error_targets_.back().depth >= depth)
+        {
+            error_targets_.pop_back();
         }
     }
     write_instruction(result.value
         ? "ret " + llvm_type(return_type_, item.position) + " " + value.text
         : "ret void");
     terminated_ = true;
+    error_targets_ = saved_targets;
 }
 
 void llvm_code_generator::emit_statement(const statement& item)
@@ -326,6 +329,10 @@ void llvm_code_generator::emit_statement(const statement& item)
     else if (const auto* loop = std::get_if<for_each>(&item.data))
     {
         emit_for_each(*loop);
+    }
+    else if (const auto* guarded = std::get_if<try_statement>(&item.data))
+    {
+        emit_try(*guarded);
     }
     else if (const auto* result = std::get_if<return_statement>(&item.data))
     {

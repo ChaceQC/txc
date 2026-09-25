@@ -61,11 +61,18 @@ std::string llvm_code_generator::label()
 }
 
 std::string llvm_code_generator::allocate(const value_type& type,
-                                          source_pos position)
+                                          source_pos position, bool owned)
 {
     const auto address = "%slot" + std::to_string(next_slot_++);
     allocations_ << "  " << address << " = alloca "
                  << llvm_type(type, position) << '\n';
+    if (recoverable_errors_ && owned &&
+        (type == value_type::str_type || is_value_handle(type)))
+    {
+        allocations_ << "  store ptr null, ptr " << address << '\n';
+        error_root_indices_.emplace(address, error_roots_.size());
+        error_roots_.push_back({type, address, scopes_.size()});
+    }
     return address;
 }
 
@@ -178,7 +185,7 @@ llvm_code_generator::ir_value llvm_code_generator::load(
 std::string llvm_code_generator::cache_array_reference(
     const std::string& handle, source_pos position)
 {
-    const auto address = allocate(value_type::array_type, position);
+    const auto address = allocate(value_type::array_type, position, false);
     const auto reference = temporary();
     write_instruction(reference + " = call ptr @txrt_array_ref(ptr " +
                       handle + ")");
@@ -289,9 +296,13 @@ void llvm_code_generator::write_instruction(const std::string& text)
     constexpr std::string_view check = "call void @txrt_require_success(i32 ";
     if (text.starts_with(check) && text.ends_with(')'))
     {
-        // 成功路径只检查状态码，错误处理沿用运行时原有出口。
         const auto status = text.substr(check.size(),
                                         text.size() - check.size() - 1);
+        if (recoverable_errors_)
+        {
+            emit_error_check(status);
+            return;
+        }
         const auto failed = temporary();
         body_ << "  " << failed << " = icmp ne i32 " << status << ", 0\n";
         const auto error_label = label();
@@ -303,7 +314,18 @@ void llvm_code_generator::write_instruction(const std::string& text)
         start_block(success_label);
         return;
     }
+    if (recoverable_errors_)
+    {
+        track_pointer_instruction(text);
+    }
     body_ << "  " << text << '\n';
+    if (recoverable_errors_ && text.find("call ") != std::string::npos &&
+        text.find("@llvm.") == std::string::npos &&
+        text.find("call i32 @txrt_") == std::string::npos)
+    {
+        // 无状态码的快速 ABI 和 TX 函数也必须在使用返回值前检查失败。
+        emit_pending_error_check();
+    }
 }
 
 void llvm_code_generator::emit_gc_safepoint()
@@ -351,15 +373,18 @@ std::string llvm_code_generator::generate(const program& source)
     globals_.clear();
     next_string_ = 0;
     virtual_slot_count_ = source.virtual_slot_count;
+    recoverable_errors_ = false;
     for (const auto& function : source.functions)
     {
         functions_[function.name].push_back(&function);
+        recoverable_errors_ |= contains_try(function.body);
     }
     for (const auto& definition : source.structs)
     {
         structs_.emplace(definition.name, &definition);
         for (const auto& method : definition.methods)
         {
+            recoverable_errors_ |= contains_try(method.body);
             functions_[class_method_symbol(definition.name, method.name)]
                 .push_back(&method);
         }
@@ -369,6 +394,7 @@ std::string llvm_code_generator::generate(const program& source)
         classes_.emplace(definition.name, &definition);
         for (const auto& method : definition.methods)
         {
+            recoverable_errors_ |= contains_try(method.body);
             functions_[class_method_symbol(definition.name, method.name)]
                 .push_back(&method);
         }
@@ -551,8 +577,19 @@ std::string llvm_code_generator::generate(const program& source)
             << "  %prepare = call i32 @txrt_prepare_console()\n"
             << "  call void @txrt_require_success(i32 %prepare)\n"
             << "  %system = call i32 @txrt_system_initialize()\n"
-            << "  call void @txrt_require_success(i32 %system)\n"
-            << "  %result = call i64 " << function_name("main", 0) << "()\n"
+            << "  call void @txrt_require_success(i32 %system)\n";
+    if (recoverable_errors_)
+    {
+        module_ << "  call void @txrt_error_propagation(i1 true)\n";
+    }
+    module_ << "  %result = call i64 " << function_name("main", 0) << "()\n";
+    if (recoverable_errors_)
+    {
+        module_ << "  call void @txrt_error_propagation(i1 false)\n"
+                << "  %error = call i32 @txrt_error_status()\n"
+                << "  call void @txrt_require_success(i32 %error)\n";
+    }
+    module_
             << "  %exit = call i32 @txrt_exit_code(i64 %result)\n"
             << "  ret i32 %exit\n}\n";
     module_ << globals_.str();
