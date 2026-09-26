@@ -204,13 +204,20 @@ void verify_tool_package(const fs::path& tool_dir)
     {
         header.pop_back();
     }
-    if (header != "tx-package-v1")
+    if (header != "tx-package-v2")
     {
         throw std::runtime_error("工具链兼容清单版本无效");
     }
     const auto abi = manifest_field(manifest, "abi");
     const auto compiler = manifest_field(manifest, "txc");
     const auto library = manifest_field(manifest, "stdlib");
+    for (const auto* name : {"libgcc_s_seh-1.dll", "libstdc++-6.dll",
+                             "libwinpthread-1.dll", "libstdc++-u.dll",
+                             "libicuin78.dll", "libicuuc78.dll",
+                             "libicudt78.dll"})
+    {
+        require_digest(tool_dir / name, manifest_field(manifest, name), name);
+    }
     std::string extra;
     if (std::getline(manifest, extra))
     {

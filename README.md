@@ -16,6 +16,8 @@ check 会检查语法和静态类型；`example.tx` 是当前语言的完整可�
 
 主示例也展示容器原地操作、字典条目快照和 none 键、类型化 map/set、大小顶堆、FIFO 队列、algorithm 排序查找与数值统计，以及文件系统与路径接口；运行时在 `tx_build/` 下创建独立示例目录，完成文件操作后自行清理。
 
+Unicode 规范化、字素和显式 locale 比较见 [Unicode 示例](examples/unicode.tx)；PCRE2 捕获与替换见 [正则示例](examples/regex.tx)。
+
 最终编译器产物 `txc.exe`、`clang.exe`、`libtxstdlib.a`、链接组件和运行时 DLL 位于 `tx/`；构建成功后清理 `build/` 中间文件。txc 默认将 .tx 程序放在 `tx_build/`。
 
 txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的链接组件；运行 txc 编译 `.tx` 时不需要安装 g++。构建与发行结构见 [编译与运行](docs/usage.md)和[原生后端说明](docs/native_backend.md)。

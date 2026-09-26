@@ -1,0 +1,135 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+
+def eof_error() -> bool
+{
+    encoding_decoder source = encoding.new_decoder("utf-8", "strict")
+    try
+    {
+        encoding.decode_chunk(source, byte_values.from_hex("e2"), true)
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_encoding"
+    }
+    return false
+}
+
+def strict_gbk_error() -> bool
+{
+    encoding_encoder target = encoding.new_encoder("gbk", "strict")
+    try
+    {
+        encoding.encode_chunk(target, "🙂", true)
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "unrepresentable_character"
+    }
+    return false
+}
+
+def closed_error(source: encoding_decoder) -> bool
+{
+    try
+    {
+        encoding.decode_chunk(source, byte_values.empty(), true)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "closed_codec"
+    }
+    return false
+}
+
+def invalid_utf32() -> bool
+{
+    try
+    {
+        encoding.decode(byte_values.from_hex("fffe000000d80000"), "utf-32")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_encoding"
+    }
+    return false
+}
+
+def main() -> int
+{
+    bytes utf32 = encoding.encode("中🙂", "utf-32")
+    if encoding.decode(utf32, "utf-32") != "中🙂" || encoding.decode(encoding.encode("中", "utf-32be"), "utf-32be") != "中"
+    {
+        return 1
+    }
+    encoding_decoder utf8_source = encoding.new_decoder("utf-8", "strict")
+    str first = encoding.decode_chunk(utf8_source, byte_values.from_hex("e282"), false)
+    str second = encoding.decode_chunk(utf8_source, byte_values.from_hex("ac"), true)
+    if first != "" || second != "€" || encoding.decoder_replacements(utf8_source) != 0 || !closed_error(utf8_source)
+    {
+        return 2
+    }
+    encoding_decoder utf32_source = encoding.new_decoder("utf-32", "strict")
+    str prefix = encoding.decode_chunk(utf32_source, byte_values.slice(utf32, 0, 3), false)
+    str middle = encoding.decode_chunk(utf32_source, byte_values.slice(utf32, 3, 7), false)
+    str tail = encoding.decode_chunk(utf32_source, byte_values.slice(utf32, 7, len(utf32)), true)
+    if prefix + middle + tail != "中🙂"
+    {
+        return 3
+    }
+    encoding_decoder replace_source = encoding.new_decoder("utf-8", "replace")
+    if encoding.decode_chunk(replace_source, byte_values.from_hex("ff"), true) != "�" || encoding.decoder_replacements(replace_source) != 1
+    {
+        return 4
+    }
+    encoding_encoder target = encoding.new_encoder("utf-32", "strict")
+    bytes part_one = encoding.encode_chunk(target, "中", false)
+    bytes part_two = encoding.encode_chunk(target, "🙂", true)
+    if byte_values.concat(part_one, part_two) != utf32 || encoding.encoder_replacements(target) != 0
+    {
+        return 5
+    }
+    encoding_encoder replace_target = encoding.new_encoder("gbk", "replace")
+    bytes substituted = encoding.encode_chunk(replace_target, "🙂", true)
+    if encoding.decode(substituted, "gbk") != "?" || encoding.encoder_replacements(replace_target) != 1
+    {
+        return 6
+    }
+    if !eof_error() || !strict_gbk_error()
+    {
+        return 7
+    }
+    bytes utf16 = encoding.encode("🙂", "utf-16le")
+    encoding_decoder utf16_source = encoding.new_decoder("utf-16le", "strict")
+    str utf16_first = encoding.decode_chunk(utf16_source, byte_values.slice(utf16, 0, 2), false)
+    str utf16_last = encoding.decode_chunk(utf16_source, byte_values.slice(utf16, 2, 4), true)
+    if utf16_first != "" || utf16_last != "🙂"
+    {
+        return 8
+    }
+    bytes gb18030 = encoding.encode("𠮷", "gb18030")
+    encoding_decoder gb18030_source = encoding.new_decoder("gb18030", "strict")
+    str gb18030_first = encoding.decode_chunk(gb18030_source, byte_values.slice(gb18030, 0, 2), false)
+    str gb18030_last = encoding.decode_chunk(gb18030_source, byte_values.slice(gb18030, 2, len(gb18030)), true)
+    if gb18030_first != "" || gb18030_last != "𠮷"
+    {
+        return 9
+    }
+    bytes utf8_sig = encoding.encode("中", "utf-8-sig")
+    encoding_decoder sig_source = encoding.new_decoder("utf-8-sig", "strict")
+    str sig_first = encoding.decode_chunk(sig_source, byte_values.slice(utf8_sig, 0, 1), false)
+    str sig_middle = encoding.decode_chunk(sig_source, byte_values.slice(utf8_sig, 1, 3), false)
+    str sig_last = encoding.decode_chunk(sig_source, byte_values.slice(utf8_sig, 3, len(utf8_sig)), true)
+    if sig_first + sig_middle + sig_last != "中"
+    {
+        return 10
+    }
+    encoding_decoder incomplete_source = encoding.new_decoder("utf-8", "replace")
+    if encoding.decode_chunk(incomplete_source, byte_values.from_hex("e2"), true) != "�" || encoding.decoder_replacements(incomplete_source) != 1 || !invalid_utf32()
+    {
+        return 11
+    }
+    print("UTF-32 与增量编解码通过")
+    return 0
+}

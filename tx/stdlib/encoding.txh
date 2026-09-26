@@ -1,2 +1,8 @@
 def encode(text: str, encoding: str) -> bytes
 def decode(data: bytes, encoding: str) -> str
+def new_decoder(encoding: str, policy: str) -> encoding_decoder
+def decode_chunk(source: encoding_decoder, data: bytes, eof: bool) -> str
+def decoder_replacements(source: encoding_decoder) -> int
+def new_encoder(encoding: str, policy: str) -> encoding_encoder
+def encode_chunk(target: encoding_encoder, text: str, eof: bool) -> bytes
+def encoder_replacements(target: encoding_encoder) -> int

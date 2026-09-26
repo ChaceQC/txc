@@ -100,6 +100,48 @@ extern "C" int txrt_bytes_from_base64(const void* text, void** result) noexcept
     });
 }
 
+extern "C" int txrt_bytes_to_base64_url(const void* value,
+                                          void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::string>(tx_generated::bytes_to_base64_url(
+            byte_argument(value)));
+    });
+}
+
+extern "C" int txrt_bytes_from_base64_url(const void* text,
+                                            void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>(tx_generated::bytes_from_base64_url(
+            *static_cast<const std::string*>(text)));
+    });
+}
+
+extern "C" int txrt_bytes_to_hex_chunk(const void* value,
+    std::int64_t start, std::int64_t end, std::int64_t max_chars,
+    void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::string>(tx_generated::bytes_to_hex_chunk(
+            byte_argument(value), start, end, max_chars));
+    });
+}
+
+extern "C" int txrt_bytes_to_base64_chunk(const void* value,
+    std::int64_t start, std::int64_t end, std::int64_t max_chars,
+    void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::string>(tx_generated::bytes_to_base64_chunk(
+            byte_argument(value), start, end, max_chars));
+    });
+}
+
 extern "C" int txrt_bytes_at(const void* value, std::int64_t index,
                                std::int64_t* result) noexcept
 {

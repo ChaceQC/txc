@@ -1,0 +1,139 @@
+import "regex.txh" as regex
+import "error.txh" as errors
+import "cancel.txh" as cancellation
+
+def invalid_pattern() -> bool
+{
+    try
+    {
+        regex.compile("(", "", 1024, 10000, 1000)
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_regex"
+    }
+    return false
+}
+
+def input_limit() -> bool
+{
+    regex_pattern pattern = regex.compile("a", "", 2, 1000, 100)
+    try
+    {
+        regex.search(pattern, "aaa", 0)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "size_limit"
+    }
+    return false
+}
+
+def cancelled_match() -> bool
+{
+    cancel_source owner = cancellation.source()
+    regex_pattern pattern = regex.compile_with_cancel("a+", "", 1024, 10000, 1000, cancellation.token(owner))
+    cancellation.cancel(owner)
+    try
+    {
+        regex.search(pattern, "aaaa", 0)
+    }
+    exception errors.cancelled_error as e
+    {
+        return e.code == "cancelled"
+    }
+    return false
+}
+
+def backtracking_limit() -> bool
+{
+    regex_pattern pattern = regex.compile("(*NO_AUTO_POSSESS)(a+)+$", "", 1024, 1000, 1000)
+    try
+    {
+        regex.search(pattern, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!", 0)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "regex_limit"
+    }
+    return false
+}
+
+def invalid_start() -> bool
+{
+    regex_pattern pattern = regex.compile("中", "", 1024, 10000, 1000)
+    try
+    {
+        regex.search(pattern, "中", 1)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def invalid_template() -> bool
+{
+    regex_pattern pattern = regex.compile("a", "", 1024, 10000, 1000)
+    try
+    {
+        regex.replace(pattern, "bbb", "$2")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_replacement"
+    }
+    return false
+}
+
+def main() -> int
+{
+    regex_pattern words = regex.compile("(?<word>[A-Za-z]+)", "", 1024, 10000, 1000)
+    regex.regex_match found = regex.search(words, "中abc🙂", 0)
+    if !found.found || found.text != "abc" || found.start_byte != 3 || found.end_byte != 6 || found.start_scalar != 1 || found.end_scalar != 4
+    {
+        return 1
+    }
+    if found.groups.size() != 2 || found.groups[1] != "abc" || found.group_names[1] != "word" || found.group_start_bytes[1] != 3
+    {
+        return 2
+    }
+    if !regex.match(words, "abc+").found || regex.full_match(words, "abc+").found || !regex.full_match(words, "abc").found
+    {
+        return 3
+    }
+    regex_pattern optional = regex.compile("(?<left>a)?b", "", 1024, 10000, 1000)
+    regex.regex_match absent = regex.search(optional, "b", 0)
+    if absent.groups[1] != "" || absent.group_start_bytes[1] != -1 || absent.group_names[1] != "left"
+    {
+        return 3
+    }
+    vector<str> matches = regex.find_all(words, "ab cd")
+    if matches.size() != 2 || matches[0] != "ab" || matches[1] != "cd"
+    {
+        return 4
+    }
+    if regex.replace(words, "ab cd", "<${word}>") != "<ab> <cd>" || regex.replace(words, "abc", "$1$$") != "abc$"
+    {
+        return 5
+    }
+    regex_pattern comma = regex.compile(",", "", 1024, 10000, 1000)
+    vector<str> parts = regex.split(comma, "a,,b")
+    if parts.size() != 3 || parts[0] != "a" || parts[1] != "" || parts[2] != "b"
+    {
+        return 6
+    }
+    regex_pattern empty = regex.compile("", "", 1024, 10000, 1000)
+    vector<str> grapheme_parts = regex.split(empty, "中a")
+    if grapheme_parts.size() != 4 || grapheme_parts[1] != "中" || grapheme_parts[2] != "a" || regex.replace(empty, "中a", "|") != "|中|a|"
+    {
+        return 7
+    }
+    if !invalid_pattern() || !input_limit() || !cancelled_match() || !backtracking_limit() || !invalid_start() || !invalid_template()
+    {
+        return 8
+    }
+    print("PCRE2 正则与限额通过")
+    return 0
+}

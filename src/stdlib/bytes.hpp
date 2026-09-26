@@ -25,5 +25,11 @@ std::string bytes_to_hex(const byte_value& value);
 byte_value bytes_from_hex(std::string_view text);
 std::string bytes_to_base64(const byte_value& value);
 byte_value bytes_from_base64(std::string_view text);
+std::string bytes_to_base64_url(const byte_value& value);
+byte_value bytes_from_base64_url(std::string_view text);
+std::string bytes_to_hex_chunk(const byte_value& value, std::int64_t start,
+                               std::int64_t end, std::int64_t max_chars);
+std::string bytes_to_base64_chunk(const byte_value& value, std::int64_t start,
+                                  std::int64_t end, std::int64_t max_chars);
 
 } // namespace tx_generated

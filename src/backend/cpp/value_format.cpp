@@ -8,6 +8,8 @@
 #include "stdlib/stdlib.hpp"
 #include "stdlib/bytes.hpp"
 #include "stdlib/file_stream.hpp"
+#include "stdlib/encoding_incremental.hpp"
+#include "stdlib/regex.hpp"
 
 #include <stdexcept>
 #include <string_view>
@@ -161,6 +163,18 @@ void append_value(std::string& output, const std::any& value,
     else if (value.type() == typeid(cancel_token))
     {
         output += "<cancel_token>";
+    }
+    else if (value.type() == typeid(encoding_decoder))
+    {
+        output += "<encoding_decoder>";
+    }
+    else if (value.type() == typeid(encoding_encoder))
+    {
+        output += "<encoding_encoder>";
+    }
+    else if (value.type() == typeid(regex_pattern))
+    {
+        output += "<regex_pattern>";
     }
     else if (value.type() == typeid(tx_array))
     {

@@ -25,9 +25,30 @@ FetchContent_Declare(mbedtls
     URL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.5/mbedtls-3.6.5.tar.bz2
     URL_HASH SHA256=4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(icu_binary
+    URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-icu-78.3-4-any.pkg.tar.zst
+    URL_HASH SHA256=8486a018aca2e56d1fcd2eed2069011f2e1da02e03af72b38916ee06cbe7203f
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(pcre2_binary
+    URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-pcre2-10.48-3-any.pkg.tar.zst
+    URL_HASH SHA256=c67c23f448693e8c9cc3973872372dabec2abdf6afacb563096f7eb0e6837f57
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(stdcpp_runtime
+    URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-libstdc%2B%2B-16.2.0-4-any.pkg.tar.zst
+    URL_HASH SHA256=3d4c3faf4c2c5c7a851ff12214ddcbf8c0d6df0964fc1d3ebd8c38f227183034
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(gcc_runtime
+    URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-libgcc-16.2.0-4-any.pkg.tar.zst
+    URL_HASH SHA256=d615f6a8536ca16b1f049daea1fa440a3b7a405449ec0e93ad6106db43682d54
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(winpthread_runtime
+    URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-libwinpthread-14.0.0.r426.g4564ee4b5-1-any.pkg.tar.zst
+    URL_HASH SHA256=543017ce2731292b215bf1d36fd70a86d8a8d5ed0afba9d3db9fff89804cda71
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 set(_tx_warn_deprecated ${CMAKE_WARN_DEPRECATED})
 set(CMAKE_WARN_DEPRECATED OFF)
-FetchContent_MakeAvailable(nghttp2 mbedtls)
+FetchContent_MakeAvailable(nghttp2 mbedtls icu_binary pcre2_binary
+    stdcpp_runtime gcc_runtime winpthread_runtime)
 set(CMAKE_WARN_DEPRECATED ${_tx_warn_deprecated})
 
 # 编译器内嵌公开接口和 ABI 的内容摘要；增删或修改文件都会触发重新配置。
@@ -164,6 +185,9 @@ add_library(txstdlib STATIC
     src/backend/cpp/bytes_abi.cpp
     src/backend/cpp/crypto_abi.cpp
     src/backend/cpp/encoding_memory_abi.cpp
+    src/backend/cpp/encoding_incremental_abi.cpp
+    src/backend/cpp/unicode_abi.cpp
+    src/backend/cpp/regex_abi.cpp
     src/backend/cpp/file_stream_abi.cpp
     src/backend/cpp/text_reference.cpp
     src/backend/cpp/string_concat_abi.cpp
@@ -229,6 +253,12 @@ add_library(txstdlib STATIC
     src/stdlib/test.cpp
     src/stdlib/io.cpp
     src/stdlib/encoding.cpp
+    src/stdlib/encoding_incremental.cpp
+    src/stdlib/unicode_text.cpp
+    src/stdlib/unicode_analysis.cpp
+    src/stdlib/regex_compile.cpp
+    src/stdlib/regex_match.cpp
+    src/stdlib/regex_operations.cpp
     src/stdlib/bytes.cpp
     src/stdlib/crypto_random.cpp
     src/stdlib/crypto_hash.cpp
@@ -270,6 +300,10 @@ target_compile_features(txc PRIVATE cxx_std_23)
 target_compile_features(txstdlib PRIVATE cxx_std_23)
 target_include_directories(txc PRIVATE src "${CMAKE_BINARY_DIR}/generated")
 target_include_directories(txstdlib PRIVATE src)
+target_include_directories(txstdlib PRIVATE
+    "${icu_binary_SOURCE_DIR}/mingw64/include"
+    "${pcre2_binary_SOURCE_DIR}/mingw64/include")
+target_compile_definitions(txstdlib PRIVATE PCRE2_STATIC)
 target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto)
 add_dependencies(txc txstdlib)
 if(WIN32)

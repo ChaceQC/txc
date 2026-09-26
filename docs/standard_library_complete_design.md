@@ -76,7 +76,7 @@
 
 **新增 `unicode.txh`：** `normalize(text, form)` 支持 NFC/NFD/NFKC/NFKD；`case_fold(text)`、`to_lower(text, locale)`、`to_upper(text, locale)` 分开定义；`code_points(text)`、`graphemes(text)`、`grapheme_count(text)`、`category(code_point)`、`collator(locale, strength)` 与显示宽度接口明确各自单位。规范化、大小写和字素边界采用固定 Unicode 数据版本；运行时可查询该版本。区域设置只影响显式传入 locale 的操作，不能使同一程序的默认比较随机器变化。
 
-**新增 `regex.txh`：** `compile(pattern, flags, limits) -> pattern`；`search/match/full_match/find_all/find_iter/split/replace` 返回含完整匹配与命名捕获的 `match` 或 `option<match>`。匹配位置同时提供 UTF-8 字节偏移与 Unicode 标量偏移，边界与 `string.slice` 的字符位置可准确换算。使用 PCRE2 的 UTF/UCP 模式并固定公开语法版本；编译错误给出模式偏移，执行有匹配步数、递归深度、输入大小和取消限制，避免不可信表达式无限耗时。替换模板的转义与零长度匹配推进规则必须明确。
+**新增 `regex.txh`：** `compile/compile_with_cancel` 显式接收模式、标志和执行限额，返回不透明 `regex_pattern`；`search/match/full_match` 返回包含完整匹配、编号/命名捕获及 UTF-8 字节和 Unicode 标量偏移的 `regex_match`，未命中由 `found=false` 表示。`find_all` 返回完整匹配文本向量；需要逐次捕获时可用 `search` 的字节终点继续查找。`split/replace` 分别返回片段向量和新文本。PCRE2 固定 UTF/UCP 模式及版本；编译错误给出模式字节偏移，执行有输入大小、匹配步数、深度、堆和取消限额。替换模板与零长度匹配规则见[第五部分接口文档](unicode_regex_encoding.md)。
 
 **扩展 `encoding.txh`：** 保留既有严格转换，增加 UTF-32 与增量 `encoder/decoder`；跨块保存部分字符，EOF 时仍有残缺序列才报错。若调用方要求替换或跳过非法字符，必须显式指定策略并能取得替换计数。`bytes` 增加 URL 安全 Base64 与大小受限的分块 Hex/Base64 转换；二进制不隐式转换成文本。正则、Unicode、编码的无效输入统一有可定位的 `parse_error`，并有针对大输入的资源上限。
 
@@ -226,6 +226,8 @@ SQLite 使用受维护的 amalgamation，限定文件路径、journal/WAL、`bus
 | --- | --- | --- |
 | Unicode/时区 | ICU4C 与随发行物固定的 Unicode、IANA 时区数据 | 公开数据版本；区域差异仅经显式 locale/zone 进入结果。 |
 | 正则/XML/CBOR | PCRE2、libxml2、QCBOR | 解析选项默认安全；新增静态库、许可证与资源限额随工具链交付。 |
+
+第五部分锁定 Windows x64 的 MSYS2 mingw64 包：ICU4C `78.3-4`（包 SHA-256 `8486a018aca2e56d1fcd2eed2069011f2e1da02e03af72b38916ee06cbe7203f`）和 PCRE2 `10.48-3`（包 SHA-256 `c67c23f448693e8c9cc3973872372dabec2abdf6afacb563096f7eb0e6837f57`）。构建时按哈希验证下载包；ICU 导入库和 PCRE2 静态库归档到 `libtxstdlib.a`，ICU 运行时 DLL 及许可证随 `tx/` 交付。ICU 静态库与当前 CLion MinGW 运行库存在 ABI 冲突，故使用固定版本 DLL；配套 `libstdc++` 与 `libgcc` 锁定为 MSYS2 `16.2.0-4`（包 SHA-256 分别为 `3d4c3faf4c2c5c7a851ff12214ddcbf8c0d6df0964fc1d3ebd8c38f227183034`、`d615f6a8536ca16b1f049daea1fa440a3b7a405449ec0e93ad6106db43682d54`），`libwinpthread` 锁定 `14.0.0.r426.g4564ee4b5-1`（包 SHA-256 `543017ce2731292b215bf1d36fd70a86d8a8d5ed0afba9d3db9fff89804cda71`）。打包时仅将两份 ICU DLL 的同长度导入名改为私有的 `libstdc++-u.dll`，TX 程序继续使用原编译器的 `libstdc++-6.dll`，两套运行库只通过 ICU C ABI 交互。Unicode 数据版本由随库提供的 `unicode.version()` 查询，不依赖宿主机 ICU 或区域设置；旧 `string.lower/upper` 仍是 ASCII 行为。
 | 数据库 | SQLite 官方 amalgamation、PostgreSQL libpq | 明确驱动版本、TLS 能力、线程模式和事务语义。 |
 | 密码学 | 现有 Mbed TLS；Argon2 参考实现；libsodium 提供 Ed25519/X25519 | 只在支持的算法入口使用；标准向量和跨库互操作随模块验证。 |
 | 网络/任务 | Windows IOCP 与系统 socket；HTTP/3 使用 MsQuic；其他平台采用等价事件后端 | 公开相同的取消、超时和错误契约；平台缺失时在构建或初始化时明确报告能力不可用。 |

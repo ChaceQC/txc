@@ -320,7 +320,10 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
         cast.target == value_type::binary_stream_type ||
         cast.target == value_type::text_stream_type ||
         cast.target == value_type::cancel_source_type ||
-        cast.target == value_type::cancel_token_type)
+        cast.target == value_type::cancel_token_type ||
+        cast.target == value_type::encoding_decoder_type ||
+        cast.target == value_type::encoding_encoder_type ||
+        cast.target == value_type::regex_pattern_type)
     {
         const auto source = check_expression(*cast.value);
         if (source != cast.target && source != value_type::any_type)

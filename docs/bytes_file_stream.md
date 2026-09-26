@@ -34,8 +34,13 @@
 | `slice(data: bytes, start: int, end: int) -> bytes` | 半开区间 `[start, end)`，按字节定位 |
 | `to_hex(data: bytes) -> str`、`from_hex(text: str) -> bytes` | 小写十六进制输出；解析接受大小写字母，不接受空白，长度必须为偶数 |
 | `to_base64(data: bytes) -> str`、`from_base64(text: str) -> bytes` | 严格 RFC 4648 标准字母表和填充，不接受空白或 URL 安全变体 |
+| `to_base64_url(data: bytes) -> str`、`from_base64_url(text: str) -> bytes` | RFC 4648 URL 安全字母表，输出不带 `=`；解析只接受规范的无填充形式，不接受标准字母表或空白 |
+| `to_hex_chunk(data: bytes, start: int, end: int, max_chars: int) -> str` | 按字节半开区间编码十六进制；输出长度不得超过 `max_chars` |
+| `to_base64_chunk(data: bytes, start: int, end: int, max_chars: int) -> str` | 按字节半开区间编码标准 Base64；`start` 必须为 3 的倍数，`end` 必须为 3 的倍数或整个字节值的末尾，依次拼接结果等于整值编码 |
 
 非法下标、范围和 0～255 约束报 `runtime_error` / `invalid_argument`；非法 hex/Base64 文本报 `parse_error`，分别使用 `invalid_hex`、`invalid_base64`。空输入可合法产生空 `bytes`。长度、拼接或转换若超出 `int` 可表示范围，报 `runtime_error` / `size_limit`；分配失败沿用运行时错误。
+
+两个分块编码函数的 `max_chars` 以输出 ASCII 字符计，取值为 0～1,048,576；超出该值或所选分块的输出超过该限额时报告 `runtime_error` / `size_limit`。范围和 Base64 对齐错误报告 `runtime_error` / `invalid_argument`。空区间可与 `max_chars=0` 搭配，返回空串。编码函数始终显式接收 `bytes`；不会把任意字节隐式当作 `str`。
 
 ## 内存编码模块
 
@@ -49,6 +54,21 @@ def decode(data: bytes, encoding: str) -> str
 支持 `utf-8`、`utf-8-sig`、`utf-16`、`utf-16le`、`utf-16be`、`gbk`、`gb18030` 及现有别名。`encode` 先校验输入是合法 UTF-8，再编码；`decode` 必须完整消费字节，不能用替代字符静默修复无效序列。`utf-8-sig` 写入 BOM，读取时去掉可选 BOM；`utf-16` 写入小端 BOM，读取时要求有大小端 BOM；显式端序的 UTF-16 行为与当前文件接口一致。未知编码、无效字节或无法表示的字符报告 `parse_error` 与可区分的 `unknown_encoding`、`invalid_encoding`、`unrepresentable_character`。文件流遇到同类数据时对外归入 `io_error`，以维持文件操作的错误约定。
 
 内存接口的一次转换受 Windows 字符集 API 的有符号 32 位长度参数限制；超出该上限报告 `runtime_error` / `size_limit`。大文件应使用下文的分块文件流。
+
+第五部分扩展 `encoding` 的内存接口：`utf-32`、`utf-32le`、`utf-32be` 及去掉连字符的别名均受支持。`utf-32` 写入小端 BOM，读取时要求小端或大端 BOM；显式端序写入时不加 BOM，读取时可去掉匹配的 BOM，反向 BOM、代理项和超出 U+10FFFF 的码点报 `parse_error` / `invalid_encoding`。`file.read_text/write_text` 共享这一转换规则；`file_stream.open_text` 暂不接受 UTF-32，调用方可使用下面的增量解码器配合二进制流。
+
+增量接口使用内置不透明类型 `encoding_decoder`、`encoding_encoder`，赋值与传参共享同一状态，`deep_copy` 不复制状态。`policy` 必须显式为 `strict` 或 `replace`；`replace` 解码时插入 U+FFFD，编码时采用目标编码的替代字节，并能通过计数接口查询替代次数。输入 `str` 自身必须是完整有效的 UTF-8，编码器不会接收残缺文本片段。
+
+| 函数 | 行为 |
+| --- | --- |
+| `new_decoder(encoding: str, policy: str) -> encoding_decoder` | 创建增量解码器；支持现有编码及 UTF-32 |
+| `decode_chunk(source: encoding_decoder, data: bytes, eof: bool) -> str` | 消费一个字节块；内部保存跨块的 UTF-8/UTF-16/UTF-32/GBK/GB18030 残缺序列；`eof=true` 才检查最后残缺序列并结束状态 |
+| `decoder_replacements(source: encoding_decoder) -> int` | 自创建以来的替代次数 |
+| `new_encoder(encoding: str, policy: str) -> encoding_encoder` | 创建增量编码器 |
+| `encode_chunk(target: encoding_encoder, text: str, eof: bool) -> bytes` | 消费一段完整 UTF-8 文本；BOM 只写一次；`eof=true` 刷新并结束状态 |
+| `encoder_replacements(target: encoding_encoder) -> int` | 自创建以来的替代次数 |
+
+每次块输入最多 8 MiB，单次返回最多 32 MiB，超出时报 `runtime_error` / `size_limit`；非法策略报 `parse_error` / `invalid_policy`，严格模式下非法或 EOF 残缺序列报 `parse_error` / `invalid_encoding`，完成后的重复调用报 `runtime_error` / `closed_codec`。严格错误会使该编解码器失效，避免继续使用部分更新后的状态。`utf-8-sig` 的 BOM 可跨输入块识别；`utf-16` 与 `utf-32` 的 BOM 规则与内存接口一致。
 
 ## 文件流的公开类型
 

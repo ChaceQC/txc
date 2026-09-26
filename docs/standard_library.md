@@ -8,6 +8,10 @@
 
 `bytes`、`encoding` 和 `file_stream` 的接口及语义见[字节值与文件流](bytes_file_stream.md)；代码已构建，少量定向场景已通过。
 
+`unicode` 的规范化、完整大小写、字素和显式 locale 比较见[Unicode、正则与增量编码](unicode_regex_encoding.md)；`string.lower/upper` 仍只处理 ASCII。
+
+`regex` 的 UTF/UCP 编译、捕获、匹配、替换、拆分及执行限额也见[Unicode、正则与增量编码](unicode_regex_encoding.md)。
+
 导入 [bytes.txh](../tx/stdlib/bytes.txh) 可构造、拼接、切片及进行 Hex/Base64 转换；[encoding.txh](../tx/stdlib/encoding.txh) 提供内存中的文本编码与解码；[file_stream.txh](../tx/stdlib/file_stream.txh) 提供二进制和文本文件流。`bytes` 也可作为 `vector<bytes>` 元素以及 `array`、`dict` 的值。
 
 导入 [crypto.txh](../tx/stdlib/crypto.txh) 使用安全随机数、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 与 AES-256-GCM 认证加密。所有输入输出使用 `bytes`，加密接口自动生成 nonce，格式、错误码、密钥内存限制和定向验证见[密码学标准库](crypto.md)。现有 `random` 模块不是密码学安全随机源。

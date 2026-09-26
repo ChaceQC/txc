@@ -1,0 +1,12 @@
+def version() -> str
+def icu_version() -> str
+def normalize(text: str, form: str) -> str
+def case_fold(text: str) -> str
+def to_lower(text: str, locale: str) -> str
+def to_upper(text: str, locale: str) -> str
+def code_points(text: str) -> vector<int>
+def graphemes(text: str) -> vector<str>
+def grapheme_count(text: str) -> int
+def category(code_point: int) -> str
+def display_width(text: str) -> int
+def compare(left: str, right: str, locale: str, strength: str) -> int

@@ -1,0 +1,22 @@
+struct regex_match
+{
+    found: bool
+    text: str
+    start_byte: int
+    end_byte: int
+    start_scalar: int
+    end_scalar: int
+    groups: vector<str>
+    group_names: vector<str>
+    group_start_bytes: vector<int>
+    group_end_bytes: vector<int>
+}
+
+def compile(pattern: str, flags: str, max_input_bytes: int, match_limit: int, depth_limit: int) -> regex_pattern
+def compile_with_cancel(pattern: str, flags: str, max_input_bytes: int, match_limit: int, depth_limit: int, token: cancel_token) -> regex_pattern
+def search(pattern: regex_pattern, text: str, start_byte: int) -> regex_match
+def match(pattern: regex_pattern, text: str) -> regex_match
+def full_match(pattern: regex_pattern, text: str) -> regex_match
+def find_all(pattern: regex_pattern, text: str) -> vector<str>
+def replace(pattern: regex_pattern, text: str, replacement: str) -> str
+def split(pattern: regex_pattern, text: str) -> vector<str>

@@ -1,0 +1,50 @@
+import "unicode.txh" as unicode
+import "string.txh" as strings
+import "error.txh" as errors
+
+def rejects_form() -> bool
+{
+    try
+    {
+        unicode.normalize("text", "BAD")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_form"
+    }
+    return false
+}
+
+def main() -> int
+{
+    str decomposed = "é"
+    print("NFC", unicode.normalize(decomposed, "NFC"), "NFD", unicode.normalize("é", "NFD"), "源", decomposed)
+    if unicode.normalize(decomposed, "NFC") != "é" || unicode.normalize("é", "NFD") != decomposed
+    {
+        return 1
+    }
+    if unicode.normalize("①", "NFKC") != "1" || unicode.normalize("1", "NFKD") != "1"
+    {
+        return 2
+    }
+    if unicode.case_fold("Straße") != "strasse" || unicode.to_upper("i", "tr") != "İ" || unicode.to_lower("İ", "tr") != "i" || strings.lower("Ä") != "Ä"
+    {
+        return 3
+    }
+    vector<int> points = unicode.code_points(decomposed)
+    vector<str> clusters = unicode.graphemes("中" + decomposed)
+    if points.size() != 2 || points[0] != 101 || clusters.size() != 2 || clusters[1] != decomposed || unicode.grapheme_count(decomposed) != 1
+    {
+        return 4
+    }
+    if unicode.category(65) != "Lu" || unicode.display_width("中" + decomposed) != 3 || unicode.compare("a", "b", "und", "tertiary") != -1
+    {
+        return 5
+    }
+    if len(unicode.version()) == 0 || len(unicode.icu_version()) == 0 || !rejects_form()
+    {
+        return 6
+    }
+    print("Unicode 数据版本", unicode.version(), "ICU", unicode.icu_version())
+    return 0
+}

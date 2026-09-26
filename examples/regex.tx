@@ -1,0 +1,13 @@
+import "regex.txh" as regex
+
+def main() -> int
+{
+    regex_pattern words = regex.compile("(?<word>[A-Za-z]+)", "", 1024, 10000, 1000)
+    regex.regex_match first = regex.search(words, "中文 hello world", 0)
+    if !first.found || first.text != "hello" || first.start_byte != 7 || first.start_scalar != 3
+    {
+        return 1
+    }
+    print(regex.replace(words, "hello world", "<${word}>"))
+    return 0
+}

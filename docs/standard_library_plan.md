@@ -116,17 +116,25 @@
 
 ## 5. Unicode、正则与增量编码
 
-5.1 固定随工具链交付的 Unicode/ICU 数据版本，提供 NFC/NFD/NFKC/NFKD、完整大小写与 case fold；保留旧 `string.lower/upper` 的 ASCII 行为。
+- [x] **5.1** 固定随工具链交付的 Unicode/ICU 数据版本，提供 NFC/NFD/NFKC/NFKD、完整大小写与 case fold；保留旧 `string.lower/upper` 的 ASCII 行为。
 
-5.2 实现 Unicode 标量遍历、字素簇切分与计数、字符类别、显示宽度和显式 locale 比较器；标清所有索引单位。
+- [x] **5.2** 实现 Unicode 标量遍历、字素簇切分与计数、字符类别、显示宽度和显式 locale 比较器；标清所有索引单位。
 
-5.3 用 PCRE2 实现 `regex` 的编译、捕获、匹配、查找、替换与拆分；定义 Unicode 模式、零长度匹配推进和可定位的语法错误。
+**5.1/5.2 完成记录（2026-09-26）：** 锁定并随工具链交付 ICU4C 78.3 及 Unicode 17.0 数据；`unicode.txh` 提供四种规范化、完整大小写、case fold、标量、字素、类别、显示宽度和显式 BCP 47 locale 比较。保留 `string.lower/upper` 的 ASCII 语义。`scripts/build.ps1` 完整构建成功并清理 `build/`；`examples/unicode.tx` 编译运行通过，覆盖组合字符、土耳其语大小写、兼容规范化、CJK 宽度、类别、排序及无效形式。依赖版本、校验值、DLL 交付和位置单位见[Unicode、正则与增量编码](unicode_regex_encoding.md)。
 
-5.4 给正则执行设置输入大小、步数、深度与取消限制；不可信模式超限时返回稳定错误而非无界占用。
+- [x] **5.3** 用 PCRE2 实现 `regex` 的编译、捕获、匹配、查找、替换与拆分；定义 Unicode 模式、零长度匹配推进和可定位的语法错误。
 
-5.5 扩展 `encoding` 的 UTF-32 和增量编码器/解码器；跨块保存部分字符，仅在 EOF 仍残缺时失败。非法字符替换必须显式选择并能计数。
+- [x] **5.4** 给正则执行设置输入大小、步数、深度与取消限制；不可信模式超限时返回稳定错误而非无界占用。
 
-5.6 扩展 `bytes` 的 URL 安全 Base64 与有界分块编码；核对 `str` 和 `bytes` 不发生隐式混用。
+**5.3/5.4 完成记录（2026-09-26）：** `regex.txh` 基于固定 PCRE2 10.48 提供 UTF/UCP 编译、具名及编号捕获、字节/标量位置、查找、锚定/整段匹配、全局替换和拆分。零长度匹配先重试同位置非空匹配，再按完整 UTF-8 标量推进。语法错误包含模式字节位置；匹配上下文设置输入、回溯步数、深度和堆限额，绑定取消令牌时用 PCRE2 自动 callout 中止执行。`scripts/build.ps1` 完整构建成功并清理 `build/`；`tests/strings/regex_behavior.tx` 编译运行通过，覆盖捕获、未参与组、零长度、模板错误、非法起点、输入上限、回溯上限与预先取消。`tests/strings/regex_cancel.cpp` 定向确认另一个线程在匹配进行时取消可终止执行。未运行全量或非 Windows 平台验收。
+
+- [x] **5.5** 扩展 `encoding` 的 UTF-32 和增量编码器/解码器；跨块保存部分字符，仅在 EOF 仍残缺时失败。非法字符替换必须显式选择并能计数。
+
+**5.5 完成记录（2026-09-26）：** `encoding` 的整块接口支持 `utf-32` 和显式大小端；`encoding_decoder/encoding_encoder` 使用共享不透明状态及 ICU 增量转换器，`strict/replace` 必须显式选择，EOF 才对残缺尾序列判错或替换。`scripts/build.ps1` 完整构建成功并清理 `build/`；`tests/bytes_file_stream/encoding_incremental.tx` 编译运行通过，覆盖 UTF-8/UTF-16/UTF-32/GB18030 跨块、UTF-8-SIG 分块 BOM、UTF-32 无效标量、EOF 残缺、替换计数、不可表示字符和完成后调用。`file_stream.open_text` 仍只接受此前编码；UTF-32 流式处理用二进制流配合增量转换器。
+
+- [x] **5.6** 扩展 `bytes` 的 URL 安全 Base64 与有界分块编码；核对 `str` 和 `bytes` 不发生隐式混用。
+
+**5.6 完成记录（2026-09-26）：** 新增严格无填充 URL 安全 Base64，以及按字节范围、有 1 MiB 输出上限的 Hex/Base64 分块编码。`scripts/build.ps1` 完整构建成功并清理 `build/`；`tests/bytes_file_stream/base64_chunks.tx` 编译运行通过，覆盖分块拼接、URL 字母表、无效尾位、超限和对齐错误。`bytes` 与 `str` 仍需显式调用编码或解码接口，不存在隐式转换。
 
 **完成判定：** 多语言文本、正则与跨块编码的正常及无效输入场景均有明确位置、限额和可复现结果。
 

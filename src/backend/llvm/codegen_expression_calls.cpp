@@ -10,6 +10,8 @@ namespace
 bool supported_external_call(std::string_view name)
 {
     return name.starts_with("httpx.") || name.starts_with("websocket.") ||
+           name.starts_with("unicode.") ||
+           name.starts_with("regex.") ||
            name.starts_with("crypto.") ||
            name.starts_with("test.") || name.starts_with("log.") ||
            name.starts_with("debug.") ||
@@ -41,7 +43,11 @@ bool supported_external_call(std::string_view name)
            name == "bytes.slice" || name == "bytes.to_hex" ||
            name == "bytes.from_hex" || name == "bytes.to_base64" ||
            name == "bytes.from_base64" ||
-           name == "encoding.encode" || name == "encoding.decode" ||
+           name == "bytes.to_base64_url" ||
+           name == "bytes.from_base64_url" ||
+           name == "bytes.to_hex_chunk" ||
+           name == "bytes.to_base64_chunk" ||
+           name.starts_with("encoding.") ||
            name == "file_stream.open_binary" ||
            name == "file_stream.read_bytes" ||
            name == "file_stream.read_all_bytes" ||

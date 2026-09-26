@@ -10,7 +10,7 @@
 .\scripts\build.ps1
 ```
 
-编译器工具目录 `tx/` 包含 `txc.exe`、`clang.exe`、`libtxstdlib.a`、`package.compat`、`link/` 内的链接组件、运行时 DLL 和 `stdlib/*.txh` 公开接口。交付时保留整个 `tx/` 目录。脚本在 build/ 中以 Release 配置构建编译器、运行时库和标准库，还会把 `src/stdlib/httpx_bridge.tx`、`websocket_bridge.tx`、`requests_bridge.tx` 编成对象文件，并将固定版本的 nghttp2、Mbed TLS 静态库归档进 `libtxstdlib.a`；相应许可证随 `tx/` 交付。首次构建需要下载两份已固定 SHA-256 的源码归档。构建成功后删除中间目录，失败时保留以便排查。`tx/stdlib/` 不包含 `.tx` 实现源码。构建时使用 g++；生成的 txc 不会调用它。直接用单配置 CMake 构建时默认也采用 Release；可显式设置 `CMAKE_BUILD_TYPE` 覆盖。
+编译器工具目录 `tx/` 包含 `txc.exe`、`clang.exe`、`libtxstdlib.a`、`package.compat`、`link/` 内的链接组件、运行时 DLL 和 `stdlib/*.txh` 公开接口。交付时保留整个 `tx/` 目录。脚本在 build/ 中以 Release 配置构建编译器、运行时库和标准库，还会把 `src/stdlib/httpx_bridge.tx`、`websocket_bridge.tx`、`requests_bridge.tx` 编成对象文件，并将固定版本的 nghttp2、Mbed TLS、PCRE2 静态库及 ICU 导入库归档进 `libtxstdlib.a`；固定 ICU DLL、配套私有运行库和许可证随 `tx/` 交付，txc 编译程序时会把所需 DLL 放在输出目录。`package.compat` 同时校验编译器、标准库、接口、ABI 指纹和运行时 DLL 的 SHA-256，混用不同批次产物时会在编译阶段报错。首次构建需要下载已固定 SHA-256 的源码与二进制归档。构建成功后删除中间目录，失败时保留以便排查。`tx/stdlib/` 不包含 `.tx` 实现源码。构建时使用 g++；生成的 txc 不会调用它。直接用单配置 CMake 构建时默认也采用 Release；可显式设置 `CMAKE_BUILD_TYPE` 覆盖。
 
 `txc` 在检查、测试、生成 LLVM IR 或编译前验证公开 `.txh`、编译器、最终标准库归档和运行时 ABI 的兼容指纹。缺文件或混用不同构建的产物会给出中文诊断；更新其中任一项后须重新运行构建脚本并整体交付 `tx/`。构建标准库桥接对象时的 `emit-library-llvm` 只验证接口，最终归档完成后再生成兼容清单。完整规则见[标准库公共契约](standard_library_foundation.md#5-包兼容指纹与依赖登记)。
 

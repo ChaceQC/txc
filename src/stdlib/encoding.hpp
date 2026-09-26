@@ -14,6 +14,9 @@ enum class text_encoding
     utf16,
     utf16le,
     utf16be,
+    utf32,
+    utf32le,
+    utf32be,
     gbk,
     gb18030
 };

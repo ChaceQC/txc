@@ -11,6 +11,8 @@
 #include "backend/cpp/value_format.hpp"
 #include "stdlib/bytes.hpp"
 #include "stdlib/file_stream.hpp"
+#include "stdlib/encoding_incremental.hpp"
+#include "stdlib/regex.hpp"
 
 #include <any>
 #include <stdexcept>
@@ -271,6 +273,12 @@ extern "C" int txrt_value_require_type(const void* value,
                 typeid(tx_generated::cancel_source)) ||
             (type == "cancel_token" && item.type() ==
                 typeid(tx_generated::cancel_token)) ||
+            (type == "encoding_decoder" && item.type() ==
+                typeid(tx_generated::encoding_decoder)) ||
+            (type == "encoding_encoder" && item.type() ==
+                typeid(tx_generated::encoding_encoder)) ||
+            (type == "regex_pattern" && item.type() ==
+                typeid(tx_generated::regex_pattern)) ||
             tx_generated::vector_matches(item, type) ||
             (item.type() == typeid(tx_generated::tx_iterator) &&
              type == "iterator<" +

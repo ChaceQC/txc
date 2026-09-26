@@ -248,6 +248,12 @@ text_stream open_text_stream(std::string_view path, std::string_view mode,
     {
         text_error("invalid_encoding", error.what());
     }
+    if (selected == detail::text_encoding::utf32 ||
+        selected == detail::text_encoding::utf32le ||
+        selected == detail::text_encoding::utf32be)
+    {
+        text_error("invalid_encoding", "UTF-32 文本流请使用二进制流和 encoding 增量解码器");
+    }
     const auto selected_mode = mode == "read" ? stream_mode::read
         : mode == "write" ? stream_mode::write
         : mode == "append" ? stream_mode::append

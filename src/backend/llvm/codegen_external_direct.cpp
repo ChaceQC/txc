@@ -194,6 +194,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     {
         parameters += ", ptr " + global_bytes(item.type.name);
     }
+    if (target.external_name == "regex.search" ||
+        target.external_name == "regex.match" ||
+        target.external_name == "regex.full_match")
+    {
+        parameters += ", ptr " + global_bytes(item.type.name);
+    }
     if (target.external_name == "httpx.send" ||
         target.external_name == "httpx.get" ||
         target.external_name == "httpx.post" ||

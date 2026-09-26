@@ -6,6 +6,8 @@
 #include "frontend/sema/sema.hpp"
 
 #include <chrono>
+#include <array>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -228,11 +230,44 @@ int run_local_tool(const fs::path& executable,
     return result;
 }
 
+bool same_runtime_dependency(const fs::path& source,
+                             const fs::path& destination)
+{
+    if (!fs::exists(destination) || fs::file_size(source) != fs::file_size(destination))
+    {
+        return false;
+    }
+    if (fs::equivalent(source, destination))
+    {
+        return true;
+    }
+    std::ifstream left(source, std::ios::binary);
+    std::ifstream right(destination, std::ios::binary);
+    if (!left || !right)
+    {
+        throw std::runtime_error("无法核对运行时依赖文件");
+    }
+    std::array<char, 65536> first{};
+    std::array<char, 65536> second{};
+    while (left)
+    {
+        left.read(first.data(), first.size());
+        const auto count = left.gcount();
+        right.read(second.data(), count);
+        if (right.gcount() != count || std::memcmp(first.data(), second.data(),
+                                                   static_cast<std::size_t>(count)) != 0)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 void place_runtime_dependency(const fs::path& source,
                               const fs::path& output_dir)
 {
     const auto destination = output_dir / source.filename();
-    if (fs::exists(destination))
+    if (same_runtime_dependency(source, destination))
     {
         return;
     }
@@ -241,13 +276,10 @@ void place_runtime_dependency(const fs::path& source,
         (".txc_" + source.filename().string() + "_" +
          std::to_string(_getpid()) + "_" + std::to_string(stamp) + ".tmp")};
     fs::copy_file(source, staged.path);
-    if (!MoveFileW(staged.path.c_str(), destination.c_str()))
+    if (!MoveFileExW(staged.path.c_str(), destination.c_str(),
+                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
     {
-        const auto error = GetLastError();
-        if (error != ERROR_ALREADY_EXISTS && error != ERROR_FILE_EXISTS)
-        {
-            throw std::runtime_error("无法放置运行时依赖：" + path_text(destination));
-        }
+        throw std::runtime_error("无法更新运行时依赖：" + path_text(destination));
     }
 }
 
@@ -302,7 +334,9 @@ int compile_llvm_native(const std::string& generated_source,
     const auto output_dir = output_path.parent_path().empty()
         ? fs::current_path() : output_path.parent_path();
     for (const auto* name : {"libgcc_s_seh-1.dll", "libstdc++-6.dll",
-                             "libwinpthread-1.dll"})
+                             "libwinpthread-1.dll", "libstdc++-u.dll",
+                             "libicuin78.dll",
+                             "libicuuc78.dll", "libicudt78.dll"})
     {
         place_runtime_dependency(tool_dir / name, output_dir);
     }

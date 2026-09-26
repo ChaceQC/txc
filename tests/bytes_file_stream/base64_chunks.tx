@@ -1,0 +1,68 @@
+import "bytes.txh" as byte_values
+import "error.txh" as errors
+
+def invalid_url_text() -> bool
+{
+    try
+    {
+        byte_values.from_base64_url("_x")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_base64"
+    }
+    return false
+}
+
+def invalid_chunk_limit(data: bytes) -> bool
+{
+    try
+    {
+        byte_values.to_base64_chunk(data, 0, 3, 3)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "size_limit"
+    }
+    return false
+}
+
+def invalid_chunk_boundary(data: bytes) -> bool
+{
+    try
+    {
+        byte_values.to_base64_chunk(data, 1, 5, 16)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def main() -> int
+{
+    bytes value = byte_values.from_hex("0001020304")
+    str first = byte_values.to_base64_chunk(value, 0, 3, 4)
+    str second = byte_values.to_base64_chunk(value, 3, 5, 4)
+    bool correct_base64 = first + second == byte_values.to_base64(value)
+    str hex_chunks = byte_values.to_hex_chunk(value, 0, 3, 6) + byte_values.to_hex_chunk(value, 3, 5, 4)
+    if !correct_base64 || hex_chunks != byte_values.to_hex(value)
+    {
+        return 1
+    }
+    bytes url_value = byte_values.from_hex("fbff00")
+    bool correct_url = byte_values.to_base64_url(url_value) == "-_8A"
+    bool correct_decode = byte_values.from_base64_url("-_8A") == url_value
+    bool correct_tail = byte_values.to_base64_url(byte_values.from_hex("ff")) == "_w"
+    if !correct_url || !correct_decode || !correct_tail
+    {
+        return 2
+    }
+    if !invalid_url_text() || !invalid_chunk_limit(value) || !invalid_chunk_boundary(value)
+    {
+        return 3
+    }
+    print("URL 安全 Base64 与有界分块编码通过")
+    return 0
+}

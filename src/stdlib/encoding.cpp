@@ -1,6 +1,7 @@
 #include "stdlib/encoding.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -127,6 +128,74 @@ std::string encode_utf16(std::wstring_view text, bool little_endian, bool bom)
     return result;
 }
 
+std::string decode_utf32(std::string_view bytes, bool little_endian)
+{
+    if (bytes.size() % 4 != 0)
+    {
+        throw std::runtime_error("UTF-32 字节数必须为 4 的倍数");
+    }
+    std::wstring wide;
+    wide.reserve(bytes.size() / 2);
+    for (std::size_t index = 0; index < bytes.size(); index += 4)
+    {
+        std::uint32_t point = 0;
+        for (int offset = 0; offset < 4; ++offset)
+        {
+            const auto byte = static_cast<unsigned char>(bytes[index + offset]);
+            point |= static_cast<std::uint32_t>(byte) <<
+                (little_endian ? offset * 8 : (3 - offset) * 8);
+        }
+        if (point > 0x10ffff || (point >= 0xd800 && point <= 0xdfff))
+        {
+            throw std::runtime_error("UTF-32 包含无效 Unicode 标量");
+        }
+        if (point <= 0xffff)
+        {
+            wide.push_back(static_cast<wchar_t>(point));
+        }
+        else
+        {
+            point -= 0x10000;
+            wide.push_back(static_cast<wchar_t>(0xd800 + (point >> 10)));
+            wide.push_back(static_cast<wchar_t>(0xdc00 + (point & 0x3ff)));
+        }
+    }
+    return wide_to_utf8(wide);
+}
+
+std::string encode_utf32(std::wstring_view text, bool little_endian, bool bom)
+{
+    std::string result = bom ? std::string("\xff\xfe\x00\x00", 4) : "";
+    result.reserve(text.size() * 4 + result.size());
+    for (std::size_t index = 0; index < text.size(); ++index)
+    {
+        std::uint32_t point = static_cast<std::uint16_t>(text[index]);
+        if (point >= 0xd800 && point <= 0xdbff)
+        {
+            if (++index == text.size())
+            {
+                throw std::runtime_error("UTF-8 文本包含未配对的代理项");
+            }
+            const auto low = static_cast<std::uint16_t>(text[index]);
+            if (low < 0xdc00 || low > 0xdfff)
+            {
+                throw std::runtime_error("UTF-8 文本包含未配对的代理项");
+            }
+            point = 0x10000 + ((point - 0xd800) << 10) + low - 0xdc00;
+        }
+        else if (point >= 0xdc00 && point <= 0xdfff)
+        {
+            throw std::runtime_error("UTF-8 文本包含未配对的代理项");
+        }
+        for (int offset = 0; offset < 4; ++offset)
+        {
+            const auto shift = little_endian ? offset * 8 : (3 - offset) * 8;
+            result.push_back(static_cast<char>((point >> shift) & 0xff));
+        }
+    }
+    return result;
+}
+
 } // namespace
 
 text_encoding parse_encoding(std::string_view name)
@@ -145,13 +214,46 @@ text_encoding parse_encoding(std::string_view name)
         }
         normalized.push_back(static_cast<char>(character));
     }
-    if (normalized == "utf8") return text_encoding::utf8;
-    if (normalized == "utf8sig") return text_encoding::utf8_sig;
-    if (normalized == "utf16") return text_encoding::utf16;
-    if (normalized == "utf16le") return text_encoding::utf16le;
-    if (normalized == "utf16be") return text_encoding::utf16be;
-    if (normalized == "gbk") return text_encoding::gbk;
-    if (normalized == "gb18030") return text_encoding::gb18030;
+    if (normalized == "utf8")
+    {
+        return text_encoding::utf8;
+    }
+    if (normalized == "utf8sig")
+    {
+        return text_encoding::utf8_sig;
+    }
+    if (normalized == "utf16")
+    {
+        return text_encoding::utf16;
+    }
+    if (normalized == "utf16le")
+    {
+        return text_encoding::utf16le;
+    }
+    if (normalized == "utf16be")
+    {
+        return text_encoding::utf16be;
+    }
+    if (normalized == "utf32")
+    {
+        return text_encoding::utf32;
+    }
+    if (normalized == "utf32le")
+    {
+        return text_encoding::utf32le;
+    }
+    if (normalized == "utf32be")
+    {
+        return text_encoding::utf32be;
+    }
+    if (normalized == "gbk")
+    {
+        return text_encoding::gbk;
+    }
+    if (normalized == "gb18030")
+    {
+        return text_encoding::gb18030;
+    }
     throw std::runtime_error("不支持的字符集：" + std::string(name));
 }
 
@@ -192,6 +294,33 @@ std::string decode_text(std::string_view bytes, text_encoding encoding)
             bytes, encoding == text_encoding::gbk ? gbk_code_page : gb18030_code_page));
     }
 
+    if (encoding == text_encoding::utf32 || encoding == text_encoding::utf32le ||
+        encoding == text_encoding::utf32be)
+    {
+        const bool little_bom = has_prefix(bytes,
+            std::string_view("\xff\xfe\x00\x00", 4));
+        const bool big_bom = has_prefix(bytes,
+            std::string_view("\x00\x00\xfe\xff", 4));
+        bool little_endian = encoding != text_encoding::utf32be;
+        if (encoding == text_encoding::utf32)
+        {
+            if (!little_bom && !big_bom)
+            {
+                throw std::runtime_error("UTF-32 文本缺少 BOM");
+            }
+            little_endian = little_bom;
+        }
+        else if ((little_endian && big_bom) || (!little_endian && little_bom))
+        {
+            throw std::runtime_error("UTF-32 BOM 与指定字节序不一致");
+        }
+        if (little_bom || big_bom)
+        {
+            bytes.remove_prefix(4);
+        }
+        return decode_utf32(bytes, little_endian);
+    }
+
     bool little_endian = encoding != text_encoding::utf16be;
     const bool little_bom = has_prefix(bytes, "\xff\xfe");
     const bool big_bom = has_prefix(bytes, "\xfe\xff");
@@ -227,6 +356,12 @@ std::string encode_text(std::string_view text, text_encoding encoding,
     {
         return encode_code_page(wide, encoding == text_encoding::gbk
             ? gbk_code_page : gb18030_code_page);
+    }
+    if (encoding == text_encoding::utf32 || encoding == text_encoding::utf32le ||
+        encoding == text_encoding::utf32be)
+    {
+        return encode_utf32(wide, encoding != text_encoding::utf32be,
+                            encoding == text_encoding::utf32 && include_bom);
     }
     const bool little_endian = encoding != text_encoding::utf16be;
     return encode_utf16(wide, little_endian,

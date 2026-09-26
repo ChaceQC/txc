@@ -11,6 +11,8 @@
 #include "stdlib/stdlib.hpp"
 #include "stdlib/bytes.hpp"
 #include "stdlib/file_stream.hpp"
+#include "stdlib/encoding_incremental.hpp"
+#include "stdlib/regex.hpp"
 
 #include <any>
 #include <memory>
@@ -104,15 +106,18 @@ public:
             return value;
         }
         if (value.type() == typeid(cancel_source) ||
-            value.type() == typeid(cancel_token))
+            value.type() == typeid(cancel_token) ||
+            value.type() == typeid(regex_pattern))
         {
             // 取消令牌复制共享同一状态，不能复制成独立取消域。
             return value;
         }
         if (value.type() == typeid(binary_stream) ||
-            value.type() == typeid(text_stream))
+            value.type() == typeid(text_stream) ||
+            value.type() == typeid(encoding_decoder) ||
+            value.type() == typeid(encoding_encoder))
         {
-            throw std::runtime_error("deep_copy 不支持复制文件流句柄");
+            throw std::runtime_error("deep_copy 不支持复制文件流或增量编解码状态");
         }
         if (!value.has_value() || value.type() == typeid(std::int64_t) ||
             value.type() == typeid(double) || value.type() == typeid(bool) ||

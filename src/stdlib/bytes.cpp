@@ -250,4 +250,94 @@ byte_value bytes_from_base64(std::string_view text)
     return make_bytes(std::move(result));
 }
 
+std::string bytes_to_base64_url(const byte_value& value)
+{
+    auto result = bytes_to_base64(value);
+    std::replace(result.begin(), result.end(), '+', '-');
+    std::replace(result.begin(), result.end(), '/', '_');
+    const auto padding = result.find('=');
+    if (padding != std::string::npos)
+    {
+        result.resize(padding);
+    }
+    return result;
+}
+
+byte_value bytes_from_base64_url(std::string_view text)
+{
+    if (text.size() % 4 == 1)
+    {
+        invalid_base64();
+    }
+    std::string standard;
+    standard.reserve(text.size() + (4 - text.size() % 4) % 4);
+    for (const char character : text)
+    {
+        if (character == '-')
+        {
+            standard.push_back('+');
+        }
+        else if (character == '_')
+        {
+            standard.push_back('/');
+        }
+        else if (base64_digit(character) >= 0)
+        {
+            standard.push_back(character);
+        }
+        else
+        {
+            invalid_base64();
+        }
+    }
+    standard.append((4 - standard.size() % 4) % 4, '=');
+    return bytes_from_base64(standard);
+}
+
+namespace
+{
+
+byte_value bounded_chunk(const byte_value& value, std::int64_t start,
+                         std::int64_t end, std::int64_t max_chars,
+                         bool base64)
+{
+    if (start < 0 || end < start ||
+        static_cast<std::uint64_t>(end) > value->size() ||
+        (base64 && start != end && (start % 3 != 0 ||
+                    (static_cast<std::uint64_t>(end) != value->size() &&
+                     end % 3 != 0))))
+    {
+        throw runtime_failure({tx::error_kind::runtime, "invalid_argument",
+                               "分块编码的字节范围或 Base64 边界无效"});
+    }
+    constexpr std::int64_t hard_limit = 1'048'576;
+    if (max_chars < 0 || max_chars > hard_limit)
+    {
+        throw runtime_failure({tx::error_kind::runtime, "size_limit",
+                               "分块编码的输出限额必须在 0 到 1048576 之间"});
+    }
+    const auto count = static_cast<std::uint64_t>(end - start);
+    const auto output = base64 ? ((count + 2) / 3) * 4 : count * 2;
+    if (output > static_cast<std::uint64_t>(max_chars))
+    {
+        throw runtime_failure({tx::error_kind::runtime, "size_limit",
+                               "分块编码结果超过输出限额"});
+    }
+    return bytes_slice(value, start, end);
+}
+
+} // namespace
+
+std::string bytes_to_hex_chunk(const byte_value& value, std::int64_t start,
+                               std::int64_t end, std::int64_t max_chars)
+{
+    return bytes_to_hex(bounded_chunk(value, start, end, max_chars, false));
+}
+
+std::string bytes_to_base64_chunk(const byte_value& value, std::int64_t start,
+                                  std::int64_t end, std::int64_t max_chars)
+{
+    return bytes_to_base64(bounded_chunk(value, start, end, max_chars, true));
+}
+
 } // namespace tx_generated

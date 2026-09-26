@@ -102,12 +102,14 @@ foreach ($name in @('ld.exe', 'libssp-0.dll'))
     Copy-Item -LiteralPath (Join-Path $gcc_bin $name) `
         -Destination (Join-Path $link_dir $name) -Force
 }
-foreach ($name in @('libgcc_s_seh-1.dll', 'libstdc++-6.dll',
-                    'libwinpthread-1.dll'))
-{
-    Copy-Item -LiteralPath (Join-Path $gcc_bin $name) `
-        -Destination (Join-Path $tool_dir $name) -Force
-}
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/winpthread_runtime-src/mingw64/bin/libwinpthread-1.dll') `
+    -Destination (Join-Path $tool_dir 'libwinpthread-1.dll') -Force
+Copy-Item -LiteralPath (Join-Path $gcc_bin 'libstdc++-6.dll') `
+    -Destination (Join-Path $tool_dir 'libstdc++-6.dll') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/gcc_runtime-src/mingw64/bin/libgcc_s_seh-1.dll') `
+    -Destination (Join-Path $tool_dir 'libgcc_s_seh-1.dll') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/stdcpp_runtime-src/mingw64/bin/libstdc++-6.dll') `
+    -Destination (Join-Path $tool_dir 'libstdc++-u.dll') -Force
 
 $compiler_path = Join-Path $tool_dir 'txc.exe'
 $library_path = Join-Path $tool_dir 'libtxstdlib.a'
@@ -139,7 +141,11 @@ $dependency_archives = @(
     (Join-Path $build_dir '_deps/mbedtls-build/library/libmbedx509.a'),
     (Join-Path $build_dir '_deps/mbedtls-build/library/libmbedcrypto.a'),
     (Join-Path $build_dir '_deps/mbedtls-build/3rdparty/everest/libeverest.a'),
-    (Join-Path $build_dir '_deps/mbedtls-build/3rdparty/p256-m/libp256m.a')
+    (Join-Path $build_dir '_deps/mbedtls-build/3rdparty/p256-m/libp256m.a'),
+    (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuin.dll.a'),
+    (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuuc.dll.a'),
+    (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicudt.dll.a'),
+    (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/lib/libpcre2-8.a')
 )
 foreach ($archive in $dependency_archives)
 {
@@ -167,6 +173,54 @@ Copy-Item -LiteralPath (Join-Path $build_dir '_deps/nghttp2-src/COPYING') `
     -Destination (Join-Path $tool_dir 'NGHTTP2-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/mbedtls-src/LICENSE') `
     -Destination (Join-Path $tool_dir 'MBEDTLS-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/icu_binary-src/mingw64/share/icu/78.3/LICENSE') `
+    -Destination (Join-Path $tool_dir 'ICU-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/share/licenses/pcre2/LICENCE.md') `
+    -Destination (Join-Path $tool_dir 'PCRE2-LICENCE.md') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/stdcpp_runtime-src/mingw64/share/licenses/libstdc++/COPYING.RUNTIME') `
+    -Destination (Join-Path $tool_dir 'GCC-RUNTIME-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/stdcpp_runtime-src/mingw64/share/licenses/libstdc++/COPYING3') `
+    -Destination (Join-Path $tool_dir 'GCC-GPL-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/winpthread_runtime-src/mingw64/share/licenses/libwinpthread/COPYING') `
+    -Destination (Join-Path $tool_dir 'WINPTHREAD-LICENSE') -Force
+foreach ($name in @('libicuin78.dll', 'libicuuc78.dll', 'libicudt78.dll'))
+{
+    Copy-Item -LiteralPath (Join-Path $build_dir "_deps/icu_binary-src/mingw64/bin/$name") `
+        -Destination (Join-Path $tool_dir $name) -Force
+}
+# ICU 仅经 C 接口与 TX 运行时相连；私有导入名避免覆盖原编译器的 C++ 运行库。
+$old_import = [System.Text.Encoding]::ASCII.GetBytes('libstdc++-6.dll')
+$new_import = [System.Text.Encoding]::ASCII.GetBytes('libstdc++-u.dll')
+foreach ($name in @('libicuin78.dll', 'libicuuc78.dll'))
+{
+    $path = Join-Path $tool_dir $name
+    $data = [System.IO.File]::ReadAllBytes($path)
+    $matches = 0
+    for ($index = 0; $index -le $data.Length - $old_import.Length; $index++)
+    {
+        if ($data[$index] -ne $old_import[0]) { continue }
+        $equal = $true
+        for ($offset = 1; $offset -lt $old_import.Length; $offset++)
+        {
+            if ($data[$index + $offset] -ne $old_import[$offset])
+            {
+                $equal = $false
+                break
+            }
+        }
+        if (-not $equal) { continue }
+        for ($offset = 0; $offset -lt $new_import.Length; $offset++)
+        {
+            $data[$index + $offset] = $new_import[$offset]
+        }
+        $matches++
+    }
+    if ($matches -ne 1)
+    {
+        throw "ICU 导入表与固定包不符：$name；build/ 已保留。"
+    }
+    [System.IO.File]::WriteAllBytes($path, $data)
+}
 if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath $library_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'string.txh')) -or
@@ -176,6 +230,8 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'bytes.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'crypto.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'encoding.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'unicode.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'regex.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file_stream.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'error.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'cancel.txh')) -or
@@ -202,7 +258,14 @@ $abi_fingerprint = (Get-Content -LiteralPath (Join-Path $build_dir 'compatibilit
     -Encoding utf8 -Raw).Trim()
 $compiler_hash = (Get-FileHash -LiteralPath $compiler_path -Algorithm SHA256).Hash.ToLowerInvariant()
 $library_hash = (Get-FileHash -LiteralPath $library_path -Algorithm SHA256).Hash.ToLowerInvariant()
-$compatibility_manifest = "tx-package-v1`nabi $abi_fingerprint`ntxc $compiler_hash`nstdlib $library_hash`n"
+$compatibility_manifest = "tx-package-v2`nabi $abi_fingerprint`ntxc $compiler_hash`nstdlib $library_hash`n"
+foreach ($name in @('libgcc_s_seh-1.dll', 'libstdc++-6.dll',
+                    'libwinpthread-1.dll', 'libstdc++-u.dll',
+                    'libicuin78.dll', 'libicuuc78.dll', 'libicudt78.dll'))
+{
+    $digest = (Get-FileHash -LiteralPath (Join-Path $tool_dir $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+    $compatibility_manifest += "$name $digest`n"
+}
 [System.IO.File]::WriteAllText((Join-Path $tool_dir 'package.compat'),
     $compatibility_manifest, [System.Text.UTF8Encoding]::new($false))
 

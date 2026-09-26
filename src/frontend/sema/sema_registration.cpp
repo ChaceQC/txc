@@ -16,7 +16,9 @@ bool is_builtin_name(const std::string& name)
            name == "any" || name == "void" || name == "unknown" ||
            name == "self" || name == "super" || name == "bind" ||
            name == "assert_send" || name == "assert_sync" ||
-           name == "cancel_source" || name == "cancel_token";
+           name == "cancel_source" || name == "cancel_token" ||
+           name == "encoding_decoder" || name == "encoding_encoder" ||
+           name == "regex_pattern";
 }
 
 } // namespace
@@ -198,6 +200,9 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         type == value_type::text_stream_type ||
         type == value_type::cancel_source_type ||
         type == value_type::cancel_token_type ||
+        type == value_type::encoding_decoder_type ||
+        type == value_type::encoding_encoder_type ||
+        type == value_type::regex_pattern_type ||
         type == value_type::array_type || type == value_type::dict_type ||
         type == value_type::any_type || type == value_type::none_type ||
         structs_.contains(type.name) || classes_.contains(type.name))
