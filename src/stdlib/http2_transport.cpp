@@ -1,16 +1,15 @@
 #include "stdlib/http2_transport.hpp"
 
+#include "stdlib/crypto_internal.hpp"
 #include "stdlib/file_stream.hpp"
 
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/platform_util.h>
-#include <psa/crypto.h>
 
 #include <algorithm>
 #include <chrono>
 #include <climits>
 #include <limits>
-#include <mutex>
 
 namespace tx_generated::http2
 {
@@ -60,23 +59,14 @@ void require_tls(int result, std::string_view action)
     }
 }
 
-void initialize_psa()
-{
-    static std::once_flag once;
-    std::call_once(once, []
-    {
-        if (psa_crypto_init() != PSA_SUCCESS)
-        {
-            network::fail("operation_failed", "初始化 TLS 密码学组件失败");
-        }
-    });
-}
-
 } // namespace
 
 tls_config::tls_config(std::string_view cert_path, std::string_view key_path)
 {
-    initialize_psa();
+    if (!crypto::psa_ready())
+    {
+        network::fail("operation_failed", "初始化 TLS 密码学组件失败");
+    }
     mbedtls_entropy_init(&entropy_);
     mbedtls_ctr_drbg_init(&rng_);
     mbedtls_x509_crt_init(&cert_);

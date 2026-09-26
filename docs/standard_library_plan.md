@@ -232,4 +232,4 @@ HTTP/1.1、HTTP/2 客户端与服务端以及 WebSocket 客户端与服务端已
 
 ## 十三、密码学模块设计
 
-常用密码学能力按[密码学标准库设计](crypto.md)实现为 `crypto` 模块，使用现有 `bytes` 与可捕获错误机制，并复用已经静态链接的 Mbed TLS。第一阶段包括安全随机数、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 和自动生成 nonce 的 AES-256-GCM 单段认证加密。文档固定接口、二进制格式、输入范围、语言边界及错误码，实施时以该契约为准。
+常用密码学能力按[密码学标准库设计](crypto.md)实现为 `crypto` 模块，使用现有 `bytes` 与可捕获错误机制，并复用已经静态链接的 Mbed TLS。第一阶段已接入安全随机数、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 和自动生成 nonce 的 AES-256-GCM 单段认证加密。文档固定接口、二进制格式、输入范围、语言边界、错误码及定向验证记录。

@@ -1,0 +1,160 @@
+import "bytes.txh" as byte_values
+import "crypto.txh" as crypto
+import "encoding.txh" as encoding
+import "error.txh" as errors
+
+def auth_failed(key: bytes, encrypted: bytes, aad: bytes) -> bool
+{
+    try
+    {
+        crypto.decrypt(key, encrypted, aad)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "authentication_failed"
+    }
+    return false
+}
+
+def invalid_key() -> bool
+{
+    try
+    {
+        crypto.encrypt(byte_values.empty(), byte_values.empty(),
+                       byte_values.empty())
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def invalid_format(key: bytes) -> bool
+{
+    try
+    {
+        crypto.decrypt(key, byte_values.empty(), byte_values.empty())
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_format"
+    }
+    return false
+}
+
+def invalid_random_count() -> bool
+{
+    try
+    {
+        crypto.random_bytes(-1)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def main() -> int
+{
+    bytes empty = byte_values.empty()
+    str expected_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    if byte_values.to_hex(crypto.sha256(empty)) != expected_sha256
+    {
+        return 1
+    }
+    str expected_sha512 = "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce" + "47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+    if byte_values.to_hex(crypto.sha512(empty)) != expected_sha512
+    {
+        return 2
+    }
+    bytes message = encoding.encode("Hi There", "utf-8")
+    bytes hmac_key = byte_values.from_hex("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b")
+    str expected_hmac = "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7"
+    if byte_values.to_hex(crypto.hmac_sha256(hmac_key, message)) != expected_hmac
+    {
+        return 3
+    }
+    if !crypto.secure_equal(message, message)
+    {
+        return 4
+    }
+    if crypto.secure_equal(message, hmac_key) || crypto.secure_equal(message, encoding.encode("Hi Therf", "utf-8"))
+    {
+        return 4
+    }
+
+    bytes ikm = byte_values.from_hex("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b")
+    bytes salt = byte_values.from_hex("000102030405060708090a0b0c")
+    bytes info = byte_values.from_hex("f0f1f2f3f4f5f6f7f8f9")
+    str expected_hkdf = "3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf" + "34007208d5b887185865"
+    if byte_values.to_hex(crypto.hkdf_sha256(ikm, salt, info, 42)) != expected_hkdf
+    {
+        return 5
+    }
+    bytes password = encoding.encode("password", "utf-8")
+    bytes pbkdf_salt = encoding.encode("salt", "utf-8")
+    str expected_pbkdf2 = "120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b"
+    if byte_values.to_hex(crypto.pbkdf2_sha256(password, pbkdf_salt, 1, 32)) != expected_pbkdf2
+    {
+        return 6
+    }
+
+    bytes key = byte_values.from_hex("0000000000000000000000000000000000000000000000000000000000000000")
+    bytes wrong_key = byte_values.from_hex("0100000000000000000000000000000000000000000000000000000000000000")
+    str fixed_hex = "545843470101" + "000000000000000000000000" + "a6c22c512252c4467ee61de297a900543f9dc6bf82"
+    bytes fixed_encrypted = byte_values.from_hex(fixed_hex)
+    if crypto.decrypt(key, fixed_encrypted, empty) != encoding.encode("hello", "utf-8")
+    {
+        return 7
+    }
+    bytes aad = encoding.encode("context", "utf-8")
+    bytes plaintext = encoding.encode("你好，TX", "utf-8")
+    bytes encrypted = crypto.encrypt(key, plaintext, aad)
+    if len(encrypted) != len(plaintext) + 34
+    {
+        return 7
+    }
+    if byte_values.to_hex(byte_values.slice(encrypted, 0, 6)) != "545843470101"
+    {
+        return 7
+    }
+    if crypto.decrypt(key, encrypted, aad) != plaintext
+    {
+        return 7
+    }
+    vector<int> changed = byte_values.to_vector(encrypted)
+    changed[18] = changed[18] ^ 1
+    bytes modified = byte_values.from_vector(changed)
+    if !auth_failed(key, modified, aad) || !auth_failed(wrong_key, encrypted, aad)
+    {
+        return 8
+    }
+    changed = byte_values.to_vector(encrypted)
+    changed[6] = changed[6] ^ 1
+    if !auth_failed(key, byte_values.from_vector(changed), aad)
+    {
+        return 8
+    }
+    changed = byte_values.to_vector(encrypted)
+    changed[len(changed) - 1] = changed[len(changed) - 1] ^ 1
+    if !auth_failed(key, byte_values.from_vector(changed), aad)
+    {
+        return 8
+    }
+    if !auth_failed(key, encrypted, empty) || !invalid_key() || !invalid_format(key)
+    {
+        return 8
+    }
+    if len(crypto.random_bytes(0)) != 0 || len(crypto.random_bytes(17)) != 17
+    {
+        return 9
+    }
+    if len(crypto.generate_key()) != 32 || !invalid_random_count()
+    {
+        return 9
+    }
+    print("CRYPTO_OK")
+    return 0
+}

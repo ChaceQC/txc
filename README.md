@@ -34,6 +34,7 @@ txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的
 模块导入、终端输入输出、可指定字符集的文本文件读写、字符串、数学、数组、文件系统、时间和随机数操作见 [模块说明](docs/modules.md)、[标准库说明](docs/standard_library.md)和[可运行示例](examples/import_io.tx)。
 
 Python 风格的 HTTP 客户端见 [requests 模块](docs/requests.md)和[请求示例](examples/requests.tx)。
+安全随机数、摘要、密钥派生与 AES-256-GCM 认证加密见[密码学标准库](docs/crypto.md)和[示例](examples/crypto.tx)。
 终端与文件操作的单独示例见 [终端 I/O](examples/terminal_io.tx)、[文件 I/O](examples/file_io.tx)和[指定字符集读写](examples/file_encodings.tx)。
 两个模块拥有同名函数时的调用见 [别名导入示例](examples/import_alias.tx)。
 数学、数组、目录与路径标准库的组合用法见 [标准库示例](examples/stdlib_modules.tx)；运行时会在 tx_build/ 下创建示例目录。

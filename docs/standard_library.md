@@ -10,6 +10,8 @@
 
 导入 [bytes.txh](../tx/stdlib/bytes.txh) 可构造、拼接、切片及进行 Hex/Base64 转换；[encoding.txh](../tx/stdlib/encoding.txh) 提供内存中的文本编码与解码；[file_stream.txh](../tx/stdlib/file_stream.txh) 提供二进制和文本文件流。`bytes` 也可作为 `vector<bytes>` 元素以及 `array`、`dict` 的值。
 
+导入 [crypto.txh](../tx/stdlib/crypto.txh) 使用安全随机数、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 与 AES-256-GCM 认证加密。所有输入输出使用 `bytes`，加密接口自动生成 nonce，格式、错误码、密钥内存限制和定向验证见[密码学标准库](crypto.md)。现有 `random` 模块不是密码学安全随机源。
+
 内置 `map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
 
 ## 解析与可恢复错误

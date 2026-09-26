@@ -10,6 +10,7 @@ namespace
 bool supported_external_call(std::string_view name)
 {
     return name.starts_with("httpx.") || name.starts_with("websocket.") ||
+           name.starts_with("crypto.") ||
            name == "error.fail_io" ||
            name == "io.write" || name == "io.write_line" ||
            name == "io.write_error" || name == "io.flush" ||

@@ -1,0 +1,25 @@
+import "bytes.txh" as byte_values
+import "crypto.txh" as crypto
+import "encoding.txh" as encoding
+
+def main() -> int
+{
+    bytes key = crypto.generate_key()
+    bytes aad = encoding.encode("example:v1", "utf-8")
+    bytes plaintext = encoding.encode("一段需要保密的数据", "utf-8")
+    bytes encrypted = crypto.encrypt(key, plaintext, aad)
+    bytes restored = crypto.decrypt(key, encrypted, aad)
+    if restored != plaintext
+    {
+        return 1
+    }
+
+    bytes digest = crypto.sha256(plaintext)
+    bytes mac = crypto.hmac_sha256(key, plaintext)
+    if len(digest) != 32 || len(mac) != 32
+    {
+        return 2
+    }
+    print("加密、解密与摘要示例通过")
+    return 0
+}

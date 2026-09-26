@@ -174,6 +174,7 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'io.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'bytes.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'crypto.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'encoding.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file_stream.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'error.txh')) -or

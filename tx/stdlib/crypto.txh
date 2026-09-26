@@ -1,0 +1,13 @@
+def random_bytes(count: int) -> bytes
+def generate_key() -> bytes
+
+def sha256(data: bytes) -> bytes
+def sha512(data: bytes) -> bytes
+def hmac_sha256(key: bytes, data: bytes) -> bytes
+def secure_equal(left: bytes, right: bytes) -> bool
+
+def hkdf_sha256(ikm: bytes, salt: bytes, info: bytes, length: int) -> bytes
+def pbkdf2_sha256(password: bytes, salt: bytes, iterations: int, length: int) -> bytes
+
+def encrypt(key: bytes, plaintext: bytes, aad: bytes) -> bytes
+def decrypt(key: bytes, encrypted: bytes, aad: bytes) -> bytes

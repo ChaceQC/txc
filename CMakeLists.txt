@@ -113,6 +113,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/ws_abi.cpp
     src/backend/cpp/file_result_abi.cpp
     src/backend/cpp/bytes_abi.cpp
+    src/backend/cpp/crypto_abi.cpp
     src/backend/cpp/encoding_memory_abi.cpp
     src/backend/cpp/file_stream_abi.cpp
     src/backend/cpp/text_reference.cpp
@@ -165,6 +166,10 @@ add_library(txstdlib STATIC
     src/stdlib/io.cpp
     src/stdlib/encoding.cpp
     src/stdlib/bytes.cpp
+    src/stdlib/crypto_random.cpp
+    src/stdlib/crypto_hash.cpp
+    src/stdlib/crypto_kdf.cpp
+    src/stdlib/crypto_aead.cpp
     src/stdlib/file_stream.cpp
     src/stdlib/file_stream_text.cpp
     src/stdlib/file.cpp
