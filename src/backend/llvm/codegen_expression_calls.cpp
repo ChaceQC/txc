@@ -11,6 +11,8 @@ bool supported_external_call(std::string_view name)
 {
     return name.starts_with("httpx.") || name.starts_with("websocket.") ||
            name.starts_with("crypto.") ||
+           name.starts_with("test.") || name.starts_with("log.") ||
+           name.starts_with("debug.") ||
            name == "error.fail_io" || name == "error.stack_trace" ||
            name.starts_with("cancel.") ||
            name == "io.write" || name == "io.write_line" ||

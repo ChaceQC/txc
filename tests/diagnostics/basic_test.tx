@@ -1,0 +1,87 @@
+import "test.txh" as test
+import "log.txh" as log
+import "debug.txh" as debug
+import "fs.txh" as fs
+import "random.txh" as random
+import "string.txh" as string
+import "error.txh" as errors
+
+def fail_operation()
+{
+    print(1 / 0)
+}
+
+def succeed_operation()
+{
+    return
+}
+
+def named_operation()
+{
+    test.assert_equal(8, 4 + 4)
+}
+
+def main() -> int
+{
+    test.assert_true(true)
+    test.assert_false(false)
+    test.assert_equal(4, 2 + 2)
+    test.assert_equal(2.5, 2.5)
+    test.assert_equal(false, false)
+    test.assert_equal("中文", "中文")
+    test.assert_near(1.0, 1.05, 0.1)
+    test.assert_throws(fail_operation)
+    test.assert_throws_code(fail_operation, "operation_failed")
+    test.assert_true(test.run_case("named", named_operation))
+    test.assert_equal(0, test.failures())
+    try
+    {
+        test.assert_throws(succeed_operation)
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_equal("assertion_failed", e.code)
+    }
+    try
+    {
+        test.assert_near(1.0, 1.0, -1.0)
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_equal("invalid_tolerance", e.code)
+    }
+
+    auto directory = test.temp_directory()
+    test.assert_true(fs.is_directory(directory))
+    test.seed(42)
+    auto first = random.random_int(1, 10000)
+    test.seed(42)
+    test.assert_equal(first, random.random_int(1, 10000))
+
+    test.assert_true(string.contains(debug.location(), "basic_test.tx"))
+    test.assert_true(string.contains(debug.stack_trace(), "main"))
+    try
+    {
+        fail_operation()
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_true(string.contains(debug.last_error_stack(), "fail_operation"))
+    }
+    debug.dump(42)
+    debug.dump("safe")
+    log.set_context("task-1", "")
+    log.event("info", "测试完成", {"count": 9, "ok": true})
+    log.event_redacted("warn", "敏感字段", {"password": "p-123", "session": "s-456"},
+                       vector<str>(["session"]))
+    log.event("debug", "嵌套字段", {"nested": {"access_token": "t-789"}})
+    try
+    {
+        log.event("fatal", "无效级别", {})
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_equal("invalid_level", e.code)
+    }
+    return 0
+}

@@ -1,0 +1,18 @@
+import "test.txh" as test
+
+def failing_case()
+{
+    test.assert_true(false, "注册项失败")
+}
+
+def succeeding_case()
+{
+    test.assert_true(true)
+}
+
+def main() -> int
+{
+    test.run_case("fails", failing_case)
+    test.run_case("continues", succeeding_case)
+    return 0
+}

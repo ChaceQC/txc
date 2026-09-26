@@ -1,0 +1,7 @@
+import "test.txh" as test
+
+def main() -> int
+{
+    test.assert_equal(1, 2, "应显示调用位置")
+    return 0
+}

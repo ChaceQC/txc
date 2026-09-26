@@ -278,3 +278,23 @@ def main() -> int {
 - 类型 `s` 用于字符串；`d`、`b`、`o`、`x`、`X` 用于整数；`f`、`F`、`e`、`E`、`g`、`G` 用于浮点数。省略类型时使用值的默认文本表示；对字符串可配合精度截断。浮点数指定类型但省略精度时默认 6 位。`0` 零填充用于数字的右对齐，负号和显式正号保持在零之前。
 
 格式化只返回字符串，不输出。类型不匹配、无效格式说明、字段属性或下标访问、嵌套替换字段、无效 UTF-8 都会报可理解的运行错误。目前只覆盖上述 Python 风格常用语法；完整示例见 [format.tx](../examples/format.tx)。
+
+## 测试、日志与调试
+
+导入 [test.txh](../tx/stdlib/test.txh)、[log.txh](../tx/stdlib/log.txh) 和 [debug.txh](../tx/stdlib/debug.txh) 后，TX 程序可以直接使用断言、结构化事件和源码级诊断。测试文件以 `_test.tx` 结尾时，`txc test <目录>` 会按稳定顺序发现；也可用 `txc test <文件.tx>` 显式运行单项。
+
+```tx
+import "test.txh" as test
+import "log.txh" as log
+import "debug.txh" as debug
+
+def main() -> int
+{
+    test.assert_equal(4, 2 + 2)
+    log.event("info", "计算完成", {"count": 4})
+    debug.dump(4)
+    return 0
+}
+```
+
+断言失败会携带 TX 调用位置；日志在序列化前遮蔽常见敏感字段，`event_redacted` 可指定其他键。`debug.stack_trace()` 和 `debug.location()` 在 Release 产物中也保留 TX 源码位置。完整接口、机器可读报告与边界见[测试、日志与诊断](test_log_debug.md)。

@@ -1,0 +1,13 @@
+def assert_true(condition: bool, message: str = "") -> void
+def assert_false(condition: bool, message: str = "") -> void
+def assert_equal(expected: int, actual: int, message: str = "") -> void
+def assert_equal(expected: float, actual: float, message: str = "") -> void
+def assert_equal(expected: bool, actual: bool, message: str = "") -> void
+def assert_equal(expected: str, actual: str, message: str = "") -> void
+def assert_near(expected: float, actual: float, tolerance: float, message: str = "") -> void
+def assert_throws(operation: fn()->void) -> void
+def assert_throws_code(operation: fn()->void, code: str) -> void
+def run_case(name: str, operation: fn()->void) -> bool
+def failures() -> int
+def temp_directory() -> str
+def seed(value: int) -> void

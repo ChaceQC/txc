@@ -1,6 +1,7 @@
 #include "backend/llvm/codegen.hpp"
 #include "driver/compatibility.hpp"
 #include "driver/module_loader.hpp"
+#include "driver/test_runner.hpp"
 #include "frontend/resolver/module_resolver.hpp"
 #include "frontend/sema/sema.hpp"
 
@@ -13,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -46,10 +48,21 @@ struct temporary_file
 
 struct command_line
 {
-    enum class action { compile, check, emit_llvm, emit_library_llvm }
-        mode = action::compile;
+    enum class action
+    {
+        compile, check, emit_llvm, emit_library_llvm, test
+    } mode = action::compile;
     fs::path source_path;
     fs::path output_path;
+    std::optional<fs::path> test_case;
+    bool json_format = false;
+
+    command_line(action selected_mode, fs::path selected_source,
+                 fs::path selected_output)
+        : mode(selected_mode), source_path(std::move(selected_source)),
+          output_path(std::move(selected_output))
+    {
+    }
 };
 
 struct windows_arguments
@@ -67,6 +80,30 @@ struct windows_arguments
 
 std::optional<command_line> parse_command_line(int argc, wchar_t* argv[])
 {
+    if (argc >= 3 && std::wstring(argv[1]) == L"test")
+    {
+        command_line result{command_line::action::test, argv[2], {}};
+        for (int index = 3; index < argc; ++index)
+        {
+            if (std::wstring(argv[index]) == L"--case" &&
+                !result.test_case && index + 1 < argc)
+            {
+                result.test_case = fs::path(argv[++index]);
+            }
+            else if (std::wstring(argv[index]) == L"--format" &&
+                     !result.json_format && index + 1 < argc &&
+                     std::wstring(argv[index + 1]) == L"json")
+            {
+                result.json_format = true;
+                ++index;
+            }
+            else
+            {
+                return std::nullopt;
+            }
+        }
+        return result;
+    }
     if (argc == 3 && std::wstring(argv[1]) == L"check")
     {
         return command_line{command_line::action::check, argv[2], {}};
@@ -320,7 +357,8 @@ int run_emit_llvm(const fs::path& source_path, const fs::path& output_path,
     return 0;
 }
 
-int run_compiler(const fs::path& source_path, const fs::path& output_path)
+int run_compiler(const fs::path& source_path, const fs::path& output_path,
+                 bool quiet = false)
 {
     if (source_path.extension() == ".txh")
     {
@@ -343,7 +381,10 @@ int run_compiler(const fs::path& source_path, const fs::path& output_path)
         std::cerr << "LLVM 后端编译失败（退出码 " << result << "）\n";
         return 1;
     }
-    std::cout << "已生成 " << path_text(output_path) << '\n';
+    if (!quiet)
+    {
+        std::cout << "已生成 " << path_text(output_path) << '\n';
+    }
     return 0;
 }
 
@@ -366,7 +407,8 @@ int main()
             std::cerr << "用法：txc <源码.tx> [-o <输出.exe>]\n"
                       << "      txc check <源码.tx>\n"
                       << "      txc emit-llvm <源码.tx> [-o <输出.ll>]\n"
-                      << "      txc emit-library-llvm <源码.tx> -o <输出.ll>\n";
+                      << "      txc emit-library-llvm <源码.tx> -o <输出.ll>\n"
+                      << "      txc test <目录或源码.tx> [--case <相对路径>] [--format json]\n";
             return 2;
         }
         const auto tool_dir = executable_path().parent_path();
@@ -388,6 +430,13 @@ int main()
             return run_emit_llvm(command->source_path, command->output_path, true);
         case command_line::action::compile:
             return run_compiler(command->source_path, command->output_path);
+        case command_line::action::test:
+            return tx::run_test_suite(command->source_path,
+                command->test_case, command->json_format,
+                [](const fs::path& source, const fs::path& output)
+                {
+                    return run_compiler(source, output, true);
+                });
         }
     }
     catch (const tx::compile_error& error)

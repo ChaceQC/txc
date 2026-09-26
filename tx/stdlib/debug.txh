@@ -1,0 +1,7 @@
+def stack_trace() -> str
+def last_error_stack() -> str
+def location() -> str
+def dump(value: int) -> void
+def dump(value: float) -> void
+def dump(value: bool) -> void
+def dump(value: str) -> void

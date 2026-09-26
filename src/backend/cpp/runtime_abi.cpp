@@ -10,6 +10,8 @@
 #include <limits>
 #include <string_view>
 
+extern "C" std::int64_t txrt_test_failure_total() noexcept;
+
 namespace tx_generated::detail
 {
 
@@ -168,7 +170,9 @@ extern "C" int txrt_exit_code(std::int64_t value) noexcept
         std::cerr << "运行错误：main 返回码超出平台 int 范围\n";
         return 1;
     }
-    return static_cast<int>(value);
+    // 显式注册的测试项失败时，即使用户 main 忘记检查计数也不能报通过。
+    return value == 0 && txrt_test_failure_total() != 0
+        ? 1 : static_cast<int>(value);
 }
 
 extern "C" int txrt_float_to_int(double value,

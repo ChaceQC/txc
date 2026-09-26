@@ -110,6 +110,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
             symbol = "txrt_ws_" + target.external_name.substr(10);
         }
     }
+    if (target.external_name == "test.assert_equal" ||
+        target.external_name == "debug.dump")
+    {
+        const auto& type = target.parameters.front().type;
+        symbol += type == value_type::int_type ? "_i64" :
+                  type == value_type::float_type ? "_f64" :
+                  type == value_type::bool_type ? "_bool" : "_str";
+    }
     if (target.external_name == "httpx.close" ||
         target.external_name == "websocket.close")
     {

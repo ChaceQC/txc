@@ -12,7 +12,7 @@
 
 编译器工具目录 `tx/` 包含 `txc.exe`、`clang.exe`、`libtxstdlib.a`、`package.compat`、`link/` 内的链接组件、运行时 DLL 和 `stdlib/*.txh` 公开接口。交付时保留整个 `tx/` 目录。脚本在 build/ 中以 Release 配置构建编译器、运行时库和标准库，还会把 `src/stdlib/httpx_bridge.tx`、`websocket_bridge.tx`、`requests_bridge.tx` 编成对象文件，并将固定版本的 nghttp2、Mbed TLS 静态库归档进 `libtxstdlib.a`；相应许可证随 `tx/` 交付。首次构建需要下载两份已固定 SHA-256 的源码归档。构建成功后删除中间目录，失败时保留以便排查。`tx/stdlib/` 不包含 `.tx` 实现源码。构建时使用 g++；生成的 txc 不会调用它。直接用单配置 CMake 构建时默认也采用 Release；可显式设置 `CMAKE_BUILD_TYPE` 覆盖。
 
-`txc` 在检查、生成 LLVM IR 或编译前验证公开 `.txh`、编译器、最终标准库归档和运行时 ABI 的兼容指纹。缺文件或混用不同构建的产物会给出中文诊断；更新其中任一项后须重新运行构建脚本并整体交付 `tx/`。构建标准库桥接对象时的 `emit-library-llvm` 只验证接口，最终归档完成后再生成兼容清单。完整规则见[标准库公共契约](standard_library_foundation.md#5-包兼容指纹与依赖登记)。
+`txc` 在检查、测试、生成 LLVM IR 或编译前验证公开 `.txh`、编译器、最终标准库归档和运行时 ABI 的兼容指纹。缺文件或混用不同构建的产物会给出中文诊断；更新其中任一项后须重新运行构建脚本并整体交付 `tx/`。构建标准库桥接对象时的 `emit-library-llvm` 只验证接口，最终归档完成后再生成兼容清单。完整规则见[标准库公共契约](standard_library_foundation.md#5-包兼容指纹与依赖登记)。
 
 ## 编译源码
 
@@ -21,6 +21,7 @@
 ```text
 txc <源码.tx> [-o <输出.exe>]
 txc check <源码.tx>
+txc test <目录或源码.tx> [--case <相对路径>] [--format json]
 txc emit-library-llvm <库源码.tx> -o <输出.ll>
 ```
 
@@ -62,5 +63,15 @@ txc 启动 clang 和链接器时会为各个参数添加必要的引号并处理
 ```
 
 check 会进行词法、语法、名称解析和静态类型检查，包括 main 入口与返回路径要求。检查通过时输出“语法和类型检查通过”，退出码为 0；检查失败时报告错误并返回非零退出码。这个命令不会生成目标文件或调用链接器。
+
+## 运行 TX 测试
+
+```powershell
+.\tx\txc.exe test .\tests\diagnostics
+.\tx\txc.exe test .\tests\diagnostics --case basic_test.tx --format json
+.\tx\txc.exe test .\tests\diagnostics\basic_test.tx
+```
+
+目录模式发现名称以 `_test.tx` 结尾的文件；文件模式可显式运行任意 `.tx` 测试源码。每个文件单独编译、执行并汇总，通过、失败、崩溃和编译错误分别计数。`--case` 选择目录中的一个相对文件路径，`--format json` 输出机器可读报告。可在测试 `main()` 中用 `test.run_case` 显式注册命名回调。完整接口与当前边界见[测试、日志与诊断](test_log_debug.md)。
 
 语言写法见 [语法与类型规则](syntax.md)，可运行的完整示例见 [example.tx](../example.tx)。

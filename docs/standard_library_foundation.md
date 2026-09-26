@@ -14,7 +14,7 @@
 | 数据格式 | `json.txh`、`parse.txh`；`src/stdlib/json_*.cpp`、`parse.cpp`。见[JSON](json.md)、[解析](errors_and_parse.md) | JSON 增量和 schema、`csv/xml/cbor/serde` | 有 `tests/json/`、`scripts/check_parse_errors.py` 的既往场景；大数据流、XML 实体禁用、CBOR 规范化与跨 schema 迁移未验证 |
 | 并发 | 无公开线程/任务/通道模块；现有同步网络和无捕获顶层函数值见[函数值](function_values.md) | `thread/task/channel`、同步原语、取消、`async/await`、IPC | 无 TX 用户级并发验收证据；数据竞争、取消竞态、GC/析构和句柄上限待第 10 节 |
 | 数据库 | 无公开数据库模块或对应 `src/stdlib` 实现 | 统一 `db.txh` 的 SQLite/PostgreSQL 驱动、池与迁移接口 | 无验收证据；参数绑定、事务回滚、NULL/无行、TLS、池耗尽与断连待第 12 节 |
-| 测试与诊断 | `scripts/check_*.py` 与 `tests/` 是仓库自身验证工具 | TX 用户级 `test/log/debug/profile` 及 `txc test/profile` | 现有脚本不算 TX 标准库 API；失败源码位置、隔离、结构化日志遮蔽与采样精度待第 3、13 节 |
+| 测试与诊断 | `test.txh`、`log.txh`、`debug.txh` 和 `txc test`；原有 `scripts/check_*.py` 与 `tests/` 是仓库自身验证工具。见[测试、日志与诊断](test_log_debug.md) | `profile.txh`、`txc profile`；参数化/性质测试、可配置隔离/并行/超时、轮转文件与并发日志 | 第 3 节已有断言位置、错误/编译错误统计、结构化遮蔽和 Release 栈的定向证据；原生崩溃注入、并发完整性与采样精度待第 13 节专项验证 |
 | 安全 | `crypto.txh`；`src/stdlib/crypto_*.cpp`，Mbed TLS 后端。见[密码学](crypto.md) | `secret_bytes/password/public_key/x509/tls`、流式认证加密 | 有 `tests/crypto/` 的既有本地场景；标准向量、跨库互操作、证书失败、整体认证与秘密清理限制待第 9 节 |
 
 上表中的测试脚本和示例只是证据入口，本次盘点没有重新运行它们。每个后续小项应在完成记录中分别列出接口、实现、构建、正常与失败路径、资源清理、平台限制；不能用上表“已有”代替终态矩阵验收。
@@ -46,7 +46,7 @@
 | --- | --- | --- |
 | `parse`、`json`、`bytes` | `parse_error/empty_input`、`invalid_base`、`invalid_syntax`、`out_of_range`、`non_finite`、`invalid_escape`、`invalid_utf8`、`missing_field`、`type_mismatch`、`depth_limit`、`invalid_hex`、`invalid_base64` | `parse_error/invalid_encoding`、`size_limit`、`duplicate_key`、`schema_mismatch`；CSV/XML/CBOR/regex 须在模块文档补充输入位置与限额 |
 | 文件流与现有网络 | `io_error/not_found`、`permission_denied`、`invalid_path`、`invalid_mode`、`closed_stream`、`invalid_encoding`、`size_limit`、`timeout`、`connection_closed`、`protocol_error`、`invalid_header`、`invalid_argument`、`invalid_utf8`、`unsupported_option`、`operation_failed` | `io_error/closed_handle`、`short_read`、`short_write`；新 socket/TLS/文件操作沿用可适用的旧码 |
-| 通用运行时、JSON 写入、现有 `crypto` | `runtime_error/allocation_failed`、`unknown_error`、`operation_failed`、`invalid_argument`、`size_limit`、`invalid_indent`、`cyclic_value`、`unsupported_value`、`invalid_key`、`random_failed`、`authentication_failed`、`invalid_format` | `runtime_error/invalid_state`；现有 `crypto` 错误不悄悄改类，新安全 API 才使用 `security_error` |
+| 通用运行时、JSON 写入、现有 `crypto`、测试与日志 | `runtime_error/allocation_failed`、`unknown_error`、`operation_failed`、`invalid_argument`、`size_limit`、`invalid_indent`、`cyclic_value`、`unsupported_value`、`invalid_key`、`random_failed`、`authentication_failed`、`invalid_format`、`assertion_failed`、`invalid_tolerance`、`invalid_name`、`invalid_level`、`invalid_field` | `runtime_error/invalid_state`；现有 `crypto` 错误不悄悄改类，新安全 API 才使用 `security_error` |
 | 子进程 | 尚无公开入口 | `process_error/spawn_failed`、`wait_failed`、`terminated`、`output_limit`、`invalid_state`、`timeout` |
 | 数据库 | 尚无公开入口 | `database_error/connection_failed`、`query_failed`、`constraint_violation`、`busy`、`pool_exhausted`、`invalid_state` |
 | 新密码/证书/TLS 接口 | 尚无公开入口 | `security_error/invalid_key`、`authentication_failed`、`invalid_certificate`、`certificate_expired`、`hostname_mismatch`、`untrusted_issuer`、`random_failed` |

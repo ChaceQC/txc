@@ -1,0 +1,3 @@
+def event(level: str, message: str, fields: dict) -> void
+def event_redacted(level: str, message: str, fields: dict, secret_keys: vector<str>) -> void
+def set_context(task_id: str, thread_id: str) -> void

@@ -395,6 +395,10 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     {
         functions_[function.name].push_back(&function);
         recoverable_errors_ |= contains_try(function.body);
+        // 预期异常断言会从原生入口调用 TX 回调，回调必须通过状态交回错误。
+        recoverable_errors_ |= function.external_name == "test.assert_throws" ||
+            function.external_name == "test.assert_throws_code" ||
+            function.external_name == "test.run_case";
     }
     for (const auto& definition : source.structs)
     {
