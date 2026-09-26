@@ -31,3 +31,21 @@ def reverse(values: vector<str>) -> void
 def find(values: vector<bool>, value: bool) -> int
 def count(values: vector<bool>, value: bool) -> int
 def reverse(values: vector<bool>) -> void
+
+def stable_sort<T>(values: vector<T>) -> void
+def stable_sort<T>(values: vector<T>, compare: fn(T,T)->int) -> void
+def stable_sorted<T>(values: vector<T>) -> vector<T>
+def stable_sorted<T>(values: vector<T>, compare: fn(T,T)->int) -> vector<T>
+def binary_search<T>(values: vector<T>, key: T) -> option<int>
+def binary_search<T>(values: vector<T>, key: T, compare: fn(T,T)->int) -> option<int>
+def equal_range<T>(values: vector<T>, key: T) -> vector<int>
+def equal_range<T>(values: vector<T>, key: T, compare: fn(T,T)->int) -> vector<int>
+def unique<T>(values: vector<T>) -> int
+def unique<T>(values: vector<T>, compare: fn(T,T)->int) -> int
+def rotate<T>(values: vector<T>, middle: int) -> void
+def partition<T>(values: vector<T>, predicate: fn(T)->bool) -> int
+def map<T,U>(values: vector<T>, transform: fn(T)->U) -> vector<U>
+def filter<T>(values: vector<T>, predicate: fn(T)->bool) -> vector<T>
+def fold<T,U>(values: vector<T>, initial: U, combine: fn(U,T)->U) -> U
+def all<T>(values: vector<T>, predicate: fn(T)->bool) -> bool
+def any<T>(values: vector<T>, predicate: fn(T)->bool) -> bool

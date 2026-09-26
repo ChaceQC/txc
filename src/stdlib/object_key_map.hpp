@@ -2,6 +2,7 @@
 
 #include "stdlib/typed_container.hpp"
 #include "stdlib/container_scalar.hpp"
+#include "stdlib/map_entry.hpp"
 #include "stdlib/vector.hpp"
 
 #include <any>
@@ -11,9 +12,17 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <type_traits>
 
 namespace tx_generated
 {
+
+template<class value_type>
+struct object_key_map;
+
+template<class value_type>
+void register_object_key_map(
+    const std::shared_ptr<object_key_map<value_type>>& storage);
 
 using key_hash = std::function<std::size_t(const std::any&)>;
 using key_equal = std::function<bool(const std::any&, const std::any&)>;
@@ -41,14 +50,16 @@ struct object_equal
 };
 
 template<class value_type>
-struct object_key_map final : container_model<object_key_map<value_type>>
+struct object_key_map final : container_model<object_key_map<value_type>>,
+                              graph_copyable
 {
     using entries_type = std::unordered_map<std::any, value_type,
         object_hash, object_equal>;
 
     object_key_map(std::string key_type, key_hash hash, key_equal equal,
-                   key_copy copy)
+                   key_copy copy, std::string value_name = {})
         : key_type(std::move(key_type)), copy_key(std::move(copy)),
+          value_name(std::move(value_name)),
           values(0, object_hash{std::move(hash)},
                  object_equal{std::move(equal)})
     {
@@ -56,7 +67,9 @@ struct object_key_map final : container_model<object_key_map<value_type>>
 
     [[nodiscard]] std::string type_name() const override
     {
-        return "map<" + key_type + "," + scalar_name<value_type>() + ">";
+        return "map<" + key_type + "," +
+            (std::is_same_v<value_type, std::any> ? value_name :
+             scalar_name<value_type>()) + ">";
     }
 
     void set(const std::any& key, const value_type& value)
@@ -97,7 +110,7 @@ struct object_key_map final : container_model<object_key_map<value_type>>
 
     [[nodiscard]] tx_vector<value_type> values_snapshot() const
     {
-        tx_vector<value_type> result;
+        tx_vector<value_type> result(value_name);
         result.data().values.reserve(values.size());
         for (const auto& [key, value] : values)
         {
@@ -106,6 +119,49 @@ struct object_key_map final : container_model<object_key_map<value_type>>
         }
         result.data().refresh();
         return result;
+    }
+
+    [[nodiscard]] object_vector entries() const
+    {
+        const std::string name = "entry<" + key_type + "," +
+            (std::is_same_v<value_type, std::any> ? value_name :
+             scalar_name<value_type>()) + ">";
+        object_vector result(name);
+        result.data().values.reserve(values.size());
+        for (const auto& [key, value] : values)
+        {
+            result.data().values.push_back(
+                make_map_entry(name, copy_key(key), value));
+        }
+        result.data().refresh();
+        return result;
+    }
+
+    [[nodiscard]] container_handle empty_graph_copy() const override
+    {
+        auto result = std::make_shared<object_key_map>(key_type,
+            values.hash_function().callback, values.key_eq().callback,
+            copy_key, value_name);
+        register_object_key_map(result);
+        return result;
+    }
+
+    void fill_graph_copy(container_storage& target,
+                         const graph_copy_function& copy) const override
+    {
+        auto& destination = static_cast<object_key_map&>(target).values;
+        for (const auto& [key, value] : values)
+        {
+            auto copied_key = copy(key);
+            if constexpr (std::is_same_v<value_type, std::any>)
+            {
+                destination.emplace(std::move(copied_key), copy(value));
+            }
+            else
+            {
+                destination.emplace(std::move(copied_key), value);
+            }
+        }
     }
 
     [[nodiscard]] std::string repr() const override
@@ -124,10 +180,38 @@ struct object_key_map final : container_model<object_key_map<value_type>>
 
     std::string key_type;
     key_copy copy_key;
+    std::string value_name;
     entries_type values;
 };
 
-struct object_key_set final : container_model<object_key_set>
+template<class value_type>
+void register_object_key_map(
+    const std::shared_ptr<object_key_map<value_type>>& storage)
+{
+    if constexpr (std::is_same_v<value_type, std::any>)
+    {
+        register_gc_node(storage,
+            [](const void* object, gc_visit visit, void* context)
+            {
+                for (const auto& [key, value] :
+                     static_cast<const object_key_map<value_type>*>(object)->values)
+                {
+                    (void)key;
+                    visit(value, context);
+                }
+            },
+            [](void* object)
+            {
+                static_cast<object_key_map<value_type>*>(object)->values.clear();
+            });
+    }
+    else
+    {
+        note_gc_allocation();
+    }
+}
+
+struct object_key_set final : container_model<object_key_set>, graph_copyable
 {
     using entries_type = std::unordered_set<std::any,
         object_hash, object_equal>;
@@ -160,6 +244,25 @@ struct object_key_set final : container_model<object_key_set>
         }
         result.data().refresh();
         return result;
+    }
+
+    [[nodiscard]] container_handle empty_graph_copy() const override
+    {
+        auto result = std::make_shared<object_key_set>(key_type,
+            values.hash_function().callback, values.key_eq().callback,
+            copy_key);
+        note_gc_allocation();
+        return result;
+    }
+
+    void fill_graph_copy(container_storage& target,
+                         const graph_copy_function& copy) const override
+    {
+        auto& destination = static_cast<object_key_set&>(target).values;
+        for (const auto& key : values)
+        {
+            destination.insert(copy(key));
+        }
     }
 
     [[nodiscard]] std::string repr() const override

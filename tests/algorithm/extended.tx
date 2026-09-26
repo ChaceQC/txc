@@ -1,0 +1,179 @@
+import "algorithm.txh" as algorithm
+import "error.txh" as errors
+import "math.txh" as math
+import "bytes.txh" as bytes
+
+struct item
+{
+    group: int
+    id: int
+
+    def operator <(other: item) -> bool
+    {
+        return self.group < other.group
+    }
+}
+
+def expect(condition: bool, label: str)
+{
+    if !condition
+    {
+        print("FAIL", label)
+        print(1 / 0)
+    }
+}
+
+def reverse_group(left: item, right: item) -> int
+{
+    return right.group - left.group
+}
+
+def make_item(value: int) -> item
+{
+    return item(math.mod(value, 2), value)
+}
+
+def item_id(value: item) -> int
+{
+    return value.id
+}
+
+def keep_first(value: item) -> bool
+{
+    return value.group == 1
+}
+
+def even(value: int) -> bool
+{
+    return math.mod(value, 2) == 0
+}
+
+def sum_id(total: int, value: item) -> int
+{
+    return total + value.id
+}
+
+def append_one(text: str, value: int) -> str
+{
+    return text + "x"
+}
+
+def reject_thirteen(left: int, right: int) -> int
+{
+    if left == 13 || right == 13
+    {
+        return 1 / 0
+    }
+    return left - right
+}
+
+def bytes_equal(left: bytes, right: bytes) -> int
+{
+    return 0
+}
+
+def bytes_identity(value: bytes) -> bytes
+{
+    return value
+}
+
+def bytes_last(previous: bytes, value: bytes) -> bytes
+{
+    return value
+}
+
+def short_any(value: int) -> bool
+{
+    if value == 13
+    {
+        print(1 / 0)
+    }
+    return value == 1
+}
+
+def short_all(value: int) -> bool
+{
+    if value == 13
+    {
+        print(1 / 0)
+    }
+    return value != 0
+}
+
+def main() -> int
+{
+    auto values = vector<item>()
+    values.push_back(item(2, 20))
+    values.push_back(item(1, 10))
+    values.push_back(item(2, 21))
+    values.push_back(item(1, 11))
+    auto original = algorithm.stable_sorted(values)
+    expect(values[0].id == 20 && original[0].id == 10, "stable_sorted independent")
+    algorithm.stable_sort(values)
+    expect(values[0].id == 10 && values[1].id == 11 && values[2].id == 20 && values[3].id == 21, "stable struct order")
+    auto position = algorithm.binary_search(values, item(2, 99))
+    expect(position.is_some() && position.value() == 2, "binary first")
+    expect(algorithm.binary_search(values, item(3, 0)).is_none(), "binary missing")
+    auto span = algorithm.equal_range(values, item(2, 0))
+    expect(span[0] == 2 && span[1] == 4, "equal range")
+    auto reversed = algorithm.stable_sorted(values, reverse_group)
+    expect(reversed[0].id == 20 && reversed[1].id == 21, "custom comparator")
+    auto reversed_position = algorithm.binary_search(reversed, item(2, 0), reverse_group)
+    auto reversed_range = algorithm.equal_range(reversed, item(2, 0), reverse_group)
+    expect(reversed_position.is_some() && reversed_position.value() == 0 && reversed_range[0] == 0 && reversed_range[1] == 2, "custom binary range")
+    expect(algorithm.unique(values) == 2 && values[0].id == 10 && values[1].id == 20, "unique adjacent")
+
+    auto numbers = vector<int>([1, 2, 3, 4])
+    algorithm.rotate(numbers, 2)
+    expect(numbers[0] == 3 && numbers[1] == 4 && numbers[2] == 1, "rotate")
+    auto boundary = algorithm.partition(numbers, even)
+    expect(boundary == 2 && even(numbers[0]) && even(numbers[1]), "partition")
+    auto mapped = algorithm.map(numbers, make_item)
+    expect(mapped.size() == 4 && mapped[0].id == numbers[0], "map struct")
+    array mapped_box = [mapped]
+    auto recovered_items = mapped_box[0] as vector<item>
+    expect(recovered_items[0].id == numbers[0], "map struct any restore")
+    auto extracted = algorithm.map(mapped, item_id)
+    expect(extracted[0] == numbers[0], "map scalar")
+    auto selected = algorithm.filter(mapped, keep_first)
+    expect(selected.size() == 2 && selected[0].group == 1, "filter struct")
+    expect(algorithm.fold(mapped, 0, sum_id) == 10, "fold int")
+    expect(algorithm.fold(numbers, "", append_one) == "xxxx", "fold str")
+    expect(!algorithm.all(numbers, even) && algorithm.any(numbers, even), "all any")
+    expect(algorithm.all(vector<int>(), even) && !algorithm.any(vector<int>(), even), "empty all any")
+    expect(algorithm.any(vector<int>([1, 13]), short_any), "any short circuit")
+    expect(!algorithm.all(vector<int>([0, 13]), short_all), "all short circuit")
+
+    auto byte_values = vector<bytes>()
+    byte_values.push_back(bytes.from_hex("01"))
+    byte_values.push_back(bytes.from_hex("02"))
+    algorithm.stable_sort(byte_values, bytes_equal)
+    auto byte_copies = algorithm.map(byte_values, bytes_identity)
+    expect(bytes.to_hex(byte_copies[0]) == "01", "map bytes")
+    auto final_byte = algorithm.fold(byte_values, bytes.empty(), bytes_last)
+    expect(bytes.to_hex(final_byte) == "02", "fold bytes")
+
+    auto guarded = vector<int>([1, 13, 3])
+    bool caught = false
+    try
+    {
+        algorithm.stable_sort(guarded, reject_thirteen)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    expect(caught && guarded[0] == 1 && guarded[1] == 13, "callback failure atomic")
+    caught = false
+    try
+    {
+        algorithm.rotate(numbers, -1)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    expect(caught, "rotate invalid")
+    print("algorithm extended ok")
+    return 0
+}

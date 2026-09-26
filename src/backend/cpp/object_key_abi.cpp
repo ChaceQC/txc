@@ -107,6 +107,38 @@ int make_container(const char* key_type, const void* hash,
 
 } // namespace
 
+extern "C" int txrt_map_new_object_object(const char* key_type,
+    const void* hash, const void* equal, const char* value_type,
+    void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        if (!key_type || !value_type)
+        {
+            throw std::runtime_error("map 缺少键或值类型");
+        }
+        auto storage = std::make_shared<object_key_map<std::any>>(
+            key_type, make_hash(hash), make_equal(equal),
+            key_copy(copy_key), value_type);
+        register_gc_node(storage,
+            [](const void* object, gc_visit visit, void* context)
+            {
+                for (const auto& [key, value] :
+                     static_cast<const object_key_map<std::any>*>(object)->values)
+                {
+                    (void)key;
+                    visit(value, context);
+                }
+            },
+            [](void* object)
+            {
+                static_cast<object_key_map<std::any>*>(object)->values.clear();
+            });
+        container_handle container = std::move(storage);
+        *result = make_handle<std::any>(std::move(container));
+    });
+}
+
 #define TX_OBJECT_MAP(SUFFIX, STORAGE, ABI, OUTPUT) \
 extern "C" int txrt_map_new_object_##SUFFIX(const char* type, const void* hash, \
     const void* equal, void** result) noexcept \

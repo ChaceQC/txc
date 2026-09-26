@@ -65,6 +65,27 @@ void semantic_analyzer::validate_key_contract(const value_type& type,
     }
 }
 
+void semantic_analyzer::validate_ordered_key_shape(const value_type& type,
+                                                    source_pos position) const
+{
+    if (type == value_type::int_type || type == value_type::float_type ||
+        type == value_type::bool_type || type == value_type::str_type ||
+        type == value_type::bytes_type)
+    {
+        return;
+    }
+    const auto found = structs_.find(type.name);
+    if (found == structs_.end())
+    {
+        throw compile_error(position,
+            "有序键必须是内置标量或仅含不可变值字段的结构体：" + type.name);
+    }
+    for (const auto& field : found->second->fields)
+    {
+        validate_ordered_key_shape(field.type, position);
+    }
+}
+
 void semantic_analyzer::validate_type(const value_type& type, source_pos position) const
 {
     if (type.is_function())
@@ -84,7 +105,22 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         }
         return;
     }
-    if (type.is_vector() || type.is_iterator())
+    if (type.is_entry())
+    {
+        for (const auto& member : type.parameters)
+        {
+            if (member == value_type::void_type || member == value_type::none_type ||
+                member == value_type::any_type || member.is_function() ||
+                member.is_inferred_function())
+            {
+                throw compile_error(position, "entry 字段必须是可持有的具体非函数类型");
+            }
+            validate_type(member, position);
+        }
+        return;
+    }
+    if (type.is_vector() || type.is_iterator() || type.is_deque() ||
+        type.is_priority_entry())
     {
         const auto& element = type.parameters.front();
         if (element == value_type::void_type || element == value_type::none_type ||
@@ -120,18 +156,38 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         {
             validate_key_contract(type.parameters.front(), position);
         }
-        const auto first_value = kind == "map" ? 1U :
-            kind == "set" ? type.parameters.size() : 0U;
+        if (kind == "ordered_map" || kind == "ordered_set")
+        {
+            if (type.parameters.front() == value_type::bytes_type)
+            {
+                throw compile_error(position, "bytes 不能直接用作有序键");
+            }
+            validate_ordered_key_shape(type.parameters.front(), position);
+        }
+        const auto first_value = kind == "map" || kind == "ordered_map" ? 1U :
+            kind == "set" || kind == "ordered_set" ? type.parameters.size() : 0U;
         for (std::size_t index = first_value; index < type.parameters.size(); ++index)
         {
             const auto& element = type.parameters[index];
-            if (element == value_type::int_type || element == value_type::float_type ||
-                element == value_type::bool_type || element == value_type::str_type)
+            if (element == value_type::void_type || element == value_type::none_type ||
+                element == value_type::any_type || element.is_function() ||
+                element.is_inferred_function())
             {
+                throw compile_error(position, kind +
+                    " 的值类型必须是可持有的具体非函数类型");
+            }
+            if (kind == "map" || kind == "ordered_map" ||
+                kind == "heap" || kind == "queue")
+            {
+                validate_type(element, position);
                 continue;
             }
-            throw compile_error(position, kind +
-                " 的值类型当前支持 int、float、bool、str");
+            if (element != value_type::int_type && element != value_type::float_type &&
+                element != value_type::bool_type && element != value_type::str_type)
+            {
+                throw compile_error(position, kind +
+                    " 的值类型当前支持 int、float、bool、str");
+            }
         }
         return;
     }
@@ -232,11 +288,14 @@ void semantic_analyzer::register_structs(program& source)
 void semantic_analyzer::register_functions(const program& source, bool require_main)
 {
     functions_.clear();
+    algorithm_intrinsics_.clear();
     for (const auto& function : source.functions)
     {
         const auto& display_name = function.source_name.empty()
             ? function.name : function.source_name;
-        if (is_builtin_name(function.name) || structs_.contains(function.name) ||
+        if ((is_builtin_name(function.name) &&
+             function.external_name != "algorithm.any") ||
+            structs_.contains(function.name) ||
             classes_.contains(function.name))
         {
             throw compile_error(function.position, "重复或保留的函数名：" + display_name);
@@ -272,6 +331,21 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
             signature.parameters.push_back(parameter);
         }
         auto& overloads = functions_[function.name];
+        if (function.external_name.starts_with("algorithm.") &&
+            function.external_name != "algorithm.sort" &&
+            function.external_name != "algorithm.sorted" &&
+            function.external_name != "algorithm.find" &&
+            function.external_name != "algorithm.count" &&
+            function.external_name != "algorithm.lower_bound" &&
+            function.external_name != "algorithm.upper_bound" &&
+            function.external_name != "algorithm.reverse" &&
+            function.external_name != "algorithm.sum" &&
+            function.external_name != "algorithm.min_element" &&
+            function.external_name != "algorithm.max_element")
+        {
+            algorithm_intrinsics_[function.name] =
+                function.external_name.substr(10);
+        }
         if (function.name == "main" && !overloads.empty())
         {
             throw compile_error(function.position, "main 不能重载");

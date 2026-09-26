@@ -3,6 +3,8 @@
 #include "backend/cpp/cycle_gc.hpp"
 
 #include <cstddef>
+#include <any>
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -20,6 +22,18 @@ struct container_storage
 };
 
 using container_handle = std::shared_ptr<container_storage>;
+
+// 需要复制内部对象图的容器先建立空副本，再在复制上下文中填充。
+// 这样值或比较器闭包回指容器时仍可保持环和共享关系。
+using graph_copy_function = std::function<std::any(const std::any&)>;
+
+struct graph_copyable
+{
+    virtual ~graph_copyable() = default;
+    [[nodiscard]] virtual container_handle empty_graph_copy() const = 0;
+    virtual void fill_graph_copy(container_storage& target,
+                                 const graph_copy_function& copy) const = 0;
+};
 
 template<class storage_type>
 struct container_model : container_storage

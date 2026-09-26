@@ -9,7 +9,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_map_index(
     const auto map = expression_value(*access.object);
     const auto key = expression_value(*access.index);
     const auto result = container_operation(map.type, "read", {map, key},
-                                            map.type.parameters[1], position);
+        map.type.parameters[map.type.is_map() ? 1 : 0], position);
     release(key);
     release(map);
     return result;

@@ -9,7 +9,15 @@ std::string llvm_code_generator::container_symbol(const value_type& type,
     std::string symbol = "txrt_" + type.container_name() + "_" + std::string(operation);
     for (const auto& parameter : type.parameters)
     {
-        symbol += "_" + vector_suffix(value_type::vector_of(parameter));
+        const bool object_element = (type.is_deque() || type.is_map() ||
+            type.is_priority_entry() ||
+            type.container_name() == "heap" ||
+            type.container_name() == "queue" ||
+            type.container_name() == "ordered_set") &&
+            parameter != value_type::int_type && parameter != value_type::float_type &&
+            parameter != value_type::bool_type && parameter != value_type::str_type;
+        symbol += "_" + (object_element ? "object" :
+            vector_suffix(value_type::vector_of(parameter)));
     }
     return symbol;
 }
@@ -20,7 +28,7 @@ llvm_code_generator::ir_value llvm_code_generator::container_operation(
 {
     std::string parameters;
     const auto& key = type.parameters.front();
-    const bool object_key = (type.is_map() ||
+    const bool object_key = (type.container_name() == "map" ||
         type.container_name() == "set") &&
         key != value_type::int_type && key != value_type::float_type &&
         key != value_type::bool_type && key != value_type::str_type;
@@ -29,8 +37,83 @@ llvm_code_generator::ir_value llvm_code_generator::container_operation(
         parameters = "ptr " + global_bytes(key.name) + ", ptr " +
             key_hash_symbol(key) + ", ptr " + key_equal_symbol(key);
     }
+    if ((type.container_name() == "ordered_map" ||
+         type.container_name() == "ordered_set") && operation == "new")
+    {
+        parameters = "ptr " + global_bytes(key.name);
+        if (type.container_name() == "ordered_map")
+        {
+            parameters += ", ptr " + global_bytes(type.parameters[1].name);
+        }
+        const bool structural_key = key != value_type::int_type &&
+            key != value_type::float_type && key != value_type::bool_type &&
+            key != value_type::str_type;
+        parameters += ", ptr " + (structural_key && arguments.empty()
+            ? key_less_symbol(key) : std::string("null"));
+        if (arguments.empty())
+        {
+            parameters += ", ptr null";
+        }
+    }
+    if ((type.is_deque() || type.container_name() == "map") && operation == "new" &&
+        key != value_type::int_type && key != value_type::float_type &&
+        key != value_type::bool_type && key != value_type::str_type &&
+        type.is_deque())
+    {
+        parameters = "ptr " + global_bytes(key.name);
+    }
+    if (type.is_priority_entry() && operation == "new")
+    {
+        parameters = "ptr " + global_bytes(type.name);
+    }
+    const auto kind = type.container_name();
+    const bool object_sequence = (kind == "heap" || kind == "queue") &&
+        container_symbol(type, "new").ends_with("_object");
+    const bool special_sequence =
+        ((kind == "heap" || kind == "queue") && operation == "build") ||
+        (object_sequence && operation == "new");
+    if (special_sequence)
+    {
+        const bool explicit_compare = kind == "heap" && operation == "build" &&
+            arguments[1].text != "null";
+        const auto less = structs_.contains(key.name) && !explicit_compare
+            ? key_less_symbol(key) : std::string("null");
+        if (kind == "heap" && operation == "build")
+        {
+            parameters = "i1 " + arguments[0].text + ", ptr " +
+                global_bytes(key.name) + ", ptr " + less + ", ptr " +
+                arguments[1].text + ", ptr " + arguments[2].text;
+        }
+        else if (kind == "heap")
+        {
+            parameters = "i1 " + arguments[0].text + ", ptr " +
+                global_bytes(key.name) + ", ptr " + less;
+        }
+        else if (operation == "build")
+        {
+            parameters = "ptr " + global_bytes(key.name) + ", ptr " +
+                arguments[0].text;
+        }
+        else
+        {
+            parameters = "ptr " + global_bytes(key.name);
+        }
+    }
+    if (type.container_name() == "map" && operation == "new" &&
+        type.parameters[1] != value_type::int_type &&
+        type.parameters[1] != value_type::float_type &&
+        type.parameters[1] != value_type::bool_type &&
+        type.parameters[1] != value_type::str_type)
+    {
+        parameters += (parameters.empty() ? "" : ", ") +
+            std::string("ptr ") + global_bytes(type.parameters[1].name);
+    }
     for (const auto& argument : arguments)
     {
+        if (special_sequence)
+        {
+            break;
+        }
         parameters += (parameters.empty() ? "" : ", ") +
                       llvm_type(argument.type, position) + " " + argument.text;
     }
@@ -67,12 +150,46 @@ llvm_code_generator::ir_value llvm_code_generator::emit_container_call(
     {
         arguments.push_back(expression_value(*argument.value));
     }
-    if (call.container_type && type.container_name() == "heap" && arguments.empty())
+    std::string operation = call.container_type ? "new" : call.name;
+    std::vector<ir_value> selected = arguments;
+    if (call.container_type && type.container_name() == "heap")
     {
-        arguments.push_back({value_type::bool_type, "false"});
+        ir_value descending{value_type::bool_type, "false"};
+        ir_value comparator{value_type::any_type, "null"};
+        ir_value input{value_type::any_type, "null"};
+        for (const auto& argument : arguments)
+        {
+            if (argument.type == value_type::bool_type)
+            {
+                descending = argument;
+            }
+            else if (argument.type.is_vector())
+            {
+                input = argument;
+            }
+            else
+            {
+                comparator = argument;
+            }
+        }
+        if (comparator.text != "null" || input.text != "null")
+        {
+            operation = "build";
+            selected = {descending, comparator, input};
+        }
+        else
+        {
+            selected = {descending};
+        }
     }
-    const auto result = container_operation(type, call.container_type ? "new" : call.name,
-                                            arguments, item.type, item.position);
+    if (call.container_type && type.container_name() == "queue" &&
+        !arguments.empty())
+    {
+        operation = "build";
+        selected = {arguments.front()};
+    }
+    const auto result = container_operation(type, operation,
+                                            selected, item.type, item.position);
     for (const auto& argument : arguments)
     {
         release(argument);

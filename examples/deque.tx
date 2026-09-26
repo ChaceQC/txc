@@ -1,0 +1,36 @@
+struct item
+{
+    value: int
+}
+
+def main() -> int
+{
+    deque<item> jobs = deque<item>()
+    jobs.push_back(item(2))
+    jobs.push_front(item(1))
+    jobs.insert(2, item(3))
+    print(jobs.front().value, jobs.back().value, jobs[1].value)
+
+    auto snapshot = jobs.to_vector()
+    auto independent = deep_copy(jobs)
+    jobs[1] = item(9)
+    jobs.erase(2)
+    jobs.pop_front()
+    print(jobs.front().value, snapshot[1].value, independent[1].value)
+
+    array boxed = [jobs]
+    auto restored = boxed[0] as deque<item>
+    for entry in restored
+    {
+        print(entry.value)
+    }
+
+    deque<vector<int>> nested = deque<vector<int>>()
+    auto numbers = vector<int>()
+    numbers.push_back(4)
+    nested.push_back(numbers)
+    auto nested_copy = deep_copy(nested)
+    numbers.push_back(5)
+    print(len(nested.front()), len(nested_copy.front()))
+    return 0
+}

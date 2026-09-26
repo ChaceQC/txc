@@ -1,0 +1,6 @@
+def main() -> int
+{
+    deque<int> values = deque<int>()
+    values.push_back("wrong")
+    return 0
+}

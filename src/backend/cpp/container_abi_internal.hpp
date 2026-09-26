@@ -4,6 +4,9 @@
 #include "stdlib/typed_container.hpp"
 #include "stdlib/vector.hpp"
 
+#include <limits>
+#include <stdexcept>
+
 namespace tx_generated::detail
 {
 
@@ -34,6 +37,15 @@ template<class value_type, class output_type>
 void container_result(const value_type& value, output_type* result)
 {
     *result = static_cast<output_type>(value);
+}
+
+inline void container_result(std::size_t value, std::int64_t* result)
+{
+    if (value > static_cast<std::size_t>(std::numeric_limits<std::int64_t>::max()))
+    {
+        throw std::overflow_error("容器长度超出 int 范围");
+    }
+    *result = static_cast<std::int64_t>(value);
 }
 
 inline void container_result(const text_reference& value, void** result)

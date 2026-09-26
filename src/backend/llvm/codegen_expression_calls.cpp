@@ -267,6 +267,20 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
     const expression& item, const call_expression& call,
     const function_decl& target, const std::vector<ir_value>& arguments)
 {
+    if (target.external_name.starts_with("algorithm.") &&
+        target.external_name != "algorithm.sort" &&
+        target.external_name != "algorithm.sorted" &&
+        target.external_name != "algorithm.find" &&
+        target.external_name != "algorithm.count" &&
+        target.external_name != "algorithm.lower_bound" &&
+        target.external_name != "algorithm.upper_bound" &&
+        target.external_name != "algorithm.reverse" &&
+        target.external_name != "algorithm.sum" &&
+        target.external_name != "algorithm.min_element" &&
+        target.external_name != "algorithm.max_element")
+    {
+        return emit_algorithm_intrinsic(item, target, arguments);
+    }
     if (target.external_name.starts_with("requests."))
     {
         const auto symbol = "m0_bridge_" + target.external_name.substr(9);
@@ -374,7 +388,9 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
     {
         return emit_iterator_call(item, call);
     }
-    if ((call.container_type && call.container_type->is_typed_container()) ||
+    if ((call.container_type &&
+         (call.container_type->is_typed_container() ||
+          call.container_type->is_priority_entry())) ||
         (call.receiver && call.receiver->type.is_typed_container()))
     {
         return emit_container_call(item, call);

@@ -1,0 +1,9 @@
+def identity<T>(value: T) -> T
+{
+    return value
+}
+
+def main() -> int
+{
+    return identity(1)
+}

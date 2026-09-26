@@ -1,5 +1,6 @@
 #include "frontend/parser/parser.hpp"
 
+#include <algorithm>
 #include <utility>
 
 namespace tx
@@ -67,6 +68,28 @@ function_decl parser::parse_function(bool declaration_only, bool member)
         }
         operator_kind = operation.kind;
         source_name = "operator " + operation.text;
+    }
+    std::vector<std::string> type_parameters;
+    if (match(token_kind::less))
+    {
+        if (!interface_mode_ || member || operator_kind)
+        {
+            throw compile_error(position,
+                "泛型函数声明只允许出现在标准库接口文件中");
+        }
+        do
+        {
+            const auto parameter = consume(token_kind::identifier,
+                "泛型参数需要类型变量名");
+            if (std::find(type_parameters.begin(), type_parameters.end(),
+                          parameter.text) != type_parameters.end())
+            {
+                throw compile_error(parameter.position,
+                    "重复的泛型类型变量：" + parameter.text);
+            }
+            type_parameters.push_back(parameter.text);
+        } while (match(token_kind::comma));
+        (void)consume(token_kind::greater, "泛型参数列表缺少 >");
     }
     (void)consume(token_kind::left_paren, "函数名后需要左括号");
     std::vector<parameter> parameters;
@@ -152,14 +175,16 @@ function_decl parser::parse_function(bool declaration_only, bool member)
             throw compile_error(current().position,
                                 "接口或抽象方法声明后不能写方法体");
         }
-        return {name, std::move(parameters), return_type, {}, position, true,
+        function_decl result{name, std::move(parameters), return_type, {}, position, true,
                 source_name, {}, {}, member_access::public_access, false, false,
-                false, {}, 0, operator_kind};
+                false, {}, 0, operator_kind, {}};
+        result.type_parameters = std::move(type_parameters);
+        return result;
     }
     auto body = parse_block();
     return {name, std::move(parameters), return_type, std::move(body),
             position, false, source_name, {}, {}, member_access::public_access,
-            false, false, false, {}, 0, operator_kind};
+            false, false, false, {}, 0, operator_kind, {}};
 }
 
 } // namespace tx

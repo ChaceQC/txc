@@ -250,7 +250,8 @@ void llvm_code_generator::emit_assignment(
     const statement& item, const variable_assignment& assignment)
 {
     if (const auto* index = std::get_if<index_expression>(&assignment.target->data);
-        index && index->object->type.is_map())
+        index && (index->object->type.is_map() ||
+                  index->object->type.is_deque()))
     {
         emit_map_assignment(item, assignment);
         return;

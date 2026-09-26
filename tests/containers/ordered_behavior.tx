@@ -1,0 +1,89 @@
+import "error.txh" as errors
+
+struct point
+{
+    x: int
+
+    def operator <(other: point) -> bool
+    {
+        return self.x < other.x
+    }
+}
+
+def descending(left: int, right: int) -> int
+{
+    return right - left
+}
+
+def biased_descending(bias: int, left: int, right: int) -> int
+{
+    return (right + bias) - (left + bias)
+}
+
+def failing_compare(left: int, right: int) -> int
+{
+    if left == 13 || right == 13
+    {
+        return 1 / 0
+    }
+    return left - right
+}
+
+def main() -> int
+{
+    ordered_map<int, str> names = ordered_map<int, str>()
+    names[4] = "four"
+    names[1] = "one"
+    names[3] = "three"
+    for entry in names.entries()
+    {
+        print(entry.key, entry.value)
+    }
+    auto middle = names.range(2, 4)
+    print(len(middle), middle[0].key)
+
+    ordered_map<point, vector<int>> groups = ordered_map<point, vector<int>>()
+    point key = point(2)
+    auto numbers = vector<int>()
+    numbers.push_back(7)
+    groups[key] = numbers
+    key.x = 9
+    point lookup = point(2)
+    print(groups[lookup][0], groups.contains(key))
+    auto independent = deep_copy(groups)
+    numbers.push_back(9)
+    print(len(groups[lookup]), len(independent[lookup]))
+
+    ordered_set<int> ranks = ordered_set<int>(descending)
+    ranks.insert(2)
+    ranks.insert(5)
+    ranks.insert(3)
+    print(ranks.to_vector()[0], ranks.range(5, 2)[0])
+    auto copied_ranks = deep_copy(ranks)
+    copied_ranks.insert(8)
+    print(ranks.size(), copied_ranks.size())
+
+    fn(int, int)->int compare = bind(biased_descending, 1)
+    ordered_set<int> captured = ordered_set<int>(compare)
+    captured.insert(2)
+    captured.insert(5)
+    print(captured.to_vector()[0])
+
+    ordered_set<int> guarded = ordered_set<int>(failing_compare)
+    guarded.insert(1)
+    bool caught = false
+    try
+    {
+        guarded.insert(13)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    print(caught, guarded.size())
+
+    array boxed = [names]
+    auto restored = boxed[0] as ordered_map<int, str>
+    print(restored[1])
+    return 0
+}

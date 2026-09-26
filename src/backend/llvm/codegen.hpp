@@ -189,10 +189,16 @@ private:
                            const value_type& parent_type,
                            std::size_t captured);
     void write_container_declarations();
+    void write_ordered_declarations();
+    void write_sequence_declarations();
     void emit_key_callbacks(const struct_decl& definition);
     [[nodiscard]] static std::string key_hash_symbol(const value_type& type);
     [[nodiscard]] static std::string key_equal_symbol(const value_type& type);
+    [[nodiscard]] static std::string key_less_symbol(const value_type& type);
     void write_algorithm_declarations();
+    [[nodiscard]] ir_value emit_algorithm_intrinsic(
+        const expression& item, const function_decl& target,
+        const std::vector<ir_value>& arguments);
     [[nodiscard]] static std::string container_symbol(const value_type& type,
                                                       std::string_view operation);
     [[nodiscard]] ir_value container_operation(const value_type& type,

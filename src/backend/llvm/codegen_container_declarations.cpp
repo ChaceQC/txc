@@ -302,7 +302,43 @@ declare i32 @txrt_queue_back_str(ptr, ptr)
                 << "declare i32 " << prefix << "get_" << name
                 << "(ptr, ptr, " << abi_type << ", ptr)\n"
                 << "declare i32 " << prefix << "keys_" << name << "(ptr, ptr)\n"
-                << "declare i32 " << prefix << "values_" << name << "(ptr, ptr)\n";
+                << "declare i32 " << prefix << "values_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "entries_" << name << "(ptr, ptr)\n";
+    }
+    for (const auto& [key_suffix, key_abi] : {
+             std::pair{"i64", "i64"}, std::pair{"f64", "double"},
+             std::pair{"bool", "i1"}, std::pair{"str", "ptr"},
+             std::pair{"object", "ptr"}})
+    {
+        const std::string prefix = "@txrt_map_";
+        for (const auto& value_suffix : {"i64", "f64", "bool", "str"})
+        {
+            if (std::string_view(key_suffix) != "object")
+            {
+                module_ << "declare i32 " << prefix << "entries_" << key_suffix
+                        << '_' << value_suffix << "(ptr, ptr)\n";
+            }
+        }
+        const std::string name = std::string(key_suffix) + "_object";
+        module_ << "declare i32 " << prefix << "new_" << name
+                << (std::string_view(key_suffix) == "object"
+                    ? "(ptr, ptr, ptr, ptr, ptr)\n" : "(ptr, ptr)\n")
+                << "declare i32 " << prefix << "size_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "empty_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "clear_" << name << "(ptr)\n"
+                << "declare i32 " << prefix << "contains_" << name
+                << "(ptr, " << key_abi << ", ptr)\n"
+                << "declare i32 " << prefix << "remove_" << name
+                << "(ptr, " << key_abi << ", ptr)\n"
+                << "declare i32 " << prefix << "set_" << name
+                << "(ptr, " << key_abi << ", ptr)\n"
+                << "declare i32 " << prefix << "read_" << name
+                << "(ptr, " << key_abi << ", ptr)\n"
+                << "declare i32 " << prefix << "get_" << name
+                << "(ptr, " << key_abi << ", ptr, ptr)\n"
+                << "declare i32 " << prefix << "keys_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "values_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "entries_" << name << "(ptr, ptr)\n";
     }
     module_ << R"txabi(
 declare i32 @txrt_set_new_object(ptr, ptr, ptr, ptr)
@@ -314,6 +350,36 @@ declare i32 @txrt_set_remove_object(ptr, ptr, ptr)
 declare i32 @txrt_set_insert_object(ptr, ptr, ptr)
 declare i32 @txrt_set_to_vector_object(ptr, ptr)
 )txabi";
+    for (const auto& [suffix, abi_type] : {
+             std::pair{"i64", "i64"}, std::pair{"f64", "double"},
+             std::pair{"bool", "i1"}, std::pair{"str", "ptr"},
+             std::pair{"object", "ptr"}})
+    {
+        const std::string prefix = "@txrt_deque_";
+        const std::string name = suffix;
+        module_ << "declare i32 " << prefix << "new_" << name
+                << (name == "object" ? "(ptr, ptr)\n" : "(ptr)\n")
+                << "declare i32 " << prefix << "size_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "empty_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "clear_" << name << "(ptr)\n"
+                << "declare i32 " << prefix << "to_vector_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "push_front_" << name
+                << "(ptr, " << abi_type << ")\n"
+                << "declare i32 " << prefix << "push_back_" << name
+                << "(ptr, " << abi_type << ")\n"
+                << "declare i32 " << prefix << "pop_front_" << name << "(ptr)\n"
+                << "declare i32 " << prefix << "pop_back_" << name << "(ptr)\n"
+                << "declare i32 " << prefix << "front_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "back_" << name << "(ptr, ptr)\n"
+                << "declare i32 " << prefix << "read_" << name << "(ptr, i64, ptr)\n"
+                << "declare i32 " << prefix << "set_" << name
+                << "(ptr, i64, " << abi_type << ")\n"
+                << "declare i32 " << prefix << "insert_" << name
+                << "(ptr, i64, " << abi_type << ")\n"
+                << "declare i32 " << prefix << "erase_" << name << "(ptr, i64)\n";
+    }
+    write_ordered_declarations();
+    write_sequence_declarations();
 }
 
 } // namespace tx

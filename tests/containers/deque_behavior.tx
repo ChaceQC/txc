@@ -1,0 +1,98 @@
+import "error.txh" as errors
+
+def expect(condition: bool, label: str)
+{
+    if !condition
+    {
+        print("FAIL", label)
+        print(1 / 0)
+    }
+}
+
+class holder
+{
+    public:
+        values: deque<str>
+
+        def init()
+        {
+            self.values.push_back("ready")
+        }
+}
+
+def main() -> int
+{
+    auto owner = holder()
+    expect(owner.values.front() == "ready", "class field")
+
+    deque<str> words = deque<str>()
+    words.push_back("north")
+    words.push_front("south")
+    auto saved = words.back()
+    words.pop_back()
+    expect(saved == "north" && words.front() == "south", "text lifetime")
+
+    deque<bool> flags = deque<bool>()
+    flags.push_back(false)
+    flags[0] = true
+    expect(flags[0], "bool index")
+
+    deque<int> numbers = deque<int>()
+    numbers.push_front(3)
+    numbers.push_back(7)
+    numbers.insert(1, 5)
+    expect(numbers[1] == 5 && numbers.size() == 3, "integer insert")
+    numbers.erase(0)
+    expect(numbers.front() == 5 && len(numbers) == 2, "integer erase")
+
+    deque<float> measures = deque<float>()
+    measures.push_back(1.5)
+    measures.push_front(0.5)
+    expect(measures.back() == 1.5 && measures[0] == 0.5, "float ends")
+
+    bool caught = false
+    try
+    {
+        words[-1] = "bad"
+    }
+    exception errors.runtime_error as e
+    {
+        caught = e.code == "operation_failed"
+    }
+    expect(caught && len(words) == 1, "negative index")
+
+    words.pop_front()
+    caught = false
+    try
+    {
+        words.pop_front()
+    }
+    exception errors.runtime_error as e
+    {
+        caught = e.code == "operation_failed"
+    }
+    expect(caught && words.empty(), "empty pop")
+
+    array boxed = [numbers]
+    caught = false
+    try
+    {
+        auto wrong = boxed[0] as deque<str>
+    }
+    exception errors.runtime_error as e
+    {
+        caught = e.code == "operation_failed"
+    }
+    expect(caught && len(numbers) == 2, "any type mismatch")
+
+    deque<array> ring = deque<array>()
+    array link = [ring]
+    ring.push_back(link)
+    auto cloned = deep_copy(ring)
+    array cloned_link = cloned.front()
+    auto cloned_back = cloned_link[0] as deque<array>
+    cloned_back.clear()
+    expect(len(cloned) == 0 && len(ring) == 1, "cycle copy")
+    print("deque ok")
+    return 0
+}

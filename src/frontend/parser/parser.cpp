@@ -117,7 +117,7 @@ value_type parser::parse_type()
         {
             std::vector<value_type> arguments;
             arguments.push_back(parse_type());
-            if (name == "map")
+            if (name == "map" || name == "ordered_map" || name == "entry")
             {
                 (void)consume(token_kind::comma, "map 的键和值类型之间需要逗号");
                 arguments.push_back(parse_type());

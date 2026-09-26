@@ -1,0 +1,13 @@
+import "algorithm.txh" as algorithm
+
+def wrong(value: float) -> int
+{
+    return 1
+}
+
+def main() -> int
+{
+    auto source = vector<int>([1, 2])
+    auto output = algorithm.map(source, wrong)
+    return output.size()
+}

@@ -5,6 +5,7 @@
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
 #include "stdlib/iterator.hpp"
+#include "stdlib/typed_deque.hpp"
 #include "stdlib/closure.hpp"
 #include "stdlib/cancellation.hpp"
 #include "stdlib/stdlib.hpp"
@@ -33,6 +34,20 @@ public:
             if (found != copies_.end())
             {
                 return found->second;
+            }
+            if (const auto deque = std::dynamic_pointer_cast<object_deque_storage>(*container))
+            {
+                return copy_object_deque(*container, *deque);
+            }
+            if (const auto* graph = dynamic_cast<const graph_copyable*>(container->get()))
+            {
+                auto result = graph->empty_graph_copy();
+                copies_.emplace(container->get(), result);
+                graph->fill_graph_copy(*result, [&](const std::any& item)
+                {
+                    return copy(item);
+                });
+                return result;
             }
             std::any result = (*container)->copy();
             copies_.emplace(container->get(), result);
@@ -117,6 +132,20 @@ public:
     }
 
 private:
+    [[nodiscard]] std::any copy_object_deque(
+        const container_handle& source, const object_deque_storage& values)
+    {
+        auto storage = std::make_shared<object_deque_storage>(values.element_name);
+        register_object_deque(storage);
+        container_handle result = storage;
+        copies_.emplace(source.get(), result);
+        for (const auto& item : values.values)
+        {
+            storage->values.push_back(copy(item));
+        }
+        return result;
+    }
+
     [[nodiscard]] std::any copy_closure(const closure_handle& source)
     {
         if (const auto found = copies_.find(source.identity());

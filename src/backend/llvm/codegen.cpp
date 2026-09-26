@@ -133,6 +133,28 @@ std::size_t llvm_code_generator::field_index(const value_type& type,
                                               std::string_view field,
                                               source_pos position) const
 {
+    if (type.is_entry())
+    {
+        if (field == "key")
+        {
+            return 0;
+        }
+        if (field == "value")
+        {
+            return 1;
+        }
+    }
+    if (type.is_priority_entry())
+    {
+        if (field == "priority")
+        {
+            return 0;
+        }
+        if (field == "value")
+        {
+            return 1;
+        }
+    }
     const auto found = structs_.find(type.name);
     if (found != structs_.end())
     {

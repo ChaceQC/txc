@@ -12,7 +12,7 @@
 
 导入 [crypto.txh](../tx/stdlib/crypto.txh) 使用安全随机数、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 与 AES-256-GCM 认证加密。所有输入输出使用 `bytes`，加密接口自动生成 nonce，格式、错误码、密钥内存限制和定向验证见[密码学标准库](crypto.md)。现有 `random` 模块不是密码学安全随机源。
 
-内置 `map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
+内置 `map<K, V>`、`set<T>`、`ordered_map<K, V>`、`ordered_set<T>`、`heap<T>`、`queue<T>`、`deque<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。映射的 `entries()` 返回成对的只读条目快照；有序容器支持显式比较器和范围查询。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
 
 ## 解析与可恢复错误
 
@@ -27,6 +27,8 @@
 导入 [algorithm.txh](../tx/stdlib/algorithm.txh)，提供 `sort`、`sorted`、`find`、`count`、`lower_bound`、`upper_bound`、`reverse`，以及数值向量的 `sum`、`min_element`、`max_element`。排序与二分覆盖 `vector<int/float/str>`；查找、计数和原地反转还支持 `vector<bool>`。
 
 `sort`、`reverse` 修改共享向量，`sorted` 返回独立向量。`find` 未命中返回 -1，二分边界未命中返回向量长度；最值函数返回元素值，空向量时报错。求和检查整数溢出与非有限浮点数。字符串按 UTF-8 字节序排序；浮点排序将 NaN 放在末尾。二分输入必须已经升序排列。完整签名、空容器规则、浮点边界和复杂度见[容器算法说明](algorithm.md)，与已有容器组合使用见[示例](../examples/algorithm.tx)。
+
+新增的静态泛型接口提供 `stable_sort/stable_sorted`、返回 `option<int>` 的 `binary_search`、`equal_range`、`unique`、`rotate`、`partition` 以及 `map/filter/fold/all/any`。编译器由 `vector<T>` 与完整回调签名确定类型，复合元素可直接参与；详见[接口契约](algorithm.md#44-与-45-的接口契约)及[可运行示例](../examples/algorithm_extended.tx)。
 
 ## 数学运算
 

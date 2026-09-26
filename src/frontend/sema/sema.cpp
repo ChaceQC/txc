@@ -303,6 +303,11 @@ value_type semantic_analyzer::check_lvalue(expression& target)
         }
         else if (const auto* access = std::get_if<member_expression>(&root->data))
         {
+            if (access->object->type.is_entry() ||
+                access->object->type.is_priority_entry())
+            {
+                throw compile_error(target.position, "条目字段不可赋值");
+            }
             if (access->object->type == value_type::any_type)
             {
                 throw compile_error(target.position, "数组元素中的结构体字段暂不支持直接赋值");
@@ -368,7 +373,8 @@ void semantic_analyzer::check_assignment(statement& item,
     {
         const auto* index = std::get_if<index_expression>(&assignment.target->data);
         const bool typed_element = index &&
-            (index->object->type.is_vector() || index->object->type.is_map());
+            (index->object->type.is_vector() || index->object->type.is_map() ||
+             index->object->type.is_deque());
         if (!typed_element && insert_implicit_value_cast(assignment.value, value, target_type))
         {
             value = target_type;

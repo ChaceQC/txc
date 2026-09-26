@@ -219,13 +219,15 @@ value_type semantic_analyzer::check_index(expression&,
     if (object_type != value_type::array_type &&
         object_type != value_type::dict_type &&
         object_type != value_type::any_type &&
-        object_type != value_type::bytes_type && !object_type.is_vector())
+        object_type != value_type::bytes_type && !object_type.is_vector() &&
+        !object_type.is_deque())
     {
         throw compile_error(access.object->position, "索引对象需要数组或字典");
     }
     const auto index_type = check_expression(*access.index);
     if (object_type == value_type::array_type ||
-        object_type == value_type::bytes_type || object_type.is_vector())
+        object_type == value_type::bytes_type || object_type.is_vector() ||
+        object_type.is_deque())
     {
         require_type(index_type, value_type::int_type,
                      access.index->position, "数组索引");
@@ -240,7 +242,8 @@ value_type semantic_analyzer::check_index(expression&,
         throw compile_error(access.index->position, "字典键不能是 void");
     }
     return object_type == value_type::bytes_type ? value_type::int_type
-        : object_type.is_vector() ? object_type.parameters.front()
+        : object_type.is_vector() || object_type.is_deque() ?
+            object_type.parameters.front()
         : value_type::any_type;
 }
 
@@ -251,6 +254,31 @@ value_type semantic_analyzer::check_member(expression& item,
     if (object_type == value_type::any_type)
     {
         return value_type::any_type;
+    }
+    if (object_type.is_priority_entry())
+    {
+        if (access.field == "priority")
+        {
+            return value_type::int_type;
+        }
+        if (access.field == "value")
+        {
+            return object_type.parameters[0];
+        }
+        throw compile_error(item.position,
+            "未知 priority_entry 字段：" + access.field);
+    }
+    if (object_type.is_entry())
+    {
+        if (access.field == "key")
+        {
+            return object_type.parameters[0];
+        }
+        if (access.field == "value")
+        {
+            return object_type.parameters[1];
+        }
+        throw compile_error(item.position, "未知 entry 字段：" + access.field);
     }
     if (const auto found_class = classes_.find(object_type.name);
         found_class != classes_.end())
@@ -303,6 +331,7 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
     }
     if (cast.target.is_function() || cast.target.is_vector() ||
         cast.target.is_iterator() ||
+        cast.target.is_entry() || cast.target.is_priority_entry() ||
         cast.target.is_typed_container() ||
         cast.target.is_sum_type() || structs_.contains(cast.target.name))
     {

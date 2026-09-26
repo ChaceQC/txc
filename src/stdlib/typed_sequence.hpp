@@ -1,83 +1,42 @@
 #pragma once
 
 #include "stdlib/container_scalar.hpp"
+#include "stdlib/typed_heap.hpp"
 #include "stdlib/typed_container.hpp"
 #include "stdlib/vector.hpp"
 
 #include <algorithm>
+#include <any>
 #include <deque>
+#include <memory>
+#include <string>
+#include <type_traits>
 
 namespace tx_generated
 {
+template<class element_type>
+struct queue_storage;
 
 template<class element_type>
-struct heap_storage final : container_model<heap_storage<element_type>>
-{
-    std::vector<element_type> values;
-    heap_compare<element_type> compare;
-
-    explicit heap_storage(bool descending = false) : compare{descending}
-    {
-    }
-
-    [[nodiscard]] std::string type_name() const override
-    {
-        return "heap<" + scalar_name<element_type>() + ">";
-    }
-
-    void push(const element_type& value)
-    {
-        require_ordered_key(value);
-        values.push_back(value);
-        std::push_heap(values.begin(), values.end(), compare);
-    }
-
-    [[nodiscard]] element_type top() const
-    {
-        if (values.empty())
-        {
-            throw std::out_of_range("空 heap 不能 top");
-        }
-        return values.front();
-    }
-
-    void pop()
-    {
-        if (values.empty())
-        {
-            throw std::out_of_range("空 heap 不能 pop");
-        }
-        std::pop_heap(values.begin(), values.end(), compare);
-        values.pop_back();
-    }
-
-    [[nodiscard]] tx_vector<element_type> snapshot() const
-    {
-        tx_vector<element_type> result;
-        result.data().values = values;
-        // sort_heap 产生的是比较器升序；逆转后才是逐次出堆的顺序。
-        auto& items = result.data().values;
-        std::sort_heap(items.begin(), items.end(), compare);
-        std::reverse(items.begin(), items.end());
-        result.data().refresh();
-        return result;
-    }
-
-    [[nodiscard]] std::string repr() const override
-    {
-        return type_name() + (compare.descending ? "(max)" : "(min)") +
-               format_repr_value(snapshot());
-    }
-};
+void register_queue_storage(
+    const std::shared_ptr<queue_storage<element_type>>& storage);
 
 template<class element_type>
-struct queue_storage final : container_model<queue_storage<element_type>>
+struct queue_storage final : container_model<queue_storage<element_type>>,
+                             graph_copyable
 {
     std::deque<element_type> values;
+    std::string element_name;
+
+    explicit queue_storage(std::string name = {}) : element_name(std::move(name))
+    {
+    }
 
     [[nodiscard]] std::string type_name() const override
     {
-        return "queue<" + scalar_name<element_type>() + ">";
+        const auto name = std::is_same_v<element_type, std::any>
+            ? element_name : scalar_name<element_type>();
+        return "queue<" + name + ">";
     }
 
     void push(const element_type& value)
@@ -112,12 +71,43 @@ struct queue_storage final : container_model<queue_storage<element_type>>
         values.pop_front();
     }
 
+    void assign(const tx_vector<element_type>& input)
+    {
+        std::deque<element_type> rebuilt(
+            input.data().values.begin(), input.data().values.end());
+        values.swap(rebuilt);
+    }
+
     [[nodiscard]] tx_vector<element_type> snapshot() const
     {
-        tx_vector<element_type> result;
+        tx_vector<element_type> result(element_name);
         result.data().values.assign(values.begin(), values.end());
         result.data().refresh();
         return result;
+    }
+
+    [[nodiscard]] container_handle empty_graph_copy() const override
+    {
+        auto result = std::make_shared<queue_storage>(element_name);
+        register_queue_storage(result);
+        return result;
+    }
+
+    void fill_graph_copy(container_storage& target,
+                         const graph_copy_function& copy) const override
+    {
+        auto& destination = static_cast<queue_storage&>(target).values;
+        for (const auto& value : values)
+        {
+            if constexpr (std::is_same_v<element_type, std::any>)
+            {
+                destination.push_back(copy(value));
+            }
+            else
+            {
+                destination.push_back(value);
+            }
+        }
     }
 
     [[nodiscard]] std::string repr() const override
@@ -125,5 +115,31 @@ struct queue_storage final : container_model<queue_storage<element_type>>
         return type_name() + format_repr_value(snapshot());
     }
 };
+
+template<class element_type>
+void register_queue_storage(
+    const std::shared_ptr<queue_storage<element_type>>& storage)
+{
+    if constexpr (std::is_same_v<element_type, std::any>)
+    {
+        register_gc_node(storage,
+            [](const void* object, gc_visit visit, void* context)
+            {
+                for (const auto& value :
+                     static_cast<const queue_storage<element_type>*>(object)->values)
+                {
+                    visit(value, context);
+                }
+            },
+            [](void* object)
+            {
+                static_cast<queue_storage<element_type>*>(object)->values.clear();
+            });
+    }
+    else
+    {
+        note_gc_allocation();
+    }
+}
 
 } // namespace tx_generated

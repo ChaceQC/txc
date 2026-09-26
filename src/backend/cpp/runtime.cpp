@@ -56,7 +56,12 @@ tx_int tx_len(const std::any& value)
     }
     if (const auto* container = std::any_cast<container_handle>(&value))
     {
-        return static_cast<tx_int>((*container)->size());
+        const auto size = (*container)->size();
+        if (size > static_cast<std::size_t>(std::numeric_limits<tx_int>::max()))
+        {
+            throw std::overflow_error("容器长度超出 int 范围");
+        }
+        return static_cast<tx_int>(size);
     }
     tx_int vector_size = 0;
     if (visit_vector(value, [&](const auto& vector)

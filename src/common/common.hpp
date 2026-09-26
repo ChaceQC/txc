@@ -93,20 +93,39 @@ struct value_type
 
     [[nodiscard]] bool is_map() const noexcept
     {
-        return name.starts_with("map<") && parameters.size() == 2;
+        return (name.starts_with("map<") || name.starts_with("ordered_map<")) &&
+            parameters.size() == 2;
+    }
+
+    [[nodiscard]] bool is_entry() const noexcept
+    {
+        return name.starts_with("entry<") && parameters.size() == 2;
+    }
+
+    [[nodiscard]] bool is_priority_entry() const noexcept
+    {
+        return name.starts_with("priority_entry<") && parameters.size() == 1;
+    }
+
+    [[nodiscard]] bool is_deque() const noexcept
+    {
+        return name.starts_with("deque<") && parameters.size() == 1;
     }
 
     [[nodiscard]] bool is_typed_container() const noexcept
     {
         return is_map() || (parameters.size() == 1 &&
-            (name.starts_with("set<") || name.starts_with("heap<") ||
-             name.starts_with("queue<")));
+            (name.starts_with("set<") || name.starts_with("ordered_set<") ||
+             name.starts_with("heap<") ||
+             name.starts_with("queue<") || name.starts_with("deque<")));
     }
 
     [[nodiscard]] static bool is_container_name(std::string_view name)
     {
         return name == "vector" || name == "map" || name == "set" ||
-               name == "heap" || name == "queue" ||
+               name == "ordered_map" || name == "ordered_set" ||
+               name == "entry" || name == "priority_entry" ||
+               name == "heap" || name == "queue" || name == "deque" ||
                name == "option" || name == "result" || name == "iterator";
     }
 

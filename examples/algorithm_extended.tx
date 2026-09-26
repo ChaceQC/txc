@@ -1,0 +1,44 @@
+import "algorithm.txh" as algorithm
+import "math.txh" as math
+
+def descending(left: int, right: int) -> int
+{
+    return right - left
+}
+
+def double_value(value: int) -> int
+{
+    return value * 2
+}
+
+def is_even(value: int) -> bool
+{
+    return math.mod(value, 2) == 0
+}
+
+def add(total: int, value: int) -> int
+{
+    return total + value
+}
+
+def main() -> int
+{
+    auto numbers = vector<int>([3, 1, 2, 2])
+    auto descending_copy = algorithm.stable_sorted(numbers, descending)
+    algorithm.stable_sort(numbers)
+    auto range = algorithm.equal_range(numbers, 2)
+    auto first = algorithm.binary_search(numbers, 2)
+    print(numbers, descending_copy, range)
+    if first.is_some()
+    {
+        print("第一个 2 的下标：", first.value())
+    }
+
+    algorithm.unique(numbers)
+    algorithm.rotate(numbers, 1)
+    auto doubled = algorithm.map(numbers, double_value)
+    auto evens = algorithm.filter(doubled, is_even)
+    print(evens, algorithm.fold(evens, 0, add))
+    print(algorithm.all(evens, is_even), algorithm.any(evens, is_even))
+    return 0
+}

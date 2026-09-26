@@ -93,8 +93,8 @@ private:
 
 struct dynamic_struct_data
 {
-    const char* type_name = nullptr;
-    const char* display_name = nullptr;
+    std::string type_name;
+    std::string display_name;
     struct_fields fields;
 };
 

@@ -1,0 +1,119 @@
+import "algorithm.txh" as algorithm
+import "error.txh" as errors
+
+def expect(condition: bool, label: str)
+{
+    if !condition
+    {
+        print("FAIL", label)
+        print(1 / 0)
+    }
+}
+
+def grow(values: vector<int>, value: int) -> int
+{
+    values.push_back(value + 10)
+    return value
+}
+
+def add(left: int, right: int) -> int
+{
+    return left + right
+}
+
+class observer
+{
+    public:
+        counter: array
+
+        def init(shared: array)
+        {
+            self.counter = shared
+        }
+
+        def deinit()
+        {
+            self.counter[0] = (self.counter[0] as int) + 1
+        }
+}
+
+struct holder
+{
+    value: observer
+}
+
+def use_holders(counter: array) -> array
+{
+    auto values = vector<holder>()
+    values.push_back(holder(observer(counter)))
+    auto copied = deep_copy(values)
+    expect(values.size() == 1 && copied.size() == 1, "holder copy")
+    return copied[0].value.counter
+}
+
+def main() -> int
+{
+    auto values = vector<int>([1, 2, 3])
+    auto alias = values
+    fn(int)->int transform = bind(grow, values)
+    auto mapped = algorithm.map(values, transform)
+    expect(mapped.size() == 3 && mapped[2] == 3 && values.size() == 6, "snapshot callback mutation")
+    expect(alias.size() == 6 && alias[3] == 11, "alias sees mutation")
+
+    array boxed = [mapped]
+    auto restored = boxed[0] as vector<int>
+    expect(restored[0] == 1, "any restore")
+    bool caught = false
+    try
+    {
+        auto wrong = boxed[0] as vector<str>
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    expect(caught, "any wrong type")
+
+    auto nested = vector<array>()
+    array cell = [1]
+    nested.push_back(cell)
+    auto independent = deep_copy(nested)
+    cell[0] = 2
+    expect((independent[0][0] as int) == 1 && (nested[0][0] as int) == 2, "deep copy nested")
+
+    auto live = vector<int>([1, 2, 3])
+    int total = 0
+    for value in live
+    {
+        if value == 1
+        {
+            live[1] = 20
+            live.push_back(4)
+        }
+        total += value
+    }
+    expect(total == 24, "existing vector iteration semantics")
+
+    caught = false
+    try
+    {
+        auto overflow = algorithm.fold(vector<int>([9223372036854775807, 1]), 0, add)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    expect(caught, "fold overflow")
+
+    auto infinity = 1e308 * 1e308
+    auto nan = infinity - infinity
+    auto floats = vector<float>([nan, 1.0])
+    algorithm.stable_sort(floats)
+    expect(floats[0] == 1.0 && floats[1] != floats[1], "default NaN order")
+
+    array counter = [0]
+    auto cloned_counter = use_holders(counter)
+    expect((counter[0] as int) == 1 && (cloned_counter[0] as int) == 1, "struct member destructor")
+    print("algorithm integration ok")
+    return 0
+}

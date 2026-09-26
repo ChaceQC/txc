@@ -324,6 +324,7 @@ struct function_decl
     std::vector<std::size_t> virtual_slots;
     std::size_t overload_index = 0;
     std::optional<token_kind> operator_kind;
+    std::vector<std::string> type_parameters;
 };
 
 struct struct_decl

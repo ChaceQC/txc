@@ -144,7 +144,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
             release(object);
             return load({value_type::int_type, address});
         }
-        if (access->object->type.is_map())
+        if (access->object->type.is_map() || access->object->type.is_deque())
         {
             return emit_map_index(*access, item.position);
         }
@@ -378,7 +378,8 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     if (const auto* operation = std::get_if<update_expression>(&item.data))
     {
         if (const auto* index = std::get_if<index_expression>(&operation->target->data);
-            index && index->object->type.is_map())
+            index && (index->object->type.is_map() ||
+                      index->object->type.is_deque()))
         {
             return emit_map_update(item, *operation);
         }

@@ -27,6 +27,28 @@ bool is_builtin_type(const std::string& name)
            name == "fn";
 }
 
+bool valid_generic_type(const value_type& type,
+                        const std::unordered_set<std::string>& variables)
+{
+    if (type.parameters.empty())
+    {
+        return variables.contains(type.name) || is_builtin_type(type.name);
+    }
+    if (!type.is_function() &&
+        !value_type::is_container_name(type.container_name()))
+    {
+        return false;
+    }
+    for (const auto& member : type.parameters)
+    {
+        if (!valid_generic_type(member, variables))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace
 
 std::string module_resolver::module_of(const source_pos& position) const
@@ -88,7 +110,8 @@ void module_resolver::build_index(const program& source)
     for (const auto& function : source.functions)
     {
         const auto key = module_of(function.position);
-        if (is_builtin_call(function.name) || is_builtin_type(function.name))
+        if ((is_builtin_call(function.name) || is_builtin_type(function.name)) &&
+            function.external_name != "algorithm.any")
         {
             throw compile_error(function.position, "保留的函数名：" + function.name);
         }
@@ -194,7 +217,7 @@ value_type module_resolver::resolve_type(
             resolve_type(module_key, type.parameters.back(), position));
     }
     if (type.is_vector() || type.is_typed_container() || type.is_sum_type() ||
-        type.is_iterator())
+        type.is_iterator() || type.is_entry() || type.is_priority_entry())
     {
         std::vector<value_type> arguments;
         for (const auto& argument : type.parameters)
@@ -288,6 +311,44 @@ void module_resolver::resolve(program& source)
     for (auto& function : source.functions)
     {
         const auto key = module_of(function.position);
+        if (!function.type_parameters.empty())
+        {
+            if (!function.external ||
+                !function.external_name.starts_with("algorithm."))
+            {
+                throw compile_error(function.position,
+                    "当前仅标准库 algorithm 接口支持泛型函数声明");
+            }
+            const std::unordered_set<std::string> variables(
+                function.type_parameters.begin(), function.type_parameters.end());
+            if (!valid_generic_type(function.return_type, variables))
+            {
+                throw compile_error(function.position,
+                    "泛型函数返回类型包含未声明的类型变量");
+            }
+            for (auto& parameter : function.parameters)
+            {
+                check_local_name(key, parameter.name, parameter.position);
+                if (parameter.kind != parameter_kind::ordinary ||
+                    parameter.default_value ||
+                    !valid_generic_type(parameter.type, variables))
+                {
+                    throw compile_error(parameter.position,
+                        "泛型接口参数必须使用已声明的类型变量且不能有默认值");
+                }
+                // 真实签名由 algorithm 的静态内置规则实例化；登记阶段只保留形参数量。
+                parameter.type = value_type::any_type;
+            }
+            if (function.return_type != value_type::int_type &&
+                function.return_type != value_type::bool_type &&
+                function.return_type != value_type::void_type)
+            {
+                function.return_type = value_type::any_type;
+            }
+            function.source_name = function.name;
+            function.name = exports_.at(key).at(function.name).internal_name;
+            continue;
+        }
         for (auto& parameter : function.parameters)
         {
             check_local_name(key, parameter.name, parameter.position);

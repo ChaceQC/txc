@@ -1,6 +1,6 @@
 # 类型化容器算法
 
-导入 `algorithm.txh`，建议使用 `import "algorithm.txh" as algorithm`。本模块复用已有 `vector<T>` 的连续存储、共享引用和字符串所有权；不引入新的容器类型、用户泛型、迭代器或比较器回调。
+导入 `algorithm.txh`，建议使用 `import "algorithm.txh" as algorithm`。本模块复用已有 `vector<T>` 的连续存储、共享引用和字符串所有权。既有重载保持原语义；新增操作使用编译期具体类型与明确签名的回调。
 
 ## 接口
 
@@ -36,6 +36,28 @@ int 的 sum 在每一步相加前检查 int64 溢出；中间结果越界即报�
 
 map 可先取 keys()/values()，set/heap/queue 可先取 to_vector()，再交给 algorithm。这些是已有容器的独立快照，对快照排序或反转不会修改原容器。完整示例见 [algorithm.tx](../examples/algorithm.tx)；根目录 [example.tx](../example.tx) 的 `algorithm_demo()` 同样展示全部算法名称、四种元素及 map 快照的组合用法。
 
+## 4.4 与 4.5 的接口契约
+
+下面的 `T`、`U` 是 `.txh` 中的静态类型变量，调用处由编译器从 `vector<T>` 和回调签名确定。受限 `def name<T, U>(...)` 只用于标准库算法的外部接口声明，不开放用户泛型函数实现；`T`、`U` 可以是现有 `vector` 支持的具体非函数类型。静态已知元素不会逐项装箱为 `any`。
+
+| 操作 | 静态签名 | 修改和返回 |
+| --- | --- | --- |
+| `stable_sort` | `(vector<T>[, fn(T,T)->int]) -> void` | 原地稳定排序 |
+| `stable_sorted` | `(vector<T>[, fn(T,T)->int]) -> vector<T>` | 返回独立向量 |
+| `binary_search` | `(vector<T>, T[, fn(T,T)->int]) -> option<int>` | 返回首个等价元素下标；未找到为空 |
+| `equal_range` | `(vector<T>, T[, fn(T,T)->int]) -> vector<int>` | 返回两个下标 `[first, past_last]` |
+| `unique` | `(vector<T>[, fn(T,T)->int]) -> int` | 原地删除连续等价元素，返回新长度 |
+| `rotate` | `(vector<T>, middle: int) -> void` | 原地将 `[middle, n)` 移到前面 |
+| `partition` | `(vector<T>, fn(T)->bool) -> int` | 原地分区，返回第一个不满足谓词的下标；不保证组内顺序 |
+| `map` | `(vector<T>, fn(T)->U) -> vector<U>` | 返回新向量 |
+| `filter` | `(vector<T>, fn(T)->bool) -> vector<T>` | 返回新向量 |
+| `fold` | `(vector<T>, U, fn(U,T)->U) -> U` | 按下标从左到右累计 |
+| `all`、`any` | `(vector<T>, fn(T)->bool) -> bool` | 短路求值；空向量分别为 true、false |
+
+默认排序接受 int、float、bool、str 或声明同类型 `operator <` 的值结构体；其余具体类型须提供显式比较器。比较器用负、零、正表示顺序，需形成严格弱序。默认 float 顺序与旧 `sort` 一样将 NaN 放在最后，正负零等价。显式比较器遇到 NaN 元素报运行错误。`binary_search/equal_range` 的输入须按同一比较器排序；编译器不扫描验证。`unique` 只删除相邻等价项，通常先排序。`rotate` 的 middle 必须在 `[0, len]`；空向量允许 middle 为 0。
+
+回调错误按原错误类型传播；本组原地操作先在工作副本中处理，成功后一次替换原向量内容，因此比较器或谓词失败时原向量不变。回调可产生的外部效果不能回滚。原地操作的回调不得修改正在操作的源向量，也不得在一次调用中改变比较关系；这两条由调用方保证。二分查询和 `map/filter/fold/all/any` 在调用开始时取得元素快照，回调修改源向量不会改变本次处理的元素序列。`map/filter/fold` 的结果共享规则与普通向量及元素赋值一致；要独立复制嵌套对象图时使用 `deep_copy`。元素数和下标超过 int64 可表示范围时报溢出错误。
+
 ## 实现状态
 
 2026-09-26：按上述契约接入具体 `.txh` 重载、C++23 算法、类型化 C ABI 和 LLVM 静态调用。复用现有类型检查与参数绑定，不在运行时按算法名或元素类型分派。
@@ -49,3 +71,9 @@ map 可先取 keys()/values()，set/heap/queue 可先取 to_vector()，再交给
 - 1 个静态诊断：向 vector<int> 查找接口传入 float，编译器拒绝并报告文件、行和列。
 
 根目录 example.tx 新增的算法输出、原有主流程退出码及自建目录清理均已核对。验证过程中修正了用例误用的 vector.empty()，改用已有 size()；算法实现无需调整。已通过的示例未重复执行，未运行全量回归或性能测试。
+
+### 4.4～4.6 实施记录（2026-09-26）
+
+`algorithm.txh` 增加受限的 `def name<T, U>` 静态泛型声明；编译器从具体实参与回调签名选择 C ABI，用户自定义泛型函数体仍不支持。旧具体重载和错误规则保留。`src/stdlib/algorithm_extended.hpp` 用具体元素类型实现稳定排序、二分范围、去重、旋转、分区和组合算法；标量与 bytes 保持直接元素表示，复合值使用已有对象句柄。原地操作在工作副本成功后提交，只读组合算法按调用开始时的元素快照运行。
+
+`scripts/build.ps1` 在 Windows x64 完整构建并更新 `tx/` 发行物。`tests/algorithm/extended.tx`、`integration.tx` 及 `examples/algorithm_extended.tx` 编译运行通过；覆盖结构体稳定排序、显式比较器、`option<int>` 二分结果、bytes 与复合值的映射/累计、共享和深复制、动态恢复、迭代中修改、NaN、比较器错误、整数溢出以及结构体所持类成员的析构。错误回调类型和用户泛型函数体分别在 `extended_wrong_type.tx`、`generic_user_rejected.tx` 中于文件、行、列报中文诊断。4.3 的堆/队列边界证据见[类型化容器](typed_containers.md#heap-和-queue)。未运行无关全量测试、性能基准或非 Windows 平台验收。

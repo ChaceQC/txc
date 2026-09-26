@@ -460,6 +460,11 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     {
         throw compile_error(item.position, "未定义函数：" + display_name);
     }
+    if (const auto intrinsic = algorithm_intrinsics_.find(call.name);
+        intrinsic != algorithm_intrinsics_.end())
+    {
+        return check_algorithm_intrinsic(item, call, intrinsic->second);
+    }
     const auto actual_types = check_call_arguments(call);
     std::vector<std::size_t> candidates;
     for (std::size_t index = 0; index < found->second.size(); ++index)

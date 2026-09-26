@@ -1,0 +1,63 @@
+struct point
+{
+    x: int
+
+    def operator <(other: point) -> bool
+    {
+        return self.x < other.x
+    }
+}
+
+struct task
+{
+    id: int
+}
+
+def reverse_compare(left: int, right: int) -> int
+{
+    return right - left
+}
+
+def main() -> int
+{
+    auto numbers = vector<int>()
+    numbers.push_back(3)
+    numbers.push_back(1)
+    numbers.push_back(2)
+    heap<int> built = heap<int>(numbers)
+    print(built.top(), built.to_vector()[2])
+    heap<int> largest = heap<int>(true, numbers)
+    print(largest.top())
+    fn(int, int)->int compare = reverse_compare
+    heap<int> custom = heap<int>(numbers, compare)
+    print(custom.top())
+
+    queue<int> ordered = queue<int>(numbers)
+    print(ordered.front(), ordered.back())
+
+    heap<point> points = heap<point>()
+    points.push(point(8))
+    points.push(point(2))
+    print(points.top().x)
+
+    queue<vector<int>> nested = queue<vector<int>>()
+    nested.push(numbers)
+    auto nested_copy = deep_copy(nested)
+    numbers.push_back(4)
+    print(len(nested.front()), len(nested_copy.front()))
+
+    heap<priority_entry<task>> tasks = heap<priority_entry<task>>()
+    tasks.push(priority_entry<task>(2, task(20)))
+    tasks.push(priority_entry<task>(1, task(10)))
+    tasks.push(priority_entry<task>(2, task(21)))
+    print(tasks.top().value.id)
+    tasks.pop()
+    print(tasks.top().value.id)
+    tasks.pop()
+    print(tasks.top().value.id)
+
+    array boxed = [nested, tasks]
+    auto restored = boxed[0] as queue<vector<int>>
+    print(restored.front()[0])
+    return 0
+}

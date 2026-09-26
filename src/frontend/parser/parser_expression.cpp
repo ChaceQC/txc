@@ -189,6 +189,10 @@ expr_ptr parser::parse_atom()
     {
         const auto position = current().position;
         auto type = parse_type();
+        if (type.is_entry())
+        {
+            throw compile_error(position, "entry 是只读快照条目，不能直接构造");
+        }
         (void)consume(token_kind::left_paren, "容器构造需要左括号");
         call_expression call;
         call.name = type.container_name();

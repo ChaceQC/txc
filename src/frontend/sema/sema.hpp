@@ -44,9 +44,13 @@ private:
     void register_class_method(class_decl& definition, function_decl& method,
                                program& source);
     void register_functions(const program& source, bool require_main);
+    [[nodiscard]] value_type check_algorithm_intrinsic(
+        expression& item, call_expression& call, std::string_view name);
     void validate_type(const value_type& type, source_pos position) const;
     void validate_key_contract(const value_type& type,
                                source_pos position) const;
+    void validate_ordered_key_shape(const value_type& type,
+                                    source_pos position) const;
     void check_defaults(function_decl& function);
     void check_function(function_decl& function);
     void check_method(function_decl& method);
@@ -123,6 +127,7 @@ private:
     std::unordered_map<std::string, const struct_decl*> structs_;
     std::unordered_map<std::string, class_decl*> classes_;
     std::unordered_map<std::string, std::vector<function_signature>> functions_;
+    std::unordered_map<std::string, std::string> algorithm_intrinsics_;
     std::vector<std::unordered_map<std::string, symbol_info>> scopes_;
     value_type current_return_type_ = value_type::unknown_type;
     const class_decl* current_class_ = nullptr;

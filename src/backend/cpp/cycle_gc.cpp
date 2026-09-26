@@ -3,6 +3,7 @@
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/value_format.hpp"
 #include "backend/cpp/vector_value.hpp"
+#include "backend/cpp/container_value.hpp"
 #include "stdlib/iterator.hpp"
 #include "stdlib/closure.hpp"
 #include "stdlib/stdlib.hpp"
@@ -71,6 +72,10 @@ const void* object_identity(const std::any& value)
     if (value.type() == typeid(object_vector))
     {
         return std::any_cast<const object_vector&>(value).identity();
+    }
+    if (value.type() == typeid(container_handle))
+    {
+        return std::any_cast<const container_handle&>(value).get();
     }
     if (value.type() == typeid(tx_iterator))
     {

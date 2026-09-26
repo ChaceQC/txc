@@ -1,0 +1,53 @@
+struct item
+{
+    value: int
+}
+
+struct point
+{
+    x: int
+
+    def operator ==(other: point) -> bool
+    {
+        return self.x == other.x
+    }
+
+    def hash_key() -> int
+    {
+        return self.x
+    }
+}
+
+def main() -> int
+{
+    map<int, item> items = map<int, item>()
+    items[4] = item(7)
+    auto entries = items.entries()
+    print(entries[0].key, entries[0].value.value)
+    items[4] = item(8)
+    print(entries[0].value.value, items[4].value)
+
+    map<point, vector<int>> groups = map<point, vector<int>>()
+    auto numbers = vector<int>()
+    numbers.push_back(3)
+    point key = point(2)
+    groups[key] = numbers
+    key.x = 9
+    point lookup = point(2)
+    auto grouped = groups.entries()
+    print(grouped[0].key.x, grouped[0].value[0],
+          groups.contains(lookup), groups.contains(key))
+    auto isolated = deep_copy(groups)
+    numbers.push_back(8)
+    print(len(groups[lookup]), len(isolated[lookup]))
+
+    map<int, array> ring = map<int, array>()
+    array link = [ring]
+    ring[1] = link
+    auto ring_copy = deep_copy(ring)
+    array copied_link = ring_copy[1]
+    auto copied_back = copied_link[0] as map<int, array>
+    copied_back.clear()
+    print(len(ring_copy), len(ring))
+    return 0
+}
