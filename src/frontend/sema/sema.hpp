@@ -45,6 +45,8 @@ private:
                                program& source);
     void register_functions(const program& source, bool require_main);
     void validate_type(const value_type& type, source_pos position) const;
+    void validate_key_contract(const value_type& type,
+                               source_pos position) const;
     void check_defaults(function_decl& function);
     void check_function(function_decl& function);
     void check_method(function_decl& method);
@@ -71,11 +73,16 @@ private:
         std::optional<operator_binding>& binding) const;
     [[nodiscard]] value_type check_call(expression& item, call_expression& call);
     [[nodiscard]] value_type check_builtin(expression& item, call_expression& call);
+    [[nodiscard]] value_type check_bind(expression& item, call_expression& call);
     [[nodiscard]] value_type check_constructor(expression& item, call_expression& call);
     [[nodiscard]] value_type check_class_constructor(expression& item, call_expression& call);
     [[nodiscard]] value_type check_method_call(expression& item, call_expression& call);
     [[nodiscard]] value_type check_vector_call(expression& item, call_expression& call,
                                               const value_type& type);
+    [[nodiscard]] value_type check_iterator_call(expression& item,
+        call_expression& call, const value_type& type);
+    [[nodiscard]] value_type check_sum_call(expression& item, call_expression& call,
+                                           const value_type& type);
     [[nodiscard]] value_type check_container_call(expression& item, call_expression& call,
                                                  const value_type& type);
     [[nodiscard]] std::vector<value_type> check_call_arguments(call_expression& call);

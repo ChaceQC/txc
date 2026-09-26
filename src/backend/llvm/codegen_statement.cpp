@@ -293,6 +293,7 @@ void llvm_code_generator::emit_return(const statement& item,
             error_targets_.pop_back();
         }
     }
+    body_ << "  call void @txrt_stack_pop()\n";
     write_instruction(result.value
         ? "ret " + llvm_type(return_type_, item.position) + " " + value.text
         : "ret void");
@@ -302,6 +303,9 @@ void llvm_code_generator::emit_return(const statement& item,
 
 void llvm_code_generator::emit_statement(const statement& item)
 {
+    body_ << "  call void @txrt_stack_location(ptr "
+          << global_bytes(item.position.file) << ", i64 "
+          << item.position.line << ", i64 " << item.position.column << ")\n";
     if (const auto* declaration = std::get_if<variable_declaration>(&item.data))
     {
         emit_declaration(item, *declaration);

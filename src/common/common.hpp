@@ -58,6 +58,34 @@ struct value_type
         return name.starts_with("vector<") && parameters.size() == 1;
     }
 
+    [[nodiscard]] bool is_option() const noexcept
+    {
+        return name.starts_with("option<") && parameters.size() == 1;
+    }
+
+    [[nodiscard]] bool is_result() const noexcept
+    {
+        return name.starts_with("result<") && parameters.size() == 1;
+    }
+
+    [[nodiscard]] bool is_iterator() const noexcept
+    {
+        return name.starts_with("iterator<") && parameters.size() == 1;
+    }
+
+    [[nodiscard]] bool is_sum_type() const noexcept
+    {
+        return is_option() || is_result();
+    }
+
+    [[nodiscard]] bool is_direct_vector() const noexcept
+    {
+        return is_vector() &&
+            (parameters.front() == int_type || parameters.front() == float_type ||
+             parameters.front() == bool_type || parameters.front() == str_type ||
+             parameters.front() == bytes_type);
+    }
+
     [[nodiscard]] std::string container_name() const
     {
         return name.substr(0, name.find('<'));
@@ -78,7 +106,8 @@ struct value_type
     [[nodiscard]] static bool is_container_name(std::string_view name)
     {
         return name == "vector" || name == "map" || name == "set" ||
-               name == "heap" || name == "queue";
+               name == "heap" || name == "queue" ||
+               name == "option" || name == "result" || name == "iterator";
     }
 
     [[nodiscard]] static value_type container_of(
@@ -108,6 +137,8 @@ struct value_type
     static const value_type bytes_type;
     static const value_type binary_stream_type;
     static const value_type text_stream_type;
+    static const value_type cancel_source_type;
+    static const value_type cancel_token_type;
     static const value_type array_type;
     static const value_type dict_type;
     static const value_type any_type;
@@ -126,6 +157,8 @@ inline const value_type value_type::str_type{"str"};
 inline const value_type value_type::bytes_type{"bytes"};
 inline const value_type value_type::binary_stream_type{"binary_stream"};
 inline const value_type value_type::text_stream_type{"text_stream"};
+inline const value_type value_type::cancel_source_type{"cancel_source"};
+inline const value_type value_type::cancel_token_type{"cancel_token"};
 inline const value_type value_type::array_type{"array"};
 inline const value_type value_type::dict_type{"dict"};
 inline const value_type value_type::any_type{"any"};

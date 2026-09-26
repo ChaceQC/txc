@@ -1,0 +1,20 @@
+struct point
+{
+    x: int
+    y: int
+
+    def operator ==(other: point) -> bool
+    {
+        return self.x == other.x && self.y == other.y
+    }
+
+    def hash_key() -> int
+    {
+        return self.x * 31 + self.y
+    }
+}
+
+def make_point(x: int, y: int) -> point
+{
+    return point(x, y)
+}

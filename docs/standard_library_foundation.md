@@ -6,7 +6,7 @@
 
 | 终态能力 | 已有公开接口与实现入口 | 缺失接口或能力 | 当前证据与待补验收证据 |
 | --- | --- | --- | --- |
-| 集合与算法 | 内置 `vector/map/set/heap/queue`；`array.txh`、`dictionary.txh`、`algorithm.txh`；`src/stdlib/array.cpp`、`dictionary.cpp`、`algorithm_numeric.cpp` 及类型化容器 ABI。见[容器](typed_containers.md)、[算法](algorithm.md) | 复合元素、`deque`、有序容器、泛型迭代器、比较/哈希契约、稳定排序和组合算法 | 已有 `scripts/check_vectors.py`、`check_typed_containers.py`、`check_algorithm.py` 的既往定向记录；用户结构体、嵌套容器、迭代失效、比较器失败与独立复制仍待相应小项验证 |
+| 集合与算法 | 内置 `vector/map/set/heap/queue`；`array.txh`、`dictionary.txh`、`algorithm.txh`；`src/stdlib/array.cpp`、`dictionary.cpp`、`algorithm_numeric.cpp` 及类型化容器 ABI。见[容器](typed_containers.md)、[算法](algorithm.md) | `map` 的复合值、`heap/queue` 的复合元素、`deque`、有序容器、稳定排序和组合算法 | 第 1 节盘点时已有 `scripts/check_vectors.py` 等既往记录；后续 2.1 对复合 `vector`、2.3 对用户哈希键、2.4 对 `iterator<T>` 补充了定向证据，其他容器仍待对应小项验证 |
 | 文本与编码 | `string.txh`、`format.txh`、`bytes.txh`、`encoding.txh`；`src/stdlib/string.cpp`、`format.cpp`、`bytes.cpp`、`encoding.cpp`。见[字节与流](bytes_file_stream.md) | Unicode 规范化、完整大小写、字素、正则、UTF-32、增量转换与 URL 安全 Base64 | 现有编码/字节示例与 `tests/bytes_file_stream/`；跨块残缺、Unicode 数据版本、正则限额及多语言位置单位未专项验证 |
 | 文件与系统 | `file.txh`、`file_stream.txh`、`fs.txh`、`path.txh`、`system.txh`、`env.txh`；`src/stdlib/file*.cpp`、`filesystem*.cpp`、`path.cpp`、`system.cpp`、`env.cpp`。见[流](bytes_file_stream.md)、[系统](system_env.md) | `process`、管道、原子替换、文件监视、权限/符号链接/元信息与能力查询 | 已有 `scripts/check_system_env.py` 的既往定向记录；短读短写、符号链接竞争、断电/跨卷和子进程清理仍待专项证据 |
 | 时间与数学 | `time.txh`、`random.txh`、`math.txh`；`src/stdlib/time.cpp`、`random.cpp`、`math.cpp` | 日期时区、独立随机数生成器、扩展数学、`statistics`、`decimal` | 现有 `examples/time_random.tx` 和标准库示例；夏令时歧义、随机算法版本、统计空样本与十进制舍入未验证 |
@@ -26,6 +26,7 @@
 | 领域 | 固定的新增公开模块/类型 | 直接依赖 |
 | --- | --- | --- |
 | 类型与集合 | 内置 `option<T>/result<T>/iterator<T>/deque<T>/ordered_map<K,V>/ordered_set<T>`；现有 `vector/map/set/heap/queue` 扩展 | `error.error_info`、编译期比较/哈希和所有权规则 |
+| 运行时基础 | `cancel.txh` 与内置 `cancel_source/cancel_token`；后续线程和任务接口接入同一取消状态 | 单调时钟、`cancelled_error`、资源部分效果规则 |
 | 文本与数据 | `unicode.txh`、`regex.txh`、`csv.txh`、`xml.txh`、`cbor.txh`、`serde.txh` | `string/bytes/encoding`、文件流、`error` |
 | 时间与计算 | `statistics.txh`、`decimal.txh`；`time` 内增加 `duration/instant` 与日历类型；`random` 内增加生成器类型 | `error`；时区数据随工具链 |
 | 系统与进程 | `process.txh`；扩展 `file/file_stream/fs/path/system/env` | `bytes`、文件流、`error`、取消令牌 |
@@ -35,7 +36,7 @@
 
 这些名称是后续新增接口的注册表，不表示文件现在已经存在。跨模块方向从基础类型/错误/流指向上层模块；`requests → httpx → socket/tls`，`db` 的连接池依赖 SQLite/PostgreSQL 驱动，不得形成反向依赖。旧签名、返回类型、错误 `kind/code`、编码、排序和共享语义保留；若新语义不能兼容，采用新名字，例如 `unicode.normalize` 不改变 `string.lower`，`random` 的生成器接口不改变 `random.seed`，协议协商不改变 `httpx.send_http2`，大文件加密不覆盖 `crypto.encrypt` 的 `TXCG` 格式。每个不等价替换须给出迁移示例。
 
-终态设计中的 `T/K/V` 目前只是记法。当前 `.txh` 继续声明编译器已支持的**具体重载**，不得把 `vector<T>` 或 `result<T>` 直接写入当前解析器。第 2.1 项先扩展编译器的内置参数化类型实例化；后续真实 `.txh` 采用受限的 `def name<T, U>(...) -> ...` 声明，类型变量由调用实参的静态类型确定，约束由编译器已登记的相等、哈希、排序或跨线程契约检查，不支持用户自定义模板实现。`option<T>/result<T>` 等编译器内置类型由类型系统提供，标准库模块只声明使用它们的函数。该声明语法落地前先更新 `syntax.md` 与可运行示例；新泛型自由函数在真实 `.txh` 可解析并由静态检查选定前，不计为已交付。
+终态设计中的未绑定 `T/K/V` 目前只是记法。当前 `.txh` 可声明**具体实例**，例如 `vector<point>`、`option<int>`、`result<int>`；不能直接把未绑定的 `vector<T>`、`result<T>` 或 `def name<T, U>(...)` 写入接口。第 2.1～2.2 项已扩展编译器的内置参数化类型实例化；后续真实 `.txh` 的泛型自由函数采用受限的 `def name<T, U>(...) -> ...` 声明，类型变量由调用实参的静态类型确定，约束由编译器已登记的相等、哈希、排序或跨线程契约检查，不支持用户自定义模板实现。该声明语法落地前先更新 `syntax.md` 与可运行示例；新泛型自由函数在真实 `.txh` 可解析并由静态检查选定前，不计为已交付。
 
 ## 3. 错误类别与稳定代码登记
 

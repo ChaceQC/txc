@@ -2,6 +2,9 @@
 
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/value_format.hpp"
+#include "backend/cpp/vector_value.hpp"
+#include "stdlib/iterator.hpp"
+#include "stdlib/closure.hpp"
 #include "stdlib/stdlib.hpp"
 
 #include <algorithm>
@@ -64,6 +67,18 @@ const void* object_identity(const std::any& value)
     if (value.type() == typeid(class_handle))
     {
         return std::any_cast<const class_handle&>(value).operator->();
+    }
+    if (value.type() == typeid(object_vector))
+    {
+        return std::any_cast<const object_vector&>(value).identity();
+    }
+    if (value.type() == typeid(tx_iterator))
+    {
+        return std::any_cast<const tx_iterator&>(value).identity();
+    }
+    if (value.type() == typeid(closure_handle))
+    {
+        return std::any_cast<const closure_handle&>(value).identity();
     }
     return nullptr;
 }

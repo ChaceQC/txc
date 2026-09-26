@@ -1,0 +1,6 @@
+def make_cursor() -> iterator<int>
+{
+    vector<int> values = vector<int>()
+    values.push_back(17)
+    return values.snapshot_iter()
+}

@@ -88,7 +88,11 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
             target == value_type::bytes_type ||
             target == value_type::binary_stream_type ||
             target == value_type::text_stream_type ||
-            target.is_vector() || target.is_typed_container())
+            target == value_type::cancel_source_type ||
+            target == value_type::cancel_token_type ||
+            target.is_function() || target.is_vector() || target.is_iterator() ||
+            target.is_typed_container() ||
+            target.is_sum_type() || structs_.contains(target.name))
         {
             const auto check = temporary();
             write_instruction(check + " = call i32 @txrt_value_require_type(ptr " +
@@ -244,6 +248,16 @@ std::string llvm_code_generator::lvalue_address(
         if (!literal_key)
         {
             position = indices.at(&item);
+        }
+        if (index->object->type.is_vector() &&
+            !index->object->type.is_direct_vector())
+        {
+            const auto result = temporary();
+            write_instruction(result +
+                " = call ptr @txrt_vector_element_address_object(ptr " + base +
+                ", i64 " + position.text + ")");
+            release(position);
+            return result;
         }
         const bool static_array = index->object->type == value_type::array_type;
         const bool string_key = index->object->type == value_type::dict_type &&

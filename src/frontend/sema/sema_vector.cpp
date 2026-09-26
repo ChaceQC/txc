@@ -38,6 +38,10 @@ value_type semantic_analyzer::check_vector_call(
     {
         result = value_type::bool_type;
     }
+    else if (call.name == "snapshot_iter" || call.name == "live_iter")
+    {
+        result = value_type::container_of("iterator", {element});
+    }
     else if (call.name == "to_array")
     {
         result = value_type::array_type;
@@ -63,6 +67,25 @@ value_type semantic_analyzer::check_vector_call(
         throw compile_error(item.position, "vector 操作参数数量或类型不匹配：" + call.name);
     }
     return result;
+}
+
+value_type semantic_analyzer::check_iterator_call(
+    expression& item, call_expression& call, const value_type& type)
+{
+    validate_type(type, item.position);
+    if (!call.arguments.empty())
+    {
+        throw compile_error(item.position, "iterator 方法不接受参数");
+    }
+    if (call.name == "next")
+    {
+        return value_type::container_of("option", {type.parameters.front()});
+    }
+    if (call.name == "close")
+    {
+        return value_type::void_type;
+    }
+    throw compile_error(item.position, "未知 iterator 方法：" + call.name);
 }
 
 } // namespace tx

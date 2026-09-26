@@ -1,0 +1,21 @@
+struct bad_key
+{
+    id: int
+
+    def operator ==(other: bad_key) -> bool
+    {
+        return self.id == other.id
+    }
+
+    def hash_key() -> int
+    {
+        return 1 / 0
+    }
+}
+
+def main() -> int
+{
+    set<bad_key> values = set<bad_key>()
+    values.insert(bad_key(1))
+    return 0
+}

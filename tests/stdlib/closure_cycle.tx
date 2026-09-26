@@ -1,0 +1,15 @@
+def count_items(items: dict, value: int) -> int
+{
+    return len(items) + value
+}
+
+def main() -> int
+{
+    dict items = {}
+    fn(int)->int bound = bind(count_items, items)
+    items["closure"] = bound
+    dict copied = deep_copy(items)
+    fn(int)->int recovered = copied["closure"] as fn(int)->int
+    print(recovered(5))
+    return 0
+}

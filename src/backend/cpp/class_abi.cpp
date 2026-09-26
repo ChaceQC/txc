@@ -149,6 +149,11 @@ std::any default_field(const std::string& type)
     {
         return tx_generated::bytes_vector{};
     }
+    if (type.starts_with("vector<") && type.ends_with(">"))
+    {
+        return tx_generated::object_vector(
+            type.substr(7, type.size() - 8));
+    }
     return {};
 }
 

@@ -1,0 +1,25 @@
+import "error.txh" as errors
+
+def inner() -> int
+{
+    return 1 / 0
+}
+
+def middle() -> int
+{
+    return inner()
+}
+
+def main() -> int
+{
+    try
+    {
+        print(middle())
+    }
+    exception errors.runtime_error as e
+    {
+        print(e.code)
+        print(errors.stack_trace())
+    }
+    return 0
+}

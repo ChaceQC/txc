@@ -46,6 +46,7 @@ void llvm_code_generator::emit_error_exit()
     else
     {
         emit_error_cleanup(0);
+        body_ << "  call void @txrt_stack_pop()\n";
         const auto type = llvm_type(return_type_, {});
         // 错误通过状态传播，调用方在读取占位返回值之前跳转。
         body_ << "  ret " << type;

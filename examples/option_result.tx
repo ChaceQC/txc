@@ -1,0 +1,80 @@
+import "error.txh" as errors
+import "parse.txh" as parse
+
+def read_value(value: result<int>) -> int
+{
+    return value.value()
+}
+
+def main() -> int
+{
+    option<int> missing = option<int>()
+    print(missing.is_none(), missing.value_or(7))
+    try
+    {
+        print(missing.value())
+    }
+    exception errors.runtime_error as e
+    {
+        print(e.code)
+    }
+    option<int> present = option<int>(0)
+    if present.is_some()
+    {
+        print(present.value())
+    }
+
+    result<int> good = result<int>(12)
+    print(good.is_ok(), read_value(good))
+    auto legacy = parse.try_parse_int("31", 10)
+    result<int> converted = result<int>(legacy)
+    print(converted.value())
+    result<int> converted_failure = result<int>(parse.try_parse_int("invalid", 10))
+    try
+    {
+        print(converted_failure.value())
+    }
+    exception errors.parse_error as e
+    {
+        print(e.code)
+    }
+
+    auto info = errors.error_info("io_error", "not_found", "示例文件不存在")
+    result<int> failed = result<int>(false, info)
+    if failed.is_err()
+    {
+        auto saved = failed.error()
+        print(saved.kind, saved.code)
+    }
+    try
+    {
+        print(read_value(failed))
+    }
+    exception errors.io_error as e
+    {
+        print(e.code)
+    }
+    result<void> completed = result<void>()
+    completed.value()
+    print(completed.is_ok())
+    result<void> failed_void = result<void>(false, info)
+    try
+    {
+        failed_void.value()
+    }
+    exception errors.io_error as e
+    {
+        print(e.code)
+    }
+    option<vector<int>> numbers = option<vector<int>>(vector<int>(1, 2))
+    auto copied_numbers = deep_copy(numbers)
+    auto changed = copied_numbers.value()
+    changed[0] = 9
+    print(numbers.value()[0], changed[0])
+    array ring = [none]
+    option<array> cycle = option<array>(ring)
+    ring[0] = cycle
+    auto copied_cycle = deep_copy(cycle)
+    print(len(copied_cycle.value()))
+    return 0
+}

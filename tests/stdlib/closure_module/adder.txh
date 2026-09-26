@@ -1,0 +1,2 @@
+def add(base: int, value: int) -> int
+def make_adder(base: int) -> fn(int)->int

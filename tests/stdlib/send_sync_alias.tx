@@ -1,0 +1,7 @@
+def main() -> int
+{
+    vector<int> values = vector<int>(1, 2)
+    auto alias = values
+    assert_send(alias)
+    return 0
+}

@@ -121,16 +121,16 @@ void llvm_code_generator::emit_callback_wrapper(
     const function_decl& function, const std::string& symbol,
     std::size_t overload)
 {
-    std::string wrapper_parameters;
+    std::string wrapper_parameters = "ptr %environment";
     std::string wrapper_arguments;
     bool nullable = false;
     for (std::size_t index = 0; index < function.parameters.size(); ++index)
     {
         const auto& parameter = function.parameters[index];
         const auto type = llvm_type(parameter.type, parameter.position);
+        wrapper_parameters += ", ";
         if (index != 0)
         {
-            wrapper_parameters += ", ";
             wrapper_arguments += ", ";
         }
         wrapper_parameters += type + " %value" + std::to_string(index);

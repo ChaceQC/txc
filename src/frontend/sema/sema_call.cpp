@@ -37,7 +37,7 @@ bool semantic_analyzer::matches_signature(
         if (signature.accepts_any_value && expected == value_type::any_type)
         {
             return actual != value_type::void_type &&
-                   actual != value_type::unknown_type && !actual.is_function();
+                   actual != value_type::unknown_type;
         }
         return allow_upcast ? is_assignable(actual, expected)
                             : actual == expected;
@@ -49,7 +49,7 @@ bool semantic_analyzer::matches_signature(
             parameter_is_nullable(expected))
         {
             return actual != value_type::void_type &&
-                   actual != value_type::unknown_type && !actual.is_function();
+                   actual != value_type::unknown_type;
         }
         if (actual == value_type::none_type &&
             parameter_is_nullable(expected))
@@ -223,6 +223,18 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
     }
     auto& argument = *call.arguments.front().value;
     const auto actual = check_expression(argument);
+    if (call.name == "assert_send" || call.name == "assert_sync")
+    {
+        if (actual != value_type::int_type &&
+            actual != value_type::float_type &&
+            actual != value_type::bool_type)
+        {
+            throw compile_error(argument.position,
+                call.name + " 不能证明此类型可跨线程传递或共享：" +
+                actual.name);
+        }
+        return value_type::void_type;
+    }
     if (call.name == "deep_copy")
     {
         if (actual == value_type::void_type)
@@ -298,10 +310,57 @@ value_type semantic_analyzer::check_constructor(expression& item,
     return value_type(call.name);
 }
 
+value_type semantic_analyzer::check_bind(expression& item, call_expression& call)
+{
+    if (call.arguments.size() < 2)
+    {
+        throw compile_error(item.position, "bind 需要函数值和至少一个捕获实参");
+    }
+    for (const auto& argument : call.arguments)
+    {
+        if (argument.kind != argument_kind::positional)
+        {
+            throw compile_error(argument.position, "bind 只接受位置实参");
+        }
+    }
+    const auto function = check_expression(*call.arguments.front().value);
+    if (!function.is_function())
+    {
+        throw compile_error(call.arguments.front().position,
+            "bind 的第一个实参必须是完整签名的 fn 值");
+    }
+    const auto parameter_count = function.parameters.size() - 1;
+    const auto captured = call.arguments.size() - 1;
+    if (captured > parameter_count)
+    {
+        throw compile_error(item.position, "bind 捕获参数超过函数形参数量");
+    }
+    for (std::size_t index = 0; index < captured; ++index)
+    {
+        const auto actual = check_expression(*call.arguments[index + 1].value);
+        require_type(actual, function.parameters[index],
+            call.arguments[index + 1].position, "bind 捕获参数");
+    }
+    std::vector<value_type> remaining(
+        function.parameters.begin() + captured,
+        function.parameters.begin() + parameter_count);
+    return value_type::function_of(std::move(remaining),
+        function.parameters.back());
+}
+
 value_type semantic_analyzer::check_call(expression& item, call_expression& call)
 {
     if (call.container_type)
     {
+        if (call.container_type->is_iterator())
+        {
+            throw compile_error(item.position,
+                "iterator 必须由 vector 的 snapshot_iter 或 live_iter 创建");
+        }
+        if (call.container_type->is_sum_type())
+        {
+            return check_sum_call(item, call, *call.container_type);
+        }
         return call.container_type->is_vector()
             ? check_vector_call(item, call, *call.container_type)
             : check_container_call(item, call, *call.container_type);
@@ -379,9 +438,14 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     if (call.name == "print" || call.name == "len" ||
         call.name == "to_float" || call.name == "input" ||
         call.name == "input_or_none" ||
-        call.name == "is_none" || call.name == "deep_copy")
+        call.name == "is_none" || call.name == "deep_copy" ||
+        call.name == "assert_send" || call.name == "assert_sync")
     {
         return check_builtin(item, call);
+    }
+    if (call.name == "bind")
+    {
+        return check_bind(item, call);
     }
     if (structs_.contains(call.name))
     {

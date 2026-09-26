@@ -1,0 +1,6 @@
+def make_items() -> vector<item>
+{
+    vector<item> items = vector<item>()
+    items.push_back(item(17))
+    return items
+}

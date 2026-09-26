@@ -23,7 +23,7 @@
 | 测试与调试 | 仓库有针对编译器/标准库的脚本和样例 | 供 TX 程序使用的测试库与运行器、结构化日志、堆栈诊断、性能分析 |
 | 安全 | `crypto` 已有安全随机数、SHA-2、HMAC、HKDF/PBKDF2、AES-256-GCM；HTTP 客户端验证 TLS | Argon2id、非对称签名/密钥交换、X.509 与证书存储、可控密钥生命周期、大文件认证加密 |
 
-当前 `vector<T>` 支持 `int/float/bool/str/bytes`，`map/set/heap/queue` 的类型参数仅限四种基础标量；`requests` 的 `stream=true`、显式代理、自定义 CA/客户端证书和底层连接池尚未实现。网络的 HTTP/2 并行流等边界也尚无专项验证。不能把这些能力写成现状。具体工作项与依赖顺序见[标准库终态实施顺序](standard_library_plan.md)。
+当前 `vector<T>` 已支持基础值、用户结构体和嵌套容器；`map/set` 的哈希键新增满足编译期契约的结构体，`map` 值和 `heap/queue` 元素仍仅限四种基础标量。`requests` 的 `stream=true`、显式代理、自定义 CA/客户端证书和底层连接池尚未实现。网络的 HTTP/2 并行流等边界也尚无专项验证。不能把这些能力写成现状。具体工作项与依赖顺序见[标准库终态实施顺序](standard_library_plan.md)。
 
 ## 2. 全库统一契约
 

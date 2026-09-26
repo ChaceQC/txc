@@ -1,0 +1,67 @@
+def add(base: int, value: int) -> int
+{
+    return base + value
+}
+
+def apply(value: int, operation: fn(int)->int) -> int
+{
+    return operation(value)
+}
+
+def add_three(first: int, second: int, third: int) -> int
+{
+    return first + second + third
+}
+
+def prefix(head: str, tail: str) -> str
+{
+    return head + tail
+}
+
+def add_first(values: vector<int>, amount: int) -> int
+{
+    return values[0] + amount
+}
+
+def apply_bound(operation: fn(int)->int, value: int) -> int
+{
+    return operation(value)
+}
+
+def make_adder(base: int) -> fn(int)->int
+{
+    return bind(add, base)
+}
+
+struct callback_holder
+{
+    callback: fn(int)->int
+}
+
+def main() -> int
+{
+    fn(int)->int plus_five = bind(add, 5)
+    print(apply(7, plus_five))
+    fn(int, int)->int two_left = bind(add_three, 1)
+    fn(int)->int one_left = bind(two_left, 2)
+    print(one_left(3))
+    fn(str)->str decorate = bind(prefix, "TX")
+    print(decorate("!"))
+
+    vector<int> values = vector<int>(1, 4)
+    fn(int)->int shared = bind(add_first, values)
+    values[0] = 9
+    fn(int)->int copied = deep_copy(shared)
+    values[0] = 12
+    print(shared(1), copied(1))
+    array boxed = [shared]
+    fn(int)->int restored = boxed[0] as fn(int)->int
+    callback_holder holder = callback_holder(restored)
+    fn(int)->int from_field = holder.callback
+    fn(int)->int applying = bind(apply_bound, plus_five)
+    print(from_field(2), applying(3))
+
+    fn(int)->int returned = make_adder(8)
+    print(returned(2))
+    return 0
+}

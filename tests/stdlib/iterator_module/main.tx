@@ -1,0 +1,8 @@
+import "cursor.txh" as cursor_module
+
+def main() -> int
+{
+    iterator<int> values = cursor_module.make_cursor()
+    print(values.next().value())
+    return 0
+}

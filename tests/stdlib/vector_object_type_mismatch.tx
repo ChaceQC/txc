@@ -1,0 +1,12 @@
+struct sample_point
+{
+    x: int
+}
+
+def main() -> int
+{
+    array source = [sample_point(1), "wrong"]
+    vector<sample_point> points = vector<sample_point>(source)
+    print(len(points))
+    return 0
+}

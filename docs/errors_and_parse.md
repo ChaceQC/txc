@@ -1,6 +1,6 @@
 # 解析与可恢复错误
 
-标准库提供具体结果结构体；语言提供 `try { } exception type as e { }`，两者使用相同的错误信息。暂不引入用户泛型、`throw` 或 `finally`。本轮先完成代码，随后经用户授权执行少量定向验证，记录见本文末尾。
+标准库保留具体结果结构体；语言提供 `try { } exception type as e { }`，两者使用相同的错误信息。内置 `result<T>` 可从旧结果转换，规则见[option 与 result](option_result.md)。暂不引入用户泛型、`throw` 或 `finally`。本轮先完成代码，随后经用户授权执行少量定向验证，记录见本文末尾。
 
 ## 统一结果
 
@@ -11,6 +11,8 @@
 具体结果为 `int_result`、`float_result`、`str_result`、`bool_result`，字段依次为 `bool ok`、对应静态类型的 `value`、`error_info error`。成功时 error 的三个字符串均为空；失败时 value 分别为 `0`、`0.0`、`""`、`false`，调用方应先检查 ok。成功的空文本与失败可以明确区分，不使用 none 代替失败。
 
 `error.fail_io(code: str, message: str) -> void` 供 `.tx` 编写的标准库网络包装层报告可恢复的 I/O 错误；调用后进入 `io_error` 路径，调用方可按 `code` 分支处理。它不返回正常值，也不替代 `try`/`exception` 的捕获规则。
+
+运行时首次记录错误时保存当前 TX 调用栈及最近执行的语句位置。`error.stack_trace() -> str` 返回按调用顺序排列的 `函数 (文件:行:列)` 文本；在 `exception` 分支取走错误后仍可读取该次快照，下一次错误会覆盖。无错误时返回空文本。栈记录不包含实参值、文件内容或秘密正文；未捕获错误会在原中文信息后附上该栈。重新抛出的清理错误不会覆盖正在传播的原错误与原栈。
 
 ## parse 接口
 
@@ -80,3 +82,10 @@ try 块与各 exception 块拥有独立作用域，e 只在所属分支内可见
 - 非错误类型捕获和重复捕获各一个编译诊断场景，均包含源码位置。
 
 以上合计 3 个正常运行、1 个预期失败运行、2 个静态诊断；未执行全量回归或性能基准。
+
+## 2.7 实施记录
+
+- **代码：** 编译器在 TX 函数入口、返回、错误退出和语句位置更新运行时栈；首次失败保存函数与源码位置快照。`error.stack_trace()` 在捕获后返回该快照，未处理错误在原中文信息后输出栈。错误清理守卫保留原栈，避免析构期间的新错误覆盖初始原因；现有具体异常类别匹配保持原规则。
+- **构建：** `scripts/build.ps1` 在 Windows x64 成功生成编译器、静态库与兼容清单。
+- **定向验证：** `tests/stdlib/stack_trace.tx` 的三层调用在捕获后输出 `main/middle/inner` 与各自源码位置；未捕获的 `hash_key_error.tx` 在原整数除零信息后输出 `main/hash_key`。`examples/option_result.tx`、`examples/closures.tx`、`examples/parse_errors.tx` 及 `tests/bytes_file_stream/behavior.tx` 重新编译运行，覆盖结果值、闭包引用环、异常分类、文件流关闭和失败路径。未运行全量套件。
+- **边界与验收：** 映射精度为 TX 函数和最近执行的语句位置；同一语句内的子表达式目前共享该语句位置。栈只包含 TX 帧，不含原生 C++ 内部帧或实参值。当前证据限 Windows x64，后续 `debug.txh` 可以复用此栈来源。

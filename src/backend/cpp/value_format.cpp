@@ -1,6 +1,9 @@
 #include "backend/cpp/value_format.hpp"
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
+#include "stdlib/iterator.hpp"
+#include "stdlib/closure.hpp"
+#include "stdlib/cancellation.hpp"
 
 #include "stdlib/stdlib.hpp"
 #include "stdlib/bytes.hpp"
@@ -151,6 +154,14 @@ void append_value(std::string& output, const std::any& value,
     {
         output += "<text_stream>";
     }
+    else if (value.type() == typeid(cancel_source))
+    {
+        output += "<cancel_source>";
+    }
+    else if (value.type() == typeid(cancel_token))
+    {
+        output += "<cancel_token>";
+    }
     else if (value.type() == typeid(tx_array))
     {
         append_array(output, std::any_cast<const tx_array&>(value), depth);
@@ -173,6 +184,14 @@ void append_value(std::string& output, const std::any& value,
     else if (const auto* container = std::any_cast<container_handle>(&value))
     {
         output += (*container)->repr();
+    }
+    else if (const auto* iterator = std::any_cast<tx_iterator>(&value))
+    {
+        output += "<iterator<" + iterator->data().element_type + ">>";
+    }
+    else if (const auto* closure = std::any_cast<closure_handle>(&value))
+    {
+        output += "<" + closure->data().type_name + ">";
     }
     else if (!visit_vector(value, [&](const auto& vector)
     {
@@ -201,6 +220,10 @@ void append_value(std::string& output, const std::any& value,
             else if constexpr (std::is_same_v<element_type, byte_value>)
             {
                 output += "bytes(" + std::to_string(bytes_length(element)) + ")";
+            }
+            else if constexpr (std::is_same_v<element_type, std::any>)
+            {
+                append_value(output, element, true, depth + 1);
             }
             else
             {

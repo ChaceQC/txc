@@ -1,0 +1,70 @@
+struct point
+{
+    x: int
+    y: int
+
+    def operator ==(other: point) -> bool
+    {
+        return self.x == other.x && self.y == other.y
+    }
+
+    def hash_key() -> int
+    {
+        return self.x * 31 + self.y
+    }
+
+    def operator <(other: point) -> bool
+    {
+        if self.x != other.x
+        {
+            return self.x < other.x
+        }
+        return self.y < other.y
+    }
+}
+
+def compare_points(left: point, right: point) -> int
+{
+    if left < right
+    {
+        return -1
+    }
+    if right < left
+    {
+        return 1
+    }
+    return 0
+}
+
+def main() -> int
+{
+    map<point, int> scores = map<point, int>()
+    point original = point(2, 3)
+    scores[original] = 23
+    original.x = 9
+    point lookup = point(2, 3)
+    print(scores[lookup], scores.contains(original))
+
+    vector<point> keys = scores.keys()
+    keys[0].x = 100
+    print(scores[lookup])
+
+    set<point> seen = set<point>()
+    print(seen.insert(lookup), seen.contains(point(2, 3)))
+
+    map<point, float> weights = map<point, float>()
+    weights[lookup] = 2.5
+    map<point, bool> flags = map<point, bool>()
+    flags[lookup] = true
+    map<point, str> labels = map<point, str>()
+    labels[lookup] = "原点外"
+    print(weights.get(lookup, 0.0), flags[lookup], labels[lookup])
+
+    fn(point, point)->int compare = compare_points
+    print(compare(lookup, point(3, 0)))
+
+    map<float, int> zeros = map<float, int>()
+    zeros[0.0] = 7
+    print(zeros[-0.0])
+    return 0
+}

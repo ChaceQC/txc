@@ -1,0 +1,8 @@
+import "cancel.txh" as cancel
+
+def main() -> int
+{
+    cancel_source owner = cancel.source()
+    cancel.wait(cancel.token(owner), -2)
+    return 0
+}

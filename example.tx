@@ -36,7 +36,7 @@ struct record
     meta: dict
 }
 
-# struct 只声明运算符成员；self 是隐含的左操作数。
+# struct 可声明运算符及 hash_key 成员；self 是隐含的接收者。
 struct vector2
 {
     x: int

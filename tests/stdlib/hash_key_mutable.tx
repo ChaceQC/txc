@@ -1,0 +1,20 @@
+struct bad_key
+{
+    parts: array
+
+    def operator ==(other: bad_key) -> bool
+    {
+        return true
+    }
+
+    def hash_key() -> int
+    {
+        return 1
+    }
+}
+
+def main() -> int
+{
+    set<bad_key> values = set<bad_key>()
+    return values.size()
+}

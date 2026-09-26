@@ -5,6 +5,8 @@ struct error_info
     message: str
 }
 
+def stack_trace() -> str
+
 struct runtime_error
 {
     kind: str

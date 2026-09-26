@@ -1,0 +1,8 @@
+def main() -> int
+{
+    float huge = 1e308 * 1e308
+    float nan = huge - huge
+    map<float, int> values = map<float, int>()
+    values[nan] = 1
+    return 0
+}

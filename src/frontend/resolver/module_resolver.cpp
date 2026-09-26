@@ -12,7 +12,8 @@ bool is_builtin_call(const std::string& name)
 {
     return name == "print" || name == "len" || name == "input" ||
            name == "input_or_none" ||
-           name == "to_float" || name == "is_none" ||
+           name == "to_float" || name == "is_none" || name == "bind" ||
+           name == "assert_send" || name == "assert_sync" ||
            name == "self" || name == "super";
 }
 
@@ -20,6 +21,7 @@ bool is_builtin_type(const std::string& name)
 {
     return name == "int" || name == "float" || name == "str" ||
            name == "bytes" || name == "binary_stream" || name == "text_stream" ||
+           name == "cancel_source" || name == "cancel_token" ||
            name == "bool" || name == "array" || name == "dict" || name == "any" ||
            name == "none" || name == "void" || name == "unknown" ||
            name == "fn";
@@ -191,7 +193,8 @@ value_type module_resolver::resolve_type(
         return value_type::function_of(std::move(arguments),
             resolve_type(module_key, type.parameters.back(), position));
     }
-    if (type.is_vector() || type.is_typed_container())
+    if (type.is_vector() || type.is_typed_container() || type.is_sum_type() ||
+        type.is_iterator())
     {
         std::vector<value_type> arguments;
         for (const auto& argument : type.parameters)

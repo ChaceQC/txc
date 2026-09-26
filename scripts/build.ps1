@@ -178,6 +178,7 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'encoding.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file_stream.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'error.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'cancel.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'parse.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'json.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'math.txh')) -or

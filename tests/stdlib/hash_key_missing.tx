@@ -1,0 +1,15 @@
+struct bad_key
+{
+    id: int
+
+    def operator ==(other: bad_key) -> bool
+    {
+        return self.id == other.id
+    }
+}
+
+def main() -> int
+{
+    map<bad_key, int> values = map<bad_key, int>()
+    return values.size()
+}

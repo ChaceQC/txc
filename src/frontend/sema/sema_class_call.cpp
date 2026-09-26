@@ -174,6 +174,10 @@ value_type semantic_analyzer::check_method_call(
     expression& item, call_expression& call)
 {
     const auto receiver_type = check_expression(*call.receiver);
+    if (receiver_type.is_sum_type())
+    {
+        return check_sum_call(item, call, receiver_type);
+    }
     if (receiver_type.is_typed_container())
     {
         return check_container_call(item, call, receiver_type);
@@ -181,6 +185,10 @@ value_type semantic_analyzer::check_method_call(
     if (receiver_type.is_vector())
     {
         return check_vector_call(item, call, receiver_type);
+    }
+    if (receiver_type.is_iterator())
+    {
+        return check_iterator_call(item, call, receiver_type);
     }
     const auto found = classes_.find(receiver_type.name);
     if (found == classes_.end())

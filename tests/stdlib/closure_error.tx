@@ -1,0 +1,20 @@
+import "error.txh" as errors
+
+def divide(base: int, value: int) -> int
+{
+    return base / value
+}
+
+def main() -> int
+{
+    fn(int)->int bound = bind(divide, 8)
+    try
+    {
+        print(bound(0))
+    }
+    exception errors.runtime_error as e
+    {
+        print(e.kind, e.code)
+    }
+    return 0
+}

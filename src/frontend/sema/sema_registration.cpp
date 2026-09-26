@@ -14,10 +14,56 @@ bool is_builtin_name(const std::string& name)
            name == "dict" || name == "to_float" || name == "is_none" ||
            name == "input" || name == "input_or_none" ||
            name == "any" || name == "void" || name == "unknown" ||
-           name == "self" || name == "super";
+           name == "self" || name == "super" || name == "bind" ||
+           name == "assert_send" || name == "assert_sync" ||
+           name == "cancel_source" || name == "cancel_token";
 }
 
 } // namespace
+
+void semantic_analyzer::validate_key_contract(const value_type& type,
+                                               source_pos position) const
+{
+    if (type == value_type::int_type || type == value_type::float_type ||
+        type == value_type::bool_type || type == value_type::str_type)
+    {
+        return;
+    }
+    const auto found = structs_.find(type.name);
+    if (found == structs_.end())
+    {
+        throw compile_error(position,
+            "哈希键必须是内置标量或满足契约的结构体：" + type.name);
+    }
+    const auto& definition = *found->second;
+    bool has_equal = false;
+    bool has_hash = false;
+    for (const auto& method : definition.methods)
+    {
+        has_equal |= method.operator_kind == token_kind::equal_equal &&
+            method.parameters.size() == 1 &&
+            method.parameters.front().type == type &&
+            method.return_type == value_type::bool_type;
+        has_hash |= method.name == "hash_key" && !method.operator_kind &&
+            method.parameters.empty() &&
+            method.return_type == value_type::int_type;
+    }
+    if (!has_equal || !has_hash)
+    {
+        throw compile_error(position,
+            "结构体哈希键必须声明同类型的 operator ==(other: K) -> bool "
+            "和 hash_key() -> int");
+    }
+    for (const auto& field : definition.fields)
+    {
+        if (field.type == value_type::bytes_type)
+        {
+            continue;
+        }
+        // 键只含值字段，避免普通可变别名在插入后改变哈希关系。
+        validate_key_contract(field.type, position);
+    }
+}
 
 void semantic_analyzer::validate_type(const value_type& type, source_pos position) const
 {
@@ -38,17 +84,54 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         }
         return;
     }
-    if (type.is_vector() || type.is_typed_container())
+    if (type.is_vector() || type.is_iterator())
     {
-        for (const auto& element : type.parameters)
+        const auto& element = type.parameters.front();
+        if (element == value_type::void_type || element == value_type::none_type ||
+            element == value_type::any_type || element.is_function() ||
+            element.is_inferred_function())
         {
-            if (element != value_type::int_type && element != value_type::float_type &&
-                element != value_type::bool_type && element != value_type::str_type &&
-                !(type.is_vector() && element == value_type::bytes_type))
+            throw compile_error(position, type.container_name() +
+                " 元素必须是可持有的具体非函数类型");
+        }
+        validate_type(element, position);
+        return;
+    }
+    if (type.is_sum_type())
+    {
+        const auto& element = type.parameters.front();
+        if (element == value_type::none_type || element.is_function() ||
+            element.is_inferred_function() ||
+            (type.is_option() && element == value_type::void_type))
+        {
+            throw compile_error(position, type.container_name() +
+                " 类型参数必须是可持有的具体值类型");
+        }
+        if (element != value_type::void_type)
+        {
+            validate_type(element, position);
+        }
+        return;
+    }
+    if (type.is_typed_container())
+    {
+        const auto kind = type.container_name();
+        if (kind == "map" || kind == "set")
+        {
+            validate_key_contract(type.parameters.front(), position);
+        }
+        const auto first_value = kind == "map" ? 1U :
+            kind == "set" ? type.parameters.size() : 0U;
+        for (std::size_t index = first_value; index < type.parameters.size(); ++index)
+        {
+            const auto& element = type.parameters[index];
+            if (element == value_type::int_type || element == value_type::float_type ||
+                element == value_type::bool_type || element == value_type::str_type)
             {
-                throw compile_error(position, type.container_name() +
-                    " 当前支持 int、float、bool、str；vector 还支持 bytes 类型参数");
+                continue;
             }
+            throw compile_error(position, kind +
+                " 的值类型当前支持 int、float、bool、str");
         }
         return;
     }
@@ -57,6 +140,8 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         type == value_type::bytes_type ||
         type == value_type::binary_stream_type ||
         type == value_type::text_stream_type ||
+        type == value_type::cancel_source_type ||
+        type == value_type::cancel_token_type ||
         type == value_type::array_type || type == value_type::dict_type ||
         type == value_type::any_type || type == value_type::none_type ||
         structs_.contains(type.name) || classes_.contains(type.name))
@@ -80,10 +165,6 @@ void semantic_analyzer::register_structs(program& source)
         std::unordered_set<std::string> fields;
         for (const auto& field : definition.fields)
         {
-            if (field.type.is_function())
-            {
-                throw compile_error(field.position, "结构体字段暂不支持 fn 类型");
-            }
             validate_type(field.type, field.position);
             if (!fields.insert(field.name).second)
             {
@@ -114,7 +195,19 @@ void semantic_analyzer::register_structs(program& source)
                                         parameter.name);
                 }
             }
-            validate_operator_method(method);
+            if (method.name == "hash_key" && !method.operator_kind)
+            {
+                if (!method.parameters.empty() ||
+                    method.return_type != value_type::int_type)
+                {
+                    throw compile_error(method.position,
+                        "hash_key 必须声明为 def hash_key() -> int");
+                }
+            }
+            else
+            {
+                validate_operator_method(method);
+            }
             std::size_t overload = 0;
             for (std::size_t prior = 0; prior < index; ++prior)
             {

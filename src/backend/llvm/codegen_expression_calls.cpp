@@ -11,7 +11,8 @@ bool supported_external_call(std::string_view name)
 {
     return name.starts_with("httpx.") || name.starts_with("websocket.") ||
            name.starts_with("crypto.") ||
-           name == "error.fail_io" ||
+           name == "error.fail_io" || name == "error.stack_trace" ||
+           name.starts_with("cancel.") ||
            name == "io.write" || name == "io.write_line" ||
            name == "io.write_error" || name == "io.flush" ||
            name == "string.contains" || name == "string.starts_with" ||
@@ -99,7 +100,8 @@ bool is_builtin_call(std::string_view name)
 {
     return name == "print" || name == "len" || name == "is_none" ||
            name == "to_float" || name == "input" ||
-           name == "input_or_none" || name == "deep_copy";
+           name == "input_or_none" || name == "deep_copy" ||
+           name == "assert_send" || name == "assert_sync";
 }
 
 bool simple_argument(const call_argument& argument)
@@ -122,6 +124,11 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
     if (call.name == "print")
     {
         emit_print_call(item, call, arguments);
+        return {value_type::void_type, {}};
+    }
+    if (call.name == "assert_send" || call.name == "assert_sync")
+    {
+        release(arguments.front());
         return {value_type::void_type, {}};
     }
     if (call.name == "deep_copy")
@@ -321,18 +328,16 @@ llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
     const expression& item, const call_expression& call)
 {
     const auto& variable = find_variable(call.source_name, item.position);
+    const auto closure = load(variable);
     const auto pointer = temporary();
-    write_instruction(pointer + " = load ptr, ptr " + variable.address);
-    std::string parameters;
+    write_instruction(pointer + " = call ptr @txrt_closure_code(ptr " +
+                      closure.text + ")");
+    std::string parameters = "ptr " + closure.text;
     std::vector<ir_value> arguments;
     for (const auto& argument : call.arguments)
     {
         arguments.push_back(expression_value(*argument.value));
-        if (!parameters.empty())
-        {
-            parameters += ", ";
-        }
-        parameters += llvm_type(arguments.back().type, argument.position) +
+        parameters += ", " + llvm_type(arguments.back().type, argument.position) +
                       " " + arguments.back().text;
     }
     const auto invocation = "call " + llvm_type(item.type, item.position) +
@@ -344,16 +349,29 @@ llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
     if (item.type == value_type::void_type)
     {
         write_instruction(invocation);
+        release(closure);
         return {item.type, {}};
     }
     const auto result = temporary();
     write_instruction(result + " = " + invocation);
+    release(closure);
     return own_direct_value({item.type, result});
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_call(
     const expression& item, const call_expression& call)
 {
+    if ((call.container_type && call.container_type->is_sum_type()) ||
+        (call.receiver && call.receiver->type.is_sum_type()))
+    {
+        return emit_sum_call(item, call);
+    }
+    if (call.receiver && (call.receiver->type.is_iterator() ||
+        (call.receiver->type.is_vector() &&
+         (call.name == "snapshot_iter" || call.name == "live_iter"))))
+    {
+        return emit_iterator_call(item, call);
+    }
     if ((call.container_type && call.container_type->is_typed_container()) ||
         (call.receiver && call.receiver->type.is_typed_container()))
     {
@@ -407,6 +425,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
         }
         return values;
     };
+    if (call.name == "bind")
+    {
+        return emit_bind_call(item, call);
+    }
     if (is_builtin_call(call.name))
     {
         if (call.name == "len" || call.name == "is_none")

@@ -83,6 +83,7 @@ add_executable(txc
     src/frontend/resolver/module_resolver_tree.cpp
     src/frontend/sema/sema.cpp
     src/frontend/sema/sema_vector.cpp
+    src/frontend/sema/sema_sum.cpp
     src/frontend/sema/sema_container.cpp
     src/frontend/sema/sema_exception.cpp
     src/frontend/sema/sema_registration.cpp
@@ -95,10 +96,14 @@ add_executable(txc
     src/backend/llvm/codegen.cpp
     src/backend/llvm/codegen_vector.cpp
     src/backend/llvm/codegen_vector_calls.cpp
+    src/backend/llvm/codegen_sum.cpp
+    src/backend/llvm/codegen_iterator.cpp
+    src/backend/llvm/codegen_closure.cpp
     src/backend/llvm/codegen_vector_statement.cpp
     src/backend/llvm/codegen_vector_declarations.cpp
     src/backend/llvm/codegen_algorithm_declarations.cpp
     src/backend/llvm/codegen_container.cpp
+    src/backend/llvm/codegen_key.cpp
     src/backend/llvm/codegen_container_declarations.cpp
     src/backend/llvm/codegen_map.cpp
     src/backend/llvm/codegen_functions.cpp
@@ -160,6 +165,11 @@ add_library(txstdlib STATIC
     src/backend/cpp/vector_bool_abi.cpp
     src/backend/cpp/vector_str_abi.cpp
     src/backend/cpp/vector_bytes_abi.cpp
+    src/backend/cpp/vector_object_abi.cpp
+    src/backend/cpp/sum_abi.cpp
+    src/backend/cpp/iterator_abi.cpp
+    src/backend/cpp/closure_abi.cpp
+    src/backend/cpp/cancel_abi.cpp
     src/backend/cpp/vector_text_abi.cpp
     src/backend/cpp/algorithm_abi.cpp
     src/backend/cpp/map_i64_abi.cpp
@@ -167,6 +177,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/map_bool_abi.cpp
     src/backend/cpp/map_str_abi.cpp
     src/backend/cpp/set_abi.cpp
+    src/backend/cpp/object_key_abi.cpp
     src/backend/cpp/heap_abi.cpp
     src/backend/cpp/queue_abi.cpp
     src/backend/cpp/cycle_gc.cpp

@@ -1,0 +1,9 @@
+import "point.txh" as point_module
+
+def main() -> int
+{
+    map<point_module.point, int> positions = map<point_module.point, int>()
+    positions[point_module.make_point(1, 2)] = 7
+    print(positions[point_module.make_point(1, 2)])
+    return 0
+}

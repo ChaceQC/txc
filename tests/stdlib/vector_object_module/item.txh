@@ -1,0 +1,6 @@
+struct item
+{
+    value: int
+}
+
+def make_items() -> vector<item>

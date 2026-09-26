@@ -4,6 +4,9 @@
 #include "backend/cpp/value_format.hpp"
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
+#include "stdlib/iterator.hpp"
+#include "stdlib/closure.hpp"
+#include "stdlib/cancellation.hpp"
 #include "stdlib/stdlib.hpp"
 #include "stdlib/bytes.hpp"
 #include "stdlib/file_stream.hpp"
@@ -34,6 +37,18 @@ public:
             std::any result = (*container)->copy();
             copies_.emplace(container->get(), result);
             return result;
+        }
+        if (const auto* iterator = std::any_cast<tx_iterator>(&value))
+        {
+            return copy_iterator(*iterator);
+        }
+        if (const auto* closure = std::any_cast<closure_handle>(&value))
+        {
+            return copy_closure(*closure);
+        }
+        if (const auto* vector = std::any_cast<object_vector>(&value))
+        {
+            return copy_object_vector(*vector);
         }
         std::any vector_result;
         if (visit_vector(value, [&](const auto& vector)
@@ -73,6 +88,12 @@ public:
             // bytes 载荷不可变，深拷贝仍可安全共享。
             return value;
         }
+        if (value.type() == typeid(cancel_source) ||
+            value.type() == typeid(cancel_token))
+        {
+            // 取消令牌复制共享同一状态，不能复制成独立取消域。
+            return value;
+        }
         if (value.type() == typeid(binary_stream) ||
             value.type() == typeid(text_stream))
         {
@@ -96,6 +117,59 @@ public:
     }
 
 private:
+    [[nodiscard]] std::any copy_closure(const closure_handle& source)
+    {
+        if (const auto found = copies_.find(source.identity());
+            found != copies_.end())
+        {
+            return found->second;
+        }
+        const auto& state = source.data();
+        closure_handle result(closure_state{
+            state.target, state.type_name, {}, {}});
+        copies_.emplace(source.identity(), result);
+        result.data().parent = copy(state.parent);
+        result.data().captures.reserve(state.captures.size());
+        for (const auto& capture : state.captures)
+        {
+            result.data().captures.push_back(copy(capture));
+        }
+        return result;
+    }
+
+    [[nodiscard]] std::any copy_iterator(const tx_iterator& source)
+    {
+        if (const auto found = copies_.find(source.identity());
+            found != copies_.end())
+        {
+            return found->second;
+        }
+        const auto& state = source.data();
+        tx_iterator result(iterator_state{{}, state.element_type, state.index,
+            state.exhausted, state.closed});
+        copies_.emplace(source.identity(), result);
+        result.data().values = copy(state.values);
+        return result;
+    }
+
+    [[nodiscard]] std::any copy_object_vector(const object_vector& source)
+    {
+        if (const auto found = copies_.find(source.identity()); found != copies_.end())
+        {
+            return found->second;
+        }
+        object_vector result(source.data().type_name);
+        copies_.emplace(source.identity(), result);
+        auto& values = result.data().values;
+        values.reserve(source.data().values.size());
+        for (const auto& item : source.data().values)
+        {
+            values.push_back(copy(item));
+        }
+        result.data().refresh();
+        return result;
+    }
+
     [[nodiscard]] std::any copy_array(const tx_array& source)
     {
         if (const auto found = copies_.find(source.identity()); found != copies_.end())

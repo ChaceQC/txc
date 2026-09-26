@@ -1,0 +1,7 @@
+def main() -> int
+{
+    array values = [result<int>(1)]
+    auto wrong = values[0] as result<str>
+    print(wrong.is_ok())
+    return 0
+}

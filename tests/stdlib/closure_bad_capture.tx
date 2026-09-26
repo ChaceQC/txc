@@ -1,0 +1,10 @@
+def add(base: int, value: int) -> int
+{
+    return base + value
+}
+
+def main() -> int
+{
+    fn(int)->int invalid = bind(add, "wrong")
+    return invalid(1)
+}

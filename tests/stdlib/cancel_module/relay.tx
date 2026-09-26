@@ -1,0 +1,6 @@
+import "cancel.txh" as cancel
+
+def observe(value: cancel_token) -> int
+{
+    return cancel.wait(value, 0)
+}

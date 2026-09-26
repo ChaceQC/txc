@@ -1,0 +1,9 @@
+def find_number() -> option<int>
+{
+    return option<int>(23)
+}
+
+def read_number() -> result<int>
+{
+    return result<int>(42)
+}

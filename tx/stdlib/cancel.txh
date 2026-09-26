@@ -1,0 +1,6 @@
+def source() -> cancel_source
+def with_deadline_ms(timeout_ms: int) -> cancel_source
+def token(owner: cancel_source) -> cancel_token
+def cancel(owner: cancel_source) -> bool
+def status(value: cancel_token) -> int
+def wait(value: cancel_token, timeout_ms: int) -> int

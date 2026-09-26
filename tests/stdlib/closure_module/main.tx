@@ -1,0 +1,8 @@
+import "adder.txh" as adder
+
+def main() -> int
+{
+    fn(int)->int add_seven = adder.make_adder(7)
+    print(add_seven(5))
+    return 0
+}

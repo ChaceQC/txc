@@ -1,0 +1,6 @@
+def main() -> int
+{
+    assert_send(7)
+    assert_sync(true)
+    return 0
+}

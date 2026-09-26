@@ -118,7 +118,15 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     {
         if (name->function_value)
         {
-            return {item.type, callback_name(name->function_symbol, 0)};
+            const auto output = allocate(item.type, item.position);
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @txrt_closure_new(ptr " +
+                callback_name(name->function_symbol, 0) + ", ptr " +
+                global_bytes(item.type.name) + ", ptr " + output + ")");
+            write_instruction("call void @txrt_require_success(i32 " + status + ")");
+            const auto result = temporary();
+            write_instruction(result + " = load ptr, ptr " + output);
+            return {item.type, result};
         }
         return load(find_variable(name->name, item.position));
     }

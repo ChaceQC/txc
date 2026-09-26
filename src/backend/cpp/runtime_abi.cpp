@@ -114,6 +114,11 @@ extern "C" void txrt_require_success(int status) noexcept
             return;
         }
         std::cerr << "运行错误：" << tx_generated::detail::last_error << '\n';
+        for (const auto& frame : tx_generated::detail::last_error_stack)
+        {
+            std::cerr << "  位于 " << frame.function << " (" << frame.file
+                      << ':' << frame.line << ':' << frame.column << ")\n";
+        }
         if (tx_generated::detail::cleanup_in_progress())
         {
             std::_Exit(1);

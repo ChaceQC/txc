@@ -1,0 +1,1 @@
+def make_cursor() -> iterator<int>

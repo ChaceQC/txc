@@ -72,7 +72,7 @@ def check_diagnostics():
     cases = {
         "wrong_key.tx": "map 键",
         "wrong_value.tx": "heap 操作参数数量或类型不匹配",
-        "nested_type.tx": "map 当前支持 int、float、bool、str 类型参数",
+        "nested_type.tx": "map 的值类型当前支持 int、float、bool、str",
     }
     for name, message in cases.items():
         result = subprocess.run(

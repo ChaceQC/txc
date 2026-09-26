@@ -1,0 +1,9 @@
+def main() -> int
+{
+    vector<int> values = vector<int>(1, 7)
+    iterator<int> cursor = values.live_iter()
+    iterator<int> alias = cursor
+    cursor.close()
+    print(alias.next().value())
+    return 0
+}

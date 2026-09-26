@@ -1,0 +1,8 @@
+import "item.txh" as source
+
+def main() -> int
+{
+    vector<source.item> items = source.make_items()
+    print(items[0].value)
+    return 0
+}

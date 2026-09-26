@@ -1,0 +1,48 @@
+struct entry
+{
+    value: int
+}
+
+def main() -> int
+{
+    vector<int> values = vector<int>()
+    values.push_back(2)
+    values.push_back(4)
+    iterator<int> snapshot = values.snapshot_iter()
+    iterator<int> live = values.live_iter()
+    values[0] = 3
+    values.push_back(6)
+    print(snapshot.next().value(), snapshot.next().value(), snapshot.next().is_none())
+    print(live.next().value(), live.next().value(), live.next().value())
+    live.close()
+
+    iterator<int> current = values.live_iter()
+    print(current.next().value())
+    iterator<int> copied = deep_copy(current)
+    values[1] = 9
+    print(current.next().value(), copied.next().value())
+    array boxed = [copied]
+    iterator<int> restored = boxed[0] as iterator<int>
+    print(restored.next().value())
+
+    iterator<int> shifted = values.live_iter()
+    print(shifted.next().value())
+    values.erase(0)
+    print(shifted.next().value())
+    values.push_back(11)
+    print(shifted.next().value(), shifted.next().is_none())
+    values.push_back(12)
+    print(shifted.next().is_none())
+
+    vector<str> names = vector<str>()
+    names.push_back("文本")
+    iterator<str> names_iter = names.snapshot_iter()
+    names.clear()
+    print(names_iter.next().value())
+
+    vector<entry> records = vector<entry>()
+    records.push_back(entry(8))
+    iterator<entry> record_iter = records.snapshot_iter()
+    print(record_iter.next().value().value)
+    return 0
+}

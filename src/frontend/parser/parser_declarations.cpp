@@ -23,10 +23,10 @@ struct_decl parser::parse_struct()
         if (check(token_kind::keyword_def))
         {
             auto method = parse_function(interface_mode_, true);
-            if (!method.operator_kind)
+            if (!method.operator_kind && method.name != "hash_key")
             {
                 throw compile_error(method.position,
-                                    "struct 只允许声明运算符成员");
+                                    "struct 只允许声明运算符或 hash_key 成员");
             }
             method.owner_class = name;
             methods.push_back(std::move(method));

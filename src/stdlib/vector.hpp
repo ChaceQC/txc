@@ -5,7 +5,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <any>
 #include <memory>
+#include <string>
+#include <type_traits>
 #include <vector>
 
 namespace tx_generated
@@ -30,6 +33,7 @@ public:
     struct storage
     {
         vector_view view;
+        std::string type_name;
         std::vector<element_type> values;
 
         void refresh() noexcept
@@ -38,9 +42,29 @@ public:
         }
     };
 
-    tx_vector() : data_(std::make_shared<storage>())
+    explicit tx_vector(std::string type_name = {}) : data_(std::make_shared<storage>())
     {
-        note_gc_allocation();
+        data_->type_name = std::move(type_name);
+        if constexpr (std::is_same_v<element_type, std::any>)
+        {
+            // 复合元素可能指回本向量，必须进入与 array/class 相同的对象图。
+            register_gc_node(data_,
+                [](const void* value, gc_visit visit, void* context)
+                {
+                    for (const auto& item : static_cast<const storage*>(value)->values)
+                    {
+                        visit(item, context);
+                    }
+                },
+                [](void* value)
+                {
+                    static_cast<storage*>(value)->values.clear();
+                });
+        }
+        else
+        {
+            note_gc_allocation();
+        }
     }
     [[nodiscard]] storage& data() const noexcept
     {
@@ -52,7 +76,7 @@ public:
     }
     [[nodiscard]] tx_vector copy() const
     {
-        tx_vector result;
+        tx_vector result(data_->type_name);
         result.data().values = data_->values;
         result.data().refresh();
         return result;
@@ -68,5 +92,6 @@ using bool_vector = tx_vector<std::uint8_t>;
 using string_vector = tx_vector<text_reference>;
 using byte_value = std::shared_ptr<const std::vector<std::uint8_t>>;
 using bytes_vector = tx_vector<byte_value>;
+using object_vector = tx_vector<std::any>;
 
 } // namespace tx_generated

@@ -1,0 +1,12 @@
+import "cancel.txh" as cancel
+import "relay.txh" as relay
+
+def main() -> int
+{
+    cancel_source owner = cancel.source()
+    cancel_token value = cancel.token(owner)
+    print(relay.observe(value))
+    cancel.cancel(owner)
+    print(relay.observe(value))
+    return 0
+}

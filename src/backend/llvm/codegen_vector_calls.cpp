@@ -50,7 +50,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_vector_call(
             const auto& element = type.parameters.front();
             arguments.push_back({value_type::int_type, "0"});
             arguments.push_back({element,
-                element == value_type::str_type || element == value_type::bytes_type ? "null"
+                !type.is_direct_vector() || element == value_type::str_type ||
+                    element == value_type::bytes_type ? "null"
                 : element == value_type::float_type ? "0.0"
                 : element == value_type::bool_type ? "false" : "0"});
         }
@@ -63,6 +64,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_vector_call(
             parameters += ", ";
         }
         parameters += llvm_type(argument.type, item.position) + " " + argument.text;
+    }
+    if (call.container_type && !type.is_direct_vector())
+    {
+        parameters += ", ptr " + global_bytes(type.parameters.front().name);
     }
     const bool returns_value = item.type != value_type::void_type;
     const auto output = returns_value ? allocate(item.type, item.position) : "";

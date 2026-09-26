@@ -1,5 +1,5 @@
 def main() -> int
 {
-    vector<vector<int>> values = vector<vector<int>>()
+    vector<any> values = vector<any>()
     return 0
 }

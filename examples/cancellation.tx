@@ -1,0 +1,21 @@
+import "cancel.txh" as cancel
+
+def state(value: cancel_token) -> int
+{
+    return cancel.status(value)
+}
+
+def main() -> int
+{
+    cancel_source owner = cancel.source()
+    cancel_token value = cancel.token(owner)
+    cancel_token shared = deep_copy(value)
+    array boxed = [shared]
+    cancel_token recovered = boxed[0] as cancel_token
+    print(state(value), cancel.wait(value, 0))
+    print(cancel.cancel(owner), cancel.wait(recovered, -1))
+    print(cancel.cancel(owner))
+    cancel_source expired = cancel.with_deadline_ms(0)
+    print(cancel.status(cancel.token(expired)))
+    return 0
+}

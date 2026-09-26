@@ -86,15 +86,22 @@ void llvm_code_generator::emit_function(const function_decl& function)
             (void)name;
             release_slot(variable);
         }
+        body_ << "  call void @txrt_stack_pop()\n";
         write_instruction(function.return_type == value_type::void_type
             ? "ret void" : "unreachable");
         terminated_ = true;
     }
     pop_scope();
 
+    const auto display_name = function.source_name.empty()
+        ? function.name : function.source_name;
     module_ << "define " << llvm_type(function.return_type, function.position)
             << ' ' << function_name(symbol, index) << '(' << parameters
-            << ") {\nentry:\n" << allocations_.str() << body_.str() << "}\n\n";
+            << ") {\nentry:\n" << allocations_.str()
+            << "  call void @txrt_stack_push(ptr " << global_bytes(display_name)
+            << ", ptr " << global_bytes(function.position.file) << ", i64 "
+            << function.position.line << ", i64 " << function.position.column
+            << ")\n" << body_.str() << "}\n\n";
     if (function.owner_class.empty() &&
         std::all_of(function.parameters.begin(), function.parameters.end(),
             [](const parameter& item)

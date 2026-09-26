@@ -68,6 +68,8 @@ void llvm_code_generator::write_external_declarations()
         }
     }
     write_vector_declarations();
+    write_sum_declarations();
+    write_iterator_declarations();
     write_container_declarations();
     write_algorithm_declarations();
     module_ << "declare i32 @txrt_parse_try_parse_int(ptr, i64, ptr, ptr, ptr)\n"
@@ -133,6 +135,16 @@ void llvm_code_generator::write_external_declarations()
             << "declare void @txrt_error_propagation(i1)\n"
             << "declare i32 @txrt_error_take(ptr, ptr)\n"
             << "declare i32 @txrt_error_fail_io(ptr, ptr)\n";
+    module_ << "declare i32 @txrt_error_stack_trace(ptr)\n"
+            << "declare void @txrt_stack_push(ptr, ptr, i64, i64)\n"
+            << "declare void @txrt_stack_pop()\n"
+            << "declare void @txrt_stack_location(ptr, i64, i64)\n";
+    module_ << "declare i32 @txrt_cancel_source(ptr)\n"
+            << "declare i32 @txrt_cancel_with_deadline_ms(i64, ptr)\n"
+            << "declare i32 @txrt_cancel_token(ptr, ptr)\n"
+            << "declare i32 @txrt_cancel_cancel(ptr, ptr)\n"
+            << "declare i32 @txrt_cancel_status(ptr, ptr)\n"
+            << "declare i32 @txrt_cancel_wait(ptr, i64, ptr)\n";
     module_ << "declare i32 @txrt_str_concat_literal(ptr, ptr, i64, i1, ptr)\n";
     module_ << "declare i32 @txrt_string_split_vector_literal(ptr, ptr, i64, ptr)\n"
             << "declare i32 @txrt_string_join_vector_literal(ptr, ptr, i64, ptr)\n"

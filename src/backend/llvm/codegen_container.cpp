@@ -19,6 +19,16 @@ llvm_code_generator::ir_value llvm_code_generator::container_operation(
     const std::vector<ir_value>& arguments, const value_type& result_type, source_pos position)
 {
     std::string parameters;
+    const auto& key = type.parameters.front();
+    const bool object_key = (type.is_map() ||
+        type.container_name() == "set") &&
+        key != value_type::int_type && key != value_type::float_type &&
+        key != value_type::bool_type && key != value_type::str_type;
+    if (object_key && operation == "new")
+    {
+        parameters = "ptr " + global_bytes(key.name) + ", ptr " +
+            key_hash_symbol(key) + ", ptr " + key_equal_symbol(key);
+    }
     for (const auto& argument : arguments)
     {
         parameters += (parameters.empty() ? "" : ", ") +

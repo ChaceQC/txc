@@ -177,7 +177,21 @@ private:
                                               const update_expression& update);
     void emit_vector_for_each(const for_each& loop);
     void write_vector_declarations();
+    void write_sum_declarations();
+    void write_iterator_declarations();
+    [[nodiscard]] ir_value emit_sum_call(const expression& item,
+                                          const call_expression& call);
+    [[nodiscard]] ir_value emit_iterator_call(const expression& item,
+                                              const call_expression& call);
+    [[nodiscard]] ir_value emit_bind_call(const expression& item,
+                                          const call_expression& call);
+    void emit_bind_wrapper(const std::string& name,
+                           const value_type& parent_type,
+                           std::size_t captured);
     void write_container_declarations();
+    void emit_key_callbacks(const struct_decl& definition);
+    [[nodiscard]] static std::string key_hash_symbol(const value_type& type);
+    [[nodiscard]] static std::string key_equal_symbol(const value_type& type);
     void write_algorithm_declarations();
     [[nodiscard]] static std::string container_symbol(const value_type& type,
                                                       std::string_view operation);
@@ -378,6 +392,7 @@ private:
     std::size_t next_slot_ = 0;
     std::size_t next_label_ = 0;
     std::size_t next_string_ = 0;
+    std::size_t next_bind_ = 0;
     std::string random_context_slot_;
     std::string current_method_owner_;
     std::unordered_map<std::size_t, std::string> entry_scalar_field_cache_;

@@ -82,10 +82,6 @@ value_type semantic_analyzer::check_literal(expression& item)
         for (auto& element : literal->elements)
         {
             const auto type = check_expression(*element);
-            if (type.is_function())
-            {
-                throw compile_error(element->position, "数组暂不支持存放函数值");
-            }
             if (type == value_type::void_type)
             {
                 throw compile_error(element->position, "数组不能存放无返回值的调用");
@@ -102,10 +98,6 @@ value_type semantic_analyzer::check_literal(expression& item)
             throw compile_error(entry.key->position, "字典键必须是可哈希的值");
         }
         const auto value = check_expression(*entry.value);
-        if (value.is_function())
-        {
-            throw compile_error(entry.value->position, "字典暂不支持存放函数值");
-        }
         if (value == value_type::void_type)
         {
             throw compile_error(item.position, "字典不能存放无返回值的调用");
@@ -298,7 +290,9 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
 {
     if (cast.target == value_type::bytes_type ||
         cast.target == value_type::binary_stream_type ||
-        cast.target == value_type::text_stream_type)
+        cast.target == value_type::text_stream_type ||
+        cast.target == value_type::cancel_source_type ||
+        cast.target == value_type::cancel_token_type)
     {
         const auto source = check_expression(*cast.value);
         if (source != cast.target && source != value_type::any_type)
@@ -307,7 +301,10 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
         }
         return cast.target;
     }
-    if (cast.target.is_vector() || cast.target.is_typed_container())
+    if (cast.target.is_function() || cast.target.is_vector() ||
+        cast.target.is_iterator() ||
+        cast.target.is_typed_container() ||
+        cast.target.is_sum_type() || structs_.contains(cast.target.name))
     {
         validate_type(cast.target, item.position);
         const auto source = check_expression(*cast.value);

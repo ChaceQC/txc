@@ -1,0 +1,9 @@
+def add(base: int, value: int) -> int
+{
+    return base + value
+}
+
+def make_adder(base: int) -> fn(int)->int
+{
+    return bind(add, base)
+}

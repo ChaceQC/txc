@@ -1,6 +1,6 @@
 # 类型化 vector
 
-当前实现范围：`vector<int>`、`vector<float>`、`vector<bool>`、`vector<str>`、`vector<bytes>`。它们在局部变量、函数参数、返回值、结构体与类字段、`.txh` 接口中保持完整静态类型。`bytes` 为不可变字节值；其他复合元素向量仍不支持，应给出编译诊断。后续的类型化哈希容器、堆和队列见[类型化容器](typed_containers.md)。
+`vector<T>` 的元素可以是基础值、用户 `struct`/`class`、`array`/`dict` 和嵌套的内置类型化容器；`void`、`none`、未推断签名的 `fn` 和动态 `any` 不可作元素类型。完整的 `T` 在局部变量、函数参数、返回值、字段及 `.txh` 中参与静态检查。后续的类型化哈希容器、堆和队列见[类型化容器](typed_containers.md)。
 
 ## 类型和构造
 
@@ -36,7 +36,7 @@
 
 vector 的元素区采用 C++23 `std::vector<T>` 管理。整数和浮点数连续存储原生数值；字符串连续存储不可变文本引用，字符串变量和向量间传递共享文本，不逐元素装箱。长度、数据区通过 TX 自有 ABI 暴露，LLVM 不依赖 libstdc++ 的私有布局。普通数值下标读写生成直接 load/store，冷路径负责错误报告与扩容。
 
-本轮所有元素类型都不能形成引用环，向量自身不登记循环 GC；实际分配仍按现有规则触发安全点。字符串引用与外部临时句柄分别管理所有权，错误退出释放根引用，容器销毁释放内部引用，避免提前销毁共享文本。
+基础元素向量仍采用原有的连续原生值或不可变载荷引用。复合元素向量通过独立的类型化 ABI 保存复合值的共享载荷，并在动态边界检查完整元素类型；编译器仍在调用前确定 `T` 与操作，不按元素的运行时名称选择方法。复合元素在读取时取得拥有型引用，写入时复制共享引用；普通赋值保持共享。此类向量登记循环 GC，并扫描其元素中的对象引用。字符串引用与外部临时句柄分别管理所有权，错误退出释放根引用，容器销毁释放内部引用。
 
 `vector<bytes>` 的元素区连续存储不可变字节载荷的共享引用；按下标读写通过明确的 ABI 复制或替换引用，不把 C++ 共享指针的内部布局暴露给 LLVM。`deep_copy(vector<bytes>)` 创建独立向量，字节载荷仍可安全共享。`vector<bytes>(array)` 逐项检查实际值，`to_array()` 生成可独立修改的异构数组。
 
@@ -52,10 +52,17 @@ vector 的元素区采用 C++23 `std::vector<T>` 管理。整数和浮点数连�
 
 同一脚本还包含 16 项字符串借用、复合键与 UTF-8 检查。后续字符串优化让向量元素直接复制内部引用，并为只读字符串操作借用稳定的向量元素；需要保存值、经过用户回调或跨越可能修改拥有者的表达式时仍保留拥有型快照。
 
-mini-filesystem 已迁移，普通解与计时解分别通过 44/44 组正式数据。性能结果见 [性能优化记录](mini_filesystem_performance.md#类型化-vector-落地)。除后续加入的 `bytes` 外，暂不支持其他复合元素 vector、用户泛型或迭代器；这些类型不会退化为隐藏的异构数组。
+mini-filesystem 已迁移，普通解与计时解分别通过 44/44 组正式数据。性能结果见 [性能优化记录](mini_filesystem_performance.md#类型化-vector-落地)。当时除后续加入的 `bytes` 外，尚不支持其他复合元素 vector、用户泛型或迭代器；本段保留历史验证范围。
 
 2026-09-26 接口补齐：四种元素类型统一增加 `empty() -> bool`，不接受参数，直接比较当前长度是否为零。已有 `clear()` 和增删改查接口继续沿用。[类型化 vector 示例](../examples/typed_vectors.tx) 补充了判空、共享清空和独立复制的用法。
 
 同日经用户授权进行少量测试：`scripts/build.ps1` 构建通过，已更新 `tx/txc.exe` 和 `tx/libtxstdlib.a`，成功后已清理 `build/`。`python -X utf8 scripts/check_vector_empty.py` 的 4 个场景全部通过：四种元素类型的空/非空和清空、容量保留、共享与独立复制、字符串生命周期、清空后复用、class/struct 字段和接收者只求值一次；更新后的示例输出；empty 多余实参诊断；bool 结果不能赋给 int 的诊断。另运行 `python -X utf8 scripts/check_typed_containers.py example`，现有 map/set/heap/queue 示例通过，共 5/5 个场景。未运行全量回归或性能测试，未发现需要继续修改实现的问题。
 
 2026-09-26 增加 `vector<bytes>`，支持构造、增删改、遍历、`array` 互转与 `deep_copy` 的独立容器语义；字节载荷保持不可变共享。组合示例和边界场景已覆盖 `push_back`、索引读写、`to_array` 与从异构数组取回 `bytes`。其余历史验证记录仍只覆盖当时的四种元素类型；本轮未运行全量向量回归。
+
+## 2.1 复合元素扩展记录
+
+- **代码：** 内置 `vector<T>` 接受用户结构体/类、动态容器和嵌套类型化容器等具体类型；静态调用走复合元素专用 ABI，只有 `array` 转换与 `any` 恢复检查运行时类型。复合向量登记循环 GC，`deep_copy` 按对象图保留共享和环；原基础元素向量继续走原生元素 ABI。
+- **构建：** `scripts/build.ps1` 完成 Windows x64 工具链与标准库静态库构建，生成 `tx/package.compat`，成功后清理 `build/`。
+- **定向验证：** `examples/typed_vectors.tx` 编译运行，覆盖结构体元素字段读写、嵌套向量、独立复制、`any` 显式恢复及 `vector<array>` 引用环；`tests/stdlib/vector_object_module/main.tx` 跨 `.txh` 运行并输出 `17`。`tests/vectors/unsupported_element.tx` 的 `vector<any>` 在源码位置报告中文类型错误，`tests/stdlib/vector_object_type_mismatch.tx` 的动态数组元素不匹配在运行时失败。未运行全量套件。
+- **边界与验收：** 复合元素经已有 `std::any` 共享句柄保存，元素本身不是 C++ 原生结构布局；基础标量、字符串和字节向量保留连续专用布局。当前证据限于本机 Windows x64 与上述场景；2.6～2.8 的并发静态边界、调用栈与取消及终态验收仍待完成。

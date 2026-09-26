@@ -51,7 +51,7 @@ bool llvm_code_generator::is_value_handle(const value_type& type)
     return type != value_type::int_type && type != value_type::bool_type &&
            type != value_type::float_type && type != value_type::str_type &&
            type != value_type::void_type && type != value_type::unknown_type &&
-           !type.is_function();
+           !type.is_inferred_function();
 }
 
 std::string llvm_code_generator::function_name(const std::string& name,
@@ -245,7 +245,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
         borrowed = true;
         return {item.type, result};
     }
-    if (name && (is_value_handle(item.type) ||
+    if (name && !name->function_value && (is_value_handle(item.type) ||
                  item.type == value_type::str_type))
     {
         const auto variable = find_variable(name->name, item.position);
@@ -388,6 +388,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     globals_.str({});
     globals_.clear();
     next_string_ = 0;
+    next_bind_ = 0;
     virtual_slot_count_ = source.virtual_slot_count;
     recoverable_errors_ = library_mode;
     for (const auto& function : source.functions)
@@ -479,6 +480,11 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare i32 @txrt_value_print(ptr, i1)\n"
             << "declare i32 @txrt_value_require_type(ptr, ptr)\n"
             << "declare i32 @txrt_value_require_type_or_none(ptr, ptr)\n"
+            << "declare i32 @txrt_closure_new(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_closure_bind(ptr, ptr, ptr, ptr, i64, ptr)\n"
+            << "declare ptr @txrt_closure_code(ptr)\n"
+            << "declare i32 @txrt_closure_parent(ptr, ptr)\n"
+            << "declare i32 @txrt_closure_capture(ptr, i64, ptr)\n"
             << "declare i32 @txrt_array_new(i64, ptr)\n"
             << "declare ptr @txrt_array_ref(ptr)\n"
             << "declare void @txrt_array_index_error()\n"
@@ -582,6 +588,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
         {
             emit_function(method);
         }
+        emit_key_callbacks(definition);
     }
     for (const auto& definition : source.classes)
     {

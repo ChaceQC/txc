@@ -6,6 +6,12 @@ struct vector_holder
     names: vector<str>
 }
 
+struct vector_point
+{
+    x: int
+    y: int
+}
+
 def append_name(names: vector<str>, name: str)
 {
     names.push_back(name)
@@ -34,5 +40,25 @@ def main() -> int
     // clear 影响共享向量，deep_copy 得到的独立向量仍保留元素。
     print(ids.empty(), holder.ids.empty(), copied.ids.empty())
     print(vector<float>().empty(), vector<bool>().empty(), vector<str>().empty())
+    vector<vector_point> points = vector<vector_point>()
+    points.push_back(vector_point(3, 4))
+    auto shared_point = points[0]
+    shared_point.x = 8
+    print(points[0].x)
+    auto independent_points = deep_copy(points)
+    independent_points[0].x = 12
+    print(points[0].x, independent_points[0].x)
+    vector<vector<int>> groups = vector<vector<int>>()
+    groups.push_back(vector<int>(1, 5))
+    print(groups[0][0])
+    array dynamic_values = [points]
+    auto restored = dynamic_values[0] as vector<vector_point>
+    print(restored[0].y)
+    // 动态数组与复合向量可形成环；深拷贝保留环，作用域结束时由 GC 回收。
+    vector<array> cycle = vector<array>()
+    array ring = [cycle]
+    cycle.push_back(ring)
+    auto copied_cycle = deep_copy(cycle)
+    print(len(copied_cycle))
     return 0
 }

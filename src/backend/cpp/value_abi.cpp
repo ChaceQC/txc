@@ -1,6 +1,9 @@
 #include "backend/cpp/value_abi.hpp"
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
+#include "stdlib/iterator.hpp"
+#include "stdlib/closure.hpp"
+#include "stdlib/cancellation.hpp"
 
 #include "backend/cpp/runtime.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
@@ -264,7 +267,18 @@ extern "C" int txrt_value_require_type(const void* value,
                 typeid(tx_generated::binary_stream)) ||
             (type == "text_stream" && item.type() ==
                 typeid(tx_generated::text_stream)) ||
+            (type == "cancel_source" && item.type() ==
+                typeid(tx_generated::cancel_source)) ||
+            (type == "cancel_token" && item.type() ==
+                typeid(tx_generated::cancel_token)) ||
             tx_generated::vector_matches(item, type) ||
+            (item.type() == typeid(tx_generated::tx_iterator) &&
+             type == "iterator<" +
+                 std::any_cast<const tx_generated::tx_iterator&>(item)
+                     .data().element_type + ">") ||
+            (item.type() == typeid(tx_generated::closure_handle) &&
+             type == std::any_cast<const tx_generated::closure_handle&>(item)
+                         .data().type_name) ||
             tx_generated::container_matches(item, type) ||
             (type == "array" && item.type() == typeid(tx_generated::tx_array)) ||
             (type == "dict" && item.type() == typeid(tx_generated::tx_dict)) ||

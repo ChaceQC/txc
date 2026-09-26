@@ -1,0 +1,9 @@
+import "outcome.txh" as outcome
+
+def main() -> int
+{
+    auto maybe = outcome.find_number()
+    auto result = outcome.read_number()
+    print(maybe.value(), result.value())
+    return 0
+}
