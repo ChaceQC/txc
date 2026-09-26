@@ -16,20 +16,26 @@ int precedence(token_kind kind)
         return 1;
     case token_kind::and_and:
         return 2;
+    case token_kind::pipe:
+        return 3;
+    case token_kind::caret:
+        return 4;
+    case token_kind::ampersand:
+        return 5;
     case token_kind::equal_equal:
     case token_kind::bang_equal:
-        return 3;
+        return 6;
     case token_kind::less:
     case token_kind::less_equal:
     case token_kind::greater:
     case token_kind::greater_equal:
-        return 4;
+        return 7;
     case token_kind::plus:
     case token_kind::minus:
-        return 5;
+        return 8;
     case token_kind::star:
     case token_kind::slash:
-        return 6;
+        return 9;
     default:
         return -1;
     }

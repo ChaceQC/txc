@@ -279,7 +279,14 @@ struct parameter
     value_type type;
     source_pos position;
     parameter_kind kind = parameter_kind::ordinary;
+    std::shared_ptr<expression> default_value;
 };
+
+[[nodiscard]] inline bool parameter_is_nullable(const parameter& value)
+{
+    return value.default_value &&
+        std::holds_alternative<none_literal>(value.default_value->data);
+}
 
 struct struct_field
 {
@@ -364,6 +371,9 @@ struct class_decl
     case token_kind::minus: return "$operator_minus";
     case token_kind::star: return "$operator_multiply";
     case token_kind::slash: return "$operator_divide";
+    case token_kind::ampersand: return "$operator_bit_and";
+    case token_kind::caret: return "$operator_bit_xor";
+    case token_kind::pipe: return "$operator_bit_or";
     case token_kind::equal_equal: return "$operator_equal";
     case token_kind::bang_equal: return "$operator_not_equal";
     case token_kind::less: return "$operator_less";
@@ -393,6 +403,7 @@ struct module_scope
 {
     std::string key;
     std::vector<module_import_binding> imports;
+    std::string symbol_prefix;
 };
 
 struct program

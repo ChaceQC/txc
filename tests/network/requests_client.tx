@@ -1,0 +1,91 @@
+import "error.txh" as errors
+import "requests.txh" as requests
+import "string.txh" as strings
+
+def main() -> int
+{
+    str root = "http://127.0.0.1:19741"
+    bool invalid_name_rejected = false
+    try
+    {
+        requests.post(root + "/multipart", files={"bad\\": "x"})
+    }
+    exception errors.io_error as failure
+    {
+        invalid_name_rejected = failure.code == "invalid_argument"
+    }
+    if !invalid_name_rejected
+    {
+        return 8
+    }
+    auto se = requests.session()
+    auto initial = se.get(root + "/set")
+    if initial.status_code != 200 || initial.cookies["sid"] != "abc"
+    {
+        return 1
+    }
+
+    dict params = {}
+    params["q"] = "你好"
+    auto visited = se.request("GET", root + "/echo", params=params,
+                              headers={"x-test": "ok"})
+    str text = visited.text()
+    if (!strings.contains(text, "q=%E4%BD%A0%E5%A5%BD") ||
+        !strings.contains(text, "cookie=sid=abc") ||
+        !strings.contains(text, "custom=ok"))
+    {
+        return 2
+    }
+
+    auto posted = requests.post(root + "/echo", data="hello",
+                                cookies={"one": "1"}, auth=["u", "p"],
+                                timeout=2, verify=true, stream=false)
+    if (!strings.contains(posted.text(), "POST /echo cookie=one=1") ||
+        !strings.contains(posted.text(), "auth=Basic dTpw") ||
+        !strings.contains(posted.text(), "body=hello"))
+    {
+        return 3
+    }
+
+    auto json_reply = requests.post(root + "/json_echo", json={"n": 2})
+    dict decoded = json_reply.json()
+    int number = decoded["n"]
+    if number != 2
+    {
+        return 4
+    }
+
+    auto uploaded = requests.post(root + "/multipart",
+                                  data={"tag": "x"},
+                                  files={"doc": ["a.txt", "hello", "text/plain"]})
+    str multipart = uploaded.text()
+    if (!strings.contains(multipart, "multipart/form-data; boundary=") ||
+        !strings.contains(multipart, "name=\"tag\"") ||
+        !strings.contains(multipart, "filename=\"a.txt\"") ||
+        !strings.contains(multipart, "hello"))
+    {
+        return 7
+    }
+
+    auto redirected = se.get(root + "/redirect")
+    if (redirected.status_code != 200 || len(redirected.history) != 1 ||
+        redirected.url != root + "/echo")
+    {
+        return 5
+    }
+
+    auto missing = requests.get(root + "/missing",
+                                requests.default_options())
+    try
+    {
+        missing.raise_for_status()
+    }
+    exception errors.io_error as failure
+    {
+        if failure.code == "http_error"
+        {
+            return 0
+        }
+    }
+    return 6
+}

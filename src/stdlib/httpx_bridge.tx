@@ -1,0 +1,18 @@
+import "httpx.txh" as httpx
+
+# 此函数在构建时编入 libtxstdlib.a；处理函数签名由 TX 编译器检查。
+def bridge_serve_once(server: httpx.listener,
+                      handler: fn(httpx.request) -> httpx.response,
+                      timeout_ms: int) -> void
+{
+    httpx.request incoming = httpx.accept(server, timeout_ms)
+    httpx.respond(incoming.connection, handler(incoming))
+}
+
+def bridge_serve_once_bytes(server: httpx.listener,
+                            handler: fn(httpx.binary_request) -> httpx.binary_response,
+                            timeout_ms: int) -> void
+{
+    httpx.binary_request incoming = httpx.accept_bytes(server, timeout_ms)
+    httpx.respond_bytes(incoming.connection, handler(incoming))
+}

@@ -1,0 +1,74 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "httpx.txh" as httpx
+import "string.txh" as strings
+
+def reply(incoming: httpx.binary_request) -> httpx.binary_response
+{
+    map<str, str> headers = map<str, str>()
+    vector<str> set_cookie = vector<str>()
+    int status = 200
+    bytes body = byte_values.empty()
+    if incoming.target == "/set"
+    {
+        set_cookie.push_back("sid=abc; Path=/; HttpOnly")
+    }
+    else if incoming.target == "/redirect"
+    {
+        status = 302
+        headers["location"] = "/echo"
+    }
+    else if incoming.target == "/json_echo"
+    {
+        headers["content-type"] = "application/json"
+        body = incoming.body
+    }
+    else if incoming.target == "/multipart"
+    {
+        str content_type = incoming.headers["content-type"]
+        body = encoding.encode(content_type + "|" +
+                               encoding.decode(incoming.body, "utf-8"), "utf-8")
+    }
+    else if strings.starts_with(incoming.target, "/echo")
+    {
+        str cookie = ""
+        str custom = ""
+        str auth = ""
+        if incoming.headers.contains("cookie")
+        {
+            cookie = incoming.headers["cookie"]
+        }
+        if incoming.headers.contains("x-test")
+        {
+            custom = incoming.headers["x-test"]
+        }
+        if incoming.headers.contains("authorization")
+        {
+            auth = incoming.headers["authorization"]
+        }
+        str content = (incoming.method + " " + incoming.target +
+                       " cookie=" + cookie + " custom=" + custom +
+                       " auth=" + auth +
+                       " body=" + encoding.decode(incoming.body, "utf-8"))
+        body = encoding.encode(content, "utf-8")
+    }
+    else
+    {
+        status = 404
+    }
+    return httpx.binary_response(status, headers, set_cookie, body)
+}
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen("127.0.0.1", 19741)
+    int handled = 0
+    while handled < 8
+    {
+        httpx.binary_request incoming = httpx.accept_bytes(server, 10000)
+        httpx.respond_bytes(incoming.connection, reply(incoming))
+        handled++
+    }
+    httpx.close(server)
+    return 0
+}

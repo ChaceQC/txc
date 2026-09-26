@@ -1,0 +1,16 @@
+import "websocket.txh" as ws
+import "bytes.txh" as byte_values
+
+def main() -> int
+{
+    ws.connection peer = ws.connect("ws://127.0.0.1:19735/", 5000)
+    bytes payload = byte_values.from_hex("00ff80e4bda0")
+    ws.send_binary(peer, payload)
+    ws.binary_message incoming = ws.receive_binary(peer, 5000)
+    ws.close(peer)
+    if !incoming.open || incoming.data != payload
+    {
+        return 1
+    }
+    return 0
+}

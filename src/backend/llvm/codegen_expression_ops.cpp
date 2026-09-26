@@ -255,6 +255,16 @@ llvm_code_generator::ir_value llvm_code_generator::emit_binary(
 
     if (type == value_type::int_type)
     {
+        const auto* bitwise = kind == token_kind::ampersand ? "and"
+            : kind == token_kind::caret ? "xor"
+            : kind == token_kind::pipe ? "or" : nullptr;
+        if (bitwise)
+        {
+            const auto result = temporary();
+            write_instruction(result + " = " + bitwise + " i64 " +
+                              left.text + ", " + right.text);
+            return {item.type, result};
+        }
         if (kind == token_kind::plus || kind == token_kind::minus ||
             kind == token_kind::star || kind == token_kind::slash)
         {

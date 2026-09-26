@@ -1,0 +1,28 @@
+import "httpx.txh" as httpx
+import "websocket.txh" as ws
+
+def handle(request: httpx.request) -> httpx.response
+{
+    return httpx.response(200, map<str, str>(), vector<str>(), request.target)
+}
+
+def echo(text: str) -> str
+{
+    return text
+}
+
+def main() -> int
+{
+    if false
+    {
+        httpx.listener server = httpx.listen("127.0.0.1", 19731)
+        httpx.serve_once(server, handle, 1000)
+        httpx.close(server)
+        ws.listener endpoint = ws.listen("127.0.0.1", 19732)
+        ws.connection peer = ws.accept(endpoint, 1000)
+        ws.reply_once(peer, echo, 1000)
+        ws.close(peer)
+        ws.close(endpoint)
+    }
+    return 0
+}

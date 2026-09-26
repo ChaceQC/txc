@@ -1,0 +1,24 @@
+import "websocket.txh" as websocket
+import "file_stream.txh" as streams
+
+def main() -> int
+{
+    websocket.listener server = websocket.listen("127.0.0.1", 19737)
+    websocket.connection peer = websocket.accept(server, 15000)
+    binary_stream target = streams.open_binary("tx_build/ws_stream_received.bin", "write")
+    websocket.stream_message message = websocket.receive_binary_stream(
+        peer, target, 16 * 1024 * 1024, 15000)
+    streams.close(target)
+    if !message.open || message.length <= 8 * 1024 * 1024
+    {
+        websocket.close(peer)
+        websocket.close(server)
+        return 1
+    }
+    binary_stream source = streams.open_binary("tx_build/ws_stream_received.bin", "read")
+    websocket.send_binary_stream(peer, source, message.length)
+    streams.close(source)
+    websocket.close(peer)
+    websocket.close(server)
+    return 0
+}

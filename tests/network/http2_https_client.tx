@@ -1,0 +1,11 @@
+import "httpx.txh" as httpx
+
+def main() -> int
+{
+    httpx.response response = httpx.get_http2("https://nghttp2.org/httpbin/get", 15000)
+    if response.status != 200
+    {
+        return 1
+    }
+    return 0
+}

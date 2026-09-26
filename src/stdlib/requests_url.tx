@@ -1,0 +1,219 @@
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "string.txh" as strings
+
+def encode_component(value: str, plus_space: bool) -> str
+{
+    bytes data = encoding.encode(value, "utf-8")
+    vector<str> pieces = vector<str>()
+    pieces.reserve(len(data))
+    str digits = "0123456789ABCDEF"
+    int index = 0
+    while index < len(data)
+    {
+        int item = data[index]
+        bool unreserved = ((item >= 65 && item <= 90) ||
+                           (item >= 97 && item <= 122) ||
+                           (item >= 48 && item <= 57) ||
+                           item == 45 || item == 46 || item == 95 || item == 126)
+        if unreserved
+        {
+            pieces.push_back(ascii_char(item))
+        }
+        else if plus_space && item == 32
+        {
+            pieces.push_back("+")
+        }
+        else
+        {
+            pieces.push_back("%" +
+                strings.slice(digits, item / 16, item / 16 + 1) +
+                strings.slice(digits, item - item / 16 * 16,
+                              item - item / 16 * 16 + 1))
+        }
+        index++
+    }
+    return strings.join(pieces, "")
+}
+
+def ascii_char(value: int) -> str
+{
+    str alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+    int index = 0
+    if value >= 65 && value <= 90
+    {
+        index = value - 65
+    }
+    else if value >= 97 && value <= 122
+    {
+        index = value - 97 + 26
+    }
+    else if value >= 48 && value <= 57
+    {
+        index = value - 48 + 52
+    }
+    else if value == 45
+    {
+        index = 62
+    }
+    else if value == 46
+    {
+        index = 63
+    }
+    else if value == 95
+    {
+        index = 64
+    }
+    else
+    {
+        index = 65
+    }
+    return strings.slice(alphabet, index, index + 1)
+}
+
+def encode_fields(values: map<str, str>, plus_space: bool) -> str
+{
+    vector<str> pieces = vector<str>()
+    pieces.reserve(values.size())
+    for key in values
+    {
+        pieces.push_back(encode_component(key, plus_space) + "=" +
+                         encode_component(values[key], plus_space))
+    }
+    return strings.join(pieces, "&")
+}
+
+def strip_fragment(url: str) -> str
+{
+    int marker = strings.find(url, "#")
+    if marker >= 0
+    {
+        return strings.slice(url, 0, marker)
+    }
+    return url
+}
+
+def append_params(url: str, values: map<str, str>) -> str
+{
+    if values.empty()
+    {
+        return url
+    }
+    str plain = strip_fragment(url)
+    str fragment = strings.slice(url, len(plain), len(url))
+    str separator = "?"
+    if strings.contains(plain, "?")
+    {
+        separator = "&"
+        if strings.ends_with(plain, "?") || strings.ends_with(plain, "&")
+        {
+            separator = ""
+        }
+    }
+    return plain + separator + encode_fields(values, false) + fragment
+}
+
+def origin(url: str) -> str
+{
+    int scheme_end = strings.find(url, "://")
+    if scheme_end < 0
+    {
+        errors.fail_io("invalid_url", "URL 缺少 http:// 或 https://")
+    }
+    int start = scheme_end + 3
+    int end = start
+    while (end < len(url) &&
+           strings.slice(url, end, end + 1) != "/" &&
+           strings.slice(url, end, end + 1) != "?" &&
+           strings.slice(url, end, end + 1) != "#")
+    {
+        end++
+    }
+    if end == start
+    {
+        errors.fail_io("invalid_url", "URL 缺少主机")
+    }
+    return strings.lower(strings.slice(url, 0, end))
+}
+
+def host(url: str) -> str
+{
+    str root = origin(url)
+    int start = strings.find(root, "://") + 3
+    str authority = strings.slice(root, start, len(root))
+    int user = strings.find(authority, "@")
+    if user >= 0
+    {
+        authority = strings.slice(authority, user + 1, len(authority))
+    }
+    if strings.starts_with(authority, "[")
+    {
+        int close = strings.find(authority, "]")
+        if close >= 0
+        {
+            return strings.slice(authority, 0, close + 1)
+        }
+    }
+    int port = strings.find(authority, ":")
+    if port >= 0
+    {
+        return strings.slice(authority, 0, port)
+    }
+    return authority
+}
+
+def path(url: str) -> str
+{
+    int start = len(origin(url))
+    if start >= len(url) || strings.slice(url, start, start + 1) != "/"
+    {
+        return "/"
+    }
+    int end = start
+    while (end < len(url) &&
+           strings.slice(url, end, end + 1) != "?" &&
+           strings.slice(url, end, end + 1) != "#")
+    {
+        end++
+    }
+    return strings.slice(url, start, end)
+}
+
+def resolve_location(base: str, location: str) -> str
+{
+    if (strings.starts_with(location, "http://") ||
+        strings.starts_with(location, "https://"))
+    {
+        return location
+    }
+    str root = origin(base)
+    if strings.starts_with(location, "//")
+    {
+        int marker = strings.find(root, "://")
+        return strings.slice(root, 0, marker + 1) + location
+    }
+    if strings.starts_with(location, "/")
+    {
+        return root + location
+    }
+    str current = path(base)
+    if strings.starts_with(location, "?")
+    {
+        return root + current + location
+    }
+    if strings.starts_with(location, "#")
+    {
+        return strip_fragment(base) + location
+    }
+    int slash = 0
+    int index = 0
+    while index < len(current)
+    {
+        if strings.slice(current, index, index + 1) == "/"
+        {
+            slash = index
+        }
+        index++
+    }
+    return root + strings.slice(current, 0, slash + 1) + location
+}

@@ -1,0 +1,47 @@
+import "httpx.txh" as httpx
+import "file_stream.txh" as streams
+import "bytes.txh" as byte_values
+import "fs.txh" as fs
+
+def main() -> int
+{
+    bytes block = byte_values.from_hex("00ff80")
+    int i = 0
+    while i < 15
+    {
+        block = byte_values.concat(block, block)
+        i = i + 1
+    }
+    int length = len(block) * 86
+    binary_stream output = streams.open_binary("tx_build/http2_stream_source.bin", "write")
+    i = 0
+    while i < 86
+    {
+        streams.write_bytes(output, block)
+        i = i + 1
+    }
+    streams.close(output)
+    binary_stream source = streams.open_binary("tx_build/http2_stream_source.bin", "read")
+    binary_stream target = streams.open_binary("tx_build/http2_stream_response.bin", "write")
+    httpx.stream_response response = httpx.send_http2_stream("POST",
+        "http://127.0.0.1:19740/", map<str, str>(), source, length,
+        target, 16 * 1024 * 1024, 15000)
+    streams.close(source)
+    streams.close(target)
+    if response.status != 200 || response.body_length != length || fs.file_size("tx_build/http2_stream_response.bin") != length
+    {
+        return 1
+    }
+    binary_stream check = streams.open_binary("tx_build/http2_stream_response.bin", "read")
+    if streams.read_bytes(check, 3).data != byte_values.from_hex("00ff80")
+    {
+        return 2
+    }
+    streams.seek(check, length - 3, "start")
+    if streams.read_bytes(check, 3).data != byte_values.from_hex("00ff80")
+    {
+        return 3
+    }
+    streams.close(check)
+    return 0
+}

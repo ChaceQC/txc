@@ -1,0 +1,245 @@
+import "requests.txh" as api
+import "dictionary.txh" as dictionary
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "json.txh" as json_values
+import "requests_multipart.tx" as multipart
+import "requests_url.tx" as urls
+
+def dict_map(plain: dict) -> map<str, str>
+{
+    map<str, str> result = map<str, str>()
+    for key in plain
+    {
+        str name = key
+        str item = plain[name]
+        result[name] = item
+    }
+    return result
+}
+
+def string_map(value: any) -> map<str, str>
+{
+    try
+    {
+        map<str, str> typed = value as map<str, str>
+        return typed
+    }
+    exception errors.runtime_error as ignored
+    {
+        dict plain = value
+        return dict_map(plain)
+    }
+}
+
+def set_data(options: api.request_options, value: any) -> void
+{
+    try
+    {
+        bytes raw = value as bytes
+        options.body = raw
+        options.body_type = "raw"
+        return
+    }
+    exception errors.runtime_error as ignored
+    {
+    }
+    try
+    {
+        map<str, str> fields = string_map(value)
+        options.body = encoding.encode(urls.encode_fields(fields, true), "utf-8")
+        options.body_type = "form"
+        return
+    }
+    exception errors.runtime_error as ignored
+    {
+    }
+    str plain = value
+    options.body = encoding.encode(plain, "utf-8")
+    options.body_type = "raw"
+}
+
+def set_auth(options: api.request_options, value: any) -> void
+{
+    array pair = value
+    if len(pair) != 2
+    {
+        errors.fail_io("invalid_argument", "auth 需要用户名和密码两个值")
+    }
+    str username = pair[0]
+    str password = pair[1]
+    options.basic_auth = true
+    options.auth_user = username
+    options.auth_password = password
+}
+
+def set_timeout(options: api.request_options, value: any) -> void
+{
+    float seconds = value as float
+    if seconds <= 0.0 || !(seconds > 0.0)
+    {
+        errors.fail_io("invalid_argument", "timeout 必须为正数")
+    }
+    options.timeout_ms = (seconds * 1000.0) as int
+    if options.timeout_ms <= 0
+    {
+        options.timeout_ms = 1
+    }
+}
+
+def apply_one(options: api.request_options, name: str, value: any) -> void
+{
+    if name == "headers"
+    {
+        options.headers = string_map(value)
+    }
+    else if name == "cookies"
+    {
+        options.cookies = string_map(value)
+    }
+    else if name == "params"
+    {
+        options.params = string_map(value)
+    }
+    else if name == "data"
+    {
+        set_data(options, value)
+    }
+    else if name == "json"
+    {
+        options.body = encoding.encode(json_values.stringify(value), "utf-8")
+        options.body_type = "json"
+    }
+    else if name == "timeout"
+    {
+        set_timeout(options, value)
+    }
+    else if name == "timeout_ms"
+    {
+        options.timeout_ms = value as int
+    }
+    else if name == "max_redirects"
+    {
+        options.max_redirects = value as int
+    }
+    else if name == "allow_redirects"
+    {
+        options.allow_redirects = value as bool
+    }
+    else if name == "http2"
+    {
+        options.http2 = value as bool
+    }
+    else if name == "auth"
+    {
+        set_auth(options, value)
+    }
+    else if name == "stream"
+    {
+        bool enabled = value as bool
+        if enabled
+        {
+            errors.fail_io("unsupported_option", "stream=True 需要惰性响应接口")
+        }
+    }
+    else if name == "verify"
+    {
+        bool enabled = value as bool
+        if !enabled
+        {
+            errors.fail_io("unsupported_option", "不支持关闭 TLS 证书校验")
+        }
+    }
+    else if name == "files"
+    {
+        return
+    }
+    else if (name == "proxies" || name == "hooks" || name == "cert")
+    {
+        errors.fail_io("unsupported_option", "暂不支持 Python Requests 参数：" + name)
+    }
+    else
+    {
+        errors.fail_io("invalid_argument", "requests 不支持命名参数：" + name)
+    }
+}
+
+def apply(options: api.request_options, kwargs: dict) -> api.request_options
+{
+    if (dictionary.contains(kwargs, "data") && !is_none(kwargs["data"]) &&
+        dictionary.contains(kwargs, "json") && !is_none(kwargs["json"]))
+    {
+        errors.fail_io("invalid_argument", "data 和 json 不能同时提供")
+    }
+    if (dictionary.contains(kwargs, "timeout") &&
+        !is_none(kwargs["timeout"]) &&
+        dictionary.contains(kwargs, "timeout_ms") &&
+        !is_none(kwargs["timeout_ms"]))
+    {
+        errors.fail_io("invalid_argument", "timeout 和 timeout_ms 不能同时提供")
+    }
+    bool has_files = (dictionary.contains(kwargs, "files") &&
+                      !is_none(kwargs["files"]))
+    if (has_files && dictionary.contains(kwargs, "json") &&
+        !is_none(kwargs["json"]))
+    {
+        errors.fail_io("invalid_argument", "files 和 json 不能同时提供")
+    }
+    for key in kwargs
+    {
+        str name = key
+        if !is_none(kwargs[name]) && !(has_files && name == "data")
+        {
+            apply_one(options, name, kwargs[name])
+        }
+    }
+    if has_files
+    {
+        map<str, str> fields = map<str, str>()
+        if dictionary.contains(kwargs, "data") && !is_none(kwargs["data"])
+        {
+            try
+            {
+                fields = string_map(kwargs["data"])
+            }
+            exception errors.runtime_error as ignored
+            {
+                errors.fail_io("invalid_argument", "files 的 data 需要字段字典")
+            }
+        }
+        dict entries = kwargs["files"]
+        multipart.encode(options, entries, fields)
+    }
+    return options
+}
+
+def add_if_present(kwargs: dict, name: str, value: any) -> void
+{
+    if !is_none(value)
+    {
+        kwargs[name] = value
+    }
+}
+
+def collect_request(params: any, data: any, headers: any, cookies: any,
+                    files: any, auth: any, timeout: any,
+                    allow_redirects: any, proxies: any, hooks: any,
+                    stream: any, verify: any, cert: any, json: any,
+                    kwargs: dict) -> dict
+{
+    add_if_present(kwargs, "params", params)
+    add_if_present(kwargs, "data", data)
+    add_if_present(kwargs, "headers", headers)
+    add_if_present(kwargs, "cookies", cookies)
+    add_if_present(kwargs, "files", files)
+    add_if_present(kwargs, "auth", auth)
+    add_if_present(kwargs, "timeout", timeout)
+    add_if_present(kwargs, "allow_redirects", allow_redirects)
+    add_if_present(kwargs, "proxies", proxies)
+    add_if_present(kwargs, "hooks", hooks)
+    add_if_present(kwargs, "stream", stream)
+    add_if_present(kwargs, "verify", verify)
+    add_if_present(kwargs, "cert", cert)
+    add_if_present(kwargs, "json", json)
+    return kwargs
+}

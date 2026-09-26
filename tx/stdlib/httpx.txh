@@ -1,0 +1,90 @@
+struct listener
+{
+    id: int
+}
+
+struct connection
+{
+    id: int
+}
+
+struct request
+{
+    connection: connection
+    method: str
+    target: str
+    headers: map<str, str>
+    body: str
+}
+
+struct response
+{
+    status: int
+    headers: map<str, str>
+    set_cookie: vector<str>
+    body: str
+}
+
+struct binary_request
+{
+    connection: connection
+    method: str
+    target: str
+    headers: map<str, str>
+    body: bytes
+}
+
+struct binary_response
+{
+    status: int
+    headers: map<str, str>
+    set_cookie: vector<str>
+    body: bytes
+}
+
+struct stream_request
+{
+    connection: connection
+    method: str
+    target: str
+    headers: map<str, str>
+    body_length: int
+}
+
+struct stream_response
+{
+    status: int
+    headers: map<str, str>
+    set_cookie: vector<str>
+    body_length: int
+}
+
+def send(method: str, url: str, headers: map<str, str>, body: str, timeout_ms: int) -> response
+def get(url: str, timeout_ms: int) -> response
+def post(url: str, body: str, timeout_ms: int) -> response
+def send_bytes(method: str, url: str, headers: map<str, str>, body: bytes, timeout_ms: int) -> binary_response
+def get_bytes(url: str, timeout_ms: int) -> binary_response
+def post_bytes(url: str, body: bytes, timeout_ms: int) -> binary_response
+def send_http2(method: str, url: str, headers: map<str, str>, body: str, timeout_ms: int) -> response
+def get_http2(url: str, timeout_ms: int) -> response
+def post_http2(url: str, body: str, timeout_ms: int) -> response
+def send_http2_bytes(method: str, url: str, headers: map<str, str>, body: bytes, timeout_ms: int) -> binary_response
+def get_http2_bytes(url: str, timeout_ms: int) -> binary_response
+def post_http2_bytes(url: str, body: bytes, timeout_ms: int) -> binary_response
+def send_stream(method: str, url: str, headers: map<str, str>, source: binary_stream, source_length: int, destination: binary_stream, max_response_bytes: int, timeout_ms: int) -> stream_response
+def get_stream(url: str, destination: binary_stream, max_response_bytes: int, timeout_ms: int) -> stream_response
+def send_http2_stream(method: str, url: str, headers: map<str, str>, source: binary_stream, source_length: int, destination: binary_stream, max_response_bytes: int, timeout_ms: int) -> stream_response
+def get_http2_stream(url: str, destination: binary_stream, max_response_bytes: int, timeout_ms: int) -> stream_response
+def listen(host: str, port: int) -> listener
+def listen_h2c(host: str, port: int) -> listener
+def listen_h2_tls(host: str, port: int, cert_pem: str, key_pem: str) -> listener
+def accept(server: listener, timeout_ms: int) -> request
+def accept_bytes(server: listener, timeout_ms: int) -> binary_request
+def accept_stream(server: listener, destination: binary_stream, max_request_bytes: int, timeout_ms: int) -> stream_request
+def respond(peer: connection, value: response) -> void
+def respond_bytes(peer: connection, value: binary_response) -> void
+def respond_stream(peer: connection, status: int, headers: map<str, str>, set_cookie: vector<str>, source: binary_stream, body_length: int) -> void
+def serve_once(server: listener, handler: fn(request) -> response, timeout_ms: int) -> void
+def serve_once_bytes(server: listener, handler: fn(binary_request) -> binary_response, timeout_ms: int) -> void
+def close(server: listener) -> void
+def close(peer: connection) -> void

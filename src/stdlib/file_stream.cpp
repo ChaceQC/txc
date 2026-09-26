@@ -112,6 +112,13 @@ void stream_file::require_open() const
 
 std::string stream_file::read(std::size_t size)
 {
+    std::string result(size, '\0');
+    result.resize(read_into(result.data(), size));
+    return result;
+}
+
+std::size_t stream_file::read_into(char* destination, std::size_t size)
+{
     require_open();
     if (mode_ != stream_mode::read && mode_ != stream_mode::update)
     {
@@ -121,15 +128,13 @@ std::string stream_file::read(std::size_t size)
     {
         io_failure("invalid_seek", "切换读写方向前需要 seek 或 flush");
     }
-    std::string result(size, '\0');
-    const auto count = std::fread(result.data(), 1, size, file_);
+    const auto count = std::fread(destination, 1, size, file_);
     if (std::ferror(file_))
     {
         io_failure("operation_failed", "读取文件流失败");
     }
-    result.resize(count);
     last_ = direction::read;
-    return result;
+    return count;
 }
 
 void stream_file::write(std::string_view data)

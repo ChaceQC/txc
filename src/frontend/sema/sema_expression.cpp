@@ -168,6 +168,14 @@ value_type semantic_analyzer::check_binary(expression& item,
             return left;
         }
         break;
+    case token_kind::ampersand:
+    case token_kind::caret:
+    case token_kind::pipe:
+        if (left == value_type::int_type && right == value_type::int_type)
+        {
+            return value_type::int_type;
+        }
+        break;
     case token_kind::less:
     case token_kind::less_equal:
     case token_kind::greater:
@@ -316,6 +324,17 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
         {
             throw compile_error(item.position,
                                 "类或接口转换需要对象引用或 any");
+        }
+        return cast.target;
+    }
+    if (cast.target == value_type::bool_type)
+    {
+        const auto actual = check_expression(*cast.value);
+        if (actual != value_type::bool_type &&
+            actual != value_type::any_type)
+        {
+            throw compile_error(item.position,
+                                "bool 转换需要 bool 或 any");
         }
         return cast.target;
     }

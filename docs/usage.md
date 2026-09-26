@@ -10,7 +10,7 @@
 .\scripts\build.ps1
 ```
 
-编译器工具目录 `tx/` 包含 `txc.exe`、`clang.exe`、`libtxstdlib.a`、`link/` 内的链接组件、运行时 DLL 和 `stdlib/*.txh` 公开接口。交付时保留整个 `tx/` 目录。脚本在 build/ 中以 Release 配置构建编译器、运行时库和标准库，确认成功后删除中间目录；构建失败时保留 build/ 供排查。构建时使用 g++；生成的 txc 不会调用它。直接用单配置 CMake 构建时默认也采用 Release；可显式设置 `CMAKE_BUILD_TYPE` 覆盖。
+编译器工具目录 `tx/` 包含 `txc.exe`、`clang.exe`、`libtxstdlib.a`、`link/` 内的链接组件、运行时 DLL 和 `stdlib/*.txh` 公开接口。交付时保留整个 `tx/` 目录。脚本在 build/ 中以 Release 配置构建编译器、运行时库和标准库，还会把 `src/stdlib/httpx_bridge.tx`、`websocket_bridge.tx`、`requests_bridge.tx` 编成对象文件，并将固定版本的 nghttp2、Mbed TLS 静态库归档进 `libtxstdlib.a`；相应许可证随 `tx/` 交付。首次构建需要下载两份已固定 SHA-256 的源码归档。构建成功后删除中间目录，失败时保留以便排查。`tx/stdlib/` 不包含 `.tx` 实现源码。构建时使用 g++；生成的 txc 不会调用它。直接用单配置 CMake 构建时默认也采用 Release；可显式设置 `CMAKE_BUILD_TYPE` 覆盖。
 
 ## 编译源码
 
@@ -19,6 +19,7 @@
 ```text
 txc <源码.tx> [-o <输出.exe>]
 txc check <源码.tx>
+txc emit-library-llvm <库源码.tx> -o <输出.ll>
 ```
 
 编译仓库中的示例；默认输出到 tx_build/：
@@ -38,6 +39,8 @@ txc check <源码.tx>
 ```
 
 txc 启动 clang 和链接器时会为各个参数添加必要的引号并处理反斜杠转义，保留完整的工具路径、临时文件路径和输出路径。
+
+`emit-library-llvm` 用于构建标准库：允许无 `main` 的 TX 模块，输出不含程序入口的 LLVM IR。`scripts/build.ps1` 再把 IR 编成目标文件并归档到 `libtxstdlib.a`。预编译标准库接口使用稳定内部类型符号，使库对象与不同导入顺序的用户程序共享相同的结构体类型身份。
 
 编译器先解析并检查 .tx，再生成 LLVM IR，由同目录的 `clang.exe` 将 IR 编为 Windows 目标文件，最后用 `tx/link/ld.exe` 与运行时库链接为原生可执行文件。生成程序需要的 MinGW 运行时 DLL 会复制到输出目录。语法或类型错误会以“文件:行:列: 错误：原因”的形式报告；后端失败时会显示目标文件生成器或链接器的输出。
 

@@ -74,6 +74,7 @@ function_decl parser::parse_function(bool declaration_only, bool member)
     {
         bool seen_array = false;
         bool seen_dict = false;
+        bool seen_default = false;
         do
         {
             parameter_kind kind = parameter_kind::ordinary;
@@ -120,8 +121,25 @@ function_decl parser::parse_function(bool declaration_only, bool member)
                     }
                 }
             }
+            std::shared_ptr<expression> default_value;
+            if (match(token_kind::equal))
+            {
+                if (kind != parameter_kind::ordinary || operator_kind)
+                {
+                    throw compile_error(parameter_name.position,
+                                        "可变参数和运算符参数不能有默认值");
+                }
+                seen_default = true;
+                default_value = std::shared_ptr<expression>(parse_expression());
+            }
+            else if (kind == parameter_kind::ordinary && seen_default)
+            {
+                throw compile_error(parameter_name.position,
+                                    "必需参数不能放在默认参数之后");
+            }
             parameters.push_back({parameter_name.text, type,
-                                  parameter_name.position, kind});
+                                  parameter_name.position, kind,
+                                  std::move(default_value)});
         } while (match(token_kind::comma));
     }
     (void)consume(token_kind::right_paren, "参数列表缺少右括号");

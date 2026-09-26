@@ -1,8 +1,39 @@
 cmake_minimum_required(VERSION 3.21)
-project(tx_compiler LANGUAGES CXX)
+project(tx_compiler LANGUAGES C CXX)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+include(FetchContent)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(ENABLE_LIB_ONLY ON CACHE BOOL "" FORCE)
+set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(MBEDTLS_FATAL_WARNINGS OFF CACHE BOOL "" FORCE)
+foreach(package IN ITEMS OpenSSL Libngtcp2 Libnghttp3 Systemd Jansson
+        Libevent LibXml2 Jemalloc)
+    set(CMAKE_DISABLE_FIND_PACKAGE_${package} TRUE)
+endforeach()
+FetchContent_Declare(nghttp2
+    URL https://github.com/nghttp2/nghttp2/releases/download/v1.68.0/nghttp2-1.68.0.tar.xz
+    URL_HASH SHA256=5511d3128850e01b5b26ec92bf39df15381c767a63441438b25ad6235def902c
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(mbedtls
+    URL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.5/mbedtls-3.6.5.tar.bz2
+    URL_HASH SHA256=4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+set(_tx_warn_deprecated ${CMAKE_WARN_DEPRECATED})
+set(CMAKE_WARN_DEPRECATED OFF)
+FetchContent_MakeAvailable(nghttp2 mbedtls)
+set(CMAKE_WARN_DEPRECATED ${_tx_warn_deprecated})
+if(MINGW)
+    # Mbed TLS 3.6.x uses %I64d on MinGW; match the MSVCRT printf parser.
+    foreach(target IN ITEMS mbedtls mbedx509 mbedcrypto)
+        target_compile_definitions(${target} PRIVATE __USE_MINGW_ANSI_STDIO=0)
+    endforeach()
 endif()
 
 add_executable(txc
@@ -36,6 +67,7 @@ add_executable(txc
     src/backend/llvm/codegen_container_declarations.cpp
     src/backend/llvm/codegen_map.cpp
     src/backend/llvm/codegen_functions.cpp
+    src/backend/llvm/codegen_callback.cpp
     src/backend/llvm/codegen_exception.cpp
     src/backend/llvm/codegen_error_ownership.cpp
     src/backend/llvm/codegen_declarations.cpp
@@ -75,6 +107,10 @@ add_library(txstdlib STATIC
     src/backend/cpp/error_abi.cpp
     src/backend/cpp/parse_abi.cpp
     src/backend/cpp/json_abi.cpp
+    src/backend/cpp/network_abi.cpp
+    src/backend/cpp/network_stream_abi.cpp
+    src/backend/cpp/network_http2_abi.cpp
+    src/backend/cpp/ws_abi.cpp
     src/backend/cpp/file_result_abi.cpp
     src/backend/cpp/bytes_abi.cpp
     src/backend/cpp/encoding_memory_abi.cpp
@@ -143,15 +179,33 @@ add_library(txstdlib STATIC
     src/stdlib/env.cpp
     src/stdlib/time.cpp
     src/stdlib/random.cpp
+    src/stdlib/network_common.cpp
+    src/stdlib/network_listener.cpp
+    src/stdlib/network_url.cpp
+    src/stdlib/httpx_client.cpp
+    src/stdlib/httpx_server.cpp
+    src/stdlib/http2_transport.cpp
+    src/stdlib/http2_session.cpp
+    src/stdlib/http2_session_response.cpp
+    src/stdlib/http2_server.cpp
+    src/stdlib/http2_client.cpp
+    src/stdlib/http2_client_callbacks.cpp
+    src/stdlib/ws.cpp
+    src/stdlib/ws_client.cpp
+    src/stdlib/ws_client_stream.cpp
+    src/stdlib/ws_server.cpp
+    src/stdlib/ws_frames.cpp
 )
 
 target_compile_features(txc PRIVATE cxx_std_23)
 target_compile_features(txstdlib PRIVATE cxx_std_23)
 target_include_directories(txc PRIVATE src)
 target_include_directories(txstdlib PRIVATE src)
+target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto)
 add_dependencies(txc txstdlib)
 if(WIN32)
     target_link_libraries(txc PRIVATE shell32)
+    target_link_libraries(txstdlib PRIVATE winhttp ws2_32 advapi32 bcrypt)
 endif()
 set(TX_TOOL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/tx")
 set_target_properties(txstdlib PROPERTIES

@@ -1,14 +1,77 @@
 #include "backend/llvm/codegen.hpp"
 
+#include <algorithm>
+
 namespace tx
 {
 
 void llvm_code_generator::write_external_declarations()
 {
+    for (const auto& [name, overloads] : functions_)
+    {
+        (void)name;
+        for (std::size_t index = 0; index < overloads.size(); ++index)
+        {
+            const auto& function = *overloads[index];
+            if (!function.external_name.starts_with("requests."))
+            {
+                continue;
+            }
+            bool method = false;
+            std::string symbol;
+            if (function.external_name.starts_with("requests.session."))
+            {
+                symbol = "m0_bridge_session_" +
+                    function.external_name.substr(17);
+                method = true;
+            }
+            else if (function.external_name.starts_with("requests.response."))
+            {
+                symbol = "m0_bridge_" + function.external_name.substr(18);
+                method = true;
+            }
+            else if (function.external_name.find('.', 9) == std::string::npos)
+            {
+                symbol = "m0_bridge_" + function.external_name.substr(9);
+            }
+            else
+            {
+                continue;
+            }
+            const auto implementation = functions_.find(symbol);
+            if (implementation != functions_.end() &&
+                std::any_of(implementation->second.begin(),
+                    implementation->second.end(),
+                    [](const function_decl* item) { return !item->external; }))
+            {
+                continue;
+            }
+            module_ << "declare " << llvm_type(function.return_type,
+                function.position) << ' '
+                << function_name(symbol, index) << '(';
+            if (method)
+            {
+                module_ << "ptr";
+            }
+            for (std::size_t parameter = 0;
+                 parameter < function.parameters.size(); ++parameter)
+            {
+                if (parameter != 0 || method)
+                {
+                    module_ << ", ";
+                }
+                module_ << llvm_type(parameter_abi_type(
+                                         function.parameters[parameter]),
+                                     function.parameters[parameter].position);
+            }
+            module_ << ")\n";
+        }
+    }
     write_vector_declarations();
     write_container_declarations();
     write_algorithm_declarations();
     module_ << "declare i32 @txrt_parse_try_parse_int(ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_call_needs_default(ptr, ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_parse_try_parse_float(ptr, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_parse_parse_int(ptr, i64, ptr)\n"
             << "declare i32 @txrt_parse_parse_float(ptr, ptr)\n"
@@ -58,7 +121,8 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_file_stream_close_text(ptr)\n"
             << "declare i32 @txrt_error_status()\n"
             << "declare void @txrt_error_propagation(i1)\n"
-            << "declare i32 @txrt_error_take(ptr, ptr)\n";
+            << "declare i32 @txrt_error_take(ptr, ptr)\n"
+            << "declare i32 @txrt_error_fail_io(ptr, ptr)\n";
     module_ << "declare i32 @txrt_str_concat_literal(ptr, ptr, i64, i1, ptr)\n";
     module_ << "declare i32 @txrt_string_split_vector_literal(ptr, ptr, i64, ptr)\n"
             << "declare i32 @txrt_string_join_vector_literal(ptr, ptr, i64, ptr)\n"
@@ -159,6 +223,48 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_time_monotonic_millis(ptr)\n"
             << "declare i32 @txrt_time_monotonic_micros(ptr)\n"
             << "declare i32 @txrt_time_sleep_millis(i64)\n\n";
+    module_ << "declare i32 @txrt_httpx_send(ptr, ptr, ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_get(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_post(ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_send_bytes(ptr, ptr, ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_get_bytes(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_post_bytes(ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_send_http2(ptr, ptr, ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_get_http2(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_post_http2(ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_send_http2_bytes(ptr, ptr, ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_get_http2_bytes(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_post_http2_bytes(ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_send_stream(ptr, ptr, ptr, ptr, i64, ptr, i64, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_get_stream(ptr, ptr, i64, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_send_http2_stream(ptr, ptr, ptr, ptr, i64, ptr, i64, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_get_http2_stream(ptr, ptr, i64, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_listen(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_listen_h2c(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_listen_h2_tls(ptr, i64, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_accept(ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_accept_bytes(ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_accept_stream(ptr, ptr, i64, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_respond(ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_respond_bytes(ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_respond_stream(ptr, i64, ptr, ptr, ptr, i64)\n"
+            << "declare i32 @txrt_httpx_serve_once(ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_serve_once_bytes(ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_httpx_close_listener(ptr)\n"
+            << "declare i32 @txrt_httpx_close_connection(ptr)\n"
+            << "declare i32 @txrt_ws_connect(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_ws_listen(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_ws_accept(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_ws_send_text(ptr, ptr)\n"
+            << "declare i32 @txrt_ws_send_binary(ptr, ptr)\n"
+            << "declare i32 @txrt_ws_send_binary_stream(ptr, ptr, i64)\n"
+            << "declare i32 @txrt_ws_receive(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_ws_receive_binary(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_ws_receive_binary_stream(ptr, ptr, i64, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_ws_reply_once(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_ws_reply_once_binary(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_ws_close_listener(ptr)\n"
+            << "declare i32 @txrt_ws_close_connection(ptr)\n\n";
 }
 
 } // namespace tx

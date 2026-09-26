@@ -1,0 +1,16 @@
+import "requests.txh" as requests
+
+def main() -> int
+{
+    dict query = {}
+    query["page"] = "2"
+    dict headers = {}
+    headers["Accept"] = "application/json"
+
+    auto se = requests.session()
+    auto response = se.get("https://example.com/",
+                           params=query, headers=headers, timeout=5.0)
+    response.raise_for_status()
+    print(response.status_code, response.text())
+    return 0
+}

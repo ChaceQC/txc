@@ -32,6 +32,7 @@ public:
     [[nodiscard]] stream_mode mode() const noexcept;
     void require_open() const;
     [[nodiscard]] std::string read(std::size_t size);
+    [[nodiscard]] std::size_t read_into(char* destination, std::size_t size);
     void write(std::string_view data);
     [[nodiscard]] std::int64_t tell();
     [[nodiscard]] std::int64_t seek(std::int64_t offset, std::string_view origin);

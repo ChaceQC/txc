@@ -117,7 +117,7 @@ struct line_result
 
 ## 与网络模块的关系和实施顺序
 
-[网络模块设计](network.md)的第一阶段正文和 WS 消息是 UTF-8 文本。`bytes` 落地后可增加 `httpx.send_bytes`、响应二进制正文和 `ws.send_binary/receive_binary`；这些是后续新签名，不改变已有文本接口的含义。文件流可为网络上传下载提供分块来源与目标，但真正的流式背压、取消和连接关闭规则需在网络实施时单独明确。
+[网络模块](network.md)提供文本、`bytes` 和文件流三套接口：`httpx.send_bytes`、二进制请求/响应，`websocket.send_binary/receive_binary`，以及 HTTP/1.1、HTTP/2 和 WebSocket 的 `binary_stream` 分块接口。原有文本接口仍要求有效 UTF-8，整条正文或消息的内存接口仍限 8 MiB。流式接口从源流当前位置按长度读入、向目标流逐块写出，调用方设置接收上限；网络同步读写提供背压。发生错误后目标文件可能保留已写入的前缀，网络调用不替调用方关闭或回滚文件流。完整签名与限制见网络模块说明。
 
 代码已按 `bytes` 与编码、二进制流、文本流的顺序接入。[组合示例](../examples/bytes_file_stream.tx) 展示 `vector<bytes>`、`array`/`dict` 值、编码与两种文件流。
 

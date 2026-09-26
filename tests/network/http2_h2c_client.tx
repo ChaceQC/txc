@@ -1,0 +1,12 @@
+import "httpx.txh" as httpx
+
+def main() -> int
+{
+    httpx.response response = httpx.post_http2("http://127.0.0.1:19738/hello",
+                                               "HTTP/2 你好", 15000)
+    if response.status != 201 || response.body != "HTTP/2 你好"
+    {
+        return 1
+    }
+    return 0
+}

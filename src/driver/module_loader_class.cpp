@@ -21,6 +21,20 @@ bool same_parameter_types(const function_decl& left,
     return true;
 }
 
+void copy_parameter_defaults(const std::vector<parameter>& declaration,
+                             std::vector<parameter>& implementation)
+{
+    for (std::size_t index = 0; index < declaration.size(); ++index)
+    {
+        if (implementation[index].default_value)
+        {
+            throw compile_error(implementation[index].position,
+                                "配对实现不能重复声明参数默认值");
+        }
+        implementation[index].default_value = declaration[index].default_value;
+    }
+}
+
 bool same_class_layout(const class_decl& left, const class_decl& right)
 {
     if (left.bases != right.bases ||

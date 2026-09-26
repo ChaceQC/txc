@@ -9,7 +9,9 @@ namespace
 
 bool supported_external_call(std::string_view name)
 {
-    return name == "io.write" || name == "io.write_line" ||
+    return name.starts_with("httpx.") || name.starts_with("websocket.") ||
+           name == "error.fail_io" ||
+           name == "io.write" || name == "io.write_line" ||
            name == "io.write_error" || name == "io.flush" ||
            name == "string.contains" || name == "string.starts_with" ||
            name == "string.ends_with" || name == "string.find" ||
@@ -255,6 +257,25 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
     const expression& item, const call_expression& call,
     const function_decl& target, const std::vector<ir_value>& arguments)
 {
+    if (target.external_name.starts_with("requests."))
+    {
+        const auto symbol = "m0_bridge_" + target.external_name.substr(9);
+        const auto result = emit_user_call(item, call, target, arguments, symbol);
+        if (!recoverable_errors_)
+        {
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @txrt_error_status()");
+            write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        }
+        for (std::size_t index = 0; index < arguments.size(); ++index)
+        {
+            if (ordinary_parameter_borrowed(target, index))
+            {
+                release(arguments[index]);
+            }
+        }
+        return result;
+    }
     if (!supported_external_call(target.external_name))
     {
         throw compile_error(item.position, "标准库没有此二进制函数：" +
@@ -265,22 +286,26 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
 
 llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
     const expression& item, const call_expression& call,
-    const function_decl& target, const std::vector<ir_value>& arguments)
+    const function_decl& target, const std::vector<ir_value>& arguments,
+    std::string_view symbol_override)
 {
+    const auto passed = coerce_nullable_arguments(target, arguments);
     std::string arguments_text;
-    for (std::size_t index = 0; index < arguments.size(); ++index)
+    for (std::size_t index = 0; index < passed.size(); ++index)
     {
         if (index != 0)
         {
             arguments_text += ", ";
         }
-        arguments_text += llvm_type(arguments[index].type, item.position) +
-                          " " + arguments[index].text;
+        arguments_text += llvm_type(passed[index].type, item.position) +
+                          " " + passed[index].text;
     }
+    const auto symbol = symbol_override.empty() ? call.name
+        : std::string(symbol_override);
     const auto invocation = "call " + llvm_type(target.return_type, item.position) +
-        " " + function_name(call.name, *call.overload_index) +
+        " " + function_name(symbol, *call.overload_index) +
         "(" + arguments_text + ")";
-    transfer_call_arguments(target, arguments);
+    transfer_call_arguments(target, passed);
     if (target.return_type == value_type::void_type)
     {
         write_instruction(invocation);
@@ -498,7 +523,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
                 : functions_.at(call.constructor_init_symbol).at(
                     call.constructor_init_index);
             const bool needs_binding = init != nullptr &&
-                (std::any_of(init->parameters.begin(), init->parameters.end(),
+                (call.arguments.size() != init->parameters.size() ||
+                 std::any_of(init->parameters.begin(), init->parameters.end(),
                     [](const parameter& parameter)
                     { return parameter.kind != parameter_kind::ordinary; }) ||
                  std::any_of(call.arguments.begin(), call.arguments.end(),
@@ -532,7 +558,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
         std::vector<parameter> parameters;
         for (const auto& field : definition.fields)
         {
-            parameters.push_back({field.name, field.type, field.position});
+            parameters.push_back({field.name, field.type, field.position,
+                                  parameter_kind::ordinary, {}});
         }
         const bool needs_binding = std::any_of(call.arguments.begin(),
             call.arguments.end(), [](const call_argument& argument)
@@ -552,7 +579,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
         throw compile_error(item.position, "LLVM 后端找不到函数调用目标");
     }
     const auto& target = *found->second[*call.overload_index];
-    const bool needs_binding = std::any_of(target.parameters.begin(),
+    const bool needs_binding = call.arguments.size() != target.parameters.size() ||
+        std::any_of(target.parameters.begin(),
         target.parameters.end(), [](const parameter& value)
         { return value.kind != parameter_kind::ordinary; }) ||
         std::any_of(call.arguments.begin(), call.arguments.end(),

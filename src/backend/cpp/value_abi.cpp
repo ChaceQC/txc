@@ -291,6 +291,16 @@ extern "C" int txrt_value_require_type(const void* value,
     });
 }
 
+extern "C" int txrt_value_require_type_or_none(const void* value,
+                                                const char* type_name) noexcept
+{
+    if (!as_value(value).has_value())
+    {
+        return 0;
+    }
+    return txrt_value_require_type(value, type_name);
+}
+
 extern "C" int txrt_struct_new(const char* type_name,
                                  const char* display_name,
                                  std::size_t field_count, void** result) noexcept

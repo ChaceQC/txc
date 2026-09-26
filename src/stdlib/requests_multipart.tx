@@ -1,0 +1,187 @@
+import "requests.txh" as api
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file_stream.txh" as files
+import "random.txh" as random
+import "string.txh" as strings
+import "time.txh" as time
+
+def safe_header_part(value: str) -> str
+{
+    if (strings.contains(value, "\r") ||
+        strings.contains(value, "\n") ||
+        strings.contains(value, "\"") ||
+        strings.contains(value, "\\"))
+    {
+        errors.fail_io("invalid_argument", "multipart 名称包含非法字符")
+    }
+    return value
+}
+
+def join_parts(values: vector<bytes>) -> bytes
+{
+    if values.empty()
+    {
+        return byte_values.empty()
+    }
+    vector<bytes> current = values
+    while current.size() > 1
+    {
+        vector<bytes> next = vector<bytes>()
+        next.reserve((current.size() + 1) / 2)
+        int index = 0
+        while index < current.size()
+        {
+            if index + 1 < current.size()
+            {
+                next.push_back(byte_values.concat(current[index],
+                                                  current[index + 1]))
+            }
+            else
+            {
+                next.push_back(current[index])
+            }
+            index += 2
+        }
+        current = next
+    }
+    return current[0]
+}
+
+def stream_payload(source: binary_stream) -> bytes
+{
+    vector<bytes> parts = vector<bytes>()
+    int total = 0
+    while true
+    {
+        files.byte_chunk chunk = files.read_bytes(source, 65536)
+        if chunk.eof
+        {
+            return join_parts(parts)
+        }
+        if len(chunk.data) > 8388608 - total
+        {
+            errors.fail_io("size_limit", "multipart 文件超过 8 MiB")
+        }
+        total += len(chunk.data)
+        parts.push_back(chunk.data)
+    }
+    return byte_values.empty()
+}
+
+def payload(value: any) -> bytes
+{
+    try
+    {
+        return value as bytes
+    }
+    exception errors.runtime_error as ignored
+    {
+    }
+    try
+    {
+        binary_stream source = value as binary_stream
+        return stream_payload(source)
+    }
+    exception errors.runtime_error as ignored
+    {
+    }
+    str text = value
+    return encoding.encode(text, "utf-8")
+}
+
+def file_tuple(value: any) -> array
+{
+    try
+    {
+        array parts = value
+        return parts
+    }
+    exception errors.runtime_error as ignored
+    {
+        return []
+    }
+}
+
+def add_file(parts: vector<bytes>, field: str, value: any,
+             boundary: str) -> void
+{
+    str filename = field + ".bin"
+    str media_type = "application/octet-stream"
+    bytes body = byte_values.empty()
+    array specification = file_tuple(value)
+    if len(specification) > 0
+    {
+        if len(specification) != 2 && len(specification) != 3
+        {
+            errors.fail_io("invalid_argument", "files 元组需要文件名和内容")
+        }
+        filename = specification[0]
+        body = payload(specification[1])
+        if len(specification) == 3
+        {
+            media_type = specification[2]
+        }
+    }
+    else
+    {
+        body = payload(value)
+    }
+    str heading = ("--" + boundary + "\r\n" +
+                   "Content-Disposition: form-data; name=\"" +
+                   safe_header_part(field) + "\"; filename=\"" +
+                   safe_header_part(filename) + "\"\r\n" +
+                   "Content-Type: " + safe_header_part(media_type) +
+                   "\r\n\r\n")
+    parts.push_back(encoding.encode(heading, "utf-8"))
+    parts.push_back(body)
+    parts.push_back(encoding.encode("\r\n", "utf-8"))
+}
+
+def add_fields(parts: vector<bytes>, fields: map<str, str>,
+               boundary: str) -> void
+{
+    for key in fields
+    {
+        str heading = ("--" + boundary + "\r\n" +
+                       "Content-Disposition: form-data; name=\"" +
+                       safe_header_part(key) + "\"\r\n\r\n" +
+                       fields[key] + "\r\n")
+        parts.push_back(encoding.encode(heading, "utf-8"))
+    }
+}
+
+def encode(options: api.request_options, values: dict,
+           fields: map<str, str>) -> void
+{
+    for key in options.headers
+    {
+        if strings.lower(key) == "content-type"
+        {
+            errors.fail_io("invalid_header", "files 不能自定义 Content-Type")
+        }
+    }
+    str boundary = ("tx-" + time.unix_millis() as str + "-" +
+                    random.random_int(0, 2147483647) as str)
+    vector<bytes> parts = vector<bytes>()
+    add_fields(parts, fields, boundary)
+    for key in values
+    {
+        str field = key
+        add_file(parts, field, values[field], boundary)
+    }
+    parts.push_back(encoding.encode("--" + boundary + "--\r\n", "utf-8"))
+    int total = 0
+    for part in parts
+    {
+        if len(part) > 8388608 - total
+        {
+            errors.fail_io("size_limit", "multipart 正文超过 8 MiB")
+        }
+        total += len(part)
+    }
+    options.body = join_parts(parts)
+    options.body_type = "raw"
+    options.headers["content-type"] = "multipart/form-data; boundary=" + boundary
+}

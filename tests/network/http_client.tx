@@ -1,0 +1,16 @@
+import "httpx.txh" as httpx
+
+def main() -> int
+{
+    httpx.response first = httpx.get("http://127.0.0.1:19731/hello?q=1", 5000)
+    if first.status != 200 || first.body != "/hello?q=1" || first.headers["x-route"] != "first" || first.set_cookie.size() != 2
+    {
+        return 1
+    }
+    httpx.response second = httpx.post("http://127.0.0.1:19731/", "你好", 5000)
+    if second.status != 201 || second.body != "你好"
+    {
+        return 2
+    }
+    return 0
+}

@@ -1,0 +1,12 @@
+import "httpx.txh" as httpx
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen_h2c("127.0.0.1", 19738)
+    httpx.request request = httpx.accept(server, 15000)
+    httpx.response response = httpx.response(201, map<str, str>(),
+                                             vector<str>(), request.body)
+    httpx.respond(request.connection, response)
+    httpx.close(server)
+    return 0
+}

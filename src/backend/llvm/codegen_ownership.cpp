@@ -88,6 +88,7 @@ bool llvm_code_generator::init_parameter_borrowed(
 {
     return function.name == "init" &&
         index < function.parameters.size() &&
+        !parameter_is_nullable(function.parameters[index]) &&
         is_value_handle(function.parameters[index].type) &&
         !rebinds_name(function.body, function.parameters[index].name);
 }
@@ -97,6 +98,7 @@ bool llvm_code_generator::ordinary_parameter_borrowed(
 {
     return function.owner_class.empty() &&
         index < function.parameters.size() &&
+        !parameter_is_nullable(function.parameters[index]) &&
         function.parameters[index].kind == parameter_kind::ordinary &&
         (is_value_handle(function.parameters[index].type) ||
          function.parameters[index].type == value_type::str_type) &&

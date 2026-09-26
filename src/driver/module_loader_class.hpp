@@ -11,5 +11,7 @@ namespace tx
                                      const class_decl& right);
 [[nodiscard]] bool same_struct_layout(const struct_decl& left,
                                       const struct_decl& right);
+void copy_parameter_defaults(const std::vector<parameter>& declaration,
+                             std::vector<parameter>& implementation);
 
 } // namespace tx

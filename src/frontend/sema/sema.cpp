@@ -112,6 +112,31 @@ void semantic_analyzer::require_type(const value_type& actual,
     }
 }
 
+void semantic_analyzer::check_defaults(function_decl& function)
+{
+    scopes_.clear();
+    push_scope();
+    current_class_ = nullptr;
+    for (auto& parameter : function.parameters)
+    {
+        if (!parameter.default_value)
+        {
+            continue;
+        }
+        const auto actual = check_expression(*parameter.default_value);
+        if (actual != parameter.type &&
+            !(parameter_is_nullable(parameter) &&
+              actual == value_type::none_type &&
+              parameter.type != value_type::void_type &&
+              !parameter.type.is_function()))
+        {
+            throw compile_error(parameter.default_value->position,
+                "默认参数类型不匹配：" + parameter.name);
+        }
+    }
+    pop_scope();
+}
+
 void semantic_analyzer::check_function(function_decl& function)
 {
     if (function.external)
@@ -139,7 +164,9 @@ void semantic_analyzer::check_function(function_decl& function)
     }
     for (const auto& parameter : function.parameters)
     {
-        declare_symbol(parameter.name, {parameter.type, false}, parameter.position);
+        const auto type = parameter_is_nullable(parameter)
+            ? value_type::any_type : parameter.type;
+        declare_symbol(parameter.name, {type, false}, parameter.position);
     }
     check_statements(function.body);
     if (function.owner_class.empty())
@@ -508,6 +535,24 @@ void semantic_analyzer::analyze(program& source, bool require_main)
     register_structs(source);
     register_classes(source);
     register_functions(source, require_main);
+    for (auto& function : source.functions)
+    {
+        check_defaults(function);
+    }
+    for (auto& definition : source.classes)
+    {
+        for (auto& method : definition.methods)
+        {
+            check_defaults(method);
+        }
+    }
+    for (auto& definition : source.structs)
+    {
+        for (auto& method : definition.methods)
+        {
+            check_defaults(method);
+        }
+    }
     std::vector<function_decl*> ordinary_functions;
     for (auto& function : source.functions)
     {

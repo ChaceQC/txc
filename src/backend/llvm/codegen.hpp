@@ -17,7 +17,8 @@ namespace tx
 class llvm_code_generator
 {
 public:
-    [[nodiscard]] std::string generate(const program& source);
+    [[nodiscard]] std::string generate(const program& source,
+                                       bool library_mode = false);
 
 private:
     struct ir_value
@@ -58,6 +59,7 @@ private:
 
     [[nodiscard]] static std::string llvm_type(const value_type& type,
                                                source_pos position);
+    [[nodiscard]] static value_type parameter_abi_type(const parameter& value);
     [[nodiscard]] static bool is_value_handle(const value_type& type);
     [[nodiscard]] static std::string function_name(const std::string& name,
                                                    std::size_t overload);
@@ -230,6 +232,10 @@ private:
         const std::vector<bool>& borrowed_arguments);
     [[nodiscard]] ir_value emit_method_call(
         const expression& item, const call_expression& call);
+    [[nodiscard]] ir_value emit_precompiled_requests_method(
+        const expression& item, const call_expression& call,
+        const function_decl& target, const std::vector<ir_value>& arguments,
+        bool borrowed_receiver);
     void emit_class_metadata(const class_decl& definition);
     void collect_class_nodes(const class_decl& definition,
                              std::vector<const class_decl*>& result) const;
@@ -248,7 +254,11 @@ private:
         const function_decl& target);
     [[nodiscard]] ir_value emit_user_call(
         const expression& item, const call_expression& call,
-        const function_decl& target, const std::vector<ir_value>& arguments);
+        const function_decl& target, const std::vector<ir_value>& arguments,
+        std::string_view symbol_override = {});
+    [[nodiscard]] std::vector<ir_value> coerce_nullable_arguments(
+        const function_decl& target,
+        const std::vector<ir_value>& arguments);
     [[nodiscard]] ir_value emit_callback_call(
         const expression& item, const call_expression& call);
     [[nodiscard]] ir_value emit_cast(const expression& item,
@@ -308,6 +318,11 @@ private:
     [[nodiscard]] std::vector<ir_value> emit_bound_arguments(
         const expression& item, const call_expression& call,
         const std::vector<parameter>& parameters);
+    void emit_spread_defaults(const std::vector<parameter>& parameters,
+                              std::size_t fixed_count,
+                              const std::string& positional,
+                              const std::string& keywords,
+                              source_pos position);
     [[nodiscard]] std::optional<std::vector<ir_value>> emit_direct_spreads(
         const expression& item, const call_expression& call,
         const std::vector<parameter>& parameters);
@@ -337,6 +352,12 @@ private:
     void emit_for(const for_loop& loop);
     void emit_for_each(const for_each& loop);
     void emit_function(const function_decl& function);
+    void emit_callback_wrapper(const function_decl& function,
+                               const std::string& symbol,
+                               std::size_t overload);
+    void write_nullable_callback_boxes(const function_decl& function);
+    void write_callback_releases(const function_decl& function,
+                                 bool call_completed);
     void write_external_declarations();
     void write_instruction(const std::string& text);
     void emit_gc_safepoint();

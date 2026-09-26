@@ -105,6 +105,16 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     {
         symbol = "txrt_" + target.external_name;
         std::replace(symbol.begin(), symbol.end(), '.', '_');
+        if (target.external_name.starts_with("websocket."))
+        {
+            symbol = "txrt_ws_" + target.external_name.substr(10);
+        }
+    }
+    if (target.external_name == "httpx.close" ||
+        target.external_name == "websocket.close")
+    {
+        symbol += target.parameters.front().type.name.ends_with("_listener")
+            ? "_listener" : "_connection";
     }
     if (target.external_name.starts_with("algorithm."))
     {
@@ -175,6 +185,50 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         target.external_name == "file_stream.read_line")
     {
         parameters += ", ptr " + global_bytes(item.type.name);
+    }
+    if (target.external_name == "httpx.send" ||
+        target.external_name == "httpx.get" ||
+        target.external_name == "httpx.post" ||
+        target.external_name == "httpx.send_bytes" ||
+        target.external_name == "httpx.get_bytes" ||
+        target.external_name == "httpx.post_bytes" ||
+        target.external_name == "httpx.send_http2" ||
+        target.external_name == "httpx.get_http2" ||
+        target.external_name == "httpx.post_http2" ||
+        target.external_name == "httpx.send_http2_bytes" ||
+        target.external_name == "httpx.get_http2_bytes" ||
+        target.external_name == "httpx.post_http2_bytes" ||
+        target.external_name == "httpx.send_stream" ||
+        target.external_name == "httpx.get_stream" ||
+        target.external_name == "httpx.send_http2_stream" ||
+        target.external_name == "httpx.get_http2_stream" ||
+        target.external_name == "httpx.listen" ||
+        target.external_name == "httpx.listen_h2c" ||
+        target.external_name == "httpx.listen_h2_tls" ||
+        target.external_name == "websocket.connect" ||
+        target.external_name == "websocket.listen" ||
+        target.external_name == "websocket.accept" ||
+        target.external_name == "websocket.receive" ||
+        target.external_name == "websocket.receive_binary" ||
+        target.external_name == "websocket.receive_binary_stream")
+    {
+        parameters += ", ptr " + global_bytes(item.type.name);
+    }
+    if (target.external_name == "httpx.accept" ||
+        target.external_name == "httpx.accept_bytes" ||
+        target.external_name == "httpx.accept_stream")
+    {
+        const auto& connection_type = structs_.at(item.type.name)->fields.front().type;
+        parameters += ", ptr " + global_bytes(item.type.name) +
+                      ", ptr " + global_bytes(connection_type.name);
+    }
+    if (target.external_name == "httpx.serve_once" ||
+        target.external_name == "httpx.serve_once_bytes")
+    {
+        const auto& request_type = target.parameters[1].type.parameters.front();
+        const auto& connection_type = structs_.at(request_type.name)->fields.front().type;
+        parameters += ", ptr " + global_bytes(request_type.name) +
+                      ", ptr " + global_bytes(connection_type.name);
     }
     if (target.external_name.starts_with("random."))
     {

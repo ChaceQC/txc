@@ -5,6 +5,7 @@
 #include <any>
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 namespace tx_generated::detail
 {
@@ -74,5 +75,17 @@ extern "C" int txrt_error_take(const char* type_name, void** result) noexcept
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(make_error_value(type_name, {kind, code, message}));
+    });
+}
+
+extern "C" int txrt_error_fail_io(const void* code,
+                                   const void* message) noexcept
+{
+    return tx_generated::detail::invoke_checked([&]
+    {
+        throw tx_generated::runtime_failure({
+            tx::error_kind::io,
+            *static_cast<const std::string*>(code),
+            *static_cast<const std::string*>(message)});
     });
 }

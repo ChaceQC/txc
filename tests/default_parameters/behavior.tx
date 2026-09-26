@@ -1,0 +1,84 @@
+import "helper.txh" as helper
+import "dictionary.txh" as dictionary
+
+def combine(a: int, b: int = 3, c: int = 4) -> int
+{
+    return a + b + c
+}
+
+def fresh(options: dict = {}) -> int
+{
+    if dictionary.contains(options, "used")
+    {
+        return 2
+    }
+    options["used"] = true
+    return 1
+}
+
+def count_headers(headers: map<str, str> = map<str, str>()) -> int
+{
+    return headers.size()
+}
+
+def optional_values(a: int = none, b: float = none) -> int
+{
+    if is_none(a) && is_none(b)
+    {
+        return 1
+    }
+    int integer = a
+    float decimal = b
+    return integer + (decimal as int)
+}
+
+def optional_dict(values: dict = none) -> int
+{
+    if is_none(values)
+    {
+        return 0
+    }
+    dict actual = values
+    return len(actual)
+}
+
+def apply_optional(a: int, b: float,
+                   operation: fn(int, float) -> int) -> int
+{
+    return operation(a, b)
+}
+
+def main() -> int
+{
+    if (combine(1) != 8 || combine(1, c=10) != 14 ||
+        combine(1, 2, 3) != 6)
+    {
+        return 1
+    }
+    if fresh() != 1 || fresh() != 1 || count_headers() != 0
+    {
+        return 2
+    }
+    helper.counter current = helper.counter()
+    if (current.value != 5 || current.increment() != 6 ||
+        helper.multiply(3) != 6 || helper.multiply(3, 4) != 12)
+    {
+        return 3
+    }
+    array positional = [1]
+    dict named = {"c": 6}
+    if combine(*positional, **named) != 10
+    {
+        return 4
+    }
+    if (optional_values() != 1 || optional_values(2, 3.0) != 5 ||
+        optional_dict() != 0 || optional_dict({"x": 1}) != 1)
+    {
+        return 5
+    }
+    if apply_optional(2, 3.0, optional_values) != 5
+    {
+        return 6
+    }
+    return 0
+}

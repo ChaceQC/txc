@@ -45,6 +45,7 @@ private:
                                program& source);
     void register_functions(const program& source, bool require_main);
     void validate_type(const value_type& type, source_pos position) const;
+    void check_defaults(function_decl& function);
     void check_function(function_decl& function);
     void check_method(function_decl& method);
     void check_statements(std::vector<stmt_ptr>& statements);

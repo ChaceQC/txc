@@ -1,0 +1,32 @@
+class counter
+{
+    public:
+        value: int
+        def init(start: int) -> void
+        {
+            self.value = start
+        }
+        def increment(step: int) -> int
+        {
+            if is_none(step)
+            {
+                self.value++
+            }
+            else
+            {
+                int amount = step
+                self.value += amount
+            }
+            return self.value
+        }
+}
+
+def multiply(value: int, factor: int) -> int
+{
+    if is_none(factor)
+    {
+        return value * 2
+    }
+    int actual = factor
+    return value * actual
+}

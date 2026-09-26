@@ -1,0 +1,631 @@
+import "requests.txh" as api
+import "requests_cookie.tx" as cookie_jar
+import "requests_kwargs.tx" as named
+import "requests_url.tx" as urls
+import "array.txh" as arrays
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "httpx.txh" as httpx
+import "json.txh" as json_values
+import "string.txh" as strings
+import "time.txh" as time
+
+def bridge_default_options() -> api.request_options
+{
+    return api.request_options(map<str, str>(), map<str, str>(),
+                               map<str, str>(), byte_values.empty(), "none",
+                               30000, true, 10, false, false, "", "")
+}
+
+def bridge_with_text(options: api.request_options, body: str) -> api.request_options
+{
+    api.request_options result = deep_copy(options)
+    result.body = encoding.encode(body, "utf-8")
+    result.body_type = "raw"
+    return result
+}
+
+def bridge_with_bytes(options: api.request_options, body: bytes) -> api.request_options
+{
+    api.request_options result = deep_copy(options)
+    result.body = body
+    result.body_type = "raw"
+    return result
+}
+
+def bridge_with_form(options: api.request_options,
+                     fields: map<str, str>) -> api.request_options
+{
+    api.request_options result = deep_copy(options)
+    result.body = encoding.encode(urls.encode_fields(fields, true), "utf-8")
+    result.body_type = "form"
+    return result
+}
+
+def bridge_with_json(options: api.request_options, value: dict) -> api.request_options
+{
+    api.request_options result = deep_copy(options)
+    result.body = encoding.encode(json_values.stringify(value), "utf-8")
+    result.body_type = "json"
+    return result
+}
+
+def bridge_with_json(options: api.request_options, value: array) -> api.request_options
+{
+    api.request_options result = deep_copy(options)
+    result.body = encoding.encode(json_values.stringify(value), "utf-8")
+    result.body_type = "json"
+    return result
+}
+
+def bridge_session_init(client: api.session) -> void
+{
+    client.headers = map<str, str>()
+    client.cookies = []
+    client.timeout_ms = 30000
+    client.allow_redirects = true
+    client.max_redirects = 10
+    client.http2 = false
+    client.basic_auth = false
+    client.auth_user = ""
+    client.auth_password = ""
+}
+
+def session_options(client: api.session) -> api.request_options
+{
+    api.request_options result = bridge_default_options()
+    result.headers = deep_copy(client.headers)
+    result.timeout_ms = client.timeout_ms
+    result.allow_redirects = client.allow_redirects
+    result.max_redirects = client.max_redirects
+    result.http2 = client.http2
+    result.basic_auth = client.basic_auth
+    result.auth_user = client.auth_user
+    result.auth_password = client.auth_password
+    return result
+}
+
+def merge_session(client: api.session,
+                  options: api.request_options) -> api.request_options
+{
+    api.request_options result = deep_copy(options)
+    map<str, str> headers = map<str, str>()
+    for key in client.headers
+    {
+        headers[strings.lower(key)] = client.headers[key]
+    }
+    for key in options.headers
+    {
+        headers[strings.lower(key)] = options.headers[key]
+    }
+    result.headers = headers
+    if !result.basic_auth && client.basic_auth
+    {
+        result.basic_auth = true
+        result.auth_user = client.auth_user
+        result.auth_password = client.auth_password
+    }
+    return result
+}
+
+def cookie_header(values: map<str, str>) -> str
+{
+    vector<str> parts = vector<str>()
+    parts.reserve(values.size())
+    for key in values
+    {
+        parts.push_back(key + "=" + values[key])
+    }
+    return strings.join(parts, "; ")
+}
+
+def request_headers(options: api.request_options, url: str, jar: array,
+                    allow_auth: bool, allow_explicit_cookies: bool) -> map<str, str>
+{
+    map<str, str> result = map<str, str>()
+    for key in options.headers
+    {
+        str normalized = strings.lower(key)
+        if ((normalized != "authorization" || allow_auth) &&
+            (normalized != "cookie" || allow_explicit_cookies))
+        {
+            if result.contains(normalized)
+            {
+                errors.fail_io("invalid_header", "请求头名称大小写重复：" + key)
+            }
+            result[normalized] = options.headers[key]
+        }
+    }
+    if options.body_type == "form" && !result.contains("content-type")
+    {
+        result["content-type"] = "application/x-www-form-urlencoded"
+    }
+    if options.body_type == "json" && !result.contains("content-type")
+    {
+        result["content-type"] = "application/json; charset=utf-8"
+    }
+    if options.basic_auth && allow_auth
+    {
+        str credentials = options.auth_user + ":" + options.auth_password
+        result["authorization"] = ("Basic " +
+            byte_values.to_base64(encoding.encode(credentials, "utf-8")))
+    }
+    map<str, str> selected = cookie_jar.for_url(jar, url)
+    if allow_explicit_cookies
+    {
+        for key in options.cookies
+        {
+            selected[key] = options.cookies[key]
+        }
+    }
+    if !result.contains("cookie") && !selected.empty()
+    {
+        result["cookie"] = cookie_header(selected)
+    }
+    return result
+}
+
+def make_response(incoming: httpx.binary_response, url: str,
+                  started: int) -> api.response
+{
+    api.response result = api.response()
+    result.status_code = incoming.status
+    result.url = url
+    result.headers = incoming.headers
+    result.set_cookie = incoming.set_cookie
+    result.cookies = cookie_jar.response_cookies(incoming.set_cookie, url)
+    result.content = incoming.body
+    result.history = []
+    result.elapsed_ms = time.monotonic_millis() - started
+    result.ok = incoming.status < 400
+    return result
+}
+
+def send_once(method: str, url: str, headers: map<str, str>,
+              body: bytes, options: api.request_options) -> api.response
+{
+    int started = time.monotonic_millis()
+    if options.http2
+    {
+        httpx.binary_response incoming = httpx.send_http2_bytes(
+            method, url, headers, body, options.timeout_ms)
+        return make_response(incoming, url, started)
+    }
+    httpx.binary_response incoming = httpx.send_bytes(
+        method, url, headers, body, options.timeout_ms)
+    return make_response(incoming, url, started)
+}
+
+def redirect_status(status: int) -> bool
+{
+    return (status == 301 || status == 302 || status == 303 ||
+            status == 307 || status == 308)
+}
+
+def redirected_method(method: str, status: int) -> str
+{
+    if status == 303 && method != "HEAD"
+    {
+        return "GET"
+    }
+    if (status == 301 || status == 302) && method == "POST"
+    {
+        return "GET"
+    }
+    return method
+}
+
+def strip_entity_headers(source: api.request_options) -> api.request_options
+{
+    api.request_options result = deep_copy(source)
+    result.body = byte_values.empty()
+    result.body_type = "none"
+    map<str, str> headers = map<str, str>()
+    for key in result.headers
+    {
+        str normalized = strings.lower(key)
+        if (normalized != "content-type" && normalized != "content-encoding" &&
+            normalized != "content-length" && normalized != "transfer-encoding")
+        {
+            headers[key] = result.headers[key]
+        }
+    }
+    result.headers = headers
+    return result
+}
+
+def execute(method: str, url: str, options: api.request_options,
+            client: api.session, save_cookies: bool) -> api.response
+{
+    if options.max_redirects < 0
+    {
+        errors.fail_io("invalid_argument", "max_redirects 不能为负数")
+    }
+    if (options.body_type != "none" && options.body_type != "raw" &&
+        options.body_type != "form" && options.body_type != "json")
+    {
+        errors.fail_io("invalid_argument", "未知请求正文类型")
+    }
+    api.request_options current_options = deep_copy(options)
+    str current_url = urls.strip_fragment(
+        urls.append_params(url, current_options.params))
+    str current_method = strings.upper(method)
+    bool allow_auth = true
+    bool allow_explicit_cookies = true
+    int redirects = 0
+    array history = []
+    set<str> visited = set<str>()
+    visited.insert(urls.strip_fragment(current_url))
+    while true
+    {
+        map<str, str> headers = request_headers(current_options, current_url,
+                                                 client.cookies, allow_auth,
+                                                 allow_explicit_cookies)
+        api.response result = send_once(current_method, current_url, headers,
+                                        current_options.body, current_options)
+        if save_cookies
+        {
+            cookie_jar.store_response(client.cookies, result.set_cookie,
+                                      current_url)
+        }
+        if (!current_options.allow_redirects ||
+            !redirect_status(result.status_code) ||
+            !result.headers.contains("location"))
+        {
+            result.history = history
+            return result
+        }
+        if redirects >= current_options.max_redirects
+        {
+            errors.fail_io("too_many_redirects", "HTTP 重定向次数超过上限")
+        }
+        str location = result.headers["location"]
+        str next_url = urls.strip_fragment(
+            urls.resolve_location(current_url, location))
+        if visited.contains(urls.strip_fragment(next_url))
+        {
+            errors.fail_io("too_many_redirects", "HTTP 重定向出现循环")
+        }
+        visited.insert(urls.strip_fragment(next_url))
+        arrays.push_back(history, result)
+        if urls.origin(current_url) != urls.origin(next_url)
+        {
+            allow_auth = false
+            allow_explicit_cookies = false
+        }
+        str next_method = redirected_method(current_method, result.status_code)
+        if next_method != current_method
+        {
+            current_options = strip_entity_headers(current_options)
+        }
+        current_method = next_method
+        current_url = next_url
+        redirects++
+    }
+    # 循环只会在返回响应或报告错误时结束，补足静态返回路径。
+    return api.response()
+}
+
+def run_request_named(method: str, url: str, kwargs: dict) -> api.response
+{
+    api.request_options settings = named.apply(bridge_default_options(), kwargs)
+    api.session temporary = api.session()
+    return execute(method, url, settings, temporary, false)
+}
+
+def bridge_request(method: str, url: str, **kwargs: dict) -> api.response
+{
+    return run_request_named(method, url, kwargs)
+}
+
+def bridge_request(method: str, url: str,
+                   options: api.request_options) -> api.response
+{
+    api.session temporary = api.session()
+    return execute(method, url, options, temporary, false)
+}
+
+def bridge_get(url: str, params: dict = none,
+               **kwargs: dict) -> api.response
+{
+    named.add_if_present(kwargs, "params", params)
+    return run_request_named("GET", url, kwargs)
+}
+
+def bridge_get(url: str, options: api.request_options) -> api.response
+{
+    return bridge_request("GET", url, options)
+}
+
+def bridge_post(url: str, data: any = none, json: any = none,
+                **kwargs: dict) -> api.response
+{
+    named.add_if_present(kwargs, "data", data)
+    named.add_if_present(kwargs, "json", json)
+    return run_request_named("POST", url, kwargs)
+}
+
+def bridge_post(url: str, options: api.request_options) -> api.response
+{
+    return bridge_request("POST", url, options)
+}
+
+def bridge_put(url: str, data: any = none,
+               **kwargs: dict) -> api.response
+{
+    named.add_if_present(kwargs, "data", data)
+    return run_request_named("PUT", url, kwargs)
+}
+
+def bridge_put(url: str, options: api.request_options) -> api.response
+{
+    return bridge_request("PUT", url, options)
+}
+
+def bridge_patch(url: str, data: any = none,
+                 **kwargs: dict) -> api.response
+{
+    named.add_if_present(kwargs, "data", data)
+    return run_request_named("PATCH", url, kwargs)
+}
+
+def bridge_patch(url: str, options: api.request_options) -> api.response
+{
+    return bridge_request("PATCH", url, options)
+}
+
+def bridge_delete(url: str, **kwargs: dict) -> api.response
+{
+    return run_request_named("DELETE", url, kwargs)
+}
+
+def bridge_delete(url: str, options: api.request_options) -> api.response
+{
+    return bridge_request("DELETE", url, options)
+}
+
+def bridge_head(url: str, **kwargs: dict) -> api.response
+{
+    api.request_options settings = bridge_default_options()
+    settings.allow_redirects = false
+    settings = named.apply(settings, kwargs)
+    return bridge_request("HEAD", url, settings)
+}
+
+def bridge_head(url: str, options: api.request_options) -> api.response
+{
+    return bridge_request("HEAD", url, options)
+}
+
+def bridge_options(url: str, **kwargs: dict) -> api.response
+{
+    return run_request_named("OPTIONS", url, kwargs)
+}
+
+def bridge_options(url: str, options: api.request_options) -> api.response
+{
+    return bridge_request("OPTIONS", url, options)
+}
+
+def run_session_kwargs(client: api.session, method: str, url: str,
+                       kwargs: dict) -> api.response
+{
+    api.request_options configured = named.apply(session_options(client), kwargs)
+    return execute(method, url, merge_session(client, configured), client, true)
+}
+
+def bridge_session_request(client: api.session, method: str, url: str,
+                           params: dict = none, data: any = none,
+                           headers: dict = none, cookies: dict = none,
+                           files: any = none, auth: array = none,
+                           timeout: any = none,
+                           allow_redirects: bool = none,
+                           proxies: any = none, hooks: any = none,
+                           stream: bool = none, verify: bool = none,
+                           cert: any = none, json: any = none,
+                           **kwargs: dict) -> api.response
+{
+    dict supplied = named.collect_request(
+        params, data, headers, cookies, files, auth, timeout,
+        allow_redirects, proxies, hooks, stream, verify, cert, json, kwargs)
+    return run_session_kwargs(client, method, url, supplied)
+}
+
+def bridge_session_request(client: api.session, method: str, url: str,
+                           options: api.request_options) -> api.response
+{
+    return execute(method, url, merge_session(client, options), client, true)
+}
+
+def bridge_session_get(client: api.session, url: str,
+                       **kwargs: dict) -> api.response
+{
+    return run_session_kwargs(client, "GET", url, kwargs)
+}
+
+def bridge_session_get(client: api.session, url: str,
+                       options: api.request_options) -> api.response
+{
+    return bridge_session_request(client, "GET", url, options)
+}
+
+def bridge_session_post(client: api.session, url: str,
+                        data: any = none, json: any = none,
+                        **kwargs: dict) -> api.response
+{
+    named.add_if_present(kwargs, "data", data)
+    named.add_if_present(kwargs, "json", json)
+    return run_session_kwargs(client, "POST", url, kwargs)
+}
+
+def bridge_session_post(client: api.session, url: str,
+                        options: api.request_options) -> api.response
+{
+    return bridge_session_request(client, "POST", url, options)
+}
+
+def bridge_session_put(client: api.session, url: str,
+                       options: api.request_options) -> api.response
+{
+    return bridge_session_request(client, "PUT", url, options)
+}
+
+def bridge_session_put(client: api.session, url: str,
+                       data: any = none,
+                       **kwargs: dict) -> api.response
+{
+    named.add_if_present(kwargs, "data", data)
+    return run_session_kwargs(client, "PUT", url, kwargs)
+}
+
+def bridge_session_patch(client: api.session, url: str,
+                         options: api.request_options) -> api.response
+{
+    return bridge_session_request(client, "PATCH", url, options)
+}
+
+def bridge_session_patch(client: api.session, url: str,
+                         data: any = none,
+                         **kwargs: dict) -> api.response
+{
+    named.add_if_present(kwargs, "data", data)
+    return run_session_kwargs(client, "PATCH", url, kwargs)
+}
+
+def bridge_session_delete(client: api.session, url: str,
+                          options: api.request_options) -> api.response
+{
+    return bridge_session_request(client, "DELETE", url, options)
+}
+
+def bridge_session_delete(client: api.session, url: str,
+                          **kwargs: dict) -> api.response
+{
+    return run_session_kwargs(client, "DELETE", url, kwargs)
+}
+
+def bridge_session_head(client: api.session, url: str,
+                        options: api.request_options) -> api.response
+{
+    return bridge_session_request(client, "HEAD", url, options)
+}
+
+def bridge_session_head(client: api.session, url: str,
+                        **kwargs: dict) -> api.response
+{
+    api.request_options settings = session_options(client)
+    settings.allow_redirects = false
+    settings = named.apply(settings, kwargs)
+    return execute("HEAD", url, merge_session(client, settings), client, true)
+}
+
+def bridge_session_options(client: api.session, url: str,
+                           options: api.request_options) -> api.response
+{
+    return bridge_session_request(client, "OPTIONS", url, options)
+}
+
+def bridge_session_options(client: api.session, url: str,
+                           **kwargs: dict) -> api.response
+{
+    return run_session_kwargs(client, "OPTIONS", url, kwargs)
+}
+
+def bridge_text(value: api.response) -> str
+{
+    return encoding.decode(value.content, "utf-8")
+}
+
+def bridge_text(value: api.response, charset: str) -> str
+{
+    return encoding.decode(value.content, charset)
+}
+
+def bridge_json(value: api.response) -> any
+{
+    return json_values.parse(bridge_text(value))
+}
+
+def bridge_json_object(value: api.response) -> dict
+{
+    return json_values.parse_object(bridge_text(value))
+}
+
+def bridge_raise_for_status(value: api.response) -> void
+{
+    if value.status_code >= 400 && value.status_code <= 599
+    {
+        errors.fail_io("http_error", "HTTP 请求失败：" +
+                       value.status_code as str)
+    }
+}
+
+def stream_response(value: httpx.stream_response, url: str,
+                    elapsed_ms: int) -> api.response
+{
+    api.response result = api.response()
+    result.status_code = value.status
+    result.url = url
+    result.headers = value.headers
+    result.set_cookie = value.set_cookie
+    result.cookies = cookie_jar.response_cookies(value.set_cookie, url)
+    result.content = byte_values.empty()
+    result.history = []
+    result.elapsed_ms = elapsed_ms
+    result.ok = value.status < 400
+    return result
+}
+
+def bridge_download(url: str, destination: binary_stream,
+                    max_bytes: int) -> api.response
+{
+    return bridge_download(url, destination, max_bytes, bridge_default_options())
+}
+
+def bridge_download(url: str, destination: binary_stream, max_bytes: int,
+                    options: api.request_options) -> api.response
+{
+    if (!options.headers.empty() || !options.cookies.empty() ||
+        options.basic_auth || options.body_type != "none")
+    {
+        errors.fail_io("unsupported_option", "流式下载暂不支持自定义头、认证或正文")
+    }
+    str address = urls.strip_fragment(urls.append_params(url, options.params))
+    int started = time.monotonic_millis()
+    if options.http2
+    {
+        httpx.stream_response received = httpx.get_http2_stream(
+            address, destination, max_bytes, options.timeout_ms)
+        return stream_response(received, address,
+                               time.monotonic_millis() - started)
+    }
+    httpx.stream_response received = httpx.get_stream(
+        address, destination, max_bytes, options.timeout_ms)
+    return stream_response(received, address, time.monotonic_millis() - started)
+}
+
+def bridge_upload(method: str, url: str, source: binary_stream, length: int,
+                  destination: binary_stream, max_response_bytes: int,
+                  options: api.request_options) -> api.response
+{
+    if options.body_type != "none"
+    {
+        errors.fail_io("invalid_argument", "流式上传不能同时指定内存正文")
+    }
+    str address = urls.strip_fragment(urls.append_params(url, options.params))
+    map<str, str> headers = request_headers(options, address, [], true, true)
+    int started = time.monotonic_millis()
+    if options.http2
+    {
+        httpx.stream_response received = httpx.send_http2_stream(
+            method, address, headers, source, length, destination,
+            max_response_bytes, options.timeout_ms)
+        return stream_response(received, address,
+                               time.monotonic_millis() - started)
+    }
+    httpx.stream_response received = httpx.send_stream(
+        method, address, headers, source, length, destination,
+        max_response_bytes, options.timeout_ms)
+    return stream_response(received, address, time.monotonic_millis() - started)
+}

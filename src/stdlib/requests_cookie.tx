@@ -1,0 +1,229 @@
+import "array.txh" as arrays
+import "parse.txh" as parse
+import "string.txh" as strings
+import "time.txh" as time
+import "requests_url.tx" as urls
+
+struct cookie_entry
+{
+    name: str
+    value: str
+    domain: str
+    path: str
+    secure: bool
+    host_only: bool
+    expires_ms: int
+}
+
+def host_matches(host: str, domain: str) -> bool
+{
+    return host == domain || strings.ends_with(host, "." + domain)
+}
+
+def path_matches(target: str, cookie_path: str) -> bool
+{
+    if !strings.starts_with(target, cookie_path)
+    {
+        return false
+    }
+    if strings.ends_with(cookie_path, "/") || len(target) == len(cookie_path)
+    {
+        return true
+    }
+    return strings.slice(target, len(cookie_path), len(cookie_path) + 1) == "/"
+}
+
+def default_path(url: str) -> str
+{
+    str target = urls.path(url)
+    int last = 0
+    int index = 0
+    while index < len(target)
+    {
+        if strings.slice(target, index, index + 1) == "/"
+        {
+            last = index
+        }
+        index++
+    }
+    if last == 0
+    {
+        return "/"
+    }
+    return strings.slice(target, 0, last)
+}
+
+def parse_cookie(raw: str, url: str, now_ms: int) -> cookie_entry
+{
+    str request_host = urls.host(url)
+    cookie_entry result = cookie_entry("", "", request_host,
+                                       default_path(url), false, true, 0)
+    array parts = strings.split(raw, ";")
+    if len(parts) == 0
+    {
+        return result
+    }
+    str pair = strings.trim(parts[0] as str)
+    int equal = strings.find(pair, "=")
+    if equal <= 0
+    {
+        return result
+    }
+    result.name = strings.trim(strings.slice(pair, 0, equal))
+    result.value = strings.trim(strings.slice(pair, equal + 1, len(pair)))
+    int index = 1
+    while index < len(parts)
+    {
+        str attribute = strings.trim(parts[index] as str)
+        int separator = strings.find(attribute, "=")
+        str key = strings.lower(attribute)
+        str value = ""
+        if separator >= 0
+        {
+            key = strings.lower(strings.trim(strings.slice(attribute, 0, separator)))
+            value = strings.trim(strings.slice(attribute, separator + 1,
+                                               len(attribute)))
+        }
+        if key == "secure"
+        {
+            result.secure = true
+        }
+        else if key == "domain"
+        {
+            str domain = strings.lower(value)
+            if strings.starts_with(domain, ".")
+            {
+                domain = strings.slice(domain, 1, len(domain))
+            }
+            if (domain == "" || !host_matches(request_host, domain) ||
+                !strings.contains(domain, "."))
+            {
+                result.name = ""
+                return result
+            }
+            result.domain = domain
+            result.host_only = false
+        }
+        else if key == "path" && strings.starts_with(value, "/")
+        {
+            result.path = value
+        }
+        else if key == "max-age"
+        {
+            auto parsed = parse.try_parse_int(value)
+            if parsed.ok
+            {
+                if parsed.value <= 0
+                {
+                    result.expires_ms = now_ms - 1
+                }
+                else if (parsed.value <=
+                         (9223372036854775807 - now_ms) / 1000)
+                {
+                    result.expires_ms = now_ms + parsed.value * 1000
+                }
+            }
+        }
+        index++
+    }
+    return result
+}
+
+def response_cookies(values: vector<str>, url: str) -> map<str, str>
+{
+    map<str, str> result = map<str, str>()
+    int index = 0
+    while index < values.size()
+    {
+        cookie_entry item = parse_cookie(values[index], url, time.unix_millis())
+        if item.name != ""
+        {
+            result[item.name] = item.value
+        }
+        index++
+    }
+    return result
+}
+
+def pack_cookie(value: cookie_entry) -> dict
+{
+    dict result = {}
+    result["name"] = value.name
+    result["value"] = value.value
+    result["domain"] = value.domain
+    result["path"] = value.path
+    result["secure"] = value.secure as str
+    result["host_only"] = value.host_only as str
+    result["expires_ms"] = value.expires_ms
+    return result
+}
+
+def unpack_cookie(value: dict) -> cookie_entry
+{
+    return cookie_entry(value["name"] as str, value["value"] as str,
+                        value["domain"] as str, value["path"] as str,
+                        value["secure"] as str == "true",
+                        value["host_only"] as str == "true",
+                        value["expires_ms"] as int)
+}
+
+def store_response(jar: array, values: vector<str>, url: str) -> void
+{
+    int index = 0
+    while index < values.size()
+    {
+        cookie_entry fresh = parse_cookie(values[index], url, time.unix_millis())
+        if fresh.name != ""
+        {
+            int position = 0
+            while position < len(jar)
+            {
+                dict packed = jar[position]
+                cookie_entry old = unpack_cookie(packed)
+                if (old.name == fresh.name && old.domain == fresh.domain &&
+                    old.path == fresh.path)
+                {
+                    arrays.erase(jar, position)
+                    position = len(jar)
+                }
+                else
+                {
+                    position++
+                }
+            }
+            if fresh.expires_ms == 0 || fresh.expires_ms > time.unix_millis()
+            {
+                arrays.push_back(jar, pack_cookie(fresh))
+            }
+        }
+        index++
+    }
+}
+
+def for_url(jar: array, url: str) -> map<str, str>
+{
+    map<str, str> result = map<str, str>()
+    str request_host = urls.host(url)
+    str request_path = urls.path(url)
+    bool secure = strings.starts_with(strings.lower(url), "https://")
+    int now_ms = time.unix_millis()
+    int index = 0
+    while index < len(jar)
+    {
+        dict packed = jar[index]
+        cookie_entry item = unpack_cookie(packed)
+        bool domain_ok = item.domain == request_host
+        if !item.host_only
+        {
+            domain_ok = host_matches(request_host, item.domain)
+        }
+        if (domain_ok && path_matches(request_path, item.path) &&
+            (!item.secure || secure) &&
+            (item.expires_ms == 0 || item.expires_ms > now_ms))
+        {
+            result[item.name] = item.value
+        }
+        index++
+    }
+    return result
+}

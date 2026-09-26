@@ -45,7 +45,8 @@ struct temporary_file
 
 struct command_line
 {
-    enum class action { compile, check, emit_llvm } mode = action::compile;
+    enum class action { compile, check, emit_llvm, emit_library_llvm }
+        mode = action::compile;
     fs::path source_path;
     fs::path output_path;
 };
@@ -69,7 +70,8 @@ std::optional<command_line> parse_command_line(int argc, wchar_t* argv[])
     {
         return command_line{command_line::action::check, argv[2], {}};
     }
-    if (argc >= 3 && std::wstring(argv[1]) == L"emit-llvm")
+    if (argc >= 3 && (std::wstring(argv[1]) == L"emit-llvm" ||
+                      std::wstring(argv[1]) == L"emit-library-llvm"))
     {
         if (argc != 3 && (argc != 5 || std::wstring(argv[3]) != L"-o"))
         {
@@ -80,7 +82,9 @@ std::optional<command_line> parse_command_line(int argc, wchar_t* argv[])
             ? fs::path(argv[4])
             : executable_path().parent_path().parent_path() /
               "tx_build" / (source_path.stem().wstring() + L".ll");
-        return command_line{command_line::action::emit_llvm,
+        return command_line{std::wstring(argv[1]) == L"emit-library-llvm"
+                ? command_line::action::emit_library_llvm
+                : command_line::action::emit_llvm,
                             source_path, output_path};
     }
     if (argc != 2 && (argc != 4 || std::wstring(argv[2]) != L"-o"))
@@ -245,7 +249,8 @@ int compile_llvm_native(const std::string& generated_source,
         object_file.path.wstring(), library.wstring(),
         L"-lstdc++", L"-lmingw32", L"-lgcc_s", L"-lgcc",
         L"-lmoldname", L"-lmingwex", L"-lmsvcrt", L"-lkernel32",
-        L"-lpthread", L"-ladvapi32", L"-lshell32", L"-luser32",
+        L"-lpthread", L"-ladvapi32", L"-lbcrypt", L"-lwinhttp", L"-lws2_32",
+        L"-lshell32", L"-luser32",
         L"-lkernel32", L"-liconv", L"-lmingw32", L"-lgcc_s",
         L"-lgcc", L"-lmoldname", L"-lmingwex", L"-lmsvcrt",
         L"-lkernel32", (link_dir / "default-manifest.o").wstring(),
@@ -266,14 +271,15 @@ int compile_llvm_native(const std::string& generated_source,
     return 0;
 }
 
-tx::program parse_and_check(const fs::path& source_path)
+tx::program parse_and_check(const fs::path& source_path,
+                            bool library_mode = false)
 {
     tx::module_loader loader(executable_path().parent_path() / "stdlib");
     auto syntax = loader.load(source_path);
     tx::module_resolver resolver;
     resolver.resolve(syntax);
     tx::semantic_analyzer analyzer;
-    analyzer.analyze(syntax, source_path.extension() != ".txh");
+    analyzer.analyze(syntax, !library_mode && source_path.extension() != ".txh");
     return syntax;
 }
 
@@ -285,7 +291,8 @@ int run_check(const fs::path& source_path)
 }
 
 
-int run_emit_llvm(const fs::path& source_path, const fs::path& output_path)
+int run_emit_llvm(const fs::path& source_path, const fs::path& output_path,
+                  bool library_mode = false)
 {
     if (source_path.extension() == ".txh")
     {
@@ -295,9 +302,9 @@ int run_emit_llvm(const fs::path& source_path, const fs::path& output_path)
     {
         throw std::runtime_error("输出路径不能覆盖源码文件");
     }
-    auto syntax = parse_and_check(source_path);
+    auto syntax = parse_and_check(source_path, library_mode);
     tx::llvm_code_generator generator;
-    const auto generated_source = generator.generate(syntax);
+    const auto generated_source = generator.generate(syntax, library_mode);
     if (!output_path.parent_path().empty())
     {
         fs::create_directories(output_path.parent_path());
@@ -357,7 +364,8 @@ int main()
         {
             std::cerr << "用法：txc <源码.tx> [-o <输出.exe>]\n"
                       << "      txc check <源码.tx>\n"
-                      << "      txc emit-llvm <源码.tx> [-o <输出.ll>]\n";
+                      << "      txc emit-llvm <源码.tx> [-o <输出.ll>]\n"
+                      << "      txc emit-library-llvm <源码.tx> -o <输出.ll>\n";
             return 2;
         }
         switch (command->mode)
@@ -366,6 +374,8 @@ int main()
             return run_check(command->source_path);
         case command_line::action::emit_llvm:
             return run_emit_llvm(command->source_path, command->output_path);
+        case command_line::action::emit_library_llvm:
+            return run_emit_llvm(command->source_path, command->output_path, true);
         case command_line::action::compile:
             return run_compiler(command->source_path, command->output_path);
         }

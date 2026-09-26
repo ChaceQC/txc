@@ -1,0 +1,12 @@
+import "websocket.txh" as ws
+import "time.txh" as time
+
+def main() -> int
+{
+    ws.listener server = ws.listen("127.0.0.1", 19733)
+    ws.connection peer = ws.accept(server, 10000)
+    time.sleep_millis(2000)
+    ws.close(peer)
+    ws.close(server)
+    return 0
+}

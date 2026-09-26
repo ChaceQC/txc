@@ -1,0 +1,23 @@
+import "httpx.txh" as httpx
+import "file_stream.txh" as streams
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen("127.0.0.1", 19736)
+    binary_stream received = streams.open_binary("tx_build/http_stream_received.bin", "write")
+    httpx.stream_request request = httpx.accept_stream(server, received,
+                                                       16 * 1024 * 1024, 15000)
+    streams.close(received)
+    if request.body_length <= 8 * 1024 * 1024
+    {
+        httpx.close(request.connection)
+        httpx.close(server)
+        return 1
+    }
+    binary_stream source = streams.open_binary("tx_build/http_stream_received.bin", "read")
+    httpx.respond_stream(request.connection, 200, map<str, str>(),
+                         vector<str>(), source, request.body_length)
+    streams.close(source)
+    httpx.close(server)
+    return 0
+}

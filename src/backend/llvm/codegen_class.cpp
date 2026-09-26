@@ -160,26 +160,44 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
     initialize_container_fields(definition, object, item.position);
     if (!call.constructor_init_symbol.empty())
     {
-        std::string parameters = "ptr " + object;
-        for (const auto& argument : arguments)
-        {
-            parameters += ", " + llvm_type(argument.type, item.position) +
-                          " " + argument.text;
-        }
         const auto& init = *functions_.at(call.constructor_init_symbol).at(
             call.constructor_init_index);
         auto owned_arguments = arguments;
         owned_arguments.insert(owned_arguments.begin(), {item.type, object});
-        transfer_call_arguments(init, owned_arguments);
-        write_instruction("call void " + function_name(
-            call.constructor_init_symbol, call.constructor_init_index) +
-            "(" + parameters + ")");
-        for (std::size_t index = 0; index < arguments.size(); ++index)
+        const auto passed = coerce_nullable_arguments(init, owned_arguments);
+        std::string parameters = "ptr " + object;
+        for (std::size_t index = 1; index < passed.size(); ++index)
         {
-            if (init_parameter_borrowed(init, index) &&
-                !borrowed_arguments[index])
+            const auto& argument = passed[index];
+            parameters += ", " + llvm_type(argument.type, item.position) +
+                          " " + argument.text;
+        }
+        if (init.external_name == "requests.session.init")
+        {
+            write_instruction("call void " + function_name(
+                "m0_bridge_session_init", call.constructor_init_index) +
+                "(" + parameters + ")");
+            if (!recoverable_errors_)
             {
-                release(arguments[index]);
+                const auto pending = temporary();
+                write_instruction(pending + " = call i32 @txrt_error_status()");
+                write_instruction("call void @txrt_require_success(i32 " +
+                                  pending + ")");
+            }
+        }
+        else
+        {
+            transfer_call_arguments(init, passed);
+            write_instruction("call void " + function_name(
+                call.constructor_init_symbol, call.constructor_init_index) +
+                "(" + parameters + ")");
+            for (std::size_t index = 0; index < arguments.size(); ++index)
+            {
+                if (init_parameter_borrowed(init, index) &&
+                    !borrowed_arguments[index])
+                {
+                    release(arguments[index]);
+                }
             }
         }
     }
@@ -192,7 +210,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     bool borrowed = false;
     const auto receiver = expression_value_or_borrow(*call.receiver, borrowed);
     const auto& target = *functions_.at(call.name).at(*call.overload_index);
-    const bool needs_binding = std::any_of(target.parameters.begin(),
+    const bool needs_binding = call.arguments.size() != target.parameters.size() ||
+        std::any_of(target.parameters.begin(),
         target.parameters.end(), [](const parameter& value)
         { return value.kind != parameter_kind::ordinary; }) ||
         std::any_of(call.arguments.begin(), call.arguments.end(),
@@ -209,6 +228,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
         }
     }
     arguments.insert(arguments.begin(), receiver);
+    if (target.external_name.starts_with("requests.session.") ||
+        target.external_name.starts_with("requests.response."))
+    {
+        return emit_precompiled_requests_method(item, call, target, arguments,
+                                                borrowed);
+    }
     if (!call.virtual_dispatch)
     {
         const auto result = emit_user_call(item, call, target, arguments);
@@ -222,8 +247,9 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     write_instruction(target_address +
         " = call ptr @txrt_class_virtual_target_fast(ptr " +
         receiver.text + ", i64 " + std::to_string(call.virtual_slot) + ")");
+    const auto passed = coerce_nullable_arguments(target, arguments);
     std::string parameters;
-    for (const auto& argument : arguments)
+    for (const auto& argument : passed)
     {
         if (!parameters.empty())
         {
@@ -233,7 +259,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     }
     const auto invocation = "call " + llvm_type(item.type, item.position) +
         " " + target_address + "(" + parameters + ")";
-    transfer_call_arguments(target, arguments);
+    transfer_call_arguments(target, passed);
     if (item.type == value_type::void_type)
     {
         write_instruction(invocation);
@@ -251,6 +277,70 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
         release(receiver);
     }
     return owned_result;
+}
+
+llvm_code_generator::ir_value
+llvm_code_generator::emit_precompiled_requests_method(
+    const expression& item, const call_expression& call,
+    const function_decl& target, const std::vector<ir_value>& arguments,
+    bool borrowed_receiver)
+{
+    const auto passed = coerce_nullable_arguments(target, arguments);
+    const bool session_method = target.external_name.starts_with(
+        "requests.session.");
+    const auto symbol = session_method
+        ? "m0_bridge_session_" + target.external_name.substr(17)
+        : "m0_bridge_" + target.external_name.substr(18);
+    std::string parameters;
+    for (const auto& argument : passed)
+    {
+        if (!parameters.empty())
+        {
+            parameters += ", ";
+        }
+        parameters += llvm_type(argument.type, item.position) + " " +
+            argument.text;
+    }
+    const auto return_type = llvm_type(item.type, item.position);
+    const auto invocation = "call " + return_type + " " +
+        function_name(symbol, *call.overload_index) + "(" + parameters + ")";
+    for (std::size_t index = 1; index < passed.size(); ++index)
+    {
+        if (target.parameters[index - 1].kind != parameter_kind::ordinary ||
+            parameter_is_nullable(target.parameters[index - 1]))
+        {
+            forget_owned_value(passed[index]);
+        }
+    }
+    ir_value result{item.type, {}};
+    if (item.type == value_type::void_type)
+    {
+        write_instruction(invocation);
+    }
+    else
+    {
+        result.text = temporary();
+        write_instruction(result.text + " = " + invocation);
+    }
+    if (!recoverable_errors_)
+    {
+        const auto status = temporary();
+        write_instruction(status + " = call i32 @txrt_error_status()");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+    }
+    for (std::size_t index = 1; index < passed.size(); ++index)
+    {
+        if (target.parameters[index - 1].kind == parameter_kind::ordinary &&
+            !parameter_is_nullable(target.parameters[index - 1]))
+        {
+            release(passed[index]);
+        }
+    }
+    if (!borrowed_receiver)
+    {
+        release(arguments.front());
+    }
+    return own_direct_value(result);
 }
 
 } // namespace tx

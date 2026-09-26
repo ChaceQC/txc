@@ -44,6 +44,8 @@ int txrt_value_is_none(const void* value, bool* result) noexcept;
 int txrt_value_len(const void* value, std::int64_t* result) noexcept;
 int txrt_value_print(const void* value, bool newline) noexcept;
 int txrt_value_require_type(const void* value, const char* type_name) noexcept;
+int txrt_value_require_type_or_none(const void* value,
+                                    const char* type_name) noexcept;
 
 int txrt_array_new(std::int64_t length, void** result) noexcept;
 void* txrt_array_ref(void* value) noexcept;

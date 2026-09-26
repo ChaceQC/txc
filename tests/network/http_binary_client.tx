@@ -1,0 +1,13 @@
+import "httpx.txh" as httpx
+import "bytes.txh" as byte_values
+
+def main() -> int
+{
+    bytes payload = byte_values.from_hex("00ff80e4bda0")
+    httpx.binary_response response = httpx.post_bytes("http://127.0.0.1:19734/", payload, 5000)
+    if response.status != 200 || response.body != payload
+    {
+        return 1
+    }
+    return 0
+}

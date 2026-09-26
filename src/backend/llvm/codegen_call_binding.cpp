@@ -54,6 +54,27 @@ llvm_code_generator::ir_value llvm_code_generator::emit_variadic_dict(
 }
 
 std::vector<llvm_code_generator::ir_value>
+llvm_code_generator::coerce_nullable_arguments(
+    const function_decl& target, const std::vector<ir_value>& arguments)
+{
+    auto result = arguments;
+    const std::size_t offset = target.owner_class.empty() ? 0 : 1;
+    for (std::size_t index = 0; index < target.parameters.size(); ++index)
+    {
+        if (!parameter_is_nullable(target.parameters[index]) ||
+            result[index + offset].type == value_type::any_type)
+        {
+            continue;
+        }
+        const auto boxed = box_any(result[index + offset],
+                                   target.parameters[index].position);
+        release(result[index + offset]);
+        result[index + offset] = boxed;
+    }
+    return result;
+}
+
+std::vector<llvm_code_generator::ir_value>
 llvm_code_generator::emit_static_arguments(
     const expression& item, const call_expression& call,
     const std::vector<parameter>& parameters)
@@ -93,6 +114,18 @@ llvm_code_generator::emit_static_arguments(
         else
         {
             result[static_cast<std::size_t>(found - parameters.begin())] = value;
+        }
+    }
+    for (std::size_t index = 0; index < fixed_count; ++index)
+    {
+        if (result[index].type == value_type::void_type)
+        {
+            if (!parameters[index].default_value)
+            {
+                throw compile_error(item.position, "缺少必需参数：" +
+                                               parameters[index].name);
+            }
+            result[index] = expression_value(*parameters[index].default_value);
         }
     }
     for (std::size_t index = fixed_count; index < parameters.size(); ++index)
@@ -178,6 +211,48 @@ llvm_code_generator::emit_direct_spreads(
     write_instruction(kwargs + " = load ptr, ptr " + kwargs_slot);
     result.push_back({value_type::dict_type, kwargs});
     return result;
+}
+
+void llvm_code_generator::emit_spread_defaults(
+    const std::vector<parameter>& parameters, std::size_t fixed_count,
+    const std::string& positional, const std::string& keywords,
+    source_pos position)
+{
+    for (std::size_t index = 0; index < fixed_count; ++index)
+    {
+        const auto& parameter = parameters[index];
+        if (!parameter.default_value)
+        {
+            continue;
+        }
+        const auto needed_slot = allocate(value_type::bool_type, position);
+        const auto status = temporary();
+        write_instruction(status +
+            " = call i32 @txrt_call_needs_default(ptr " + positional +
+            ", ptr " + keywords + ", i64 " + std::to_string(index) +
+            ", ptr " + global_bytes(parameter.name) + ", ptr " +
+            needed_slot + ")");
+        write_instruction("call void @txrt_require_success(i32 " + status + ")");
+        const auto needed = temporary();
+        write_instruction(needed + " = load i1, ptr " + needed_slot);
+        const auto fill_label = label();
+        const auto next_label = label();
+        write_instruction("br i1 " + needed + ", label %" + fill_label +
+                          ", label %" + next_label);
+        start_block(fill_label);
+        const auto value = expression_value(*parameter.default_value);
+        const auto boxed = box_any(value, position);
+        const auto inserted = temporary();
+        write_instruction(inserted + " = call i32 @txrt_keyword_set(ptr " +
+            keywords + ", ptr " + global_bytes(parameter.name) +
+            ", ptr " + boxed.text + ")");
+        write_instruction("call void @txrt_require_success(i32 " +
+                          inserted + ")");
+        release(boxed);
+        release(value);
+        write_instruction("br label %" + next_label);
+        start_block(next_label);
+    }
 }
 
 std::vector<llvm_code_generator::ir_value>
@@ -270,6 +345,8 @@ llvm_code_generator::emit_bound_arguments(
             accepts_kwargs = true;
         }
     }
+    emit_spread_defaults(parameters, fixed_count, positional, keywords,
+                         item.position);
     std::string names = "null";
     if (fixed_count != 0)
     {
@@ -309,13 +386,19 @@ llvm_code_generator::emit_bound_arguments(
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
         const auto borrowed = temporary();
         write_instruction(borrowed + " = load ptr, ptr " + address);
+        const bool nullable = parameter_is_nullable(parameters[index]);
         const auto type_status = temporary();
-        write_instruction(type_status + " = call i32 @txrt_value_require_type(ptr " +
+        write_instruction(type_status + " = call i32 @" +
+                          std::string(nullable
+                              ? "txrt_value_require_type_or_none"
+                              : "txrt_value_require_type") + "(ptr " +
                           borrowed + ", ptr " +
                           global_bytes(parameters[index].type.name) + ")");
         write_instruction("call void @txrt_require_success(i32 " + type_status + ")");
-        result.push_back(from_any({value_type::any_type, borrowed},
-                                  parameters[index].type, item.position));
+        const auto restored = from_any({value_type::any_type, borrowed},
+            nullable ? value_type::any_type : parameters[index].type,
+            item.position);
+        result.push_back(restored);
     }
     release({value_type::array_type, bound});
     return result;

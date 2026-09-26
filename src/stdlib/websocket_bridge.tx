@@ -1,0 +1,25 @@
+import "websocket.txh" as ws
+
+def bridge_reply_once(peer: ws.connection, handler: fn(str) -> str,
+                      timeout_ms: int) -> bool
+{
+    ws.message incoming = ws.receive(peer, timeout_ms)
+    if !incoming.open
+    {
+        return false
+    }
+    ws.send_text(peer, handler(incoming.text))
+    return true
+}
+
+def bridge_reply_once_binary(peer: ws.connection, handler: fn(bytes) -> bytes,
+                             timeout_ms: int) -> bool
+{
+    ws.binary_message incoming = ws.receive_binary(peer, timeout_ms)
+    if !incoming.open
+    {
+        return false
+    }
+    ws.send_binary(peer, handler(incoming.data))
+    return true
+}

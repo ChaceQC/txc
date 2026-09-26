@@ -1,0 +1,41 @@
+struct listener
+{
+    id: int
+}
+
+struct connection
+{
+    id: int
+}
+
+struct message
+{
+    open: bool
+    text: str
+}
+
+struct binary_message
+{
+    open: bool
+    data: bytes
+}
+
+struct stream_message
+{
+    open: bool
+    length: int
+}
+
+def connect(url: str, timeout_ms: int) -> connection
+def listen(host: str, port: int) -> listener
+def accept(server: listener, timeout_ms: int) -> connection
+def send_text(peer: connection, text: str) -> void
+def send_binary(peer: connection, data: bytes) -> void
+def send_binary_stream(peer: connection, source: binary_stream, length: int) -> void
+def receive(peer: connection, timeout_ms: int) -> message
+def receive_binary(peer: connection, timeout_ms: int) -> binary_message
+def receive_binary_stream(peer: connection, destination: binary_stream, max_message_bytes: int, timeout_ms: int) -> stream_message
+def reply_once(peer: connection, handler: fn(str) -> str, timeout_ms: int) -> bool
+def reply_once_binary(peer: connection, handler: fn(bytes) -> bytes, timeout_ms: int) -> bool
+def close(server: listener) -> void
+def close(peer: connection) -> void

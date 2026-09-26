@@ -1,0 +1,19 @@
+import "websocket.txh" as ws
+
+def echo(data: bytes) -> bytes
+{
+    return data
+}
+
+def main() -> int
+{
+    ws.listener server = ws.listen("127.0.0.1", 19735)
+    ws.connection peer = ws.accept(server, 10000)
+    if !ws.reply_once_binary(peer, echo, 10000)
+    {
+        return 1
+    }
+    ws.close(peer)
+    ws.close(server)
+    return 0
+}

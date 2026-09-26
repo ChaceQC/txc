@@ -2,7 +2,9 @@
 
 本文说明当前已实现的标准库接口。后续能力缺口、建议优先级和实现前提见[标准库扩展规划](standard_library_plan.md)。
 
-后续 `httpx` 与 `ws` 客户端、服务端的接口设计见[网络模块设计](network.md)；当前尚未实现。
+`httpx` 与 `websocket` 提供 HTTP/1.1、HTTP/2、WS/WSS 客户端和对应服务端的同步文本、二进制与文件流接口。HTTP/2 支持 HTTPS ALPN、明文 h2c prior knowledge，以及使用 PEM 证书的 TLS 服务端；二进制正文和消息直接使用 `bytes` 或 `binary_stream`。完整签名、边界及定向验证状态见[网络模块说明](network.md)。公开接口分别为 [httpx.txh](../tx/stdlib/httpx.txh) 和 [websocket.txh](../tx/stdlib/websocket.txh)。
+
+`requests` 在 `httpx` 上提供接近 Python Requests 的同步客户端、命名参数、`session` 与 `response` 类、JSON、表单、Cookie 和重定向。公开接口为 [requests.txh](../tx/stdlib/requests.txh)，`.tx` 实现构建进同一个标准库静态库。具体签名、Python API 对照及限制见[requests 模块说明](requests.md)。
 
 `bytes`、`encoding` 和 `file_stream` 的接口及语义见[字节值与文件流](bytes_file_stream.md)；代码已构建，少量定向场景已通过。
 
@@ -220,6 +222,7 @@ def main() -> int {
 | str | float | 解析完整的有限浮点数，允许首尾 ASCII 空白 |
 | int、float、bool | str | 转为对应的文本表示 |
 | any 中实际存放上述值 | int、float、str | 按实际类型执行对应转换 |
+| any 中实际存放 bool | bool | 严格取出布尔值；其他实际类型报运行时类型错误 |
 
 例如 2 as float 输出 2.0，"42" as int 得到 42，3.5 as str 得到 "3.5"。对 none、数组或结构体做这些转换会报运行错误。
 

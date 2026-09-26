@@ -17,6 +17,9 @@ std::string_view operator_text(token_kind kind)
     case token_kind::minus: return "-";
     case token_kind::star: return "*";
     case token_kind::slash: return "/";
+    case token_kind::ampersand: return "&";
+    case token_kind::caret: return "^";
+    case token_kind::pipe: return "|";
     case token_kind::equal_equal: return "==";
     case token_kind::bang_equal: return "!=";
     case token_kind::less: return "<";

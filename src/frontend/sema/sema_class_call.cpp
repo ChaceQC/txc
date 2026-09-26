@@ -39,7 +39,8 @@ std::size_t semantic_analyzer::method_conversion_cost(
         }
         if (target != nullptr && target->type != types[index])
         {
-            cost += class_distance(types[index], target->type);
+            cost += target->type == value_type::any_type
+                ? 1000 : class_distance(types[index], target->type);
         }
     }
     return cost;

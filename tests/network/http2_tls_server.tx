@@ -1,0 +1,12 @@
+import "httpx.txh" as httpx
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen_h2_tls("127.0.0.1", 19739,
+        "tx_build/http2_test_cert.pem", "tx_build/http2_test_key.pem")
+    httpx.request request = httpx.accept(server, 15000)
+    httpx.respond(request.connection,
+        httpx.response(200, map<str, str>(), vector<str>(), "TLS H2 OK"))
+    httpx.close(server)
+    return 0
+}

@@ -47,7 +47,8 @@ void module_resolver::build_index(const program& source)
     {
         const auto& module = source.modules[index];
         scopes_.emplace(module.key, &module);
-        prefixes_.emplace(module.key, "m" + std::to_string(index) + "_");
+        prefixes_.emplace(module.key, module.symbol_prefix.empty()
+            ? "m" + std::to_string(index) + "_" : module.symbol_prefix);
     }
     for (const auto& definition : source.structs)
     {
@@ -240,6 +241,10 @@ void module_resolver::resolve(program& source)
                 check_local_name(key, parameter.name, parameter.position);
                 parameter.type = resolve_type(key, parameter.type,
                                               parameter.position);
+                if (parameter.default_value)
+                {
+                    resolve_expression(*parameter.default_value, key);
+                }
             }
             method.return_type = resolve_type(
                 key, method.return_type, method.position);
@@ -265,6 +270,10 @@ void module_resolver::resolve(program& source)
             {
                 check_local_name(key, parameter.name, parameter.position);
                 parameter.type = resolve_type(key, parameter.type, parameter.position);
+                if (parameter.default_value)
+                {
+                    resolve_expression(*parameter.default_value, key);
+                }
             }
             method.return_type = resolve_type(
                 key, method.return_type, method.position);
@@ -280,6 +289,10 @@ void module_resolver::resolve(program& source)
         {
             check_local_name(key, parameter.name, parameter.position);
             parameter.type = resolve_type(key, parameter.type, parameter.position);
+            if (parameter.default_value)
+            {
+                resolve_expression(*parameter.default_value, key);
+            }
         }
         function.return_type = resolve_type(
             key, function.return_type, function.position);

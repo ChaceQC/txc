@@ -60,3 +60,5 @@ struct any_result
     value: any
     error: error_info
 }
+
+def fail_io(code: str, message: str) -> void

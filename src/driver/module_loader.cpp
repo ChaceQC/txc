@@ -243,6 +243,10 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
     source_path.replace_extension(".tx");
     if (!fs::exists(source_path))
     {
+        std::error_code precompiled_error;
+        const bool precompiled_requests = fs::equivalent(
+            header_path, standard_library_dir_ / "requests.txh",
+            precompiled_error) && !precompiled_error;
         for (const auto& definition : header.structs)
         {
             if (!definition.methods.empty())
@@ -256,7 +260,7 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
         {
             for (const auto& method : definition.methods)
             {
-                if (!method.is_abstract)
+                if (!method.is_abstract && !precompiled_requests)
                 {
                     throw compile_error(method.position,
                                         "类的具体方法需要配对 .tx 实现：" +
@@ -296,6 +300,17 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
                 {
                     function.external_name = module_name + "." + function.name;
                 }
+                if (precompiled_requests)
+                {
+                    for (auto& definition : header.classes)
+                    {
+                        for (auto& method : definition.methods)
+                        {
+                            method.external_name = module_name + "." +
+                                definition.name + "." + method.name;
+                        }
+                    }
+                }
             }
         }
         append_program(result, header);
@@ -313,6 +328,27 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
     auto implementation = parse_file(source_path);
     load_dependencies(implementation, source_path, path_text(header_path), result);
     validate_pair(header, implementation);
+    for (auto& definition : implementation.functions)
+    {
+        const auto found = std::find_if(header.functions.begin(),
+            header.functions.end(), [&](const function_decl& item)
+            {
+                return item.name == definition.name &&
+                       same_parameter_types(item, definition);
+            });
+        copy_parameter_defaults(found->parameters, definition.parameters);
+    }
+    for (auto& definition : implementation.classes)
+    {
+        const auto found = std::find_if(header.classes.begin(),
+            header.classes.end(), [&](const class_decl& item)
+            { return item.name == definition.name; });
+        for (std::size_t index = 0; index < definition.methods.size(); ++index)
+        {
+            copy_parameter_defaults(found->methods[index].parameters,
+                                    definition.methods[index].parameters);
+        }
+    }
     for (auto& declaration : header.structs)
     {
         if (declaration.methods.empty())
@@ -383,7 +419,26 @@ std::string module_loader::load_file(const std::filesystem::path& path,
     states_.emplace(key, load_state::visiting);
     stack_.push_back(key);
     scope_indices_[key] = result.modules.size();
-    result.modules.push_back({key, {}});
+    // 预编译标准库 TX 源码必须与用户程序看到同一套结构体类型名。
+    std::string stable_prefix;
+    const auto library_dir = fs::canonical(standard_library_dir_, error);
+    if (!error)
+    {
+        const auto relative = normalized.lexically_relative(library_dir);
+        if (!relative.empty() && !relative.is_absolute() &&
+            *relative.begin() != fs::path(".."))
+        {
+            constexpr char hex[] = "0123456789abcdef";
+            stable_prefix = "s_";
+            for (unsigned char value : path_text(relative))
+            {
+                stable_prefix.push_back(hex[value >> 4]);
+                stable_prefix.push_back(hex[value & 15]);
+            }
+            stable_prefix.push_back('_');
+        }
+    }
+    result.modules.push_back({key, {}, std::move(stable_prefix)});
     result.file_modules[key] = key;
     auto syntax = parse_file(normalized);
     if (import_site)

@@ -1,0 +1,105 @@
+struct request_options
+{
+    params: map<str, str>
+    headers: map<str, str>
+    cookies: map<str, str>
+    body: bytes
+    body_type: str
+    timeout_ms: int
+    allow_redirects: bool
+    max_redirects: int
+    http2: bool
+    basic_auth: bool
+    auth_user: str
+    auth_password: str
+}
+
+class response
+{
+    public:
+        status_code: int
+        url: str
+        headers: map<str, str>
+        set_cookie: vector<str>
+        cookies: map<str, str>
+        content: bytes
+        history: array
+        elapsed_ms: int
+        ok: bool
+
+        def text() -> str
+        def text(encoding: str) -> str
+        def json() -> any
+        def json_object() -> dict
+        def raise_for_status() -> void
+}
+
+class session
+{
+    public:
+        headers: map<str, str>
+        cookies: array
+        timeout_ms: int
+        allow_redirects: bool
+        max_redirects: int
+        http2: bool
+        basic_auth: bool
+        auth_user: str
+        auth_password: str
+
+        def init() -> void
+        def request(method: str, url: str,
+                    params: dict = none, data: any = none,
+                    headers: dict = none, cookies: dict = none,
+                    files: any = none, auth: array = none,
+                    timeout: any = none, allow_redirects: bool = none,
+                    proxies: any = none, hooks: any = none,
+                    stream: bool = none, verify: bool = none,
+                    cert: any = none, json: any = none,
+                    **kwargs: dict) -> response
+        def request(method: str, url: str, options: request_options) -> response
+        def get(url: str, **kwargs: dict) -> response
+        def get(url: str, options: request_options) -> response
+        def post(url: str, data: any = none, json: any = none, **kwargs: dict) -> response
+        def post(url: str, options: request_options) -> response
+        def put(url: str, options: request_options) -> response
+        def put(url: str, data: any = none, **kwargs: dict) -> response
+        def patch(url: str, options: request_options) -> response
+        def patch(url: str, data: any = none, **kwargs: dict) -> response
+        def delete(url: str, options: request_options) -> response
+        def delete(url: str, **kwargs: dict) -> response
+        def head(url: str, options: request_options) -> response
+        def head(url: str, **kwargs: dict) -> response
+        def options(url: str, options: request_options) -> response
+        def options(url: str, **kwargs: dict) -> response
+}
+
+def default_options() -> request_options
+def with_text(options: request_options, body: str) -> request_options
+def with_bytes(options: request_options, body: bytes) -> request_options
+def with_form(options: request_options, fields: map<str, str>) -> request_options
+def with_json(options: request_options, value: dict) -> request_options
+def with_json(options: request_options, value: array) -> request_options
+
+def request(method: str, url: str, **kwargs: dict) -> response
+def request(method: str, url: str, options: request_options) -> response
+def get(url: str, params: dict = none, **kwargs: dict) -> response
+def get(url: str, options: request_options) -> response
+def post(url: str, data: any = none, json: any = none, **kwargs: dict) -> response
+def post(url: str, options: request_options) -> response
+def put(url: str, data: any = none, **kwargs: dict) -> response
+def put(url: str, options: request_options) -> response
+def patch(url: str, data: any = none, **kwargs: dict) -> response
+def patch(url: str, options: request_options) -> response
+def delete(url: str, **kwargs: dict) -> response
+def delete(url: str, options: request_options) -> response
+def head(url: str, **kwargs: dict) -> response
+def head(url: str, options: request_options) -> response
+def options(url: str, **kwargs: dict) -> response
+def options(url: str, options: request_options) -> response
+
+def download(url: str, destination: binary_stream, max_bytes: int) -> response
+def download(url: str, destination: binary_stream, max_bytes: int, options: request_options) -> response
+def upload(method: str, url: str, source: binary_stream, length: int,
+           destination: binary_stream, max_response_bytes: int,
+           options: request_options) -> response

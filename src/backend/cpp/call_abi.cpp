@@ -173,6 +173,19 @@ extern "C" int txrt_call_bind(const void* positional,
     });
 }
 
+extern "C" int txrt_call_needs_default(const void* positional,
+                                          const void* keywords,
+                                          std::size_t index, const char* name,
+                                          bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        const auto& values = std::any_cast<const tx_array&>(as_value(positional));
+        const auto& words = as_keywords(keywords);
+        *result = index >= values.size() && !contains_keyword(words, name);
+    });
+}
+
 extern "C" int txrt_call_split_spreads(
     const void* spread_array, const void* spread_dict,
     const char* const* fixed_names, std::size_t fixed_count,

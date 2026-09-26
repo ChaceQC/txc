@@ -74,6 +74,9 @@ enum class token_kind
     less_equal,
     greater,
     greater_equal,
+    ampersand,
+    caret,
+    pipe,
     and_and,
     or_or
 };

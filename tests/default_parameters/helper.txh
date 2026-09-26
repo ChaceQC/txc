@@ -1,0 +1,9 @@
+class counter
+{
+    public:
+        value: int
+        def init(start: int = 5) -> void
+        def increment(step: int = none) -> int
+}
+
+def multiply(value: int, factor: int = none) -> int

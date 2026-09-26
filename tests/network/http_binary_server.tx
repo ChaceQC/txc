@@ -1,0 +1,15 @@
+import "bytes.txh" as byte_values
+import "httpx.txh" as httpx
+
+def echo(request: httpx.binary_request) -> httpx.binary_response
+{
+    return httpx.binary_response(200, map<str, str>(), vector<str>(), request.body)
+}
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen("127.0.0.1", 19734)
+    httpx.serve_once_bytes(server, echo, 10000)
+    httpx.close(server)
+    return 0
+}

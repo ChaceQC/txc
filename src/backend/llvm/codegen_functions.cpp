@@ -54,23 +54,24 @@ void llvm_code_generator::emit_function(const function_decl& function)
         {
             parameters += ", ";
         }
-        const auto type = llvm_type(parameter.type, parameter.position);
+        const auto abi_type = parameter_abi_type(parameter);
+        const auto type = llvm_type(abi_type, parameter.position);
         const auto argument_index = i + (function.owner_class.empty() ? 0 : 1);
         parameters += type + " %arg" + std::to_string(argument_index);
         const bool borrowed = (i == 0 && operator_parameter_borrowed(function)) ||
             init_parameter_borrowed(function, i) || ordinary_parameter_borrowed(function, i);
-        const auto address = allocate(parameter.type, parameter.position, !borrowed);
+        const auto address = allocate(abi_type, parameter.position, !borrowed);
         write_instruction("store " + type + " %arg" +
                           std::to_string(argument_index) +
                           ", ptr " + address);
-        const auto array_reference = parameter.type == value_type::array_type
+        const auto array_reference = abi_type == value_type::array_type
             ? cache_array_reference("%arg" + std::to_string(argument_index),
                                     parameter.position) : std::string{};
-        variable_slot slot{parameter.type, address,
+        variable_slot slot{abi_type, address,
             (i == 0 && operator_parameter_borrowed(function)) ||
             init_parameter_borrowed(function, i) ||
             ordinary_parameter_borrowed(function, i), array_reference};
-        if (parameter.type == value_type::dict_type)
+        if (abi_type == value_type::dict_type)
         {
             slot.dict_reference = cache_dict_reference(
                 "%arg" + std::to_string(argument_index), parameter.position);
@@ -99,45 +100,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
             [](const parameter& item)
             { return item.kind == parameter_kind::ordinary; }))
     {
-        // 间接调用一律交出实参所有权；包装入口兼容已有的借用参数优化。
-        std::string wrapper_parameters;
-        std::string wrapper_arguments;
-        for (std::size_t i = 0; i < function.parameters.size(); ++i)
-        {
-            const auto type = llvm_type(function.parameters[i].type,
-                                        function.parameters[i].position);
-            if (i != 0)
-            {
-                wrapper_parameters += ", ";
-                wrapper_arguments += ", ";
-            }
-            wrapper_parameters += type + " %value" + std::to_string(i);
-            wrapper_arguments += type + " %value" + std::to_string(i);
-        }
-        const auto result_type = llvm_type(function.return_type, function.position);
-        module_ << "define " << result_type << ' '
-                << callback_name(symbol, index) << '(' << wrapper_parameters
-                << ") {\nentry:\n  ";
-        if (function.return_type != value_type::void_type)
-        {
-            module_ << "%result = ";
-        }
-        module_ << "call " << result_type << ' ' << function_name(symbol, index)
-                << '(' << wrapper_arguments << ")\n";
-        for (std::size_t i = 0; i < function.parameters.size(); ++i)
-        {
-            if (!ordinary_parameter_borrowed(function, i))
-            {
-                continue;
-            }
-            const auto* release_name = function.parameters[i].type ==
-                value_type::str_type ? "txrt_str_release" : "txrt_value_release";
-            module_ << "  call void @" << release_name << "(ptr %value"
-                    << i << ")\n";
-        }
-        module_ << (function.return_type == value_type::void_type
-            ? "  ret void\n" : "  ret " + result_type + " %result\n")
-                << "}\n\n";
+        emit_callback_wrapper(function, symbol, index);
     }
     current_method_owner_.clear();
     current_function_body_ = nullptr;

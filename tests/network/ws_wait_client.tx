@@ -1,0 +1,13 @@
+import "websocket.txh" as ws
+
+def main() -> int
+{
+    ws.connection peer = ws.connect("ws://127.0.0.1:19733/", 500)
+    ws.message ending = ws.receive(peer, 0)
+    ws.close(peer)
+    if ending.open
+    {
+        return 1
+    }
+    return 0
+}

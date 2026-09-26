@@ -1,0 +1,25 @@
+import "httpx.txh" as httpx
+
+def first(request: httpx.request) -> httpx.response
+{
+    map<str, str> headers = map<str, str>()
+    headers["x-route"] = "first"
+    vector<str> cookies = vector<str>()
+    cookies.push_back("a=1; Path=/")
+    cookies.push_back("b=2; Path=/")
+    return httpx.response(200, headers, cookies, request.target)
+}
+
+def second(request: httpx.request) -> httpx.response
+{
+    return httpx.response(201, map<str, str>(), vector<str>(), request.body)
+}
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen("127.0.0.1", 19731)
+    httpx.serve_once(server, first, 10000)
+    httpx.serve_once(server, second, 10000)
+    httpx.close(server)
+    return 0
+}

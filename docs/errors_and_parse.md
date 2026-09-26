@@ -8,6 +8,8 @@
 
 具体结果为 `int_result`、`float_result`、`str_result`、`bool_result`，字段依次为 `bool ok`、对应静态类型的 `value`、`error_info error`。成功时 error 的三个字符串均为空；失败时 value 分别为 `0`、`0.0`、`""`、`false`，调用方应先检查 ok。成功的空文本与失败可以明确区分，不使用 none 代替失败。
 
+`error.fail_io(code: str, message: str) -> void` 供 `.tx` 编写的标准库网络包装层报告可恢复的 I/O 错误；调用后进入 `io_error` 路径，调用方可按 `code` 分支处理。它不返回正常值，也不替代 `try`/`exception` 的捕获规则。
+
 ## parse 接口
 
 导入 `parse.txh` 后提供：

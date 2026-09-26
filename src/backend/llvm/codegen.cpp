@@ -41,6 +41,11 @@ std::string llvm_code_generator::llvm_type(const value_type& type,
     throw compile_error(position, "LLVM 后端暂不支持类型：" + type.name);
 }
 
+value_type llvm_code_generator::parameter_abi_type(const parameter& value)
+{
+    return parameter_is_nullable(value) ? value_type::any_type : value.type;
+}
+
 bool llvm_code_generator::is_value_handle(const value_type& type)
 {
     return type != value_type::int_type && type != value_type::bool_type &&
@@ -371,7 +376,7 @@ void llvm_code_generator::pop_scope()
     scopes_.pop_back();
 }
 
-std::string llvm_code_generator::generate(const program& source)
+std::string llvm_code_generator::generate(const program& source, bool library_mode)
 {
     gc_visiting_.clear();
     gc_neutral_cache_.clear();
@@ -384,7 +389,7 @@ std::string llvm_code_generator::generate(const program& source)
     globals_.clear();
     next_string_ = 0;
     virtual_slot_count_ = source.virtual_slot_count;
-    recoverable_errors_ = false;
+    recoverable_errors_ = library_mode;
     for (const auto& function : source.functions)
     {
         functions_[function.name].push_back(&function);
@@ -473,6 +478,7 @@ std::string llvm_code_generator::generate(const program& source)
             << "declare i32 @txrt_value_len(ptr, ptr)\n"
             << "declare i32 @txrt_value_print(ptr, i1)\n"
             << "declare i32 @txrt_value_require_type(ptr, ptr)\n"
+            << "declare i32 @txrt_value_require_type_or_none(ptr, ptr)\n"
             << "declare i32 @txrt_array_new(i64, ptr)\n"
             << "declare ptr @txrt_array_ref(ptr)\n"
             << "declare void @txrt_array_index_error()\n"
@@ -584,6 +590,8 @@ std::string llvm_code_generator::generate(const program& source)
             emit_function(method);
         }
     }
+    if (!library_mode)
+    {
     module_ << "define i32 @main() {\nentry:\n"
             << "  %prepare = call i32 @txrt_prepare_console()\n"
             << "  call void @txrt_require_success(i32 %prepare)\n"
@@ -603,6 +611,7 @@ std::string llvm_code_generator::generate(const program& source)
     module_
             << "  %exit = call i32 @txrt_exit_code(i64 %result)\n"
             << "  ret i32 %exit\n}\n";
+    }
     module_ << globals_.str();
     return module_.str();
 }

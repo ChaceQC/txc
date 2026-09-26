@@ -42,6 +42,22 @@ bool semantic_analyzer::matches_signature(
         return allow_upcast ? is_assignable(actual, expected)
                             : actual == expected;
     };
+    const auto accepts_parameter = [&accepts](const value_type& actual,
+                                              const parameter& expected)
+    {
+        if (expected.type == value_type::any_type &&
+            parameter_is_nullable(expected))
+        {
+            return actual != value_type::void_type &&
+                   actual != value_type::unknown_type && !actual.is_function();
+        }
+        if (actual == value_type::none_type &&
+            parameter_is_nullable(expected))
+        {
+            return true;
+        }
+        return accepts(actual, expected.type);
+    };
     std::size_t fixed_count = 0;
     bool accepts_args = false;
     bool accepts_kwargs = false;
@@ -82,7 +98,7 @@ bool semantic_analyzer::matches_signature(
             }
             if (positional < fixed_count)
             {
-                if (!accepts(type, signature.parameters[positional].type))
+                if (!accepts_parameter(type, signature.parameters[positional]))
                 {
                     return false;
                 }
@@ -114,7 +130,7 @@ bool semantic_analyzer::matches_signature(
             continue;
         }
         if (filled[parameter_index] ||
-            !accepts(type, signature.parameters[parameter_index].type))
+            !accepts_parameter(type, signature.parameters[parameter_index]))
         {
             return false;
         }
@@ -122,9 +138,10 @@ bool semantic_analyzer::matches_signature(
     }
     if (!has_spread)
     {
-        for (const bool present : filled)
+        for (std::size_t index = 0; index < filled.size(); ++index)
         {
-            if (!present)
+            if (!filled[index] &&
+                !signature.parameters[index].default_value)
             {
                 return false;
             }
@@ -232,7 +249,8 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
         require_type(actual, value_type::int_type, argument.position, "to_float 参数");
         return value_type::float_type;
     }
-    if (actual != value_type::any_type && actual != value_type::none_type)
+    if (actual != value_type::any_type && actual != value_type::none_type &&
+        actual != value_type::dict_type)
     {
         throw compile_error(argument.position, "is_none 只接受数组元素或 none");
     }
@@ -268,7 +286,8 @@ value_type semantic_analyzer::check_constructor(expression& item,
     function_signature signature{{}, value_type(call.name)};
     for (const auto& field : definition.fields)
     {
-        signature.parameters.push_back({field.name, field.type, field.position});
+        signature.parameters.push_back({field.name, field.type, field.position,
+                                        parameter_kind::ordinary, {}});
     }
     const auto types = check_call_arguments(call);
     if (!matches_signature(signature, call, types, false))
@@ -436,7 +455,8 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
                     }
                     if (target != nullptr && target->type != actual_types[i])
                     {
-                        cost += class_distance(actual_types[i], target->type);
+                        cost += target->type == value_type::any_type
+                            ? 1000 : class_distance(actual_types[i], target->type);
                     }
                 }
                 if (cost < best_cost)

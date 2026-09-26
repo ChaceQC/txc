@@ -235,7 +235,10 @@ void lexer::scan_symbol()
         {"=", token_kind::equal},
         {"!", token_kind::bang},
         {"<", token_kind::less},
-        {">", token_kind::greater}};
+        {">", token_kind::greater},
+        {"&", token_kind::ampersand},
+        {"^", token_kind::caret},
+        {"|", token_kind::pipe}};
 
     for (const auto& symbol : symbols)
     {

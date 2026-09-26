@@ -1,0 +1,22 @@
+import "websocket.txh" as ws
+import "error.txh" as errors
+
+def main() -> int
+{
+    ws.connection peer = ws.connect("ws://127.0.0.1:19733/", 5000)
+    try
+    {
+        ws.receive(peer, 300)
+    }
+    exception errors.io_error as e
+    {
+        ws.close(peer)
+        if e.code == "timeout"
+        {
+            return 0
+        }
+        return 2
+    }
+    ws.close(peer)
+    return 1
+}

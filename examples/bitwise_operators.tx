@@ -1,0 +1,40 @@
+# int 的按位运算按 &、^、| 的顺序结合；自定义类型可重载对应运算符。
+struct bit_flags
+{
+    value: int
+
+    def operator &(other: bit_flags) -> bit_flags
+    {
+        return bit_flags(self.value & other.value)
+    }
+
+    def operator ^(other: bit_flags) -> bit_flags
+    {
+        return bit_flags(self.value ^ other.value)
+    }
+
+    def operator |(other: bit_flags) -> bit_flags
+    {
+        return bit_flags(self.value | other.value)
+    }
+}
+
+def main() -> int
+{
+    if (6 & 3) != 2 || (6 | 3) != 7 || (6 ^ 3) != 5
+    {
+        return 1
+    }
+    if (1 | 2 ^ 3 & 6) != 1 || (-1 ^ 1) != -2
+    {
+        return 2
+    }
+    auto combined = bit_flags(6) ^ bit_flags(3)
+    if (combined.value != 5 ||
+        (bit_flags(6) & bit_flags(3)).value != 2 ||
+        (bit_flags(6) | bit_flags(3)).value != 7)
+    {
+        return 3
+    }
+    return 0
+}

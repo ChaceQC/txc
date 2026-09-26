@@ -33,5 +33,6 @@ extern "C"
 int txrt_error_status() noexcept;
 void txrt_error_propagation(bool enabled) noexcept;
 int txrt_error_take(const char* type_name, void** result) noexcept;
+int txrt_error_fail_io(const void* code, const void* message) noexcept;
 
 }
