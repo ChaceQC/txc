@@ -9,7 +9,11 @@ enum class error_kind : int
     none = 0,
     runtime = 1,
     parse = 2,
-    io = 3
+    io = 3,
+    process = 4,
+    database = 5,
+    security = 6,
+    cancelled = 7
 };
 
 } // namespace tx

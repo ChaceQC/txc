@@ -294,6 +294,22 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
                         {
                             definition.exception_kind = error_kind::io;
                         }
+                        else if (definition.name == "process_error")
+                        {
+                            definition.exception_kind = error_kind::process;
+                        }
+                        else if (definition.name == "database_error")
+                        {
+                            definition.exception_kind = error_kind::database;
+                        }
+                        else if (definition.name == "security_error")
+                        {
+                            definition.exception_kind = error_kind::security;
+                        }
+                        else if (definition.name == "cancelled_error")
+                        {
+                            definition.exception_kind = error_kind::cancelled;
+                        }
                     }
                 }
                 for (auto& function : header.functions)

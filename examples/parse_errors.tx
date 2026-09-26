@@ -28,6 +28,23 @@ def main() -> int
     {
         print(e.kind, e.code, e.message)
     }
+    // 新类别先于兜底分支；对应模块加入后可在这里单独处理。
+    exception errors.process_error as e
+    {
+        print(e.kind, e.code)
+    }
+    exception errors.database_error as e
+    {
+        print(e.kind, e.code)
+    }
+    exception errors.security_error as e
+    {
+        print(e.kind, e.code)
+    }
+    exception errors.cancelled_error as e
+    {
+        print(e.kind, e.code)
+    }
     exception errors.runtime_error as e
     {
         print(e.message)

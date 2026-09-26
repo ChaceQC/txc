@@ -48,6 +48,10 @@ private:
     case tx::error_kind::none: return "";
     case tx::error_kind::parse: return "parse_error";
     case tx::error_kind::io: return "io_error";
+    case tx::error_kind::process: return "process_error";
+    case tx::error_kind::database: return "database_error";
+    case tx::error_kind::security: return "security_error";
+    case tx::error_kind::cancelled: return "cancelled_error";
     default: return "runtime_error";
     }
 }

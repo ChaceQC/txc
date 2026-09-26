@@ -1,0 +1,19 @@
+#pragma once
+
+#include <array>
+#include <string_view>
+
+namespace tx::compatibility_data
+{
+
+struct interface_entry
+{
+    std::string_view name;
+    std::string_view sha256;
+};
+
+inline constexpr std::string_view abi_fingerprint = "@TX_ABI_FINGERPRINT@";
+inline constexpr std::array<interface_entry, @TX_INTERFACE_COUNT@> interfaces = {{
+@TX_INTERFACE_RECORDS@}};
+
+} // namespace tx::compatibility_data

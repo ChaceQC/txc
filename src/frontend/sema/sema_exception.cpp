@@ -18,7 +18,7 @@ void semantic_analyzer::check_try(try_statement& guarded)
             found->second->exception_kind == error_kind::none)
         {
             throw compile_error(handler.position,
-                "exception 需要 error.txh 中的 runtime_error、parse_error 或 io_error 类型");
+                "exception 需要 error.txh 中声明的错误类型");
         }
         handler.kind = found->second->exception_kind;
         if (caught.contains(static_cast<int>(error_kind::runtime)))

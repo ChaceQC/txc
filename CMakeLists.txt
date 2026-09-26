@@ -29,6 +29,41 @@ set(_tx_warn_deprecated ${CMAKE_WARN_DEPRECATED})
 set(CMAKE_WARN_DEPRECATED OFF)
 FetchContent_MakeAvailable(nghttp2 mbedtls)
 set(CMAKE_WARN_DEPRECATED ${_tx_warn_deprecated})
+
+# 编译器内嵌公开接口和 ABI 的内容摘要；增删或修改文件都会触发重新配置。
+file(GLOB _tx_interface_files CONFIGURE_DEPENDS
+    RELATIVE "${CMAKE_SOURCE_DIR}" "${CMAKE_SOURCE_DIR}/tx/stdlib/*.txh")
+file(GLOB _tx_abi_files CONFIGURE_DEPENDS
+    RELATIVE "${CMAKE_SOURCE_DIR}"
+    "${CMAKE_SOURCE_DIR}/src/backend/cpp/*.hpp"
+    "${CMAKE_SOURCE_DIR}/src/backend/llvm/*.cpp")
+list(APPEND _tx_abi_files "src/common/error_kind.hpp")
+list(SORT _tx_interface_files)
+list(SORT _tx_abi_files)
+set(TX_INTERFACE_COUNT 0)
+set(TX_INTERFACE_RECORDS "")
+foreach(_tx_file IN LISTS _tx_interface_files)
+    file(SHA256 "${CMAKE_SOURCE_DIR}/${_tx_file}" _tx_digest)
+    get_filename_component(_tx_name "${_tx_file}" NAME)
+    string(APPEND TX_INTERFACE_RECORDS
+        "    {\"${_tx_name}\", \"${_tx_digest}\"},\n")
+    math(EXPR TX_INTERFACE_COUNT "${TX_INTERFACE_COUNT} + 1")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_SOURCE_DIR}/${_tx_file}")
+endforeach()
+set(_tx_abi_input "tx-abi-v1\n")
+foreach(_tx_file IN LISTS _tx_abi_files)
+    file(SHA256 "${CMAKE_SOURCE_DIR}/${_tx_file}" _tx_digest)
+    string(APPEND _tx_abi_input "${_tx_file}:${_tx_digest}\n")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_SOURCE_DIR}/${_tx_file}")
+endforeach()
+string(SHA256 TX_ABI_FINGERPRINT "${_tx_abi_input}")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated/driver")
+configure_file(src/driver/compatibility_data.hpp.in
+    "${CMAKE_BINARY_DIR}/generated/driver/compatibility_data.hpp" @ONLY)
+configure_file(src/driver/compatibility_abi.txt.in
+    "${CMAKE_BINARY_DIR}/compatibility_abi.txt" @ONLY)
 if(MINGW)
     # Mbed TLS 3.6.x uses %I64d on MinGW; match the MSVCRT printf parser.
     foreach(target IN ITEMS mbedtls mbedx509 mbedcrypto)
@@ -98,6 +133,7 @@ add_executable(txc
     src/backend/llvm/codegen_call_binding.cpp
     src/driver/module_loader.cpp
     src/driver/module_loader_class.cpp
+    src/driver/compatibility.cpp
     src/driver/main.cpp
 )
 
@@ -204,12 +240,12 @@ add_library(txstdlib STATIC
 
 target_compile_features(txc PRIVATE cxx_std_23)
 target_compile_features(txstdlib PRIVATE cxx_std_23)
-target_include_directories(txc PRIVATE src)
+target_include_directories(txc PRIVATE src "${CMAKE_BINARY_DIR}/generated")
 target_include_directories(txstdlib PRIVATE src)
 target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto)
 add_dependencies(txc txstdlib)
 if(WIN32)
-    target_link_libraries(txc PRIVATE shell32)
+    target_link_libraries(txc PRIVATE shell32 bcrypt)
     target_link_libraries(txstdlib PRIVATE winhttp ws2_32 advapi32 bcrypt)
 endif()
 set(TX_TOOL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/tx")

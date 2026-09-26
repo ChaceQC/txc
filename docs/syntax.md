@@ -1,6 +1,6 @@
 # .tx 语法与类型规则
 
-`try { } exception type as e { }` 的类型匹配、作用域和传播规则见[解析与可恢复错误](errors_and_parse.md)。`try`、`exception` 为保留关键字。
+`try { } exception type as e { }` 的类型匹配、作用域和传播规则见[解析与可恢复错误](errors_and_parse.md)。可捕获类型由 `error.txh` 定义：`parse_error`、`io_error`、`process_error`、`database_error`、`security_error`、`cancelled_error` 和兜底的 `runtime_error`；具体类别必须写在兜底分支之前。`try`、`exception` 为保留关键字。示例见 [parse_errors.tx](../examples/parse_errors.tx)。
 
 从 `dict`、`array` 等动态容器取出的 `any` 值可显式写 `value as bool`；仅当实际值就是 `bool` 时成功，不对数值或字符串执行 Python 式真值转换。该规则用于接收类型明确的命名参数等动态边界，失败仍为可捕获的运行时类型错误。
 

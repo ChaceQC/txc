@@ -26,6 +26,34 @@ struct io_error
     message: str
 }
 
+struct process_error
+{
+    kind: str
+    code: str
+    message: str
+}
+
+struct database_error
+{
+    kind: str
+    code: str
+    message: str
+}
+
+struct security_error
+{
+    kind: str
+    code: str
+    message: str
+}
+
+struct cancelled_error
+{
+    kind: str
+    code: str
+    message: str
+}
+
 struct int_result
 {
     ok: bool

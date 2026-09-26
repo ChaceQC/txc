@@ -197,6 +197,14 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     throw '编译器产物或标准库接口不完整；build/ 已保留。'
 }
 
+$abi_fingerprint = (Get-Content -LiteralPath (Join-Path $build_dir 'compatibility_abi.txt') `
+    -Encoding utf8 -Raw).Trim()
+$compiler_hash = (Get-FileHash -LiteralPath $compiler_path -Algorithm SHA256).Hash.ToLowerInvariant()
+$library_hash = (Get-FileHash -LiteralPath $library_path -Algorithm SHA256).Hash.ToLowerInvariant()
+$compatibility_manifest = "tx-package-v1`nabi $abi_fingerprint`ntxc $compiler_hash`nstdlib $library_hash`n"
+[System.IO.File]::WriteAllText((Join-Path $tool_dir 'package.compat'),
+    $compatibility_manifest, [System.Text.UTF8Encoding]::new($false))
+
 $project_item = Get-Item -LiteralPath $project_root
 $build_item = Get-Item -LiteralPath $build_dir
 $resolved_root = [System.IO.Path]::GetFullPath($project_item.FullName)

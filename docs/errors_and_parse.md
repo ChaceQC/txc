@@ -6,6 +6,8 @@
 
 `error.txh` 公开 `error_info`，字段依次为 `str kind`、`str code`、`str message`。`kind` 是错误类别，`code` 是稳定的机器可读代码，`message` 是中文说明。
 
+现有 `parse_error`、`io_error`、`runtime_error` 保持原编号与行为。公共契约还注册 `process_error`、`database_error`、`security_error`、`cancelled_error`，字段同样是 `kind/code/message`，可用于 `exception` 分支；目前尚无对应公开操作产生这些新类别。完整 `(kind, code)` 登记、严格接口与结果接口的选择见[标准库公共契约](standard_library_foundation.md#3-错误类别与稳定代码登记)。
+
 具体结果为 `int_result`、`float_result`、`str_result`、`bool_result`，字段依次为 `bool ok`、对应静态类型的 `value`、`error_info error`。成功时 error 的三个字符串均为空；失败时 value 分别为 `0`、`0.0`、`""`、`false`，调用方应先检查 ok。成功的空文本与失败可以明确区分，不使用 none 代替失败。
 
 `error.fail_io(code: str, message: str) -> void` 供 `.tx` 编写的标准库网络包装层报告可恢复的 I/O 错误；调用后进入 `io_error` 路径，调用方可按 `code` 分支处理。它不返回正常值，也不替代 `try`/`exception` 的捕获规则。
@@ -55,7 +57,7 @@ def main() -> int
 
 `try` 必须跟至少一个 `exception 类型 as 变量名` 分支。大括号与头部可以同行或换行；分支可以紧接前一右括号或另起一行。分支按书写顺序匹配，第一项匹配后停止。
 
-可捕获类型由标准库 `error.txh` 定义：`parse_error` 匹配解析失败，`io_error` 匹配 file 模块的文件和编码操作失败，`runtime_error` 匹配所有运行时错误。fs/path 等其他现有模块的失败目前归入 runtime_error。每种类型均有 kind、code、message 字段；不按同名用户结构体或字符串名称进行匹配。重复分支、runtime_error 后的分支、非错误类型均为编译错误。
+可捕获类型由标准库 `error.txh` 定义：`parse_error` 匹配解析失败，`io_error` 匹配文件、编码和网络 I/O 失败，`process_error`、`database_error`、`security_error`、`cancelled_error` 分别匹配对应的新错误类别，`runtime_error` 匹配所有运行时错误。fs/path 等其他现有模块的失败目前归入 runtime_error。每种类型均有 kind、code、message 字段；不按同名用户结构体或字符串名称进行匹配。重复分支、runtime_error 后的分支、非错误类型均为编译错误。
 
 try 块与各 exception 块拥有独立作用域，e 只在所属分支内可见。支持嵌套、函数及方法间传播；处理分支再次失败时交给外层处理器。正常执行跳过所有 exception，处理后继续后续语句。try 和每个处理分支均返回时，满足函数完整返回路径要求。
 

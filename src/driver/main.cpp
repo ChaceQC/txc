@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "driver/compatibility.hpp"
 #include "driver/module_loader.hpp"
 #include "frontend/resolver/module_resolver.hpp"
 #include "frontend/sema/sema.hpp"
@@ -367,6 +368,15 @@ int main()
                       << "      txc emit-llvm <源码.tx> [-o <输出.ll>]\n"
                       << "      txc emit-library-llvm <源码.tx> -o <输出.ll>\n";
             return 2;
+        }
+        const auto tool_dir = executable_path().parent_path();
+        if (command->mode == command_line::action::emit_library_llvm)
+        {
+            tx::verify_tool_interfaces(tool_dir);
+        }
+        else
+        {
+            tx::verify_tool_package(tool_dir);
         }
         switch (command->mode)
         {
