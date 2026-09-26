@@ -2,3 +2,73 @@ def unix_millis() -> int
 def monotonic_millis() -> int
 def monotonic_micros() -> int
 def sleep_millis(duration: int) -> void
+
+struct duration
+{
+    micros: int
+}
+
+struct instant
+{
+    ticks_micros: int
+}
+
+def duration_from_micros(micros: int) -> duration
+def duration_from_millis(millis: int) -> duration
+def duration_from_seconds(seconds: int) -> duration
+def duration_add(left: duration, right: duration) -> duration
+def duration_sub(left: duration, right: duration) -> duration
+def duration_negate(value: duration) -> duration
+def duration_as_micros(value: duration) -> int
+def duration_as_millis(value: duration) -> int
+def instant_now() -> instant
+def instant_elapsed(start: instant, finish: instant) -> duration
+def instant_after(start: instant, delay: duration) -> instant
+def sleep(value: duration) -> void
+def sleep_cancelled(value: duration, token: cancel_token) -> void
+
+struct local_date
+{
+    year: int
+    month: int
+    day: int
+}
+
+struct local_time
+{
+    hour: int
+    minute: int
+    second: int
+    microsecond: int
+}
+
+struct offset_datetime
+{
+    unix_micros: int
+    offset_seconds: int
+}
+
+struct zoned_datetime
+{
+    unix_micros: int
+    zone: str
+    offset_seconds: int
+}
+
+def parse_local_date(text: str) -> local_date
+def format_local_date(value: local_date) -> str
+def date_add_days(value: local_date, days: int) -> local_date
+def date_add_months(value: local_date, months: int) -> local_date
+def date_days_between(start: local_date, finish: local_date) -> int
+def parse_local_time(text: str) -> local_time
+def format_local_time(value: local_time) -> str
+def parse_offset_datetime(text: str) -> offset_datetime
+def offset_from_unix_millis(millis: int, offset_seconds: int) -> offset_datetime
+def format_offset_datetime(value: offset_datetime) -> str
+def datetime_difference(start: offset_datetime, finish: offset_datetime) -> duration
+def timezone_version() -> str
+def at_zone(value: offset_datetime, zone: str) -> zoned_datetime
+def resolve_local(date: local_date, time: local_time, zone: str, policy: str) -> zoned_datetime
+def format_zoned_datetime(value: zoned_datetime) -> str
+def zoned_local_date(value: zoned_datetime) -> local_date
+def zoned_local_time(value: zoned_datetime) -> local_time

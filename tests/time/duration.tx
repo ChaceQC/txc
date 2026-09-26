@@ -1,0 +1,90 @@
+import "time.txh" as time
+import "cancel.txh" as cancel
+import "error.txh" as errors
+
+def overflow_is_reported() -> bool
+{
+    try
+    {
+        time.duration_from_millis(9223372036854776)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "out_of_range"
+    }
+    return false
+}
+
+def cancellation_is_reported() -> bool
+{
+    cancel_source owner = cancel.source()
+    cancel_token token = cancel.token(owner)
+    cancel.cancel(owner)
+    try
+    {
+        time.sleep_cancelled(time.duration_from_seconds(1), token)
+    }
+    exception errors.cancelled_error as e
+    {
+        return e.code == "cancelled"
+    }
+    return false
+}
+
+def negative_sleep_is_rejected() -> bool
+{
+    try
+    {
+        time.sleep(time.duration_from_micros(-1))
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def deadline_is_reported() -> bool
+{
+    cancel_source owner = cancel.with_deadline_ms(0)
+    try
+    {
+        time.sleep_cancelled(time.duration_from_seconds(1), cancel.token(owner))
+    }
+    exception errors.cancelled_error as e
+    {
+        return e.code == "deadline_exceeded"
+    }
+    return false
+}
+
+def main() -> int
+{
+    time.duration one = time.duration_from_millis(1)
+    time.duration part = time.duration_from_micros(500)
+    if time.duration_as_micros(time.duration_add(one, part)) != 1500
+    {
+        return 1
+    }
+    if time.duration_as_millis(time.duration_negate(part)) != 0
+    {
+        return 2
+    }
+    time.instant start = time.instant_now()
+    time.sleep(part)
+    time.instant finish = time.instant_now()
+    if time.duration_as_micros(time.instant_elapsed(start, finish)) < 0
+    {
+        return 3
+    }
+    if time.instant_after(start, one).ticks_micros - start.ticks_micros != 1000
+    {
+        return 4
+    }
+    if !(overflow_is_reported() && cancellation_is_reported() &&
+         negative_sleep_is_rejected() && deadline_is_reported())
+    {
+        return 5
+    }
+    return 0
+}

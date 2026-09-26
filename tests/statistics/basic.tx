@@ -1,0 +1,179 @@
+import "statistics.txh" as statistics
+import "error.txh" as errors
+
+def empty_mean_is_rejected() -> bool
+{
+    try
+    {
+        statistics.mean(vector<float>())
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "empty_sample"
+    }
+    return false
+}
+
+def single_sample_is_rejected(values: vector<float>) -> bool
+{
+    try
+    {
+        statistics.variance_sample(values)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "insufficient_sample"
+    }
+    return false
+}
+
+def rejected_add_preserves_state(target: statistics.accumulator) -> bool
+{
+    try
+    {
+        statistics.add(target, 1.0e308 * 1.0e308)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "non_finite" && statistics.count(target) == 2
+    }
+    return false
+}
+
+def nonfinite_sample_is_rejected() -> bool
+{
+    vector<float> values = vector<float>()
+    values.push_back(1.0e308 * 1.0e308)
+    try
+    {
+        statistics.mean(values)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "non_finite"
+    }
+    return false
+}
+
+def invalid_quantile_is_rejected(values: vector<float>) -> bool
+{
+    try
+    {
+        statistics.quantile(values, 1.5)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def variance_overflow_is_rejected(values: vector<float>) -> bool
+{
+    try
+    {
+        statistics.variance_population(values)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "out_of_range"
+    }
+    return false
+}
+
+def main() -> int
+{
+    vector<float> values = vector<float>()
+    values.push_back(1.0)
+    values.push_back(2.0)
+    values.push_back(3.0)
+    values.push_back(4.0)
+    if (statistics.mean(values) != 2.5 || statistics.median(values) != 2.5 ||
+        statistics.variance_population(values) != 1.25 ||
+        statistics.variance_sample(values) < 1.6666 ||
+        statistics.variance_sample(values) > 1.6667 ||
+        statistics.stdev_population(values) < 1.1180 ||
+        statistics.stdev_population(values) > 1.1181 ||
+        statistics.quantile(values, 0.25) != 1.75)
+    {
+        return 1
+    }
+    if (values[0] != 1.0 || statistics.quantile(values, 0.0) != 1.0 ||
+        statistics.quantile(values, 1.0) != 4.0)
+    {
+        return 2
+    }
+    iterator<float> cursor = values.snapshot_iter()
+    if (statistics.mean(cursor) != 2.5 || !cursor.next().is_none() ||
+        statistics.mean(values.snapshot_iter()) != 2.5 ||
+        statistics.median(values.snapshot_iter()) != 2.5 ||
+        statistics.variance_population(values.snapshot_iter()) != 1.25 ||
+        statistics.variance_sample(values.snapshot_iter()) < 1.6666 ||
+        statistics.stdev_population(values.snapshot_iter()) < 1.1180 ||
+        statistics.stdev_sample(values.snapshot_iter()) < 1.2909 ||
+        statistics.quantile(values.snapshot_iter(), 0.25) != 1.75)
+    {
+        return 3
+    }
+    map<float,int> frequency = statistics.frequencies(values)
+    map<float,int> iterator_frequency = statistics.frequencies(values.snapshot_iter())
+    if (frequency[1.0] != 1 || frequency[4.0] != 1 ||
+        iterator_frequency[2.0] != 1)
+    {
+        return 4
+    }
+    statistics.histogram_result histogram = statistics.histogram(values, 1.0, 4.0, 3)
+    statistics.histogram_result iterator_histogram = statistics.histogram(values.snapshot_iter(), 1.0, 4.0, 3)
+    if (histogram.counts[0] != 1 || histogram.counts[1] != 1 ||
+        histogram.counts[2] != 2 || histogram.underflow != 0 ||
+        histogram.overflow != 0 || iterator_histogram.counts[2] != 2)
+    {
+        return 5
+    }
+    statistics.accumulator total = statistics.new_accumulator()
+    statistics.add(total, 1.0)
+    statistics.add(total, 3.0)
+    statistics.accumulator shared = total
+    statistics.accumulator copied = deep_copy(total)
+    statistics.add(shared, 5.0)
+    if (statistics.count(total) != 3 || statistics.count(copied) != 2 ||
+        statistics.mean_of(total) != 3.0 ||
+        statistics.variance_population_of(total) != 2.6666666666666665 ||
+        statistics.variance_sample_of(copied) != 2.0 ||
+        statistics.stdev_sample_of(copied) != 1.4142135623730951)
+    {
+        return 6
+    }
+    if !(empty_mean_is_rejected() && rejected_add_preserves_state(copied))
+    {
+        return 7
+    }
+    vector<float> single = vector<float>()
+    single.push_back(9.0)
+    if (!single_sample_is_rejected(single) ||
+        statistics.variance_population(single) != 0.0)
+    {
+        return 8
+    }
+    vector<float> extremes = vector<float>()
+    extremes.push_back(-1.7e308)
+    extremes.push_back(1.7e308)
+    vector<float> zeros = vector<float>()
+    zeros.push_back(-0.0)
+    zeros.push_back(0.0)
+    map<float,int> zero_frequency = statistics.frequencies(zeros)
+    if (statistics.mean(extremes) != 0.0 || zero_frequency.size() != 1 ||
+        zero_frequency[0.0] != 2 || !nonfinite_sample_is_rejected() ||
+        !invalid_quantile_is_rejected(values) ||
+        !variance_overflow_is_rejected(extremes))
+    {
+        return 9
+    }
+    statistics.histogram_result outside = statistics.histogram(values, 2.0, 3.0, 1)
+    if (outside.underflow != 1 || outside.overflow != 1 ||
+        outside.counts[0] != 2)
+    {
+        return 10
+    }
+    return 0
+}

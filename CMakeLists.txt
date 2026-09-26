@@ -107,6 +107,7 @@ add_executable(txc
     src/frontend/sema/sema_sum.cpp
     src/frontend/sema/sema_container.cpp
     src/frontend/sema/sema_algorithm.cpp
+    src/frontend/sema/sema_random.cpp
     src/frontend/sema/sema_exception.cpp
     src/frontend/sema/sema_registration.cpp
     src/frontend/sema/sema_expression.cpp
@@ -268,6 +269,12 @@ add_library(txstdlib STATIC
     src/stdlib/file_stream_text.cpp
     src/stdlib/file.cpp
     src/stdlib/math.cpp
+    src/stdlib/math_extended.cpp
+    src/stdlib/statistics_core.cpp
+    src/stdlib/statistics_bucket.cpp
+    src/stdlib/decimal_big.cpp
+    src/stdlib/decimal.cpp
+    src/stdlib/decimal_abi.cpp
     src/stdlib/array.cpp
     src/stdlib/algorithm_numeric.cpp
     src/stdlib/filesystem.cpp
@@ -277,7 +284,13 @@ add_library(txstdlib STATIC
     src/stdlib/system.cpp
     src/stdlib/env.cpp
     src/stdlib/time.cpp
+    src/stdlib/time_values.cpp
+    src/stdlib/time_calendar.cpp
+    src/stdlib/time_calendar_abi.cpp
+    src/stdlib/time_zone.cpp
     src/stdlib/random.cpp
+    src/stdlib/random_generator.cpp
+    src/stdlib/random_sampling.cpp
     src/stdlib/network_common.cpp
     src/stdlib/network_listener.cpp
     src/stdlib/network_url.cpp

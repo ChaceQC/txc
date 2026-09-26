@@ -1,0 +1,150 @@
+import "random.txh" as random
+import "error.txh" as errors
+
+struct item
+{
+    id: int
+}
+
+def invalid_range_is_rejected(source: random.generator) -> bool
+{
+    try
+    {
+        random.next_int(source, 2, 1)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def invalid_sample_is_rejected(source: random.generator,
+                               values: vector<int>) -> bool
+{
+    try
+    {
+        random.sample(source, values, values.size() + 1)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def distribution_overflow_is_reported() -> bool
+{
+    try
+    {
+        random.normal(random.make_generator(0), -1.7e308, 1.7e308)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "out_of_range"
+    }
+    return false
+}
+
+def main() -> int
+{
+    random.generator left = random.make_generator(12345)
+    random.generator right = random.make_generator(12345)
+    if random.algorithm_version() != "splitmix64-v1"
+    {
+        return 1
+    }
+    int first = random.next_int(left, -10, 10)
+    if first != -5 || first != random.next_int(right, -10, 10)
+    {
+        return 2
+    }
+    if random.next_float(left) != random.next_float(right)
+    {
+        return 3
+    }
+    if !(invalid_range_is_rejected(left) &&
+         random.next_int(left, 0, 100) == random.next_int(right, 0, 100))
+    {
+        return 4
+    }
+    random.generator copy = deep_copy(left)
+    if !(random.next_int(left, -9223372036854775808, 9223372036854775807) ==
+         random.next_int(copy, -9223372036854775808, 9223372036854775807))
+    {
+        return 5
+    }
+    random.generator shared = left
+    random.generator mirror = deep_copy(left)
+    if random.next_int(shared, 0, 100) != random.next_int(mirror, 0, 100)
+    {
+        return 14
+    }
+    if random.next_int(left, 0, 100) != random.next_int(mirror, 0, 100)
+    {
+        return 15
+    }
+    vector<int> numbers = vector<int>()
+    numbers.push_back(1)
+    numbers.push_back(2)
+    numbers.push_back(3)
+    random.generator checkpoint = deep_copy(left)
+    if !(invalid_sample_is_rejected(left, numbers) &&
+         random.next_int(left, 0, 100) == random.next_int(checkpoint, 0, 100))
+    {
+        return 16
+    }
+    vector<int> shuffled = random.shuffle(left, numbers)
+    if numbers[0] != 1 || shuffled.size() != 3
+    {
+        return 6
+    }
+    vector<int> sample = random.sample(left, numbers, 2)
+    if sample.size() != 2 || random.choice(left, numbers) < 1
+    {
+        return 7
+    }
+    vector<item> objects = vector<item>()
+    objects.push_back(item(9))
+    objects.push_back(item(10))
+    if !(random.choice(left, objects).id >= 9 &&
+         random.shuffle(left, objects).size() == 2)
+    {
+        return 8
+    }
+    if random.sample(left, objects, 1).size() != 1
+    {
+        return 9
+    }
+    if random.next_float(left) < 0.0 || random.next_float(left) >= 1.0
+    {
+        return 10
+    }
+    if !random.bernoulli(left, 1.0) || random.bernoulli(left, 0.0)
+    {
+        return 11
+    }
+    if !(random.normal(left, 3.0, 0.0) == 3.0 &&
+         random.exponential(left, 2.0) >= 0.0)
+    {
+        return 12
+    }
+    random.reseed(left, 12345)
+    if random.next_int(left, 0, 100) != random.next_int(random.make_generator(12345), 0, 100)
+    {
+        return 13
+    }
+    random.seed(42)
+    int old_value = random.random_int(0, 100)
+    random.seed(42)
+    random.next_int(random.make_generator(42), 0, 100)
+    if random.random_int(0, 100) != old_value
+    {
+        return 17
+    }
+    if !distribution_overflow_is_reported()
+    {
+        return 18
+    }
+    return 0
+}

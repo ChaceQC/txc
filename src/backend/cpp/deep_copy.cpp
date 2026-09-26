@@ -267,7 +267,9 @@ private:
         auto object = std::make_shared<dynamic_class>();
         object->type_name = source->type_name;
         object->display_name = source->display_name;
-        object->ancestors = source->ancestors;
+        object->owned_ancestors = source->owned_ancestors;
+        object->ancestors = object->owned_ancestors.empty()
+            ? source->ancestors : object->owned_ancestors.data();
         object->ancestor_count = source->ancestor_count;
         object->virtual_targets = source->virtual_targets;
         object->virtual_count = source->virtual_count;

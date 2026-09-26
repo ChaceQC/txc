@@ -46,6 +46,7 @@ Python 风格的 HTTP 客户端见 [requests 模块](docs/requests.md)和[请求
 `parse`、统一的 `ok/value/error` 结果，以及 `try { } exception type as e { }` 的规则见[解析与可恢复错误](docs/errors_and_parse.md)与[示例](examples/parse_errors.tx)。实现已接入，6 个定向场景通过，验证范围见该文档末尾。
 JSON 解析、序列化和字段读取见 [JSON 模块说明](docs/json.md)与[示例](examples/json.tx)。
 毫秒计时和可设种子的随机数用法见 [时间与随机数示例](examples/time_random.tx)。
+时区、独立随机生成器、扩展数学、统计及十进制金额计算见[第六部分接口契约](docs/time_math_statistics.md)、[统计示例](examples/statistics_summary.tx)和[金额示例](examples/decimal_money.tx)。
 语言特性和运行时的 TX/C++ 性能对照见 [语言特性基准](benchmarks/language_features/README.md)；标准库与 C++ Release 的对照见 [标准库基准](benchmarks/library_compare/README.md)。
 `import "io.txh"` 和 `import "xx/xx.txh"` 会先查找源码同目录的接口，再查找 `tx/stdlib/` 下的对应路径；见 [本地接口优先示例](examples/local_priority/main.tx)。
 函数的直接递归、相互递归和无返回值递归见 [递归示例](examples/recursion.tx)。

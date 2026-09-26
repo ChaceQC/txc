@@ -194,6 +194,30 @@ inline const value_type value_type::unknown_type{"unknown"};
 
 [[nodiscard]] inline std::string_view type_name(const value_type& type)
 {
+    const std::string_view name = type.name;
+    if (name.starts_with("s_"))
+    {
+        const auto separator = name.find('_', 2);
+        if (separator != std::string_view::npos && separator > 2 &&
+            (separator - 2) % 2 == 0 && separator + 1 < name.size())
+        {
+            bool hex_prefix = true;
+            for (std::size_t index = 2; index < separator; ++index)
+            {
+                const char digit = name[index];
+                if (!((digit >= '0' && digit <= '9') ||
+                      (digit >= 'a' && digit <= 'f')))
+                {
+                    hex_prefix = false;
+                    break;
+                }
+            }
+            if (hex_prefix)
+            {
+                return name.substr(separator + 1);
+            }
+        }
+    }
     return type.name;
 }
 

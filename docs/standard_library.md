@@ -48,7 +48,15 @@
 | pow(base: float, exponent: float) -> float | 浮点幂 |
 | floor(value: float)、ceil(value: float) -> int | 向下、向上取整 |
 
-abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行错误。float 参数及 float 结果必须是有限值；sqrt 的参数不得为负，pow 的结果必须可表示为有限 float。floor、ceil 的结果还必须落在 int 范围内。
+上述旧接口中，abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行错误。旧浮点接口要求参数及结果有限；sqrt 的参数不得为负，pow 的结果必须可表示为有限 float。floor、ceil 的结果还必须落在 int 范围内。
+
+新增三角、反三角、双曲、指数/对数、`is_finite/is_nan/is_infinite`、`gcd/lcm`、`pow_int` 和显式模式的 `round_to_int`。新增浮点函数按逐函数约定处理 NaN 与无穷大；整数溢出报告稳定错误。完整签名与特殊值规则见[时间、数学、随机数与统计](time_math_statistics.md#64-数学函数)。
+
+## 统计与十进制
+
+导入 [statistics.txh](../tx/stdlib/statistics.txh) 可对 `vector<float>` 或 `iterator<float>` 求均值、中位数、总体/样本方差及标准差、R7 分位数、频数和直方图；私有状态的 `accumulator` 支持逐项累计。空样本、单样本及非有限输入规则见[统计契约](time_math_statistics.md#65-统计)，可运行用法见[统计示例](../examples/statistics_summary.tx)。
+
+导入 [decimal.txh](../tx/stdlib/decimal.txh) 从十进制文本或整数创建不可变定点数，用指定小数位和舍入模式完成四则运算；不接受从二进制 `float` 的隐式构造。精度、错误码和舍入规则见[十进制契约](time_math_statistics.md#66-十进制定点数)，金额计算见[示例](../examples/decimal_money.tx)。
 
 ## 数组操作
 
@@ -147,6 +155,8 @@ abs 对最小 int、mod 对零除数或最小 int 与 -1 的组合会报运行�
 
 unix_millis 使用系统时钟，系统时间调整可能让相邻读数倒退。monotonic_millis 和 monotonic_micros 的起点没有日历含义，只适合用两次读数之差测量经过时间；微秒单位不保证实际时钟具有微秒分辨率。sleep_millis(0) 无需等待；负数参数会报运行错误，实际等待时间可能比请求的更长。
 
+新增 `duration/instant`、可取消睡眠、本地日期与时刻、偏移及 IANA 时区时间。单调刻度不能转换为墙上时间；ISO 8601 与夏令时歧义规则见[时间契约](time_math_statistics.md#61-时长与单调时间)和[日历示例](../examples/time_calendar.tx)。
+
 ## 伪随机数
 
 导入 [tx/stdlib/random.txh](../tx/stdlib/random.txh)：
@@ -158,6 +168,8 @@ unix_millis 使用系统时钟，系统时间调整可能让相邻读数倒退�
 | random_float() -> float | 在半开区间 [0.0, 1.0) 内取浮点数 |
 
 random_int 要求 lower <= upper，支持完整的 int 范围；区间无效时会报运行错误。未调用 seed 时，生成器由 C++ random_device 初始化，实际熵源取决于运行环境。用相同种子并按相同顺序调用，在同一构建环境中可重现结果。这些函数使用伪随机数生成器，不适合生成密钥、令牌或其他安全敏感值。
+
+新增独立 `generator`、抽样、洗牌及分布函数，固定算法版本及共享/深复制规则见[随机数契约](time_math_statistics.md#63-独立随机生成器)。
 
 ## 终端输入输出
 

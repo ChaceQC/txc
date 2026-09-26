@@ -11,3 +11,23 @@ def sqrt(value: float) -> float
 def pow(base: float, exponent: float) -> float
 def floor(value: float) -> int
 def ceil(value: float) -> int
+def sin(value: float) -> float
+def cos(value: float) -> float
+def tan(value: float) -> float
+def asin(value: float) -> float
+def acos(value: float) -> float
+def atan(value: float) -> float
+def atan2(y: float, x: float) -> float
+def sinh(value: float) -> float
+def cosh(value: float) -> float
+def tanh(value: float) -> float
+def exp(value: float) -> float
+def log(value: float) -> float
+def log10(value: float) -> float
+def is_finite(value: float) -> bool
+def is_nan(value: float) -> bool
+def is_infinite(value: float) -> bool
+def gcd(left: int, right: int) -> int
+def lcm(left: int, right: int) -> int
+def pow_int(base: int, exponent: int) -> int
+def round_to_int(value: float, mode: str) -> int

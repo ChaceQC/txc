@@ -217,6 +217,11 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_math_pow_f64(double, double, ptr)\n"
             << "declare i32 @txrt_math_floor_f64(double, ptr)\n"
             << "declare i32 @txrt_math_ceil_f64(double, ptr)\n"
+            << "declare i32 @txrt_math_atan2(double, double, ptr)\n"
+            << "declare i32 @txrt_math_gcd(i64, i64, ptr)\n"
+            << "declare i32 @txrt_math_lcm(i64, i64, ptr)\n"
+            << "declare i32 @txrt_math_pow_int(i64, i64, ptr)\n"
+            << "declare i32 @txrt_math_round_to_int(double, ptr, ptr)\n"
             << "declare i32 @txrt_random_seed_i64(i64)\n"
             << "declare i32 @txrt_random_int_i64(i64, i64, ptr)\n"
             << "declare i32 @txrt_random_float_f64(ptr)\n"
@@ -226,6 +231,66 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_random_seed_context(ptr, i64)\n"
             << "declare i64 @txrt_random_int_context(ptr, i64, i64)\n"
             << "declare double @txrt_random_float_context(ptr)\n\n";
+    for (const auto* name : {"sin", "cos", "tan", "asin", "acos", "atan",
+                             "sinh", "cosh", "tanh", "exp", "log", "log10"})
+    {
+        module_ << "declare i32 @txrt_math_" << name << "(double, ptr)\n";
+    }
+    for (const auto* name : {"is_finite", "is_nan", "is_infinite"})
+    {
+        module_ << "declare i32 @txrt_math_" << name << "(double, ptr)\n";
+    }
+    for (const auto* source : {"vector", "iterator"})
+    {
+        for (const auto* name : {"mean", "median", "variance_population",
+                                 "variance_sample", "stdev_population",
+                                 "stdev_sample", "frequencies"})
+        {
+            module_ << "declare i32 @txrt_statistics_" << name << "_"
+                    << source << "(ptr, ptr)\n";
+        }
+        module_ << "declare i32 @txrt_statistics_quantile_" << source
+                << "(ptr, double, ptr)\n"
+                << "declare i32 @txrt_statistics_histogram_" << source
+                << "(ptr, double, double, i64, ptr, ptr)\n";
+    }
+    module_ << "declare i32 @txrt_statistics_new_accumulator(ptr, ptr)\n"
+            << "declare i32 @txrt_statistics_add(ptr, double)\n"
+            << "declare i32 @txrt_statistics_count(ptr, ptr)\n";
+    for (const auto* name : {"mean_of", "variance_population_of",
+                             "variance_sample_of", "stdev_population_of",
+                             "stdev_sample_of"})
+    {
+        module_ << "declare i32 @txrt_statistics_" << name << "(ptr, ptr)\n";
+    }
+    module_ << "declare i32 @txrt_decimal_parse(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_decimal_from_int(i64, ptr, ptr)\n"
+            << "declare i32 @txrt_decimal_to_text(ptr, ptr)\n"
+            << "declare i32 @txrt_decimal_scale(ptr, ptr)\n"
+            << "declare i32 @txrt_decimal_quantize(ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_decimal_compare(ptr, ptr, ptr)\n";
+    for (const auto* name : {"add", "sub", "mul", "div"})
+    {
+        module_ << "declare i32 @txrt_decimal_" << name
+                << "(ptr, ptr, i64, ptr, ptr, ptr)\n";
+    }
+    module_ << "declare i32 @txrt_random_make_generator(i64, ptr, ptr)\n"
+            << "declare i32 @txrt_random_reseed(ptr, i64)\n"
+            << "declare i32 @txrt_random_algorithm_version(ptr)\n"
+            << "declare i32 @txrt_random_next_int(ptr, i64, i64, ptr)\n"
+            << "declare i32 @txrt_random_next_float(ptr, ptr)\n"
+            << "declare i32 @txrt_random_bernoulli(ptr, double, ptr)\n"
+            << "declare i32 @txrt_random_normal(ptr, double, double, ptr)\n"
+            << "declare i32 @txrt_random_exponential(ptr, double, ptr)\n";
+    for (const auto* suffix : {"i64", "f64", "bool", "str", "bytes", "object"})
+    {
+        module_ << "declare i32 @txrt_random_shuffle_" << suffix
+                << "(ptr, ptr, ptr)\n"
+                << "declare i32 @txrt_random_sample_" << suffix
+                << "(ptr, ptr, i64, ptr)\n"
+                << "declare i32 @txrt_random_choice_" << suffix
+                << "(ptr, ptr, ptr)\n";
+    }
     module_ << "declare i32 @txrt_string_contains(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_string_starts_with(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_string_ends_with(ptr, ptr, ptr)\n"
@@ -298,6 +363,36 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_time_monotonic_millis(ptr)\n"
             << "declare i32 @txrt_time_monotonic_micros(ptr)\n"
             << "declare i32 @txrt_time_sleep_millis(i64)\n\n";
+    module_ << "declare i32 @txrt_time_duration_from_micros(i64, ptr, ptr)\n"
+            << "declare i32 @txrt_time_duration_from_millis(i64, ptr, ptr)\n"
+            << "declare i32 @txrt_time_duration_from_seconds(i64, ptr, ptr)\n"
+            << "declare i32 @txrt_time_duration_add(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_duration_sub(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_duration_negate(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_duration_as_micros(ptr, ptr)\n"
+            << "declare i32 @txrt_time_duration_as_millis(ptr, ptr)\n"
+            << "declare i32 @txrt_time_instant_now(ptr, ptr)\n"
+            << "declare i32 @txrt_time_instant_elapsed(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_instant_after(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_sleep(ptr)\n"
+            << "declare i32 @txrt_time_sleep_cancelled(ptr, ptr)\n\n";
+    module_ << "declare i32 @txrt_time_parse_local_date(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_format_local_date(ptr, ptr)\n"
+            << "declare i32 @txrt_time_date_add_days(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_time_date_add_months(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_time_date_days_between(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_parse_local_time(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_format_local_time(ptr, ptr)\n"
+            << "declare i32 @txrt_time_parse_offset_datetime(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_offset_from_unix_millis(i64, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_time_format_offset_datetime(ptr, ptr)\n"
+            << "declare i32 @txrt_time_datetime_difference(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_timezone_version(ptr)\n"
+            << "declare i32 @txrt_time_at_zone(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_resolve_local(ptr, ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_format_zoned_datetime(ptr, ptr)\n"
+            << "declare i32 @txrt_time_zoned_local_date(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_time_zoned_local_time(ptr, ptr, ptr)\n\n";
     module_ << "declare i32 @txrt_httpx_send(ptr, ptr, ptr, ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_httpx_get(ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_httpx_post(ptr, ptr, i64, ptr, ptr)\n"

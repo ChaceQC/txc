@@ -1,0 +1,19 @@
+import "time.txh" as time
+
+def main() -> int
+{
+    // 旧的 Unix 毫秒值只经显式桥进入日历；单调 instant 不参与转换。
+    time.offset_datetime epoch = time.offset_from_unix_millis(0, 0)
+    print(time.format_offset_datetime(epoch))
+    print(time.timezone_version())
+
+    time.local_date date = time.parse_local_date("2024-10-27")
+    time.local_time clock = time.parse_local_time("02:30:00")
+    time.zoned_datetime early = time.resolve_local(
+        date, clock, "Europe/Berlin", "earlier")
+    time.zoned_datetime late = time.resolve_local(
+        date, clock, "Europe/Berlin", "later")
+    print(time.format_zoned_datetime(early))
+    print(time.format_zoned_datetime(late))
+    return 0
+}

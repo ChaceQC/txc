@@ -1,0 +1,12 @@
+import "decimal.txh" as decimal
+
+def main() -> int
+{
+    decimal.decimal unit_price = decimal.parse("19.99")
+    decimal.decimal subtotal = decimal.mul(unit_price, decimal.from_int(3),
+                                            2, "half_even")
+    decimal.decimal total = decimal.sub(subtotal, decimal.parse("2.50"),
+                                        2, "half_even")
+    print(decimal.to_text(total))
+    return 0
+}

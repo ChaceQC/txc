@@ -34,7 +34,8 @@ bool valid_generic_type(const value_type& type,
 {
     if (type.parameters.empty())
     {
-        return variables.contains(type.name) || is_builtin_type(type.name);
+        return variables.contains(type.name) || is_builtin_type(type.name) ||
+               type.name == "generator";
     }
     if (!type.is_function() &&
         !value_type::is_container_name(type.container_name()))
@@ -316,10 +317,11 @@ void module_resolver::resolve(program& source)
         if (!function.type_parameters.empty())
         {
             if (!function.external ||
-                !function.external_name.starts_with("algorithm."))
+                (!function.external_name.starts_with("algorithm.") &&
+                 !function.external_name.starts_with("random.")))
             {
                 throw compile_error(function.position,
-                    "当前仅标准库 algorithm 接口支持泛型函数声明");
+                    "当前仅标准库 algorithm/random 接口支持泛型函数声明");
             }
             const std::unordered_set<std::string> variables(
                 function.type_parameters.begin(), function.type_parameters.end());

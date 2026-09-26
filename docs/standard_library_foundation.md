@@ -51,6 +51,7 @@
 | 数据库 | 尚无公开入口 | `database_error/connection_failed`、`query_failed`、`constraint_violation`、`busy`、`pool_exhausted`、`invalid_state` |
 | 新密码/证书/TLS 接口 | 尚无公开入口 | `security_error/invalid_key`、`authentication_failed`、`invalid_certificate`、`certificate_expired`、`hostname_mismatch`、`untrusted_issuer`、`random_failed` |
 | 取消与截止时间 | 尚无公开入口 | `cancelled_error/cancelled`、`deadline_exceeded`；已发生的外部效果由操作结果另行说明 |
+| 时间与计算扩展 | 6.1～6.6 已使用 `runtime_error/invalid_argument`、`out_of_range`、`timezone_failed`、`non_finite`、`empty_sample`、`insufficient_sample`、`division_by_zero`、`size_limit`、`invalid_state`；`parse_error/invalid_syntax`、`out_of_range`、`invalid_zone`、`nonexistent_time`、`ambiguous_time`；`cancelled_error/cancelled`、`deadline_exceeded` | 后续新增错误码须先在对应模块文档固定语义 |
 
 同一 `code` 可出现于不同 `kind`，所以只按完整二元组判断。新增代码先登记到本表与模块文档，不重复赋予不同含义；旧的 `operation_failed` 保持兼容，新接口优先使用能区分失败原因的代码。缺键、EOF、无匹配、查询无行是正常分支，使用 `option<T>` 或显式状态；可能失败的严格接口抛上述错误，`try_*`/`result<T>` 使用完全相同的二元组。现有具体 `error.*_result` 保留到无损转换桥就绪。取消与超时分开，取消不能吞掉已经完成的外部效果。
 

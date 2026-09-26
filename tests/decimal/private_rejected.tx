@@ -1,0 +1,8 @@
+import "decimal.txh" as decimal
+
+def main() -> int
+{
+    decimal.decimal amount = decimal.parse("1.00")
+    print(amount.digits)
+    return 0
+}

@@ -17,6 +17,7 @@ bool supported_external_call(std::string_view name)
            name.starts_with("debug.") ||
            name == "error.fail_io" || name == "error.stack_trace" ||
            name.starts_with("cancel.") ||
+           name.starts_with("time.") ||
            name == "io.write" || name == "io.write_line" ||
            name == "io.write_error" || name == "io.flush" ||
            name == "string.contains" || name == "string.starts_with" ||
@@ -59,11 +60,9 @@ bool supported_external_call(std::string_view name)
            name == "file_stream.read_line" ||
            name == "file_stream.write_text" ||
            name == "file_stream.write_line" ||
-           name == "math.abs" || name == "math.min" ||
-           name == "math.max" || name == "math.clamp" ||
-           name == "math.mod" || name == "math.sqrt" ||
-           name == "math.pow" || name == "math.floor" ||
-           name == "math.ceil" || name == "array.concat" ||
+           name.starts_with("math.") || name.starts_with("statistics.") ||
+           name.starts_with("decimal.") ||
+           name == "array.concat" ||
            name == "algorithm.sort" || name == "algorithm.sorted" ||
            name == "algorithm.find" || name == "algorithm.count" ||
            name == "algorithm.lower_bound" || name == "algorithm.upper_bound" ||
@@ -99,9 +98,7 @@ bool supported_external_call(std::string_view name)
            name == "time.unix_millis" ||
            name == "time.monotonic_millis" ||
            name == "time.monotonic_micros" ||
-           name == "time.sleep_millis" || name == "random.seed" ||
-           name == "random.random_int" ||
-           name == "random.random_float";
+           name == "time.sleep_millis" || name.starts_with("random.");
 }
 
 bool is_builtin_call(std::string_view name)

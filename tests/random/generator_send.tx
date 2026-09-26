@@ -1,0 +1,7 @@
+import "random.txh" as random
+
+def main() -> int
+{
+    assert_send(random.make_generator(1))
+    return 0
+}

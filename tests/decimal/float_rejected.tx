@@ -1,0 +1,7 @@
+import "decimal.txh" as decimal
+
+def main() -> int
+{
+    decimal.decimal amount = 0.1
+    return 0
+}

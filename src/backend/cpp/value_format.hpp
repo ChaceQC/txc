@@ -136,6 +136,7 @@ struct dynamic_class
     const char* display_name = nullptr;
     const char* const* ancestors = nullptr;
     std::size_t ancestor_count = 0;
+    std::vector<const char*> owned_ancestors;
     std::vector<std::any> fields;
     const void* const* virtual_targets = nullptr;
     std::size_t virtual_count = 0;

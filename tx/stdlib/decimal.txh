@@ -1,0 +1,18 @@
+abstract class decimal
+{
+private:
+    negative: bool
+    digits: str
+    fractional_digits: int
+}
+
+def parse(text: str) -> decimal
+def from_int(value: int) -> decimal
+def to_text(value: decimal) -> str
+def scale(value: decimal) -> int
+def quantize(value: decimal, scale: int, mode: str) -> decimal
+def add(left: decimal, right: decimal, scale: int, mode: str) -> decimal
+def sub(left: decimal, right: decimal, scale: int, mode: str) -> decimal
+def mul(left: decimal, right: decimal, scale: int, mode: str) -> decimal
+def div(left: decimal, right: decimal, scale: int, mode: str) -> decimal
+def compare(left: decimal, right: decimal) -> int

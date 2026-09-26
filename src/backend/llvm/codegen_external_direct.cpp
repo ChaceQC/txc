@@ -129,6 +129,21 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         // 重载已由语义分析确定，元素类型直接选定 ABI，不把选择推迟到运行时。
         symbol += "_" + vector_suffix(target.parameters.front().type);
     }
+    const bool typed_random = target.external_name == "random.shuffle" ||
+        target.external_name == "random.sample" ||
+        target.external_name == "random.choice";
+    if (typed_random)
+    {
+        symbol += "_" + vector_suffix(arguments[1].type);
+    }
+    if (target.external_name.starts_with("statistics.") &&
+        !target.parameters.empty() &&
+        (target.parameters.front().type.is_vector() ||
+         target.parameters.front().type.container_name() == "iterator"))
+    {
+        symbol += target.parameters.front().type.is_vector()
+            ? "_vector" : "_iterator";
+    }
     if (target.external_name == "env.get" && target.parameters.size() == 2)
     {
         symbol = "txrt_env_get_default";
@@ -167,7 +182,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         }
         auto argument = dictionary_key_call && !string_key && index == 1
             ? boxed_key : arguments[index];
-        if (target.parameters[index].type == value_type::any_type)
+        if (target.parameters[index].type == value_type::any_type && !typed_random)
         {
             // 静态选定的异构容器入口只在保存值的边界进行装箱。
             argument = box_any(argument, item.position);
@@ -193,6 +208,40 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         target.external_name == "file_stream.read_line")
     {
         parameters += ", ptr " + global_bytes(item.type.name);
+    }
+    if (target.external_name == "time.duration_from_micros" ||
+        target.external_name == "time.duration_from_millis" ||
+        target.external_name == "time.duration_from_seconds" ||
+        target.external_name == "time.duration_add" ||
+        target.external_name == "time.duration_sub" ||
+        target.external_name == "time.duration_negate" ||
+        target.external_name == "time.instant_now" ||
+        target.external_name == "time.instant_elapsed" ||
+        target.external_name == "time.instant_after" ||
+        target.external_name == "time.parse_local_date" ||
+        target.external_name == "time.date_add_days" ||
+        target.external_name == "time.date_add_months" ||
+        target.external_name == "time.parse_local_time" ||
+        target.external_name == "time.parse_offset_datetime" ||
+        target.external_name == "time.offset_from_unix_millis" ||
+        target.external_name == "time.datetime_difference" ||
+        target.external_name == "time.at_zone" ||
+        target.external_name == "time.resolve_local" ||
+        target.external_name == "time.zoned_local_date" ||
+        target.external_name == "time.zoned_local_time" ||
+        target.external_name == "random.make_generator" ||
+        target.external_name == "statistics.new_accumulator" ||
+        target.external_name == "statistics.histogram" ||
+        target.external_name == "decimal.parse" ||
+        target.external_name == "decimal.from_int" ||
+        target.external_name == "decimal.quantize" ||
+        target.external_name == "decimal.add" ||
+        target.external_name == "decimal.sub" ||
+        target.external_name == "decimal.mul" ||
+        target.external_name == "decimal.div")
+    {
+        parameters += (parameters.empty() ? "" : ", ") +
+                      std::string("ptr ") + global_bytes(item.type.name);
     }
     if (target.external_name == "regex.search" ||
         target.external_name == "regex.match" ||
@@ -244,7 +293,9 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         parameters += ", ptr " + global_bytes(request_type.name) +
                       ", ptr " + global_bytes(connection_type.name);
     }
-    if (target.external_name.starts_with("random."))
+    if (target.external_name == "random.seed" ||
+        target.external_name == "random.random_int" ||
+        target.external_name == "random.random_float")
     {
         const auto context = random_context();
         parameters = "ptr " + context + (parameters.empty() ? "" : ", " + parameters);

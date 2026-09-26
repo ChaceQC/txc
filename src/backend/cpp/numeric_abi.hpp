@@ -25,6 +25,30 @@ int txrt_math_sqrt_f64(double value, double* result) noexcept;
 int txrt_math_pow_f64(double base, double exponent, double* result) noexcept;
 int txrt_math_floor_f64(double value, std::int64_t* result) noexcept;
 int txrt_math_ceil_f64(double value, std::int64_t* result) noexcept;
+int txrt_math_sin(double value, double* result) noexcept;
+int txrt_math_cos(double value, double* result) noexcept;
+int txrt_math_tan(double value, double* result) noexcept;
+int txrt_math_asin(double value, double* result) noexcept;
+int txrt_math_acos(double value, double* result) noexcept;
+int txrt_math_atan(double value, double* result) noexcept;
+int txrt_math_atan2(double y, double x, double* result) noexcept;
+int txrt_math_sinh(double value, double* result) noexcept;
+int txrt_math_cosh(double value, double* result) noexcept;
+int txrt_math_tanh(double value, double* result) noexcept;
+int txrt_math_exp(double value, double* result) noexcept;
+int txrt_math_log(double value, double* result) noexcept;
+int txrt_math_log10(double value, double* result) noexcept;
+int txrt_math_is_finite(double value, bool* result) noexcept;
+int txrt_math_is_nan(double value, bool* result) noexcept;
+int txrt_math_is_infinite(double value, bool* result) noexcept;
+int txrt_math_gcd(std::int64_t left, std::int64_t right,
+                  std::int64_t* result) noexcept;
+int txrt_math_lcm(std::int64_t left, std::int64_t right,
+                  std::int64_t* result) noexcept;
+int txrt_math_pow_int(std::int64_t base, std::int64_t exponent,
+                      std::int64_t* result) noexcept;
+int txrt_math_round_to_int(double value, const void* mode,
+                           std::int64_t* result) noexcept;
 int txrt_random_seed_i64(std::int64_t value) noexcept;
 int txrt_random_int_i64(std::int64_t lower, std::int64_t upper,
                         std::int64_t* result) noexcept;

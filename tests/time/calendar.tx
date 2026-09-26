@@ -1,0 +1,113 @@
+import "time.txh" as time
+import "error.txh" as errors
+
+def gap_rejected(date: time.local_date, clock: time.local_time) -> bool
+{
+    try
+    {
+        time.resolve_local(date, clock, "Europe/Berlin", "reject")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "nonexistent_time"
+    }
+    return false
+}
+
+def repeat_rejected(date: time.local_date, clock: time.local_time) -> bool
+{
+    try
+    {
+        time.resolve_local(date, clock, "Europe/Berlin", "reject")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "ambiguous_time"
+    }
+    return false
+}
+
+def invalid_zone_rejected(value: time.offset_datetime) -> bool
+{
+    try
+    {
+        time.at_zone(value, "Unknown/Zone")
+    }
+    exception errors.parse_error as e
+    {
+        return e.code == "invalid_zone"
+    }
+    return false
+}
+
+def main() -> int
+{
+    time.local_date leap = time.parse_local_date("2024-02-29")
+    if time.format_local_date(time.date_add_months(leap, 12)) != "2025-02-28"
+    {
+        return 1
+    }
+    if time.date_days_between(leap, time.date_add_days(leap, 2)) != 2
+    {
+        return 2
+    }
+    time.local_time clock = time.parse_local_time("12:34:56.1234")
+    if time.format_local_time(clock) != "12:34:56.1234"
+    {
+        return 3
+    }
+    time.offset_datetime epoch = time.offset_from_unix_millis(0, 0)
+    if time.format_offset_datetime(epoch) != "1970-01-01T00:00:00Z"
+    {
+        return 4
+    }
+    time.offset_datetime before_epoch = time.parse_offset_datetime(
+        "1969-12-31T23:59:59.123456Z")
+    if !(time.format_offset_datetime(before_epoch) ==
+         "1969-12-31T23:59:59.123456Z")
+    {
+        return 11
+    }
+    time.offset_datetime offset = time.parse_offset_datetime(
+        "2024-03-31T01:30:00+01:00")
+    time.zoned_datetime zone = time.at_zone(offset, "Europe/Berlin")
+    if !(time.format_zoned_datetime(zone) ==
+         "2024-03-31T01:30:00+01:00[Europe/Berlin]")
+    {
+        return 5
+    }
+    time.local_date gap_date = time.parse_local_date("2024-03-31")
+    time.local_time gap_clock = time.parse_local_time("02:30:00")
+    if !gap_rejected(gap_date, gap_clock)
+    {
+        return 6
+    }
+    time.zoned_datetime before = time.resolve_local(
+        gap_date, gap_clock, "Europe/Berlin", "earlier")
+    time.zoned_datetime after = time.resolve_local(
+        gap_date, gap_clock, "Europe/Berlin", "later")
+    if !(time.format_local_time(time.zoned_local_time(before)) == "01:30:00" &&
+         time.format_local_time(time.zoned_local_time(after)) == "03:30:00")
+    {
+        return 7
+    }
+    time.local_date repeat_date = time.parse_local_date("2024-10-27")
+    time.local_time repeat_clock = time.parse_local_time("02:30:00")
+    if !repeat_rejected(repeat_date, repeat_clock)
+    {
+        return 8
+    }
+    time.zoned_datetime first = time.resolve_local(
+        repeat_date, repeat_clock, "Europe/Berlin", "earlier")
+    time.zoned_datetime last = time.resolve_local(
+        repeat_date, repeat_clock, "Europe/Berlin", "later")
+    if last.unix_micros - first.unix_micros != 3600000000
+    {
+        return 9
+    }
+    if len(time.timezone_version()) == 0 || !invalid_zone_rejected(epoch)
+    {
+        return 10
+    }
+    return 0
+}

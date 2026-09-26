@@ -1,0 +1,44 @@
+struct histogram_result
+{
+    counts: vector<int>
+    underflow: int
+    overflow: int
+}
+
+abstract class accumulator
+{
+private:
+    count_value: int
+    mean_value: float
+    m2_value: float
+}
+
+def mean(values: vector<float>) -> float
+def mean(values: iterator<float>) -> float
+def median(values: vector<float>) -> float
+def median(values: iterator<float>) -> float
+def variance_population(values: vector<float>) -> float
+def variance_population(values: iterator<float>) -> float
+def variance_sample(values: vector<float>) -> float
+def variance_sample(values: iterator<float>) -> float
+def stdev_population(values: vector<float>) -> float
+def stdev_population(values: iterator<float>) -> float
+def stdev_sample(values: vector<float>) -> float
+def stdev_sample(values: iterator<float>) -> float
+def quantile(values: vector<float>, p: float) -> float
+def quantile(values: iterator<float>, p: float) -> float
+def frequencies(values: vector<float>) -> map<float,int>
+def frequencies(values: iterator<float>) -> map<float,int>
+def histogram(values: vector<float>, lower: float, upper: float,
+              bins: int) -> histogram_result
+def histogram(values: iterator<float>, lower: float, upper: float,
+              bins: int) -> histogram_result
+
+def new_accumulator() -> accumulator
+def add(target: accumulator, value: float) -> void
+def count(target: accumulator) -> int
+def mean_of(target: accumulator) -> float
+def variance_population_of(target: accumulator) -> float
+def variance_sample_of(target: accumulator) -> float
+def stdev_population_of(target: accumulator) -> float
+def stdev_sample_of(target: accumulator) -> float

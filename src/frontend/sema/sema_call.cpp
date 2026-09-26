@@ -231,7 +231,7 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
         {
             throw compile_error(argument.position,
                 call.name + " 不能证明此类型可跨线程传递或共享：" +
-                actual.name);
+                std::string(type_name(actual)));
         }
         return value_type::void_type;
     }
@@ -464,6 +464,11 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
         intrinsic != algorithm_intrinsics_.end())
     {
         return check_algorithm_intrinsic(item, call, intrinsic->second);
+    }
+    if (const auto intrinsic = random_intrinsics_.find(call.name);
+        intrinsic != random_intrinsics_.end())
+    {
+        return check_random_intrinsic(item, call, intrinsic->second);
     }
     const auto actual_types = check_call_arguments(call);
     std::vector<std::size_t> candidates;

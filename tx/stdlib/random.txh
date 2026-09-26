@@ -1,3 +1,20 @@
 def seed(value: int) -> void
 def random_int(lower: int, upper: int) -> int
 def random_float() -> float
+
+struct generator
+{
+    state: int
+}
+
+def make_generator(seed: int) -> generator
+def reseed(source: generator, seed: int) -> void
+def algorithm_version() -> str
+def next_int(source: generator, lower: int, upper: int) -> int
+def next_float(source: generator) -> float
+def shuffle<T>(source: generator, values: vector<T>) -> vector<T>
+def sample<T>(source: generator, values: vector<T>, count: int) -> vector<T>
+def choice<T>(source: generator, values: vector<T>) -> T
+def bernoulli(source: generator, probability: float) -> bool
+def normal(source: generator, mean: float, standard_deviation: float) -> float
+def exponential(source: generator, rate: float) -> float

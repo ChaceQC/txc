@@ -1,0 +1,130 @@
+import "math.txh" as math
+import "error.txh" as errors
+
+def gcd_overflow() -> bool
+{
+    try
+    {
+        math.gcd(-9223372036854775808, 0)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "out_of_range"
+    }
+    return false
+}
+
+def lcm_overflow() -> bool
+{
+    try
+    {
+        math.lcm(9223372036854775807, 2)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "out_of_range"
+    }
+    return false
+}
+
+def power_overflow() -> bool
+{
+    try
+    {
+        math.pow_int(2, 63)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "out_of_range"
+    }
+    return false
+}
+
+def invalid_power_is_rejected() -> bool
+{
+    try
+    {
+        math.pow_int(2, -1)
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def invalid_rounding_is_rejected() -> bool
+{
+    try
+    {
+        math.round_to_int(1.0, "other")
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def nonfinite_rounding_is_rejected() -> bool
+{
+    try
+    {
+        math.round_to_int(math.exp(1000.0), "half_even")
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "out_of_range"
+    }
+    return false
+}
+
+def main() -> int
+{
+    if (math.sin(0.0) != 0.0 || math.cos(0.0) != 1.0 ||
+        math.tan(0.0) != 0.0 || math.atan2(0.0, -1.0) <= 3.14)
+    {
+        return 1
+    }
+    if (math.asin(0.0) != 0.0 || math.acos(1.0) != 0.0 ||
+        math.atan(0.0) != 0.0 || math.sinh(0.0) != 0.0 ||
+        math.cosh(0.0) != 1.0 || math.tanh(0.0) != 0.0)
+    {
+        return 2
+    }
+    if (math.exp(0.0) != 1.0 || math.log(1.0) != 0.0 ||
+        math.log10(1.0) != 0.0 || !math.is_nan(math.log(-1.0)) ||
+        !math.is_infinite(math.exp(1000.0)) || math.is_finite(math.exp(1000.0)) ||
+        !math.is_nan(math.sin(math.exp(1000.0))) ||
+        !math.is_nan(math.acos(2.0)) ||
+        !math.is_infinite(math.log(0.0)))
+    {
+        return 3
+    }
+    if (math.gcd(54, -24) != 6 || math.gcd(0, 0) != 0 ||
+        math.lcm(-6, 8) != 24 || math.lcm(0, 5) != 0 ||
+        math.pow_int(-2, 3) != -8 || math.pow_int(0, 0) != 1)
+    {
+        return 4
+    }
+    if (math.round_to_int(2.5, "half_even") != 2 ||
+        math.round_to_int(3.5, "half_even") != 4 ||
+        math.round_to_int(-2.5, "half_away") != -3 ||
+        math.round_to_int(-2.5, "toward_zero") != -2 ||
+        math.round_to_int(-2.5, "floor") != -3 ||
+        math.round_to_int(-2.5, "ceiling") != -2)
+    {
+        return 5
+    }
+    if !(gcd_overflow() && lcm_overflow() && power_overflow() &&
+         invalid_power_is_rejected() && invalid_rounding_is_rejected() &&
+         nonfinite_rounding_is_rejected())
+    {
+        return 6
+    }
+    if (math.sqrt(4.0) != 2.0 || math.floor(2.9) != 2)
+    {
+        return 7
+    }
+    return 0
+}

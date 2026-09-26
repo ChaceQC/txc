@@ -294,6 +294,8 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
 {
     functions_.clear();
     algorithm_intrinsics_.clear();
+    random_intrinsics_.clear();
+    random_generator_type_ = value_type{};
     for (const auto& function : source.functions)
     {
         const auto& display_name = function.source_name.empty()
@@ -336,6 +338,17 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
             signature.parameters.push_back(parameter);
         }
         auto& overloads = functions_[function.name];
+        if (function.external_name == "random.make_generator")
+        {
+            random_generator_type_ = function.return_type;
+        }
+        if (function.external_name == "random.shuffle" ||
+            function.external_name == "random.sample" ||
+            function.external_name == "random.choice")
+        {
+            random_intrinsics_[function.name] =
+                function.external_name.substr(7);
+        }
         if (function.external_name.starts_with("algorithm.") &&
             function.external_name != "algorithm.sort" &&
             function.external_name != "algorithm.sorted" &&

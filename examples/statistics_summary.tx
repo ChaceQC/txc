@@ -1,0 +1,19 @@
+import "statistics.txh" as statistics
+
+def main() -> int
+{
+    vector<float> samples = vector<float>()
+    samples.push_back(12.0)
+    samples.push_back(15.0)
+    samples.push_back(18.0)
+    samples.push_back(21.0)
+
+    statistics.accumulator running = statistics.new_accumulator()
+    for value in samples
+    {
+        statistics.add(running, value)
+    }
+    print(statistics.mean_of(running), statistics.stdev_sample_of(running))
+    print(statistics.median(samples), statistics.quantile(samples, 0.75))
+    return 0
+}
