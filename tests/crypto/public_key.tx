@@ -1,0 +1,102 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "public_key.txh" as keys
+import "secret.txh" as secret
+
+def low_order_rejected(private_key: secret_bytes) -> bool
+{
+    try
+    {
+        keys.x25519_derive(private_key,
+            byte_values.from_hex("0000000000000000000000000000000000000000000000000000000000000000"),
+            byte_values.empty(), byte_values.empty())
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_key"
+    }
+    return false
+}
+
+def closed_key_rejected(private_key: secret_bytes) -> bool
+{
+    secret.close(private_key)
+    try
+    {
+        keys.ed25519_public(private_key)
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_state"
+    }
+    return false
+}
+
+def main() -> int
+{
+    secret_bytes ed_seed = keys.ed25519_import_seed(byte_values.from_hex(
+        "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"))
+    bytes expected_public = byte_values.from_hex(
+        "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a")
+    bytes expected_signature = byte_values.from_hex(
+        "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e06522490155" +
+        "5fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b")
+    if keys.ed25519_public(ed_seed) != expected_public
+    {
+        return 1
+    }
+    bytes empty = byte_values.empty()
+    if keys.ed25519_sign(ed_seed, empty) != expected_signature
+    {
+        return 2
+    }
+    if !keys.ed25519_verify(expected_public, empty, expected_signature)
+    {
+        return 3
+    }
+    if keys.ed25519_verify(expected_public, encoding.encode("x", "utf-8"),
+                           expected_signature)
+    {
+        return 4
+    }
+    vector<int> corrupted = byte_values.to_vector(expected_signature)
+    corrupted[0] = corrupted[0] ^ 1
+    if keys.ed25519_verify(expected_public, empty,
+                           byte_values.from_vector(corrupted))
+    {
+        return 8
+    }
+    secret_bytes alice = keys.x25519_import_private(byte_values.from_hex(
+        "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a"))
+    bytes alice_public = keys.x25519_public(alice)
+    if alice_public != byte_values.from_hex(
+        "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a")
+    {
+        return 5
+    }
+    secret_bytes bob = keys.x25519_generate()
+    bytes bob_public = keys.x25519_public(bob)
+    bytes salt = encoding.encode("session-salt", "utf-8")
+    bytes info = encoding.encode("tx-2026 alice bob", "utf-8")
+    secret_bytes alice_key = keys.x25519_derive(alice, bob_public, salt, info)
+    secret_bytes bob_key = keys.x25519_derive(bob, alice_public, salt, info)
+    if !secret.equal(alice_key, bob_key) || secret.size(alice_key) != 32
+    {
+        return 6
+    }
+    if !low_order_rejected(alice)
+    {
+        return 7
+    }
+    if !closed_key_rejected(ed_seed)
+    {
+        return 9
+    }
+    secret.close(alice)
+    secret.close(bob)
+    secret.close(alice_key)
+    secret.close(bob_key)
+    print("PUBLIC_KEY_OK")
+    return 0
+}

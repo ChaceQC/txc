@@ -1,0 +1,36 @@
+import "bytes.txh" as bytes
+import "encoding.txh" as encoding
+import "public_key.txh" as keys
+import "secret.txh" as secret
+
+def main() -> int
+{
+    secret_bytes signing_key = keys.ed25519_generate()
+    bytes message = encoding.encode("TX signed message", "utf-8")
+    bytes signature = keys.ed25519_sign(signing_key, message)
+    if !keys.ed25519_verify(keys.ed25519_public(signing_key), message,
+                            signature)
+    {
+        return 1
+    }
+    secret_bytes alice = keys.x25519_generate()
+    secret_bytes bob = keys.x25519_generate()
+    bytes salt = encoding.encode("session-2026", "utf-8")
+    bytes info = encoding.encode("app:v1 Alice Bob", "utf-8")
+    secret_bytes alice_key = keys.x25519_derive(alice, keys.x25519_public(bob),
+                                                salt, info)
+    secret_bytes bob_key = keys.x25519_derive(bob, keys.x25519_public(alice),
+                                              salt, info)
+    bool matched = secret.equal(alice_key, bob_key)
+    secret.close(signing_key)
+    secret.close(alice)
+    secret.close(bob)
+    secret.close(alice_key)
+    secret.close(bob_key)
+    if !matched
+    {
+        return 2
+    }
+    print("PUBLIC_KEY_EXAMPLE_OK")
+    return 0
+}

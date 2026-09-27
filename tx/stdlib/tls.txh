@@ -1,0 +1,44 @@
+struct identity
+{
+    id: int
+}
+
+struct trust
+{
+    system_roots: bool
+    anchors: vector<bytes>
+}
+
+struct client_config
+{
+    hostname: str
+    trust: trust
+    client_identity: identity
+}
+
+struct server_config
+{
+    identity: identity
+    client_trust: trust
+    require_client_identity: bool
+}
+
+struct verification
+{
+    status: str
+    revocation: str
+    chain: vector<bytes>
+}
+
+def system_trust() -> trust
+def custom_trust(anchors: vector<bytes>, include_system: bool) -> trust
+def import_identity(package: bytes, password: secret_bytes) -> identity
+def close_identity(value: identity) -> void
+def client(hostname: str, roots: trust) -> client_config
+def with_client_identity(config: client_config, value: identity) -> client_config
+def server(value: identity, client_roots: trust,
+           require_client_identity: bool) -> server_config
+def verify_server(config: client_config, leaf: bytes,
+                  intermediates: vector<bytes>) -> verification
+def verify_client(config: server_config, leaf: bytes,
+                  intermediates: vector<bytes>) -> verification

@@ -1,0 +1,199 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file.txh" as file
+import "secret.txh" as secret
+import "system.txh" as system
+import "tls.txh" as tls
+import "x509.txh" as x509
+
+def empty_trust_rejected() -> bool
+{
+    try
+    {
+        tls.custom_trust(vector<bytes>(), false)
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_argument"
+    }
+    return false
+}
+
+def malformed_anchor_rejected() -> bool
+{
+    try
+    {
+        tls.custom_trust(vector<bytes>([byte_values.from_hex("3000")]), false)
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_certificate"
+    }
+    return false
+}
+
+def changed_trust_rejected(leaf: bytes) -> bool
+{
+    tls.trust changed = tls.system_trust()
+    changed.system_roots = false
+    tls.client_config config = tls.client("service.example", tls.system_trust())
+    config.trust = changed
+    try
+    {
+        tls.verify_server(config, leaf, vector<bytes>())
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_argument"
+    }
+    return false
+}
+
+def hostname_with_port_rejected(roots: tls.trust) -> bool
+{
+    try
+    {
+        tls.client("service.example:443", roots)
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_argument"
+    }
+    return false
+}
+
+def wrong_host_rejected(config: tls.client_config, leaf: bytes) -> bool
+{
+    try
+    {
+        tls.verify_server(config, leaf, vector<bytes>())
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "hostname_mismatch"
+    }
+    return false
+}
+
+def wrong_purpose_rejected(config: tls.server_config, leaf: bytes) -> bool
+{
+    try
+    {
+        tls.verify_client(config, leaf, vector<bytes>())
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "wrong_purpose"
+    }
+    return false
+}
+
+def no_certificate_rejected(config: tls.client_config) -> bool
+{
+    try
+    {
+        tls.verify_server(config, byte_values.empty(), vector<bytes>())
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "certificate_required"
+    }
+    return false
+}
+
+def unknown_issuer_rejected(config: tls.client_config, leaf: bytes) -> bool
+{
+    try
+    {
+        tls.verify_server(config, leaf, vector<bytes>())
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "unknown_issuer"
+    }
+    return false
+}
+
+def closed_identity_rejected(config: tls.client_config,
+                             value: tls.identity) -> bool
+{
+    tls.close_identity(value)
+    tls.close_identity(value)
+    try
+    {
+        tls.with_client_identity(config, value)
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_state"
+    }
+    return false
+}
+
+def wrong_password_rejected(package: bytes) -> bool
+{
+    secret_bytes wrong = secret.from_bytes(encoding.encode("wrong-password", "utf-8"))
+    try
+    {
+        tls.import_identity(package, wrong)
+    }
+    exception errors.security_error as failure
+    {
+        secret.close(wrong)
+        return failure.code == "invalid_password_or_data"
+    }
+    secret.close(wrong)
+    return false
+}
+
+def main() -> int
+{
+    str directory = system.args()[0]
+    bytes root = x509.parse_der(file.read_bytes(directory + "/root.der"))
+    bytes other_root = x509.parse_der(file.read_bytes(directory + "/other_root.der"))
+    bytes server_leaf = x509.parse_der(file.read_bytes(directory + "/server.der"))
+    bytes client_leaf = x509.parse_der(file.read_bytes(directory + "/client.der"))
+    vector<bytes> anchors = vector<bytes>([root])
+    tls.trust roots = tls.custom_trust(anchors, false)
+    anchors[0] = other_root
+    tls.client_config client = tls.client("service.example", roots)
+    auto checked_server = tls.verify_server(client, server_leaf, vector<bytes>())
+    if checked_server.status != "valid" || checked_server.revocation != "not_checked" || checked_server.chain.size() != 2
+    {
+        return 1
+    }
+    if (!empty_trust_rejected() || !malformed_anchor_rejected() ||
+       !hostname_with_port_rejected(roots) ||
+       !changed_trust_rejected(server_leaf) ||
+       !no_certificate_rejected(client) ||
+       !wrong_host_rejected(tls.client("other.example", roots), server_leaf) ||
+       !unknown_issuer_rejected(tls.client("service.example",
+            tls.custom_trust(vector<bytes>([other_root]), false)), server_leaf))
+    {
+        return 2
+    }
+
+    secret_bytes password = secret.from_bytes(encoding.encode("test-only-password", "utf-8"))
+    bytes server_package = file.read_bytes(directory + "/server.p12")
+    bytes client_package = file.read_bytes(directory + "/client.p12")
+    tls.identity server_identity = tls.import_identity(server_package, password)
+    tls.identity client_identity = tls.import_identity(client_package, password)
+    secret.close(password)
+    tls.server_config server = tls.server(server_identity, roots, true)
+    client = tls.with_client_identity(client, client_identity)
+    auto checked_client = tls.verify_client(server, client_leaf, vector<bytes>())
+    if (checked_client.status != "valid" || checked_client.chain.size() != 2 ||
+       !wrong_purpose_rejected(server, server_leaf) ||
+       !wrong_password_rejected(client_package))
+    {
+        return 3
+    }
+    if !closed_identity_rejected(client, client_identity)
+    {
+        return 4
+    }
+    tls.close_identity(server_identity)
+    print("TLS_CONFIG_OK")
+    return 0
+}

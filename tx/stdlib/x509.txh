@@ -1,0 +1,14 @@
+struct verification
+{
+    status: str
+    revocation: str
+    chain: vector<bytes>
+}
+
+def parse_pem(text: str) -> vector<bytes>
+def parse_der(data: bytes) -> bytes
+def parse_pkcs12(data: bytes, password: secret_bytes) -> vector<bytes>
+def pkcs12_private_key(data: bytes, password: secret_bytes) -> secret_bytes
+def verify(leaf: bytes, intermediates: vector<bytes>,
+           trust_anchors: vector<bytes>, hostname: str, purpose: str,
+           system_trust: bool) -> verification

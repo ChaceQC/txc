@@ -1,0 +1,140 @@
+import "bytes.txh" as byte_values
+import "crypto.txh" as crypto
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file.txh" as file
+import "format.txh" as fmt
+import "password.txh" as password
+import "public_key.txh" as keys
+import "secret.txh" as secret
+import "system.txh" as system
+
+def rejects_bad_file(key: secret_bytes, source: str, target: str,
+                     aad: bytes) -> bool
+{
+    try
+    {
+        crypto.decrypt_file(key, source, target, aad, "interop-key")
+    }
+    exception errors.runtime_error as failure
+    {
+        return failure.code == "authentication_failed" || failure.code == "invalid_format"
+    }
+    return false
+}
+
+def rejects_bad_message(key: bytes, encrypted: bytes, aad: bytes) -> bool
+{
+    try
+    {
+        crypto.decrypt(key, encrypted, aad)
+    }
+    exception errors.runtime_error as failure
+    {
+        return failure.code == "authentication_failed" || failure.code == "invalid_format"
+    }
+    return false
+}
+
+def main() -> int
+{
+    str directory = system.args()[0]
+    bytes key = file.read_bytes(directory + "/aes.key")
+    bytes message = file.read_bytes(directory + "/message.bin")
+    bytes aad = encoding.encode("TX acceptance context", "utf-8")
+    bytes encoded = crypto.encrypt(key, message, aad)
+    file.write_bytes(directory + "/tx.txcg", encoded)
+    file.write_bytes(directory + "/tx-second.txcg",
+                     crypto.encrypt(key, message, aad))
+    if crypto.decrypt(key, file.read_bytes(directory + "/external.txcg"), aad) != message
+    {
+        return 1
+    }
+    bytes zero_key = byte_values.from_hex(
+        "0000000000000000000000000000000000000000000000000000000000000000")
+    bytes zero_block = byte_values.from_hex("00000000000000000000000000000000")
+    if crypto.decrypt(zero_key, file.read_bytes(directory + "/nist.txcg"),
+                      byte_values.empty()) != zero_block
+    {
+        return 10
+    }
+
+    secret_bytes file_key = secret.from_bytes(key)
+    crypto.encrypt_file(file_key, directory + "/message.bin",
+                        directory + "/tx.txcf", aad, "interop-key")
+    crypto.encrypt_file(file_key, directory + "/message.bin",
+                        directory + "/tx-second.txcf", aad, "interop-key")
+    crypto.decrypt_file(file_key, directory + "/external.txcf",
+                        directory + "/restored.bin", aad, "interop-key")
+    if file.read_bytes(directory + "/restored.bin") != message
+    {
+        return 2
+    }
+    bytes sentinel = encoding.encode("old target remains", "utf-8")
+    file.write_bytes(directory + "/restored.bin", sentinel)
+    if !rejects_bad_file(file_key, directory + "/bad.txcf",
+                         directory + "/restored.bin", aad)
+    {
+        return 3
+    }
+    if file.read_bytes(directory + "/restored.bin") != sentinel
+    {
+        return 4
+    }
+    for index in 0..=31
+    {
+        str number = fmt.format("{}", index)
+        if !rejects_bad_message(key,
+            file.read_bytes(directory + "/fuzz-" + number + ".txcg"), aad)
+        {
+            return 7
+        }
+        if !rejects_bad_file(file_key, directory + "/fuzz-" + number +
+                             ".txcf", directory + "/restored.bin", aad)
+        {
+            return 8
+        }
+        if file.read_bytes(directory + "/restored.bin") != sentinel
+        {
+            return 9
+        }
+    }
+
+    secret_bytes signing_key = keys.ed25519_import_seed(
+        file.read_bytes(directory + "/ed.seed"))
+    file.write_bytes(directory + "/tx.ed.public", keys.ed25519_public(signing_key))
+    file.write_bytes(directory + "/tx.ed.signature",
+                     keys.ed25519_sign(signing_key, message))
+    if !keys.ed25519_verify(file.read_bytes(directory + "/external.ed.public"),
+                            message, file.read_bytes(directory + "/external.ed.signature"))
+    {
+        return 5
+    }
+
+    secret_bytes exchange_key = keys.x25519_import_private(
+        file.read_bytes(directory + "/x.private"))
+    file.write_bytes(directory + "/tx.x.public", keys.x25519_public(exchange_key))
+    secret_bytes derived = keys.x25519_derive(exchange_key,
+        file.read_bytes(directory + "/external.x.public"),
+        encoding.encode("exchange-salt", "utf-8"),
+        encoding.encode("interop-v1", "utf-8"))
+    // 仅在临时测试目录显式导出派生结果，供独立实现核对。
+    file.write_bytes(directory + "/tx.x.derived", secret.to_bytes(derived))
+
+    secret_bytes phrase = secret.from_bytes(encoding.encode("interop password", "utf-8"))
+    str phc = password.hash_password_with_params(phrase, 19456, 2, 1)
+    file.write_text(directory + "/tx.argon2.phc", phc, "utf-8")
+    if !password.verify_password(phrase,
+        file.read_text(directory + "/external.argon2.phc", "utf-8"))
+    {
+        return 6
+    }
+
+    secret.close(phrase)
+    secret.close(derived)
+    secret.close(exchange_key)
+    secret.close(signing_key)
+    secret.close(file_key)
+    print("CRYPTO_INTEROP_OK")
+    return 0
+}

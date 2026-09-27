@@ -97,7 +97,8 @@ foreach ($name in @(
     'crt2.o', 'crtbegin.o', 'crtend.o', 'default-manifest.o',
     'libstdc++.dll.a', 'libmingw32.a', 'libgcc_s.a', 'libgcc.a',
     'libmoldname.a', 'libmingwex.a', 'libmsvcrt.a', 'libkernel32.a',
-    'libpthread.a', 'libadvapi32.a', 'libbcrypt.a', 'libwinhttp.a', 'libws2_32.a',
+    'libpthread.a', 'libadvapi32.a', 'libbcrypt.a', 'libcrypt32.a', 'libncrypt.a',
+    'libwinhttp.a', 'libws2_32.a',
     'libshell32.a', 'libuser32.a',
     'libiconv.a'))
 {
@@ -154,6 +155,7 @@ $dependency_archives = @(
     (Join-Path $build_dir '_deps/mbedtls-build/3rdparty/everest/libeverest.a'),
     (Join-Path $build_dir '_deps/mbedtls-build/3rdparty/p256-m/libp256m.a'),
     (Join-Path $build_dir 'libargon2_reference_static.a'),
+    (Join-Path $build_dir '_deps/libsodium_binary-src/mingw64/lib/libsodium.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuin.dll.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuuc.dll.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicudt.dll.a'),
@@ -188,6 +190,8 @@ Copy-Item -LiteralPath (Join-Path $build_dir '_deps/mbedtls-src/LICENSE') `
     -Destination (Join-Path $tool_dir 'MBEDTLS-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/argon2_reference-src/LICENSE') `
     -Destination (Join-Path $tool_dir 'ARGON2-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/libsodium_binary-src/mingw64/share/licenses/libsodium/LICENSE') `
+    -Destination (Join-Path $tool_dir 'LIBSODIUM-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/icu_binary-src/mingw64/share/icu/78.3/LICENSE') `
     -Destination (Join-Path $tool_dir 'ICU-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/share/licenses/pcre2/LICENCE.md') `
@@ -246,6 +250,8 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'file.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'bytes.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'crypto.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'public_key.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'tls.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'encoding.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'unicode.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'regex.txh')) -or

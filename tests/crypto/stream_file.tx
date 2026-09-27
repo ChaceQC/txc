@@ -1,0 +1,121 @@
+import "bytes.txh" as byte_values
+import "crypto.txh" as crypto
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file.txh" as file
+import "file_stream.txh" as streams
+import "secret.txh" as secret
+
+def rejected_decrypt(key: secret_bytes, source: str, target: str,
+                     aad: bytes, key_id: str, code: str) -> bool
+{
+    try
+    {
+        crypto.decrypt_file(key, source, target, aad, key_id)
+    }
+    exception errors.runtime_error as failure
+    {
+        return failure.code == code
+    }
+    return false
+}
+
+def main() -> int
+{
+    str source = "tx_build/加密 输入.tx-data"
+    str encrypted = "tx_build/加密 输出.tx-data"
+    str restored = "tx_build/还原 输出.tx-data"
+    bytes block = encoding.encode("重复内容", "utf-8")
+    binary_stream writer = streams.open_binary(source, "write")
+    for index in 0..=9999
+    {
+        streams.write_bytes(writer, block)
+    }
+    streams.close(writer)
+    bytes original = file.read_bytes(source)
+    binary_stream hash_input = streams.open_binary(source, "read")
+    if crypto.sha256_stream(hash_input) != crypto.sha256(original)
+    {
+        return 1
+    }
+    streams.seek(hash_input, 0, "start")
+    if crypto.sha512_stream(hash_input) != crypto.sha512(original)
+    {
+        return 2
+    }
+    streams.close(hash_input)
+    secret_bytes key = secret.from_bytes(byte_values.from_hex(
+        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"))
+    hash_input = streams.open_binary(source, "read")
+    bytes streamed_mac = crypto.hmac_sha256_stream(key, hash_input)
+    if streamed_mac != crypto.hmac_sha256(secret.to_bytes(key), original)
+    {
+        return 3
+    }
+    streams.close(hash_input)
+    bytes aad = encoding.encode("文件上下文", "utf-8")
+    crypto.encrypt_file(key, source, encrypted, aad, "key-2026")
+    if crypto.file_key_id(encrypted) != "key-2026"
+    {
+        return 4
+    }
+    crypto.decrypt_file(key, encrypted, restored, aad, "key-2026")
+    if file.read_bytes(restored) != original
+    {
+        return 5
+    }
+    bytes sentinel = encoding.encode("保留旧目标", "utf-8")
+    file.write_bytes(restored, sentinel)
+    if !rejected_decrypt(key, encrypted, restored, byte_values.empty(),
+                         "key-2026", "authentication_failed")
+    {
+        return 6
+    }
+    if file.read_bytes(restored) != sentinel
+    {
+        return 7
+    }
+    secret_bytes wrong = secret.random(32)
+    if !rejected_decrypt(wrong, encrypted, restored, aad, "key-2026",
+                         "authentication_failed")
+    {
+        return 8
+    }
+    if !rejected_decrypt(key, encrypted, restored, aad, "wrong-id",
+                         "authentication_failed")
+    {
+        return 9
+    }
+    bytes ciphertext = file.read_bytes(encrypted)
+    vector<int> changed = byte_values.to_vector(ciphertext)
+    changed[len(changed) - 1] = changed[len(changed) - 1] ^ 1
+    file.write_bytes(encrypted, byte_values.from_vector(changed))
+    if !rejected_decrypt(key, encrypted, restored, aad, "key-2026",
+                         "authentication_failed")
+    {
+        return 10
+    }
+    file.write_bytes(encrypted,
+        byte_values.slice(ciphertext, 0, len(ciphertext) - 1))
+    if !rejected_decrypt(key, encrypted, restored, aad, "key-2026",
+                         "invalid_format")
+    {
+        return 11
+    }
+    changed = byte_values.to_vector(ciphertext)
+    changed[35] = 1
+    file.write_bytes(encrypted, byte_values.from_vector(changed))
+    if !rejected_decrypt(key, encrypted, restored, aad, "key-2026",
+                         "invalid_format")
+    {
+        return 13
+    }
+    if file.read_bytes(restored) != sentinel
+    {
+        return 12
+    }
+    secret.close(wrong)
+    secret.close(key)
+    print("CRYPTO_STREAM_FILE_OK")
+    return 0
+}

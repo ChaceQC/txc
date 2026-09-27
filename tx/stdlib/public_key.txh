@@ -1,0 +1,11 @@
+def ed25519_generate() -> secret_bytes
+def ed25519_import_seed(seed: bytes) -> secret_bytes
+def ed25519_public(private_key: secret_bytes) -> bytes
+def ed25519_sign(private_key: secret_bytes, message: bytes) -> bytes
+def ed25519_verify(public_key: bytes, message: bytes, signature: bytes) -> bool
+
+def x25519_generate() -> secret_bytes
+def x25519_import_private(raw: bytes) -> secret_bytes
+def x25519_public(private_key: secret_bytes) -> bytes
+def x25519_derive(private_key: secret_bytes, peer_public: bytes,
+                  salt: bytes, info: bytes) -> secret_bytes

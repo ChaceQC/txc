@@ -60,6 +60,11 @@ FetchContent_Declare(libxml2
     URL https://download.gnome.org/sources/libxml2/2.13/libxml2-2.13.8.tar.xz
     URL_HASH SHA256=277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(libsodium_binary
+    URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-libsodium-1.0.22-3-any.pkg.tar.zst
+    URL_HASH SHA256=e8d8bc169fa122eccfc3e4252615937a62fa0bd6ca21ed4912bac48d6ed2f870
+    SOURCE_SUBDIR _tx_no_cmake_project
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 set(LIBXML2_WITH_C14N OFF CACHE BOOL "" FORCE)
 set(LIBXML2_WITH_CATALOG OFF CACHE BOOL "" FORCE)
 set(LIBXML2_WITH_DEBUG OFF CACHE BOOL "" FORCE)
@@ -89,7 +94,11 @@ FetchContent_Declare(winpthread_runtime
 set(_tx_warn_deprecated ${CMAKE_WARN_DEPRECATED})
 set(CMAKE_WARN_DEPRECATED OFF)
 FetchContent_MakeAvailable(nghttp2 mbedtls icu_binary pcre2_binary libxml2
-    stdcpp_runtime gcc_runtime winpthread_runtime argon2_reference)
+    stdcpp_runtime gcc_runtime winpthread_runtime argon2_reference
+    libsodium_binary)
+add_library(libsodium_static STATIC IMPORTED GLOBAL)
+set_target_properties(libsodium_static PROPERTIES IMPORTED_LOCATION
+    "${libsodium_binary_SOURCE_DIR}/mingw64/lib/libsodium.a")
 add_library(argon2_reference_static STATIC
     "${argon2_reference_SOURCE_DIR}/src/argon2.c"
     "${argon2_reference_SOURCE_DIR}/src/core.c"
@@ -99,6 +108,24 @@ add_library(argon2_reference_static STATIC
     "${argon2_reference_SOURCE_DIR}/src/ref.c")
 target_include_directories(argon2_reference_static PUBLIC
     "${argon2_reference_SOURCE_DIR}/include")
+target_compile_definitions(argon2_reference_static PRIVATE
+    blake2b=tx_argon2_blake2b
+    blake2b_init=tx_argon2_blake2b_init
+    blake2b_init_key=tx_argon2_blake2b_init_key
+    blake2b_init_param=tx_argon2_blake2b_init_param
+    blake2b_update=tx_argon2_blake2b_update
+    blake2b_final=tx_argon2_blake2b_final
+    blake2b_long=tx_argon2_blake2b_long)
+target_compile_definitions(argon2_reference_static PRIVATE
+    argon2_ctx=tx_argon2_ctx
+    argon2_hash=tx_argon2_hash
+    argon2_verify=tx_argon2_verify
+    argon2i_hash_encoded=tx_argon2i_hash_encoded
+    argon2i_hash_raw=tx_argon2i_hash_raw
+    argon2i_verify=tx_argon2i_verify
+    argon2id_hash_encoded=tx_argon2id_hash_encoded
+    argon2id_hash_raw=tx_argon2id_hash_raw
+    argon2id_verify=tx_argon2id_verify)
 if(WIN32)
     # 上游 RC 资源在带空格的 MinGW 安装路径下无法完成预处理；静态库不需要版本资源。
     get_target_property(_tx_libxml2_sources LibXml2 SOURCES)
@@ -265,8 +292,12 @@ add_library(txstdlib STATIC
     src/backend/cpp/file_result_abi.cpp
     src/backend/cpp/bytes_abi.cpp
     src/backend/cpp/crypto_abi.cpp
+    src/backend/cpp/crypto_stream_file_abi.cpp
     src/backend/cpp/secret_abi.cpp
     src/backend/cpp/password_abi.cpp
+    src/backend/cpp/public_key_abi.cpp
+    src/backend/cpp/x509_abi.cpp
+    src/backend/cpp/tls_abi.cpp
     src/backend/cpp/encoding_memory_abi.cpp
     src/backend/cpp/encoding_incremental_abi.cpp
     src/backend/cpp/unicode_abi.cpp
@@ -373,8 +404,18 @@ add_library(txstdlib STATIC
     src/stdlib/crypto_hash.cpp
     src/stdlib/crypto_kdf.cpp
     src/stdlib/crypto_aead.cpp
+    src/stdlib/crypto_stream_hash.cpp
+    src/stdlib/crypto_file_io.cpp
+    src/stdlib/crypto_file.cpp
     src/stdlib/secret.cpp
     src/stdlib/password.cpp
+    src/stdlib/public_key.cpp
+    src/stdlib/x509_parse.cpp
+    src/stdlib/x509_pkcs12.cpp
+    src/stdlib/x509_pkcs8.cpp
+    src/stdlib/x509_verify.cpp
+    src/stdlib/tls_identity.cpp
+    src/stdlib/libsodium_compat.cpp
     src/stdlib/file_stream.cpp
     src/stdlib/file_stream_lock.cpp
     src/stdlib/file_stream_text.cpp
@@ -437,14 +478,15 @@ target_include_directories(txc PRIVATE src "${CMAKE_BINARY_DIR}/generated")
 target_include_directories(txstdlib PRIVATE src)
 target_include_directories(txstdlib PRIVATE
     "${icu_binary_SOURCE_DIR}/mingw64/include"
-    "${pcre2_binary_SOURCE_DIR}/mingw64/include")
+    "${pcre2_binary_SOURCE_DIR}/mingw64/include"
+    "${libsodium_binary_SOURCE_DIR}/mingw64/include")
 target_compile_definitions(txstdlib PRIVATE PCRE2_STATIC)
 target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto
-    argon2_reference_static LibXml2::LibXml2)
+    argon2_reference_static LibXml2::LibXml2 libsodium_static)
 add_dependencies(txc txstdlib)
 if(WIN32)
     target_link_libraries(txc PRIVATE shell32 bcrypt)
-    target_link_libraries(txstdlib PRIVATE winhttp ws2_32 advapi32 bcrypt)
+    target_link_libraries(txstdlib PRIVATE winhttp ws2_32 advapi32 bcrypt crypt32 ncrypt)
 endif()
 set(TX_TOOL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/tx")
 set_target_properties(txstdlib PROPERTIES

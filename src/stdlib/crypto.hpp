@@ -1,6 +1,8 @@
 #pragma once
 
 #include "stdlib/bytes.hpp"
+#include "stdlib/file_stream.hpp"
+#include "stdlib/secret.hpp"
 
 #include <cstdint>
 
@@ -21,5 +23,16 @@ byte_value encrypt(const byte_value& key, const byte_value& plaintext,
                    const byte_value& aad);
 byte_value decrypt(const byte_value& key, const byte_value& encrypted,
                    const byte_value& aad);
+byte_value sha256_stream(const binary_stream& source);
+byte_value sha512_stream(const binary_stream& source);
+byte_value hmac_sha256_stream(const secret::handle& key,
+                              const binary_stream& source);
+void encrypt_file(const secret::handle& key, std::string_view source_path,
+                  std::string_view target_path, const byte_value& aad,
+                  std::string_view key_id);
+void decrypt_file(const secret::handle& key, std::string_view source_path,
+                  std::string_view target_path, const byte_value& aad,
+                  std::string_view expected_key_id);
+std::string file_key_id(std::string_view path);
 
 } // namespace tx_generated::crypto

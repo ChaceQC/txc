@@ -11,3 +11,13 @@ def pbkdf2_sha256(password: bytes, salt: bytes, iterations: int, length: int) ->
 
 def encrypt(key: bytes, plaintext: bytes, aad: bytes) -> bytes
 def decrypt(key: bytes, encrypted: bytes, aad: bytes) -> bytes
+
+def sha256_stream(source: binary_stream) -> bytes
+def sha512_stream(source: binary_stream) -> bytes
+def hmac_sha256_stream(key: secret_bytes, source: binary_stream) -> bytes
+
+def encrypt_file(key: secret_bytes, source_path: str, target_path: str,
+                 aad: bytes, key_id: str) -> void
+def decrypt_file(key: secret_bytes, source_path: str, target_path: str,
+                 aad: bytes, expected_key_id: str) -> void
+def file_key_id(path: str) -> str

@@ -1,0 +1,24 @@
+import "file.txh" as file
+import "system.txh" as system
+import "x509.txh" as x509
+
+def main() -> int
+{
+    vector<str> arguments = system.args()
+    if arguments.size() != 3
+    {
+        print("用法：程序 叶证书.pem 中间证书.pem 根证书.pem")
+        return 1
+    }
+    bytes leaf = x509.parse_pem(file.read_text(arguments[0], "utf-8"))[0]
+    vector<bytes> intermediates = x509.parse_pem(file.read_text(arguments[1], "utf-8"))
+    vector<bytes> anchors = x509.parse_pem(file.read_text(arguments[2], "utf-8"))
+    auto result = x509.verify(leaf, intermediates, anchors,
+        "service.example", "server_auth", false)
+    print(result.status, result.revocation)
+    if result.status == "valid"
+    {
+        return 0
+    }
+    return 2
+}

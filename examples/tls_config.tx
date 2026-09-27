@@ -1,0 +1,21 @@
+import "file.txh" as file
+import "system.txh" as system
+import "tls.txh" as tls
+import "x509.txh" as x509
+
+def main() -> int
+{
+    vector<str> arguments = system.args()
+    if arguments.size() != 2
+    {
+        print("用法：tls_config <服务端 DER 证书> <根 DER 证书>")
+        return 1
+    }
+    bytes leaf = x509.parse_der(file.read_bytes(arguments[0]))
+    bytes root = x509.parse_der(file.read_bytes(arguments[1]))
+    tls.trust roots = tls.custom_trust(vector<bytes>([root]), false)
+    tls.client_config config = tls.client("service.example", roots)
+    auto checked = tls.verify_server(config, leaf, vector<bytes>())
+    print(checked.status, checked.revocation)
+    return 0
+}

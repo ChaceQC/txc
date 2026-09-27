@@ -1,0 +1,25 @@
+import "bytes.txh" as bytes
+import "crypto.txh" as crypto
+import "encoding.txh" as encoding
+import "file.txh" as file
+import "secret.txh" as secret
+
+def main() -> int
+{
+    secret_bytes key = secret.random(32)
+    bytes aad = encoding.encode("backup:v1", "utf-8")
+    file.write_bytes("tx_build/crypto_file_source.bin",
+                     encoding.encode("需要保护的文件内容", "utf-8"))
+    crypto.encrypt_file(key, "tx_build/crypto_file_source.bin",
+                        "tx_build/crypto_file_encrypted.bin", aad, "backup-2026")
+    crypto.decrypt_file(key, "tx_build/crypto_file_encrypted.bin",
+                        "tx_build/crypto_file_restored.bin", aad, "backup-2026")
+    bytes restored = file.read_bytes("tx_build/crypto_file_restored.bin")
+    if file.read_bytes("tx_build/crypto_file_source.bin") != restored
+    {
+        return 1
+    }
+    secret.close(key)
+    print("CRYPTO_FILE_EXAMPLE_OK")
+    return 0
+}

@@ -14,6 +14,8 @@ bool supported_external_call(std::string_view name)
            name.starts_with("regex.") ||
            name.starts_with("crypto.") || name.starts_with("secret.") ||
            name.starts_with("password.") ||
+           name.starts_with("public_key.") || name.starts_with("x509.") ||
+           name.starts_with("tls.") ||
            name.starts_with("test.") || name.starts_with("log.") ||
            name.starts_with("debug.") ||
            name == "error.fail_io" || name == "error.stack_trace" ||

@@ -1,0 +1,154 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file.txh" as file
+import "secret.txh" as secret
+import "system.txh" as system
+import "x509.txh" as x509
+
+def malformed_der_rejected(data: bytes) -> bool
+{
+    try
+    {
+        x509.parse_der(byte_values.slice(data, 0, 20))
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_certificate"
+    }
+    return false
+}
+
+def wrong_password_rejected(data: bytes) -> bool
+{
+    secret_bytes wrong = secret.from_bytes(encoding.encode("wrong-test-password", "utf-8"))
+    try
+    {
+        x509.parse_pkcs12(data, wrong)
+    }
+    exception errors.security_error as failure
+    {
+        secret.close(wrong)
+        return failure.code == "invalid_password_or_data"
+    }
+    secret.close(wrong)
+    return false
+}
+
+def malformed_pem_rejected() -> bool
+{
+    try
+    {
+        x509.parse_pem("-----BEGIN CERTIFICATE-----\nabc!\n-----END CERTIFICATE-----")
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "invalid_certificate"
+    }
+    return false
+}
+
+def too_many_certificates_rejected(text: str) -> bool
+{
+    try
+    {
+        x509.parse_pem(text)
+    }
+    exception errors.security_error as failure
+    {
+        return failure.code == "size_limit"
+    }
+    return false
+}
+
+def main() -> int
+{
+    str directory = system.args()[0]
+    bytes root = x509.parse_der(file.read_bytes(directory + "/root.der"))
+    bytes intermediate = x509.parse_der(file.read_bytes(directory + "/intermediate.der"))
+    bytes leaf = x509.parse_der(file.read_bytes(directory + "/leaf.der"))
+    vector<bytes> pem = x509.parse_pem(file.read_text(directory + "/bundle.pem", "utf-8"))
+    if pem.size() != 3 || pem[0] != leaf
+    {
+        return 1
+    }
+    vector<bytes> middle = vector<bytes>([intermediate])
+    vector<bytes> anchors = vector<bytes>([root])
+    auto valid = x509.verify(leaf, middle, anchors, "service.example", "server_auth", false)
+    if valid.status != "valid" || valid.revocation != "not_checked" || valid.chain.size() != 3 || valid.chain[0] != leaf
+    {
+        return 2
+    }
+    if x509.verify(leaf, middle, anchors, "other.example", "server_auth", false).status != "hostname_mismatch"
+    {
+        return 3
+    }
+    if x509.verify(leaf, middle, anchors, "", "client_auth", false).status != "wrong_purpose"
+    {
+        return 4
+    }
+    if x509.verify(leaf, middle, vector<bytes>(), "service.example", "server_auth", false).status != "unknown_issuer"
+    {
+        return 5
+    }
+    if x509.verify(leaf, vector<bytes>(), anchors, "service.example", "server_auth", false).status != "unknown_issuer"
+    {
+        return 11
+    }
+    if x509.verify(leaf, middle, anchors, "service.example", "server_auth", true).status != "valid"
+    {
+        return 6
+    }
+    if x509.verify(leaf, middle, vector<bytes>(), "service.example", "server_auth", true).status != "unknown_issuer"
+    {
+        return 14
+    }
+    bytes expired = x509.parse_der(file.read_bytes(directory + "/expired.der"))
+    if x509.verify(expired, middle, anchors, "service.example", "server_auth", false).status != "expired"
+    {
+        return 7
+    }
+    bytes future = x509.parse_der(file.read_bytes(directory + "/future.der"))
+    if x509.verify(future, middle, anchors, "service.example", "server_auth", false).status != "not_yet_valid"
+    {
+        return 12
+    }
+    vector<int> corrupted = byte_values.to_vector(leaf)
+    corrupted[corrupted.size() - 1] = corrupted[corrupted.size() - 1] ^ 1
+    bytes bad_signature = byte_values.from_vector(corrupted)
+    if x509.verify(bad_signature, middle, anchors, "service.example", "server_auth", false).status != "invalid_chain"
+    {
+        return 13
+    }
+    bytes non_ca = x509.parse_der(file.read_bytes(directory + "/non_ca.der"))
+    bytes non_ca_leaf = x509.parse_der(file.read_bytes(directory + "/non_ca_leaf.der"))
+    if x509.verify(non_ca_leaf, vector<bytes>([non_ca]), anchors,
+                   "service.example", "server_auth", false).status != "invalid_chain"
+    {
+        return 15
+    }
+    bool invalid_der = malformed_der_rejected(leaf)
+    bool invalid_pem = malformed_pem_rejected()
+    bool too_many = too_many_certificates_rejected(file.read_text(directory + "/many.pem", "utf-8"))
+    if !invalid_der || !invalid_pem || !too_many
+    {
+        return 8
+    }
+    bytes package = file.read_bytes(directory + "/identity.p12")
+    secret_bytes password = secret.from_bytes(encoding.encode("test-only-password", "utf-8"))
+    vector<bytes> extracted = x509.parse_pkcs12(package, password)
+    if extracted.size() < 2 || extracted[0] != leaf
+    {
+        return 9
+    }
+    secret_bytes private_key = x509.pkcs12_private_key(package, password)
+    if secret.size(private_key) < 100 || !wrong_password_rejected(package)
+    {
+        return 10
+    }
+    file.write_bytes(system.args()[1], secret.to_bytes(private_key))
+    secret.close(private_key)
+    secret.close(password)
+    print("X509_OK")
+    return 0
+}

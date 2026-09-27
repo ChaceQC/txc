@@ -15,7 +15,7 @@
 | 并发 | 无公开线程/任务/通道模块；现有同步网络和无捕获顶层函数值见[函数值](function_values.md) | `thread/task/channel`、同步原语、取消、`async/await`、IPC | 无 TX 用户级并发验收证据；数据竞争、取消竞态、GC/析构和句柄上限待第 10 节 |
 | 数据库 | 无公开数据库模块或对应 `src/stdlib` 实现 | 统一 `db.txh` 的 SQLite/PostgreSQL 驱动、池与迁移接口 | 无验收证据；参数绑定、事务回滚、NULL/无行、TLS、池耗尽与断连待第 12 节 |
 | 测试与诊断 | `test.txh`、`log.txh`、`debug.txh` 和 `txc test`；原有 `scripts/check_*.py` 与 `tests/` 是仓库自身验证工具。见[测试、日志与诊断](test_log_debug.md) | `profile.txh`、`txc profile`；参数化/性质测试、可配置隔离/并行/超时、轮转文件与并发日志 | 第 3 节已有断言位置、错误/编译错误统计、结构化遮蔽和 Release 栈的定向证据；原生崩溃注入、并发完整性与采样精度待第 13 节专项验证 |
-| 安全 | `crypto.txh`；`src/stdlib/crypto_*.cpp`，Mbed TLS 后端。见[密码学](crypto.md) | `secret_bytes/password/public_key/x509/tls`、流式认证加密 | 有 `tests/crypto/` 的既有本地场景；标准向量、跨库互操作、证书失败、整体认证与秘密清理限制待第 9 节 |
+| 安全 | `crypto/secret/password/public_key/x509/tls.txh`；密码学、证书与 TLS 配置的 Windows 实现见各模块文档 | 11.3 的 TLS 握手与安全流、跨平台证书支持及撤销查询 | 9.1～9.7 的代码、定向验证与总验收证据见[密码学总验收](crypto.md#97-密码学总验收2026-09-28)；跨平台和第 13 节全库验收仍待后续小项 |
 
 上表中的测试脚本和示例只是证据入口，本次盘点没有重新运行它们。每个后续小项应在完成记录中分别列出接口、实现、构建、正常与失败路径、资源清理、平台限制；不能用上表“已有”代替终态矩阵验收。
 
@@ -50,7 +50,7 @@
 | 子进程 | `process.txh` 的接口与实施证据见[子进程与管道](process.md) | `process_error/spawn_failed`、`wait_failed`、`terminated`、`output_limit`、`invalid_state`、`timeout`、`invalid_argument`、`unsupported_operation`、`terminate_failed`、`pipe_failed`；等待超时及有界捕获的可预期停止使用显式状态并保留子进程句柄 |
 | 数据库 | 尚无公开入口 | `database_error/connection_failed`、`query_failed`、`constraint_violation`、`busy`、`pool_exhausted`、`invalid_state` |
 | `secret_bytes`、`password` | `security_error/invalid_state`、`size_limit`、`random_failed`、`invalid_argument`、`invalid_format`、`operation_failed`；秘密缓冲状态和 Argon2id PHC 参数见[秘密字节](secret_bytes.md)、[密码存储](password.md) | 后续密钥操作复用适用的安全错误码 |
-| 后续公钥/证书/TLS 接口 | 尚无公开入口 | `security_error/invalid_key`、`authentication_failed`、`invalid_certificate`、`certificate_expired`、`hostname_mismatch`、`untrusted_issuer` |
+| 公钥/证书与后续 TLS 接口 | `public_key` 与 `x509` 的接口、失败码及验证状态见[公钥密码学](public_key.md)、[证书读取与验证](x509.md) | TLS 接入须保持默认验证；`security_error/invalid_certificate`、`invalid_pkcs12`、`invalid_password_or_data`、`no_private_key`、`unsupported_key`、`unsupported_platform`、`size_limit`、`operation_failed` 用于解析或操作失败，证书身份失败由 `verification.status` 区分 |
 | 取消与截止时间 | 尚无公开入口 | `cancelled_error/cancelled`、`deadline_exceeded`；已发生的外部效果由操作结果另行说明 |
 | 时间与计算扩展 | 6.1～6.6 已使用 `runtime_error/invalid_argument`、`out_of_range`、`timezone_failed`、`non_finite`、`empty_sample`、`insufficient_sample`、`division_by_zero`、`size_limit`、`invalid_state`；`parse_error/invalid_syntax`、`out_of_range`、`invalid_zone`、`nonexistent_time`、`ambiguous_time`；`cancelled_error/cancelled`、`deadline_exceeded` | 后续新增错误码须先在对应模块文档固定语义 |
 | JSON/CSV 增量扩展 | JSON schema 的 `parse_error/invalid_schema`、`schema_mismatch`；CSV 的 `parse_error/unexpected_bom`、`missing_header`、`invalid_header`、`row_width`，通用格式错误和限额沿用 `invalid_syntax/invalid_utf8/size_limit/depth_limit`；writer 数据错误使用同名 `runtime_error` 码，游标失效为 `runtime_error/invalid_state` | 精确定义分别见 [JSON](json.md#增量读写与-schema) 与 [CSV](csv.md)；底层流的 `io_error` 原样传播 |
@@ -60,7 +60,7 @@
 
 同一 `code` 可出现于不同 `kind`，所以只按完整二元组判断。新增代码先登记到本表与模块文档，不重复赋予不同含义；旧的 `operation_failed` 保持兼容，新接口优先使用能区分失败原因的代码。缺键、EOF、无匹配、查询无行是正常分支，使用 `option<T>` 或显式状态；可能失败的严格接口抛上述错误，`try_*`/`result<T>` 使用完全相同的二元组。现有具体 `error.*_result` 保留到无损转换桥就绪。取消与超时分开，取消不能吞掉已经完成的外部效果。
 
-新代码的判定边界也固定：`process_error/spawn_failed` 表示未交付子进程，`wait_failed` 表示回收失败，`terminated` 表示非正常结束，`output_limit` 表示捕获上限耗尽，`timeout` 不隐式杀进程。`database_error/connection_failed` 是建连失败，`query_failed` 是 SQL 执行失败，`constraint_violation` 是约束冲突，`busy` 是可重试的锁/繁忙状态，`pool_exhausted` 是池无法在约定期限内提供连接。`security_error/invalid_key` 是密钥格式或长度不合法，`authentication_failed` 是认证标签不匹配；`invalid_certificate` 是证书解析或用途不合法，`certificate_expired`、`hostname_mismatch`、`untrusted_issuer` 分别表示过期、主机名不符和信任链缺失，`random_failed` 表示密码学随机源失效。`cancelled_error/cancelled` 来自显式取消，`deadline_exceeded` 来自截止时间到达。各模块仍须在其接口文档写明 `invalid_state`、短读短写和部分效果的具体状态迁移。
+新代码的判定边界也固定：`process_error/spawn_failed` 表示未交付子进程，`wait_failed` 表示回收失败，`terminated` 表示非正常结束，`output_limit` 表示捕获上限耗尽，`timeout` 不隐式杀进程。`database_error/connection_failed` 是建连失败，`query_failed` 是 SQL 执行失败，`constraint_violation` 是约束冲突，`busy` 是可重试的锁/繁忙状态，`pool_exhausted` 是池无法在约定期限内提供连接。`security_error/invalid_key` 是密钥格式或长度不合法，`authentication_failed` 是认证标签不匹配；`invalid_certificate` 表示证书格式无法解析，`x509.verify` 的过期、主机名不符、用途错误和信任链缺失使用可区分的 `verification.status`。后续严格 TLS 接口可将对应状态映射为 `certificate_expired`、`hostname_mismatch`、`untrusted_issuer` 等安全错误码。`random_failed` 表示密码学随机源失效。`cancelled_error/cancelled` 来自显式取消，`deadline_exceeded` 来自截止时间到达。各模块仍须在其接口文档写明 `invalid_state`、短读短写和部分效果的具体状态迁移。
 
 ## 4. 资源句柄状态表
 
@@ -89,8 +89,9 @@
 | Mbed TLS | `3.6.5`；`4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8` | Apache-2.0 或 GPL-2.0-or-later，发行采用 Apache-2.0；静态归档，`tx/MBEDTLS-LICENSE` 随包 |
 | Argon2 参考实现 | `20190702`；Git 提交 `62358ba2123abd17fccf2a108a301d4b52c01a7c` | CC0-1.0 或 Apache-2.0，发行采用 Apache-2.0；静态归档，`tx/ARGON2-LICENSE` 随包 |
 | libxml2 | `2.13.8`；`277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a` | MIT；源码由 CMake `FetchContent` 校验后静态归档，`tx/LIBXML2-LICENSE` 随包 |
+| libsodium | MSYS2 MinGW x64 包 `1.0.22-3`；`e8d8bc169fa122eccfc3e4252615937a62fa0bd6ca21ed4912bac48d6ed2f870` | ISC；包由 CMake `FetchContent` 校验后将静态库归档，`tx/LIBSODIUM-LICENSE` 随包 |
 
-CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。Argon2 已随 9.2 引入；SQLite、libpq、libsodium、MsQuic 等仍未引入。各模块若新增第三方依赖，须在构建配置中固定准确版本及源码归档 SHA-256 或 Git 提交哈希、许可证选择和交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
+CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。Argon2 已随 9.2 引入，libsodium 随 9.4 引入；SQLite、libpq、MsQuic 等仍未引入。各模块若新增第三方依赖，须在构建配置中固定准确版本及源码归档 SHA-256 或 Git 提交哈希、许可证选择和交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
 
 ### 第 1 节完成记录（2026-09-26）
 

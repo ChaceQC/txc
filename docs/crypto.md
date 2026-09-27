@@ -45,7 +45,7 @@ def decrypt(key: bytes, encrypted: bytes, aad: bytes) -> bytes
 
 固定开销为 34 字节，空明文合法。GCM 的附加认证数据为**前 18 字节完整头部后接调用方的 `aad`**；这样版本、算法编号、nonce 和调用方指定的上下文均受认证。`decrypt` 先检查最小长度、魔数、版本与算法编号，然后验证标签；只有认证成功才返回明文。密文、标签、头部或 `aad` 被改动时不能交付未经认证的明文。解密时必须传入与加密时完全相同的 `aad`；没有附加数据时传 `bytes.empty()`。
 
-本格式只用于内存中的单段消息。大文件分块加密需要另行设计包含每块序号、唯一 nonce 和最终块标志的格式，不能直接对各块重复调用本接口。Hex/Base64 是编码，不提供保密性。
+本格式只用于内存中的单段消息。大文件使用下文的独立 `TXCF` 格式，不能直接对各块重复调用本接口。Hex/Base64 是编码，不提供保密性。
 
 ## 语言边界和错误语义
 
@@ -70,9 +70,50 @@ def decrypt(key: bytes, encrypted: bytes, aad: bytes) -> bytes
 
 只做与本模块相关的验证：SHA-256/SHA-512、HMAC、HKDF、PBKDF2 的公开标准向量，以及独立实现生成的 AES-GCM 固定密文向量；空输入、非法参数、不同密钥或 AAD、被修改的 nonce/密文/标签；一次 TX 接口编译运行。随机数验证只检查长度与错误路径，不用“两个结果不同”冒充随机性证明。全量回归及大文件格式不属于本阶段。
 
-公钥签名和密钥交换仍待独立契约。Argon2id 密码存储已由独立的 [password.txh](../tx/stdlib/password.txh) 接口交付；现有 PBKDF2 不充当同等的密码存储接口。
+公钥签名和密钥交换见独立的 [public_key.txh](../tx/stdlib/public_key.txh) 与[公钥密码学契约](public_key.md)。Argon2id 密码存储已由独立的 [password.txh](../tx/stdlib/password.txh) 接口交付；现有 PBKDF2 不充当同等的密码存储接口。
+
+## 9.3 流式摘要与文件认证加密契约
+
+新增 `sha256_stream(binary_stream)`、`sha512_stream(binary_stream)` 和 `hmac_sha256_stream(secret_bytes, binary_stream)`。它们从流的当前位置分块读取到 EOF，只保留固定大小的缓冲；成功后流位于 EOF，失败时已消费的前缀不回退。调用方拥有并关闭流。HMAC 密钥不导出为普通 `bytes`。
+
+`encrypt_file(secret_bytes, source_path, target_path, aad, key_id)` 与 `decrypt_file(secret_bytes, source_path, target_path, aad, expected_key_id)` 使用 64 KiB 明文块。密钥必须为 32 字节。`key_id` 是最多 128 个 UTF-8 字节的非秘密轮换标识；`file_key_id(path)` 可预读未认证的标识用于选密钥，解密完成前不得信任它。源和目标必须为不同路径。输出先写入目标同目录、独占创建的随机临时文件，全部完成后同步并替换目标；可捕获失败时删除临时文件，原目标保持不变。目标目录须由调用方控制；进程异常终止可能留下含明文的 `.tx-crypt-` 临时文件，应用应清理受控目录内的孤儿文件。不承诺对目录项的断电持久性或抵御同目录恶意并发替换。
+
+文件接口的 `aad` 上限为 1 MiB；加密与解密必须传入相同的 `aad` 和标识。调用方可对旧的小消息继续使用 `crypto.encrypt/decrypt`；新文件使用 `encrypt_file/decrypt_file`，两种格式不会自动互相解码。
+
+```tx
+import "bytes.txh" as bytes
+import "crypto.txh" as crypto
+import "secret.txh" as secret
+
+secret_bytes key = secret.random(32)
+crypto.encrypt_file(key, "source.bin", "archive.txcf", bytes.empty(), "key-2026")
+crypto.decrypt_file(key, "archive.txcf", "restored.bin", bytes.empty(), "key-2026")
+```
+
+文件格式 `TXCF` 版本 1：固定头为魔数 4 字节、版本 1 字节、算法 1 字节、块上限 4 字节（大端，65536）、随机 salt 16 字节、标识长度 1 字节及标识内容。使用 HKDF-SHA256 从主密钥和 salt 派生每文件 AES-256-GCM 子密钥。记录依次包含大端 32 位块序号、1 字节标志、4 字节密文长度、密文及 16 字节标签；最终记录标志为 1、长度为 0。每条记录的 nonce 为 8 个零字节与大端块序号，认证数据为完整文件头、调用方 `aad`、记录头。解密严格检查连续序号、块长度、唯一最终记录及其后的 EOF。最终块认证把文件长度和结束状态绑定到密钥与上下文。认证、格式或 I/O 失败时不发布未认证明文，临时明文会在清理路径删除；本机文件系统、换页文件和崩溃转储仍可能留下数据痕迹。旧 `TXCG` 单段格式及接口保持原样。
+
+非法密钥/标识用 `runtime_error/invalid_argument`，无效头或记录用 `runtime_error/invalid_format`，标签错误用 `runtime_error/authentication_failed`，随机源与底层算法失败沿用 `random_failed/operation_failed`；文件打开、读写和替换失败保留 `io_error`。格式解析在分配前检查长度和序号，不按外部声明分配无界缓冲。
+
+### 9.3 实施记录（2026-09-27）
+
+流式 SHA-2/HMAC 使用固定大小输入缓冲和 Mbed TLS 增量上下文；`TXCF` 加解密使用固定 64 KiB 块和每文件 HKDF 子密钥。Windows x64 完整与增量构建成功。`tests/crypto/stream_file.tx` 与 `examples/crypto_file.tx` 编译运行通过；覆盖超过一块的内容、中文空格路径、错误密钥/AAD/标识、块序号、最终标签、截断和失败目标保持原内容，失败后未遗留 `.tx-crypt-` 临时文件。旧 `tests/crypto/behavior.tx` 通过。输出临时文件位于目标同目录，调用方须控制该目录；跨平台、随机源故障和总验收留待 9.7。
 
 本模块不提供 MD5、SHA-1、ECB、裸 CBC 或无认证的解密便捷接口。
+
+## 9.7 密码学总验收（2026-09-28）
+
+使用 `python scripts/check_crypto_acceptance.py` 运行直接相关的验收；`python scripts/check_tls.py` 复核 TLS 配置与双向证书验证。此次没有修改密码学公开接口或生产实现，也没有重复构建整个工具链。脚本以当前 Windows x64 的 `txc.exe` 和静态库重新编译 TX/原生验收程序，测试材料全部放在自动清理的临时目录。独立实现为 Python `cryptography 48.0.1`、`argon2-cffi 25.1.0`；实际发行仍使用构建配置固定的 Mbed TLS、Argon2 参考实现和 libsodium。
+
+| 小项 | 可复现证据 |
+| --- | --- |
+| 9.7a 标准向量 | `tests/crypto/behavior.tx` 核对 FIPS 180-4 的 SHA-256/SHA-512 空消息、RFC 4231 的 HMAC-SHA256 Case 1、RFC 5869 的 HKDF Case 1、PBKDF2-SHA256 固定结果及已有 `TXCG` 固定密文；`tests/crypto/public_key.tx` 核对 RFC 8032 Ed25519 空消息签名和 RFC 7748 X25519 公钥。验收脚本另核对 RFC 7748 第 6.1 节双方共享值及 NIST SP 800-38D 的 AES-256-GCM 零密钥向量，再将相同密文与按 `TXCG` 头部重新计算的标签交给 TX 解密。Argon2id 采用由独立 `argon2-cffi` 生成的固定 PHC 输入及双向验证；RFC 9106 含 secret/associated data 的原始向量不能通过当前 PHC 公开接口直接表达。 |
+| 9.7b 跨库互操作 | `tests/crypto/acceptance_interop.tx` 与验收脚本双向核对 `TXCG` 和 `TXCF`：Python 生成密文供 TX 解密，TX 生成密文由 Python `AESGCM`/HKDF 独立解析与解密，覆盖跨越两个 64 KiB 边界的内容、连续记录和最终空记录。Python 验证 TX Ed25519 签名、公钥和 X25519 派生密钥，TX 验证 Python 签名及 Argon2id PHC，Python 验证 TX PHC。`scripts/check_x509.py` 生成证书和 PKCS#12 供 TX 验证，并以 Python 重读 TX 导出的 PKCS#8。 |
+| 9.7c 拒绝路径 | `behavior.tx` 核对旧格式的错误密钥/AAD、nonce/密文/标签篡改；互操作用例对 `TXCG` 和 `TXCF` 各执行 32 次固定种子的单字节位翻转，另检查最终标签损坏时原目标保持不变且无临时明文残留。`scripts/check_x509.py` 覆盖错误主机名、用途、有效期、签名、CA 约束、签发者、格式、限额和密码；`scripts/check_tls.py` 覆盖错误证书、缺失证书及关闭的身份。 |
+| 9.7d 随机源与清理 | `tests/crypto/random_failure_native.cpp` 用链接器 `--wrap=psa_generate_random` 在 PSA 初始化后注入首次与分块中途取数失败，核对普通随机字节、`secret_bytes`、Argon2id salt、Ed25519/X25519 生成和 `TXCG` 加密的 `random_failed`。文件加解密失败循环 16 次，检查原目标、`.tx-crypt-` 临时文件和进程句柄计数；X.509 原生用例重复 20 次验证/PKCS#12 导入，检查系统句柄未持续增长。 |
+
+本机结果为 `CRYPTO_INTEROP_OK`、`CRYPTO_CROSSLIB_OK`、`CRYPTO_RANDOM_CLEANUP_OK`、`CRYPTO_OK`、`PUBLIC_KEY_OK`、`X509_OK`、`X509_PKCS8_INTEROP_OK`、`X509_RESOURCE_OK`、`CRYPTO_ACCEPTANCE_OK` 及 `TLS_CONFIG_OK`。两次同密钥 `TXCG` 的随机 nonce、两次 `TXCF` 的随机 salt 在本次运行中不同；这属于碰撞回归检查，不是随机源质量证明。`TXCF` 文件内 nonce 由块序号唯一确定，文件间通过随机 salt 派生独立子密钥。
+
+证书链后端仍限 Windows，撤销状态明确为 `not_checked`；真正的 TLS 握手和安全流属于 11.3。未执行其他平台、进程崩溃后的孤儿文件清理、长期随机源统计、全量模糊测试或第 13 节全库验收。本次 32 组位翻转只覆盖有界畸形输入的代表样本。
 
 ## 实现与验证记录
 

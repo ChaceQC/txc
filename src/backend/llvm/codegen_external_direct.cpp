@@ -253,6 +253,15 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         target.external_name == "process.make_limits" ||
         target.external_name == "process.read_pipe" ||
         target.external_name == "process.write_pipe" ||
+        target.external_name == "x509.verify" ||
+        target.external_name == "tls.system_trust" ||
+        target.external_name == "tls.custom_trust" ||
+        target.external_name == "tls.import_identity" ||
+        target.external_name == "tls.client" ||
+        target.external_name == "tls.with_client_identity" ||
+        target.external_name == "tls.server" ||
+        target.external_name == "tls.verify_server" ||
+        target.external_name == "tls.verify_client" ||
         target.external_name == "process.wait" ||
         target.external_name == "process.wait_with_cancel" ||
         target.external_name == "process.try_wait" ||

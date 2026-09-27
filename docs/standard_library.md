@@ -14,11 +14,17 @@
 
 导入 [bytes.txh](../tx/stdlib/bytes.txh) 可构造、拼接、切片及进行 Hex/Base64 转换；[encoding.txh](../tx/stdlib/encoding.txh) 提供内存中的文本编码与解码；[file_stream.txh](../tx/stdlib/file_stream.txh) 提供二进制和文本文件流。`bytes` 也可作为 `vector<bytes>` 元素以及 `array`、`dict` 的值。
 
-导入 [crypto.txh](../tx/stdlib/crypto.txh) 使用安全随机数、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 与 AES-256-GCM 认证加密。所有输入输出使用 `bytes`，加密接口自动生成 nonce，格式、错误码、密钥内存限制和定向验证见[密码学标准库](crypto.md)。现有 `random` 模块不是密码学安全随机源。
+导入 [crypto.txh](../tx/stdlib/crypto.txh) 使用安全随机数、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 与 AES-256-GCM 认证加密。原有单段接口使用 `bytes`；新增流式摘要/HMAC 与认证文件接口使用流或 `secret_bytes` 密钥。格式、错误码和边界见[密码学标准库](crypto.md)。现有 `random` 模块不是密码学安全随机源。
 
 导入 [secret.txh](../tx/stdlib/secret.txh) 可创建不透明的 `secret_bytes`、显式导入/导出并清零共享缓冲。接口、静态禁用规则和平台内存限制见[秘密字节](secret_bytes.md)。
 
 导入 [password.txh](../tx/stdlib/password.txh) 使用 Argon2id 创建和验证 PHC 密码哈希，并检测何时需要升级参数。密码以 `secret_bytes` 传入，参数和资源限制见[Argon2id 密码存储](password.md)。
+
+导入 [public_key.txh](../tx/stdlib/public_key.txh) 使用 Ed25519 签名/验签及 X25519 交换后 HKDF 派生。私钥保存在 `secret_bytes` 句柄中，公开编码与安全边界见[公钥密码学](public_key.md)。
+
+导入 [x509.txh](../tx/stdlib/x509.txh) 可读取 PEM/DER/PKCS#12 证书，按主机名、用途、有效期及系统/自定义信任锚验证证书链；未执行撤销查询会明确返回 `not_checked`。接口与平台边界见[证书读取与验证](x509.md)。
+
+导入 [tls.txh](../tx/stdlib/tls.txh) 可配置系统或自定义信任锚、导入 PKCS#12 身份，并对服务端或客户端证书进行强制验证。TLS 安全流和握手仍按 11.3 实现；配置、失败语义与资源边界见[TLS 身份与验证配置](tls.md)。
 
 内置 `map<K, V>`、`set<T>`、`ordered_map<K, V>`、`ordered_set<T>`、`heap<T>`、`queue<T>`、`deque<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。映射的 `entries()` 返回成对的只读条目快照；有序容器支持显式比较器和范围查询。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
 
