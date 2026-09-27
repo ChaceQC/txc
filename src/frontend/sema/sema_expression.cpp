@@ -160,6 +160,13 @@ value_type semantic_analyzer::check_binary(expression& item,
             return left;
         }
         break;
+    case token_kind::percent:
+        if (left == value_type::int_type && right == value_type::int_type)
+        {
+            return value_type::int_type;
+        }
+        throw compile_error(item.position,
+                            "整数取余运算符 % 的两侧必须是 int");
     case token_kind::ampersand:
     case token_kind::caret:
     case token_kind::pipe:

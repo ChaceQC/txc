@@ -266,11 +266,13 @@ llvm_code_generator::ir_value llvm_code_generator::emit_binary(
             return {item.type, result};
         }
         if (kind == token_kind::plus || kind == token_kind::minus ||
-            kind == token_kind::star || kind == token_kind::slash)
+            kind == token_kind::star || kind == token_kind::slash ||
+            kind == token_kind::percent)
         {
             const auto* name = kind == token_kind::plus ? "txrt_add_i64"
                 : kind == token_kind::minus ? "txrt_sub_i64"
-                : kind == token_kind::star ? "txrt_mul_i64" : "txrt_div_i64";
+                : kind == token_kind::star ? "txrt_mul_i64"
+                : kind == token_kind::slash ? "txrt_div_i64" : "txrt_mod_i64";
             return checked_binary(name, left, right, type, item.position);
         }
     }

@@ -35,6 +35,7 @@ int precedence(token_kind kind)
         return 8;
     case token_kind::star:
     case token_kind::slash:
+    case token_kind::percent:
         return 9;
     default:
         return -1;

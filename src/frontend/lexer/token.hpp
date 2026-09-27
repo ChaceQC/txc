@@ -64,6 +64,7 @@ enum class token_kind
     star,
     double_star,
     slash,
+    percent,
     plus_equal,
     minus_equal,
     equal,

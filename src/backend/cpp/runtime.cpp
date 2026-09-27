@@ -195,6 +195,20 @@ tx_int tx_div(tx_int left, tx_int right)
     return left / right;
 }
 
+tx_int tx_mod(tx_int left, tx_int right)
+{
+    if (right == 0)
+    {
+        throw std::runtime_error("整数取余除零");
+    }
+    if (left == std::numeric_limits<tx_int>::min() && right == -1)
+    {
+        // 商超出 int 范围，但余数在数学上是零；避免有符号取余未定义行为。
+        return 0;
+    }
+    return left % right;
+}
+
 double tx_float_div(double left, double right)
 {
     if (right == 0.0)

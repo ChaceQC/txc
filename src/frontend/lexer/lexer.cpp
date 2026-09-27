@@ -232,6 +232,7 @@ void lexer::scan_symbol()
         {"-", token_kind::minus},
         {"*", token_kind::star},
         {"/", token_kind::slash},
+        {"%", token_kind::percent},
         {"=", token_kind::equal},
         {"!", token_kind::bang},
         {"<", token_kind::less},

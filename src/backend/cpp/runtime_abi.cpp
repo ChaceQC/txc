@@ -323,6 +323,12 @@ extern "C" int txrt_div_i64(std::int64_t left, std::int64_t right,
     return invoke_checked([&] { *result = tx_generated::tx_div(left, right); });
 }
 
+extern "C" int txrt_mod_i64(std::int64_t left, std::int64_t right,
+                             std::int64_t* result) noexcept
+{
+    return invoke_checked([&] { *result = tx_generated::tx_mod(left, right); });
+}
+
 extern "C" int txrt_neg_i64(std::int64_t value, std::int64_t* result) noexcept
 {
     return invoke_checked([&] { *result = tx_generated::tx_neg(value); });

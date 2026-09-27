@@ -46,6 +46,8 @@ int txrt_mul_i64(std::int64_t left, std::int64_t right,
                  std::int64_t* result) noexcept;
 int txrt_div_i64(std::int64_t left, std::int64_t right,
                  std::int64_t* result) noexcept;
+int txrt_mod_i64(std::int64_t left, std::int64_t right,
+                 std::int64_t* result) noexcept;
 int txrt_neg_i64(std::int64_t value, std::int64_t* result) noexcept;
 int txrt_div_f64(double left, double right, double* result) noexcept;
 

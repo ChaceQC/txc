@@ -456,6 +456,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare i32 @txrt_sub_i64(i64, i64, ptr)\n"
             << "declare i32 @txrt_mul_i64(i64, i64, ptr)\n"
             << "declare i32 @txrt_div_i64(i64, i64, ptr)\n"
+            << "declare i32 @txrt_mod_i64(i64, i64, ptr)\n"
             << "declare i32 @txrt_neg_i64(i64, ptr)\n"
             << "declare i32 @txrt_div_f64(double, double, ptr)\n"
             << "declare { i64, i1 } @llvm.sadd.with.overflow.i64(i64, i64)\n"

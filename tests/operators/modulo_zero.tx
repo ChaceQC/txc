@@ -1,0 +1,6 @@
+def main() -> int
+{
+    int divisor = 0
+    print(7 % divisor)
+    return 0
+}

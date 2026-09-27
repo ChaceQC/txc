@@ -458,6 +458,7 @@ def main() -> int
     if count >= 3 && count != 0 && count <= 3
     {
         print(8 / 2)
+        print(7 % 3)
         print(7 - 2)
         print(-count)
         print(ratio / 0.5)

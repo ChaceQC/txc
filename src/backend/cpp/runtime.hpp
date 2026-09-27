@@ -18,6 +18,7 @@ tx_int tx_add(tx_int left, tx_int right);
 tx_int tx_sub(tx_int left, tx_int right);
 tx_int tx_mul(tx_int left, tx_int right);
 tx_int tx_div(tx_int left, tx_int right);
+tx_int tx_mod(tx_int left, tx_int right);
 double tx_float_div(double left, double right);
 tx_int tx_neg(tx_int value);
 double tx_neg(double value);
