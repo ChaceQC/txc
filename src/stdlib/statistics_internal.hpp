@@ -99,6 +99,51 @@ struct moments
     }
 };
 
+struct mean_accumulator
+{
+    std::int64_t count = 0;
+    long double total = 0;
+    long double correction = 0;
+
+    // 最多 int64 项有限 double 的和，在该条件下必定位于 long double 范围内。
+    static constexpr bool wide_sum = std::numeric_limits<long double>::max_exponent >
+        std::numeric_limits<double>::max_exponent + std::numeric_limits<std::int64_t>::digits + 1;
+
+    void add(double value)
+    {
+        if (count == std::numeric_limits<std::int64_t>::max())
+        {
+            fail("out_of_range", "统计样本计数超出 int 范围");
+        }
+        ++count;
+        const auto sample = static_cast<long double>(value);
+        if constexpr (wide_sum)
+        {
+            // Neumaier 补偿保留大数正负抵消时的小项，只在收尾除以样本数。
+            const auto next = total + sample;
+            correction += std::fabs(total) >= std::fabs(sample)
+                ? (total - next) + sample : (sample - next) + total;
+            total = next;
+        }
+        else
+        {
+            // 扩展精度不足的平台使用加权均值，异号时避免差值溢出。
+            total = std::signbit(total) == std::signbit(sample)
+                ? total + (sample - total) / count
+                : total * (static_cast<long double>(count - 1) / count) + sample / count;
+        }
+    }
+
+    [[nodiscard]] double finish() const
+    {
+        if (count == 0)
+        {
+            fail("empty_sample", "空样本没有均值");
+        }
+        return checked_float(wide_sum ? (total + correction) / count : total);
+    }
+};
+
 inline long double checked_variance(const moments& value, bool sample)
 {
     if (value.count == 0)

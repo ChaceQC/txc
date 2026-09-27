@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "frontend/ast/call_properties.hpp"
 
 namespace tx
 {
@@ -15,29 +16,7 @@ std::string llvm_code_generator::vector_suffix(const value_type& type)
 
 bool llvm_code_generator::stable_value_expression(const expression& item)
 {
-    if (std::holds_alternative<name_reference>(item.data) ||
-        std::holds_alternative<integer_literal>(item.data) ||
-        std::holds_alternative<floating_literal>(item.data) ||
-        std::holds_alternative<boolean_literal>(item.data) ||
-        std::holds_alternative<string_literal>(item.data))
-    {
-        return true;
-    }
-    if (const auto* member = std::get_if<member_expression>(&item.data))
-    {
-        return stable_value_expression(*member->object);
-    }
-    if (const auto* index = std::get_if<index_expression>(&item.data))
-    {
-        return stable_value_expression(*index->object) &&
-               stable_value_expression(*index->index);
-    }
-    if (const auto* binary = std::get_if<binary_operation>(&item.data))
-    {
-        return !binary->binding && stable_value_expression(*binary->left) &&
-               stable_value_expression(*binary->right);
-    }
-    return false;
+    return stable_borrow_expression(item);
 }
 
 llvm_code_generator::ir_value llvm_code_generator::container_value(
@@ -61,9 +40,11 @@ llvm_code_generator::ir_value llvm_code_generator::container_value(
 llvm_code_generator::ir_value llvm_code_generator::vector_length(
     const ir_value& value, bool capacity)
 {
-    const auto view = temporary();
-    write_instruction(view + " = call ptr @txrt_vector_ref_" + vector_suffix(value.type) +
-                      "(ptr " + value.text + ")");
+    if (!capacity && !value.vector_size.empty())
+    {
+        return {value_type::int_type, value.vector_size};
+    }
+    const auto view = vector_reference(value);
     const auto slot = temporary();
     write_instruction(slot + " = getelementptr { ptr, i64, i64 }, ptr " + view +
                       ", i32 0, i32 " + (capacity ? "2" : "1"));
@@ -73,28 +54,30 @@ llvm_code_generator::ir_value llvm_code_generator::vector_length(
 }
 
 std::string llvm_code_generator::vector_slot(
-    const ir_value& value, const ir_value& index, source_pos position)
+    const ir_value& value, const ir_value& index, source_pos position, bool known_valid)
 {
-    const auto view = temporary();
-    write_instruction(view + " = call ptr @txrt_vector_ref_" + vector_suffix(value.type) +
-                      "(ptr " + value.text + ")");
-    const auto size_slot = temporary();
-    write_instruction(size_slot + " = getelementptr { ptr, i64, i64 }, ptr " +
-                      view + ", i32 0, i32 1");
-    const auto size = temporary();
-    write_instruction(size + " = load i64, ptr " + size_slot);
-    const auto valid = temporary();
-    // 长度非负；无符号比较同时排除负下标。
-    write_instruction(valid + " = icmp ult i64 " + index.text + ", " + size);
-    const auto ready = label();
-    const auto error = label();
-    write_instruction("br i1 " + valid + ", label %" + ready + ", label %" + error);
-    start_block(error);
-    write_instruction("call void @txrt_vector_index_error()");
-    write_instruction("unreachable");
-    start_block(ready);
-    const auto data = temporary();
-    write_instruction(data + " = load ptr, ptr " + view);
+    const auto view = vector_reference(value);
+    if (!known_valid)
+    {
+        const auto size = vector_length({value.type, value.text, false, view,
+            value.vector_data, value.vector_size}, false);
+        const auto valid = temporary();
+        // 长度非负；无符号比较同时排除负下标。
+        write_instruction(valid + " = icmp ult i64 " + index.text + ", " + size.text);
+        const auto ready = label();
+        const auto error = label();
+        write_instruction("br i1 " + valid + ", label %" + ready + ", label %" + error);
+        start_block(error);
+        write_instruction("call void @txrt_vector_index_error()");
+        write_instruction("unreachable");
+        start_block(ready);
+    }
+    auto data = value.vector_data;
+    if (data.empty())
+    {
+        data = temporary();
+        write_instruction(data + " = load ptr, ptr " + view);
+    }
     const auto element = value.type.parameters.front();
     const auto storage_type = element == value_type::bool_type
         ? "i8" : llvm_type(element, position);
@@ -105,7 +88,7 @@ std::string llvm_code_generator::vector_slot(
 }
 
 llvm_code_generator::ir_value llvm_code_generator::vector_read(
-    const ir_value& value, const ir_value& index, source_pos position)
+    const ir_value& value, const ir_value& index, source_pos position, bool known_valid)
 {
     const auto& element = value.type.parameters.front();
     if (!value.type.is_direct_vector() || element == value_type::bytes_type)
@@ -120,7 +103,7 @@ llvm_code_generator::ir_value llvm_code_generator::vector_read(
         write_instruction(result + " = load ptr, ptr " + output);
         return {element, result};
     }
-    const auto slot = vector_slot(value, index, position);
+    const auto slot = vector_slot(value, index, position, known_valid);
     if (element == value_type::bool_type)
     {
         const auto byte = temporary();

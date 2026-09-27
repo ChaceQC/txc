@@ -433,7 +433,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
     if (call.name == "len" && !call.receiver && !call.arguments.empty() &&
         call.arguments.front().value->type.is_typed_container())
     {
-        const auto value = expression_value(*call.arguments.front().value);
+        const auto value = call_argument_value(call, 0);
         const auto result = container_operation(value.type, "size", {value},
                                                 value_type::int_type, item.position);
         release(value);
@@ -660,8 +660,16 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
             { return value.kind != argument_kind::positional; });
     if (target.external)
     {
+        if (auto formatted = emit_static_format(item, call, target))
+        {
+            return *formatted;
+        }
         if (!needs_binding)
         {
+            if (auto encoded = emit_constant_encoding(item, call, target))
+            {
+                return *encoded;
+            }
             if (auto direct = emit_string_key_query(item, call, target))
             {
                 return *direct;
@@ -671,9 +679,18 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
                 return *direct;
             }
         }
-        const auto arguments = needs_binding
-            ? emit_bound_arguments(item, call, target.parameters)
-            : plain_arguments();
+        std::vector<ir_value> arguments;
+        if (needs_binding)
+        {
+            arguments = emit_bound_arguments(item, call, target.parameters);
+        }
+        else
+        {
+            for (std::size_t index = 0; index < call.arguments.size(); ++index)
+            {
+                arguments.push_back(call_argument_value(call, index));
+            }
+        }
         return emit_external_call(item, call, target, arguments);
     }
     std::vector<ir_value> arguments;

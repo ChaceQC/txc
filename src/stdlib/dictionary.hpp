@@ -1,6 +1,7 @@
 #pragma once
 
 #include <any>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -16,6 +17,10 @@
 namespace tx_generated
 {
 
+template<class type>
+concept dictionary_scalar_key = std::same_as<type, std::int64_t> ||
+    std::same_as<type, double> || std::same_as<type, bool>;
+
 class tx_dict
 {
 public:
@@ -28,6 +33,30 @@ public:
     [[nodiscard]] std::any* find_value(std::string_view key);
     [[nodiscard]] const std::any* find_value(const std::any& key) const;
     [[nodiscard]] const std::any* find_value(std::string_view key) const;
+    template<dictionary_scalar_key key_type>
+    [[nodiscard]] const std::any* find_value(key_type key) const
+    {
+        const auto found = data_->entries.find(key);
+        return found == data_->entries.end() ? nullptr : &found->second.second;
+    }
+
+    template<dictionary_scalar_key key_type>
+    [[nodiscard]] std::any* find_value(key_type key)
+    {
+        return const_cast<std::any*>(std::as_const(*this).find_value(key));
+    }
+
+    template<dictionary_scalar_key key_type>
+    [[nodiscard]] bool erase(key_type key)
+    {
+        const auto found = data_->entries.find(key);
+        if (found == data_->entries.end())
+        {
+            return false;
+        }
+        data_->entries.erase(found);
+        return true;
+    }
     std::any& emplace_back(std::any key, std::any value);
     void prepare_write();
     [[nodiscard]] bool erase(const std::any& key);
@@ -79,6 +108,14 @@ private:
             return mix(std::hash<std::string_view>{}(key), 4);
         }
 
+        template<dictionary_scalar_key key_type>
+        [[nodiscard]] std::size_t operator()(key_type key) const noexcept
+        {
+            constexpr std::size_t kind = std::same_as<key_type, std::int64_t>
+                ? 1 : std::same_as<key_type, double> ? 2 : 3;
+            return mix(std::hash<key_type>{}(key), kind);
+        }
+
     private:
         [[nodiscard]] static std::size_t mix(std::size_t value,
                                               std::size_t kind) noexcept
@@ -107,6 +144,20 @@ private:
 
         [[nodiscard]] bool operator()(std::string_view left,
                                        const index_key& right) const noexcept
+        {
+            return (*this)(right, left);
+        }
+
+        template<dictionary_scalar_key key_type>
+        [[nodiscard]] bool operator()(const index_key& left, key_type right) const noexcept
+        {
+            // 保留混合键的类型区分；NaN 仍与所有键不相等，正负零仍相等。
+            const auto* value = std::get_if<key_type>(&left);
+            return value != nullptr && *value == right;
+        }
+
+        template<dictionary_scalar_key key_type>
+        [[nodiscard]] bool operator()(key_type left, const index_key& right) const noexcept
         {
             return (*this)(right, left);
         }

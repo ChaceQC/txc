@@ -1,5 +1,7 @@
 #include "backend/llvm/codegen.hpp"
 
+#include <algorithm>
+
 namespace tx
 {
 
@@ -143,8 +145,17 @@ llvm_code_generator::ir_value llvm_code_generator::emit_container_call(
     std::vector<ir_value> arguments;
     if (call.receiver)
     {
-        // 接收者必须在后续实参之前持有，避免字段重新绑定使目标容器提前释放。
-        arguments.push_back(expression_value(*call.receiver));
+        const bool stable = std::all_of(call.arguments.begin(), call.arguments.end(),
+            [](const call_argument& argument)
+            {
+                return stable_value_expression(*argument.value);
+            });
+        bool borrowed = false;
+        auto receiver = container_value(*call.receiver,
+            call.properties.receiver == argument_ownership::borrowed && stable, borrowed);
+        // 不跨可能重绑定字段的实参或用户回调借用；不安全时仍先持有接收者。
+        receiver.borrowed = borrowed;
+        arguments.push_back(receiver);
     }
     for (const auto& argument : call.arguments)
     {

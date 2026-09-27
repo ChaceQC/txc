@@ -1,0 +1,174 @@
+import "test.txh" as test
+import "error.txh" as errors
+import "format.txh" as fmt
+import "serde.txh" as serde
+import "statistics.txh" as statistics
+import "encoding.txh" as encoding
+import "bytes.txh" as bytes
+
+struct defaults serde(version=3, unknown="preserve")
+{
+    extras: dict serde(unknown)
+    number: int serde(1, default=-17)
+    fraction: float serde(2, default=-0.125)
+    enabled: bool serde(3, default=true)
+    text: str serde(4, default="甲\n\"乙")
+}
+
+def vector_sum(values: vector<int>) -> int
+{
+    int result = 0
+    for value in values
+    {
+        result += value
+    }
+    return result
+}
+
+def vector_reads(values: vector<int>) -> int
+{
+    return values[0] + values[1] + values.size()
+}
+
+def changing_vector(values: vector<int>) -> int
+{
+    int result = 0
+    for value in values
+    {
+        result += value
+        values.reserve(10000)
+        values[1] = 7
+    }
+    return result
+}
+
+def static_format(value: int, text: str) -> str
+{
+    return fmt.format("{}:{name}:{0:04d}", value, name=text)
+}
+
+def direct_format(value: int, text: str) -> str
+{
+    return fmt.format("{1}:{0:04d}", value, text)
+}
+
+def constant_encoding(text: str) -> bytes
+{
+    return encoding.encode(text, "UTF_8")
+}
+
+def effect(values: vector<int>, number: int) -> int
+{
+    values.push_back(number)
+    return number
+}
+
+def main() -> int
+{
+    vector<int> values = vector<int>([1, 2, 3])
+    test.assert_equal(6, vector_sum(values))
+    test.assert_equal(6, vector_reads(values))
+    auto alias = values
+    alias.reserve(100000)
+    alias[0] = 9
+    test.assert_equal(14, vector_sum(values))
+    values = vector<int>([4, 5])
+    test.assert_equal(11, vector_reads(values))
+    test.assert_equal(11, changing_vector(values))
+    test.assert_equal(0, vector_sum(vector<int>()))
+
+    bool failed = false
+    try
+    {
+        values.clear()
+        print(values[0])
+    }
+    exception errors.runtime_error as e
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+
+    test.assert_equal("甲:0012", direct_format(12, "甲"))
+    str dynamic_template = "{{{name!r:^8}}} {0:+06d} {1:.3f} {2}"
+    test.assert_equal(fmt.format(dynamic_template, 17, 1.25, true, name="甲"),
+        fmt.format("{{{name!r:^8}}} {0:+06d} {1:.3f} {2}", 17, 1.25, true, name="甲"))
+    dynamic_template = "{x}:{x}:{}"
+    test.assert_equal(fmt.format(dynamic_template, "甲", 9),
+        fmt.format("{x}:{x}:{}", "甲", 9))
+    dynamic_template = "{:x}|{:X}|{:b}|{:o}|{:.2}|{!s:.1}"
+    test.assert_equal(fmt.format(dynamic_template, -31, 255, 7, 9, "甲乙丙", 123),
+        fmt.format("{:x}|{:X}|{:b}|{:o}|{:.2}|{!s:.1}", -31, 255, 7, 9, "甲乙丙", 123))
+    test.assert_equal("2:1", fmt.format("{1}:{0}", effect(values, 1), effect(values, 2)))
+    test.assert_equal(1, values[0])
+    test.assert_equal(2, values[1])
+    failed = false
+    try
+    {
+        fmt.format("{", effect(values, 3))
+    }
+    exception errors.runtime_error as e
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+    test.assert_equal(3, values[2])
+    failed = false
+    try
+    {
+        fmt.format("{:d}", "wrong")
+    }
+    exception errors.runtime_error as e
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        static_format(1, "x")
+    }
+    exception errors.runtime_error as e
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+
+    defaults restored = serde.deserialize_json<defaults>("{\"$schema\":3,\"future\":true}")
+    test.assert_equal(-17, restored.number)
+    test.assert_equal(-0.125, restored.fraction)
+    test.assert_true(restored.enabled)
+    test.assert_equal("甲\n\"乙", restored.text)
+    test.assert_true(restored.extras["future"] as bool)
+    auto copied = deep_copy(restored)
+    test.assert_equal(restored.text, serde.deserialize_json<defaults>(serde.serialize_json(copied)).text)
+    test.assert_equal(0.0, statistics.mean(vector<float>([1.0e308, -1.0e308])))
+    test.assert_equal(1.0e308, statistics.mean(vector<float>([1.0e308, 1.0e308])))
+    float cancellation_mean = statistics.mean(vector<float>([1.0e308, 1.0, -1.0e308]))
+    test.assert_true(cancellation_mean > 0.333333333333 && cancellation_mean < 0.333333333334)
+    test.assert_equal("甲🌍", encoding.decode(constant_encoding("甲🌍"), "utf-8"))
+    test.assert_equal("efbbbf", bytes.to_hex(encoding.encode("", "utf-8-sig")))
+    test.assert_equal("", encoding.decode(bytes.from_hex("efbbbf"), "UTF_8_SIG"))
+    failed = false
+    try
+    {
+        encoding.decode(bytes.from_hex("eda080"), "utf-8")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "invalid_encoding"
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        encoding.encode("x", "bad-encoding")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "unknown_encoding"
+    }
+    test.assert_true(failed)
+    print("STATIC_RUNTIME_OK")
+    return 0
+}

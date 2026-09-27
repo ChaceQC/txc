@@ -3,6 +3,7 @@
 #include "stdlib/error.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cerrno>
 #include <filesystem>
 #include <limits>
@@ -122,8 +123,19 @@ void stream_file::require_open() const
 
 std::string stream_file::read(std::size_t size)
 {
-    std::string result(size, '\0');
-    result.resize(read_into(result.data(), size));
+    std::string result;
+    std::array<char, 64 * 1024> buffer;
+    // 按已读取的数据增长；短文件和 EOF 不分配调用者请求的最大容量。
+    do
+    {
+        const auto requested = std::min(size - result.size(), buffer.size());
+        const auto count = read_into(buffer.data(), requested);
+        result.append(buffer.data(), count);
+        if (count < requested || requested == 0)
+        {
+            break;
+        }
+    } while (result.size() < size);
     return result;
 }
 
@@ -275,20 +287,20 @@ byte_chunk_value stream_read_bytes(const binary_stream& source, std::int64_t siz
 byte_value stream_read_all_bytes(const binary_stream& source)
 {
     std::vector<std::uint8_t> result;
-    constexpr std::size_t block_size = 8 * 1024 * 1024;
+    std::array<char, 64 * 1024> block;
     while (true)
     {
-        const auto block = source->file.read(block_size);
-        if (block.empty())
+        const auto count = source->file.read_into(block.data(), block.size());
+        if (count == 0)
         {
             break;
         }
-        if (block.size() > static_cast<std::size_t>(
+        if (count > static_cast<std::size_t>(
                 std::numeric_limits<std::int64_t>::max()) - result.size())
         {
             io_failure("size_limit", "文件剩余内容超出 int 范围");
         }
-        result.insert(result.end(), block.begin(), block.end());
+        result.insert(result.end(), block.begin(), block.begin() + count);
     }
     return make_bytes(std::move(result));
 }

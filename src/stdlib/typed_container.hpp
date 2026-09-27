@@ -38,6 +38,8 @@ struct graph_copyable
 template<class storage_type>
 struct container_model : container_storage
 {
+    static constexpr bool has_user_effects = true;
+
     [[nodiscard]] std::size_t size() const override
     {
         return static_cast<const storage_type&>(*this).values.size();

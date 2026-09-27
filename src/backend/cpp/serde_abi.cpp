@@ -10,7 +10,7 @@
 using tx_generated::detail::invoke_checked;
 using tx_generated::detail::make_handle;
 
-extern "C" int txrt_serde_serialize_json(const char* schema,
+extern "C" int txrt_serde_serialize_json(const tx_generated::serde_schema* schema,
     const void* value, void** result) noexcept
 {
     return invoke_checked([&]
@@ -20,7 +20,7 @@ extern "C" int txrt_serde_serialize_json(const char* schema,
     });
 }
 
-extern "C" int txrt_serde_deserialize_json(const char* schema,
+extern "C" int txrt_serde_deserialize_json(const tx_generated::serde_schema* schema,
     const void* text, void** result) noexcept
 {
     return invoke_checked([&]
@@ -30,7 +30,7 @@ extern "C" int txrt_serde_deserialize_json(const char* schema,
     });
 }
 
-extern "C" int txrt_serde_serialize_cbor(const char* schema,
+extern "C" int txrt_serde_serialize_cbor(const tx_generated::serde_schema* schema,
     const void* value, void** result) noexcept
 {
     return invoke_checked([&]
@@ -40,7 +40,7 @@ extern "C" int txrt_serde_serialize_cbor(const char* schema,
     });
 }
 
-extern "C" int txrt_serde_deserialize_cbor(const char* schema,
+extern "C" int txrt_serde_deserialize_cbor(const tx_generated::serde_schema* schema,
     const void* bytes, void** result) noexcept
 {
     return invoke_checked([&]

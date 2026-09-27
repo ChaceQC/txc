@@ -338,6 +338,7 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
         }
         function_signature signature{{}, function.return_type};
         signature.external = function.external;
+        signature.external_name = function.external_name;
         signature.position = function.position;
         // 这些标准库边界显式接收 any；其他函数仍使用精确匹配规则。
         signature.accepts_any_value = function.external &&

@@ -72,6 +72,8 @@ ICU 时区数据。Windows x64 完整构建成功；`tests/time/calendar.tx` 与
 时间、偏移格式、未知时区及柏林夏令时缺失/重复时刻。未运行全量或非
 Windows 平台验收。
 
+2026-09-27 的一次性 `mean(vector/iterator)` 已独立使用 Neumaier 补偿累计，不再计算方差二阶状态；在扩展浮点指数范围满足静态证明时仅于收尾除一次，其他平台保留加权均值路径。空输入、有限值、迭代器推进和结果范围检查保持；大数正负抵消的小项也被补偿保留。`accumulator` 的多指标累计与方差计算继续使用 Welford。定向验证及同源码对照见[运行时优化验收](../benchmarks/static_runtime_2026-09-27.md)。
+
 ## 6.3 独立随机生成器
 
 `random.make_generator(seed)` 创建调用方持有的 `generator`，

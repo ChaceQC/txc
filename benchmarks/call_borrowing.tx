@@ -1,0 +1,87 @@
+import "time.txh" as time
+import "dictionary.txh" as dictionary
+import "cancel.txh" as cancel
+
+def bench_dictionary()
+{
+    dict values = {7: 1}
+    auto checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=1000000
+    {
+        if dictionary.contains(values, 7)
+        {
+            checksum += 1
+        }
+    }
+    print("dictionary", time.monotonic_micros() - started, checksum)
+}
+
+def bench_map()
+{
+    auto values = map<int, int>()
+    values[7] = 3
+    auto checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=1000000
+    {
+        checksum += values[7]
+    }
+    print("map", time.monotonic_micros() - started, checksum)
+}
+
+def bench_set()
+{
+    auto values = set<int>()
+    values.insert(7)
+    auto checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=1000000
+    {
+        if values.contains(7)
+        {
+            checksum += 1
+        }
+    }
+    print("set", time.monotonic_micros() - started, checksum)
+}
+
+def bench_queue()
+{
+    auto values = queue<int>()
+    auto checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=100000
+    {
+        values.push(i)
+    }
+    for i in 1..=100000
+    {
+        checksum += values.front()
+        values.pop()
+    }
+    print("queue", time.monotonic_micros() - started, checksum)
+}
+
+def bench_cancel()
+{
+    auto owner = cancel.source()
+    auto token = cancel.token(owner)
+    auto checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=1000000
+    {
+        checksum += cancel.status(token)
+    }
+    print("cancel", time.monotonic_micros() - started, checksum)
+}
+
+def main() -> int
+{
+    bench_dictionary()
+    bench_map()
+    bench_set()
+    bench_queue()
+    bench_cancel()
+    return 0
+}

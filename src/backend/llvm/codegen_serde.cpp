@@ -1,114 +1,131 @@
 #include "backend/llvm/codegen.hpp"
 
 #include <algorithm>
-#include <functional>
-#include <string>
-#include <string_view>
+#include <bit>
+#include <charconv>
 
 namespace tx
 {
-namespace
-{
 
-std::string json_string(std::string_view input)
+std::string llvm_code_generator::serde_type_constant(const value_type& type)
 {
-    std::string result = "\"";
-    constexpr char digits[] = "0123456789abcdef";
-    for (const unsigned char byte : input)
+    const auto kind = type == value_type::int_type ? 0 :
+        type == value_type::float_type ? 1 : type == value_type::bool_type ? 2 :
+        type == value_type::str_type ? 3 : type == value_type::bytes_type ? 4 :
+        type.is_vector() ? 5 : type.is_option() ? 6 : 7;
+    std::string element = "null";
+    std::string structure = "null";
+    if (type.is_vector() || type.is_option())
     {
-        if (byte == '"' || byte == '\\')
+        const auto& child = type.parameters.front();
+        const auto found = serde_types_.find(child.name);
+        if (found != serde_types_.end())
         {
-            result += '\\';
-            result += static_cast<char>(byte);
-        }
-        else if (byte < 0x20)
-        {
-            result += "\\u00";
-            result += digits[byte >> 4];
-            result += digits[byte & 15];
+            element = found->second;
         }
         else
         {
-            result += static_cast<char>(byte);
+            element = "@.serde_type." + std::to_string(serde_types_.size());
+            serde_types_.emplace(child.name, element);
+            const auto value = serde_type_constant(child);
+            globals_ << element << " = private constant { i64, ptr, ptr, ptr } "
+                     << value << '\n';
         }
     }
-    return result + '"';
+    else if (kind == 7)
+    {
+        structure = serde_schema_constant(type);
+    }
+    return "{ i64 " + std::to_string(kind) + ", ptr " + global_bytes(type.name) +
+        ", ptr " + element + ", ptr " + structure + " }";
 }
 
-} // namespace
-
-std::string llvm_code_generator::serde_schema_json(const value_type& type) const
+std::string llvm_code_generator::serde_default_constant(const struct_field& field)
 {
-    std::function<std::string(const value_type&)> type_json;
-    std::function<std::string(const value_type&)> struct_json;
-    type_json = [&](const value_type& value) -> std::string
+    if (!field.serde->default_literal)
     {
-        if (value.is_vector() || value.is_option())
-        {
-            return "{\"kind\":" + json_string(value.container_name()) +
-                ",\"name\":" + json_string(value.name) +
-                ",\"element\":" + type_json(value.parameters.front()) + "}";
-        }
-        if (structs_.contains(value.name))
-        {
-            return "{\"kind\":\"struct\",\"schema\":" +
-                struct_json(value) + "}";
-        }
-        return "{\"kind\":" + json_string(value.name) + "}";
-    };
-    struct_json = [&](const value_type& value) -> std::string
+        return "{ i64 -1, i64 0, ptr null, i64 0 }";
+    }
+    const auto& literal = *field.serde->default_literal;
+    std::int64_t bits = 0;
+    std::int64_t kind = 0;
+    std::string text = "null";
+    std::size_t length = 0;
+    if (field.type == value_type::str_type)
     {
-        const auto& definition = *structs_.at(value.name);
-        const auto& metadata = *definition.serde;
-        const auto policy = metadata.unknown == serde_unknown_policy::preserve
-            ? "preserve" : metadata.unknown == serde_unknown_policy::ignore
-            ? "ignore" : "reject";
-        std::string unknown_name;
-        std::string unknown_index = "-1";
-        for (std::size_t index = 0; index < definition.fields.size(); ++index)
+        kind = 3;
+        const auto decoded = decode_string_literal(literal);
+        text = global_bytes(decoded);
+        length = decoded.size();
+    }
+    else if (field.type == value_type::bool_type)
+    {
+        kind = 2;
+        bits = literal == "true";
+    }
+    else if (field.type == value_type::float_type)
+    {
+        kind = 1;
+        double value = 0;
+        std::from_chars(literal.data(), literal.data() + literal.size(), value);
+        bits = std::bit_cast<std::int64_t>(value);
+    }
+    else
+    {
+        std::from_chars(literal.data(), literal.data() + literal.size(), bits);
+    }
+    return "{ i64 " + std::to_string(kind) + ", i64 " + std::to_string(bits) +
+        ", ptr " + text + ", i64 " + std::to_string(length) + " }";
+}
+
+std::string llvm_code_generator::serde_schema_constant(const value_type& type)
+{
+    if (const auto found = serde_schemas_.find(type.name); found != serde_schemas_.end())
+    {
+        return found->second;
+    }
+    const auto symbol = "@.serde_schema." + std::to_string(serde_schemas_.size());
+    serde_schemas_.emplace(type.name, symbol);
+    const auto& definition = *structs_.at(type.name);
+    const auto& metadata = *definition.serde;
+    constexpr std::string_view field_layout =
+        "{ ptr, i64, i64, { i64, ptr, ptr, ptr }, { i64, i64, ptr, i64 } }";
+    std::string fields;
+    std::size_t count = 0;
+    std::int64_t unknown_index = -1;
+    std::string unknown_name;
+    for (std::size_t index = 0; index < definition.fields.size(); ++index)
+    {
+        const auto& field = definition.fields[index];
+        if (field.serde->unknown_capture)
         {
-            const auto& field = definition.fields[index];
-            if (field.serde->unknown_capture)
-            {
-                unknown_name = field.name;
-                unknown_index = std::to_string(index);
-            }
+            unknown_index = static_cast<std::int64_t>(index);
+            unknown_name = field.name;
+            continue;
         }
-        std::string result = "{\"type\":" + json_string(definition.name) +
-            ",\"display\":" + json_string(definition.source_name.empty()
-                ? definition.name : definition.source_name) +
-            ",\"version\":" + std::to_string(metadata.version) +
-            ",\"unknown\":" + json_string(policy) +
-            ",\"field_count\":" + std::to_string(definition.fields.size()) +
-            ",\"unknown_index\":" + unknown_index +
-            ",\"unknown_name\":" +
-            json_string(unknown_name) + ",\"fields\":[";
-        bool first = true;
-        for (std::size_t index = 0; index < definition.fields.size(); ++index)
+        if (count++ != 0)
         {
-            const auto& field = definition.fields[index];
-            if (field.serde->unknown_capture)
-            {
-                continue;
-            }
-            if (!first)
-            {
-                result += ',';
-            }
-            first = false;
-            result += "{\"name\":" + json_string(field.name) +
-                ",\"number\":" + std::to_string(field.serde->number) +
-                ",\"index\":" + std::to_string(index) +
-                ",\"type\":" + type_json(field.type);
-            if (field.serde->default_literal)
-            {
-                result += ",\"default\":" + *field.serde->default_literal;
-            }
-            result += '}';
+            fields += ", ";
         }
-        return result + "]}";
-    };
-    return struct_json(type);
+        fields += std::string(field_layout) + " { ptr " + global_bytes(field.name) +
+            ", i64 " + std::to_string(field.serde->number) + ", i64 " +
+            std::to_string(index) + ", { i64, ptr, ptr, ptr } " +
+            serde_type_constant(field.type) + ", { i64, i64, ptr, i64 } " +
+            serde_default_constant(field) + " }";
+    }
+    const auto type_name = global_bytes(type.name);
+    const auto display = global_bytes(definition.source_name.empty() ? type.name : definition.source_name);
+    const auto unknown = global_bytes(unknown_name);
+    const auto policy = metadata.unknown == serde_unknown_policy::preserve ? 2 :
+        metadata.unknown == serde_unknown_policy::ignore ? 1 : 0;
+    globals_ << symbol << ".fields = private constant [" << count << " x "
+             << field_layout << "] [" << fields << "]\n"
+             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64 } "
+             << "{ ptr " << type_name << ", ptr " << display << ", i64 " << metadata.version
+             << ", i64 " << policy << ", i64 " << definition.fields.size()
+             << ", i64 " << unknown_index << ", ptr " << unknown << ", ptr "
+             << symbol << ".fields, i64 " << count << " }\n";
+    return symbol;
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_serde_intrinsic(
@@ -117,7 +134,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_serde_intrinsic(
 {
     const bool decoding = target.external_name.starts_with("serde.deserialize_");
     const auto& schema_type = decoding ? item.type : arguments.front().type;
-    const auto schema = global_bytes(serde_schema_json(schema_type));
+    const auto schema = serde_schema_constant(schema_type);
     std::string symbol = "@txrt_" + target.external_name;
     std::replace(symbol.begin(), symbol.end(), '.', '_');
     const auto output = allocate(item.type, item.position);

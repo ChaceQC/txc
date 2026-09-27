@@ -18,7 +18,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_vector_call(
             {
                 return stable_value_expression(*arg.value);
             });
-        vector = container_value(*call.receiver, stable, borrowed);
+        vector = container_value(*call.receiver, stable &&
+            call.properties.receiver == argument_ownership::borrowed, borrowed);
     }
     std::vector<ir_value> arguments;
     for (const auto& argument : call.arguments)

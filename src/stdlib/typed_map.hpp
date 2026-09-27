@@ -24,6 +24,8 @@ template<class key_type, class value_type>
 struct map_storage final : container_model<map_storage<key_type, value_type>>,
                            graph_copyable
 {
+    static constexpr bool has_user_effects = std::is_same_v<value_type, std::any>;
+
     std::unordered_map<key_type, value_type, scalar_hash<key_type>, scalar_equal<key_type>> values;
     std::string value_name;
 
@@ -167,6 +169,8 @@ void register_map_storage(
 template<class element_type>
 struct set_storage final : container_model<set_storage<element_type>>
 {
+    static constexpr bool has_user_effects = false;
+
     std::unordered_set<element_type, scalar_hash<element_type>, scalar_equal<element_type>> values;
 
     [[nodiscard]] std::string type_name() const override

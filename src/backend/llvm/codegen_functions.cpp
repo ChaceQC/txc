@@ -68,6 +68,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
             (i == 0 && operator_parameter_borrowed(function)) ||
             init_parameter_borrowed(function, i) ||
             ordinary_parameter_borrowed(function, i), array_reference};
+        cache_vector_reference(slot, "%arg" + std::to_string(argument_index));
         if (abi_type == value_type::dict_type)
         {
             slot.dict_reference = cache_dict_reference(

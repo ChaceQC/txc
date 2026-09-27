@@ -16,6 +16,64 @@ using match_handle = std::unique_ptr<pcre2_match_data,
 using context_handle = std::unique_ptr<pcre2_match_context,
     decltype(&pcre2_match_context_free)>;
 
+struct match_workspace
+{
+    match_handle data{nullptr, &pcre2_match_data_free};
+    context_handle context{nullptr, &pcre2_match_context_free};
+    std::size_t pairs = 0;
+    bool busy = false;
+};
+
+class workspace_lease
+{
+public:
+    explicit workspace_lease(std::size_t pairs)
+    {
+        // 每线程只保留一份；重入时用临时工作区，既不串行化并发也不覆盖活动匹配。
+        thread_local match_workspace cached;
+        value_ = cached.busy ? &fallback_ : &cached;
+        if (value_->pairs < pairs)
+        {
+            match_handle data(pcre2_match_data_create(
+                static_cast<std::uint32_t>(pairs), nullptr), &pcre2_match_data_free);
+            if (!data)
+            {
+                throw std::bad_alloc();
+            }
+            value_->data = std::move(data);
+            value_->pairs = pairs;
+        }
+        if (!value_->context)
+        {
+            value_->context.reset(pcre2_match_context_create(nullptr));
+            if (!value_->context)
+            {
+                throw std::bad_alloc();
+            }
+        }
+        value_->busy = true;
+    }
+
+    ~workspace_lease()
+    {
+        // 不让长期工作区保留已结束匹配的取消状态地址。
+        pcre2_set_callout(value_->context.get(), nullptr, nullptr);
+        value_->busy = false;
+    }
+
+    workspace_lease(const workspace_lease&) = delete;
+    workspace_lease& operator=(const workspace_lease&) = delete;
+
+    [[nodiscard]] match_workspace& get() noexcept
+    {
+        return *value_;
+    }
+
+private:
+    match_workspace fallback_;
+    match_workspace* value_ = nullptr;
+};
+
 int cancellation_callout(pcre2_callout_block*, void* context) noexcept
 {
     const auto& state = *static_cast<const regex_state*>(context);
@@ -145,14 +203,9 @@ regex_match_value execute_match(const regex_state& state,
         throw runtime_failure({tx::error_kind::runtime, "invalid_argument",
                                "正则起点必须位于 UTF-8 标量边界"});
     }
-    match_handle data(pcre2_match_data_create_from_pattern(state.code.get(),
-        nullptr), &pcre2_match_data_free);
-    context_handle context(pcre2_match_context_create(nullptr),
-        &pcre2_match_context_free);
-    if (!data || !context)
-    {
-        throw std::bad_alloc();
-    }
+    workspace_lease workspace(state.group_names.size());
+    auto& data = workspace.get().data;
+    auto& context = workspace.get().context;
     pcre2_set_match_limit(context.get(), state.match_limit);
     pcre2_set_depth_limit(context.get(), state.depth_limit);
     pcre2_set_heap_limit(context.get(), 32768);

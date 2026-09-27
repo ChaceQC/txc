@@ -72,6 +72,24 @@ int txrt_dictionary_remove(void* values, const void* key,
 int txrt_dictionary_remove_str(void* values, const void* key,
                                 bool* result) noexcept;
 int txrt_dictionary_keys(const void* values, void** result) noexcept;
+int txrt_dictionary_get_i64(const void* values, std::int64_t key,
+    void** result) noexcept;
+int txrt_dictionary_contains_i64(const void* values, std::int64_t key,
+    bool* result) noexcept;
+int txrt_dictionary_remove_i64(void* values, std::int64_t key,
+    bool* result) noexcept;
+int txrt_dictionary_get_f64(const void* values, double key,
+    void** result) noexcept;
+int txrt_dictionary_contains_f64(const void* values, double key,
+    bool* result) noexcept;
+int txrt_dictionary_remove_f64(void* values, double key,
+    bool* result) noexcept;
+int txrt_dictionary_get_bool(const void* values, bool key,
+    void** result) noexcept;
+int txrt_dictionary_contains_bool(const void* values, bool key,
+    bool* result) noexcept;
+int txrt_dictionary_remove_bool(void* values, bool key,
+    bool* result) noexcept;
 int txrt_dictionary_values(const void* values, void** result) noexcept;
 int txrt_dictionary_items(const void* values, void** result) noexcept;
 int txrt_dictionary_clear(void* values) noexcept;

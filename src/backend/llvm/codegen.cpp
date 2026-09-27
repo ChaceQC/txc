@@ -219,7 +219,7 @@ llvm_code_generator::ir_value llvm_code_generator::load(
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
         const auto cloned = temporary();
         write_instruction(cloned + " = load ptr, ptr " + copied);
-        return {variable.type, cloned};
+        return {variable.type, cloned, false, load_vector_reference(variable)};
     }
     return {variable.type, result};
 }
@@ -284,7 +284,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
         const auto result = temporary();
         write_instruction(result + " = load ptr, ptr " + variable.address);
         borrowed = true;
-        return {item.type, result};
+        return {item.type, result, false, load_vector_reference(variable)};
     }
     borrowed = false;
     return expression_value(item);
@@ -292,6 +292,10 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
 
 void llvm_code_generator::release(const ir_value& value)
 {
+    if (value.borrowed)
+    {
+        return;
+    }
     if (value.type == value_type::str_type)
     {
         write_instruction("call void @txrt_str_release(ptr " + value.text + ")");
@@ -414,6 +418,8 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     gc_neutral_cache_.clear();
     functions_.clear();
     structs_.clear();
+    serde_schemas_.clear();
+    serde_types_.clear();
     classes_.clear();
     module_.str({});
     module_.clear();

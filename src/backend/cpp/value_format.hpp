@@ -7,11 +7,14 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace tx_generated
 {
+
+std::string format_repr_text(std::string_view text);
 
 struct dynamic_field
 {

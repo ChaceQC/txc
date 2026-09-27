@@ -25,6 +25,10 @@ private:
     {
         value_type type;
         std::string text;
+        bool borrowed = false;
+        std::string vector_reference = {};
+        std::string vector_data = {};
+        std::string vector_size = {};
     };
 
     struct variable_slot
@@ -39,6 +43,7 @@ private:
         std::string dynamic_array_length;
         std::string dict_reference;
         std::string native_option_value;
+        std::string vector_reference;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -157,13 +162,18 @@ private:
                          source_pos position);
     [[nodiscard]] ir_value expression_value(const expression& item);
     [[nodiscard]] static std::string vector_suffix(const value_type& type);
+    [[nodiscard]] std::string vector_reference(const ir_value& value);
+    void cache_vector_reference(variable_slot& variable, const std::string& handle);
+    void refresh_vector_reference(const variable_slot& variable, const std::string& handle);
+    [[nodiscard]] std::string load_vector_reference(const variable_slot& variable);
+    [[nodiscard]] static bool stable_vector_loop(const std::vector<stmt_ptr>& body);
     [[nodiscard]] static bool stable_value_expression(const expression& item);
     [[nodiscard]] ir_value container_value(const expression& item, bool allow_borrow,
                                          bool& borrowed);
     [[nodiscard]] std::string vector_slot(const ir_value& value, const ir_value& index,
-                                          source_pos position);
+                                          source_pos position, bool known_valid = false);
     [[nodiscard]] ir_value vector_read(const ir_value& value, const ir_value& index,
-                                       source_pos position);
+                                       source_pos position, bool known_valid = false);
     void vector_write(const ir_value& value, const ir_value& index,
                       const ir_value& element, source_pos position);
     [[nodiscard]] ir_value vector_length(const ir_value& value, bool capacity);
@@ -210,7 +220,13 @@ private:
     [[nodiscard]] ir_value emit_serde_intrinsic(
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
-    [[nodiscard]] std::string serde_schema_json(const value_type& type) const;
+    [[nodiscard]] std::optional<ir_value> emit_static_format(
+        const expression& item, const call_expression& call, const function_decl& target);
+    [[nodiscard]] std::optional<ir_value> emit_constant_encoding(
+        const expression& item, const call_expression& call, const function_decl& target);
+    [[nodiscard]] std::string serde_schema_constant(const value_type& type);
+    [[nodiscard]] std::string serde_type_constant(const value_type& type);
+    [[nodiscard]] std::string serde_default_constant(const struct_field& field);
     [[nodiscard]] static std::string container_symbol(const value_type& type,
                                                       std::string_view operation);
     [[nodiscard]] ir_value container_operation(const value_type& type,
@@ -278,6 +294,8 @@ private:
     [[nodiscard]] ir_value emit_external_call(
         const expression& item, const call_expression& call,
         const function_decl& target, const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value call_argument_value(const call_expression& call,
+                                               std::size_t index);
     [[nodiscard]] ir_value emit_direct_external_call(
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
@@ -410,6 +428,8 @@ private:
     std::vector<std::unordered_map<std::string, variable_slot>> scopes_;
     std::ostringstream module_;
     std::ostringstream globals_;
+    std::unordered_map<std::string, std::string> serde_schemas_;
+    std::unordered_map<std::string, std::string> serde_types_;
     std::ostringstream allocations_;
     std::ostringstream body_;
     value_type return_type_ = value_type::void_type;

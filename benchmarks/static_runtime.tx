@@ -1,0 +1,69 @@
+import "time.txh" as time
+import "serde.txh" as serde
+import "format.txh" as fmt
+import "statistics.txh" as statistics
+import "encoding.txh" as encoding
+
+struct sample serde(version=1)
+{
+    id: int serde(1)
+    name: str serde(2)
+}
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - started)
+    print(checksum)
+}
+
+def main() -> int
+{
+    vector<int> numbers = vector<int>(100000, 3)
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for repetition in 1..=50
+    {
+        for value in numbers
+        {
+            checksum += value
+        }
+    }
+    report("vector_foreach", started, checksum)
+
+    sample value = sample(7, "文本")
+    checksum = 0
+    started = time.monotonic_micros()
+    for repetition in 1..=10000
+    {
+        sample decoded = serde.deserialize_json<sample>(serde.serialize_json(value))
+        checksum += decoded.id
+    }
+    report("serde_json", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for repetition in 1..=100000
+    {
+        checksum += len(fmt.format("{}:{}", "item", repetition))
+    }
+    report("format_text", started, checksum)
+
+    vector<float> values = vector<float>(100000, 3.0)
+    float mean_sum = 0.0
+    started = time.monotonic_micros()
+    for repetition in 1..=30
+    {
+        mean_sum += statistics.mean(values)
+    }
+    report("statistics_mean", started, mean_sum as int)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for repetition in 1..=100000
+    {
+        checksum += len(encoding.encode("Hello, 世界 🌍", "utf-8"))
+    }
+    report("encoding_utf8", started, checksum)
+    return 0
+}

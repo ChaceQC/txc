@@ -27,7 +27,7 @@ std::shared_ptr<state_type> source_state(const void* value)
     return owner.state;
 }
 
-std::shared_ptr<state_type> token_state(const void* value)
+const std::shared_ptr<state_type>& token_state(const void* value)
 {
     const auto& token = std::any_cast<const tx_generated::cancel_token&>(
         *static_cast<const std::any*>(value));
@@ -160,9 +160,9 @@ extern "C" int txrt_cancel_cancel(const void* owner, bool* result) noexcept
 extern "C" int txrt_cancel_status(const void* value,
     std::int64_t* result) noexcept
 {
-    return tx_generated::detail::invoke_checked([&]
+    return tx_generated::detail::invoke_leaf([&]
     {
-        auto state = token_state(value);
+        const auto& state = token_state(value);
         std::lock_guard lock(state->mutex);
         *result = current_status(*state);
     });
@@ -173,6 +173,8 @@ extern "C" int txrt_cancel_wait(const void* value,
 {
     return tx_generated::detail::invoke_checked([&]
     {
-        *result = wait_for_status(*token_state(value), timeout_ms);
+        // 阻塞等待继续持有独立引用；只有同步状态查询省略这次持有。
+        const auto state = token_state(value);
+        *result = wait_for_status(*state, timeout_ms);
     });
 }

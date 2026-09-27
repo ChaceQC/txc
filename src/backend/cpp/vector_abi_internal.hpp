@@ -38,7 +38,7 @@ template<class element_type>
 void* vector_ref(const void* value) noexcept
 {
     void* result = nullptr;
-    txrt_require_success(invoke_checked([&]
+    txrt_require_success(invoke_leaf([&]
     {
         result = &vector_value<element_type>(value).data().view;
     }));

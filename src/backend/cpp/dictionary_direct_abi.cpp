@@ -27,12 +27,13 @@ const std::any& key_value(const void* value)
 } // namespace
 
 using tx_generated::detail::invoke_checked;
+using tx_generated::detail::invoke_leaf;
 using tx_generated::detail::make_handle;
 
 extern "C" int txrt_dictionary_get(const void* values, const void* key,
                                      void** result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         *result = make_handle<std::any>(tx_generated::tx_fn_dictionary_get(
             dictionary_value(values), key_value(key)));
@@ -42,7 +43,7 @@ extern "C" int txrt_dictionary_get(const void* values, const void* key,
 extern "C" int txrt_dictionary_get_str(const void* values, const void* key,
                                          void** result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         const auto* found = dictionary_value(values).find_value(
             std::string_view(*static_cast<const std::string*>(key)));
@@ -53,7 +54,7 @@ extern "C" int txrt_dictionary_get_str(const void* values, const void* key,
 extern "C" int txrt_dictionary_contains(const void* values, const void* key,
                                           bool* result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         *result = tx_generated::tx_fn_dictionary_contains(
             dictionary_value(values), key_value(key));
@@ -63,7 +64,7 @@ extern "C" int txrt_dictionary_contains(const void* values, const void* key,
 extern "C" int txrt_dictionary_contains_str(const void* values,
     const void* key, bool* result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         *result = dictionary_value(values).find_value(
             std::string_view(*static_cast<const std::string*>(key))) != nullptr;

@@ -1,4 +1,5 @@
 #include "stdlib/encoding.hpp"
+#include "stdlib/json_utf8.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -198,68 +199,23 @@ std::string encode_utf32(std::wstring_view text, bool little_endian, bool bom)
 
 } // namespace
 
-text_encoding parse_encoding(std::string_view name)
-{
-    std::string normalized;
-    normalized.reserve(name.size());
-    for (unsigned char character : name)
-    {
-        if (character == '-' || character == '_')
-        {
-            continue;
-        }
-        if (character >= 'A' && character <= 'Z')
-        {
-            character = static_cast<unsigned char>(character - 'A' + 'a');
-        }
-        normalized.push_back(static_cast<char>(character));
-    }
-    if (normalized == "utf8")
-    {
-        return text_encoding::utf8;
-    }
-    if (normalized == "utf8sig")
-    {
-        return text_encoding::utf8_sig;
-    }
-    if (normalized == "utf16")
-    {
-        return text_encoding::utf16;
-    }
-    if (normalized == "utf16le")
-    {
-        return text_encoding::utf16le;
-    }
-    if (normalized == "utf16be")
-    {
-        return text_encoding::utf16be;
-    }
-    if (normalized == "utf32")
-    {
-        return text_encoding::utf32;
-    }
-    if (normalized == "utf32le")
-    {
-        return text_encoding::utf32le;
-    }
-    if (normalized == "utf32be")
-    {
-        return text_encoding::utf32be;
-    }
-    if (normalized == "gbk")
-    {
-        return text_encoding::gbk;
-    }
-    if (normalized == "gb18030")
-    {
-        return text_encoding::gb18030;
-    }
-    throw std::runtime_error("不支持的字符集：" + std::string(name));
-}
-
 std::wstring utf8_to_wide(std::string_view text)
 {
     return decode_code_page(text, CP_UTF8);
+}
+
+void validate_utf8(std::string_view text)
+{
+    (void)checked_length(text.size());
+    for (std::size_t offset = 0; offset < text.size();)
+    {
+        const auto width = json_detail::utf8_width(text, offset);
+        if (width == 0)
+        {
+            throw std::runtime_error("文本包含无效的字符集字节序列");
+        }
+        offset += width;
+    }
 }
 
 std::string wide_to_utf8(std::wstring_view text)
@@ -285,7 +241,7 @@ std::string decode_text(std::string_view bytes, text_encoding encoding)
         {
             bytes.remove_prefix(3);
         }
-        (void)utf8_to_wide(bytes);
+        validate_utf8(bytes);
         return std::string(bytes);
     }
     if (encoding == text_encoding::gbk || encoding == text_encoding::gb18030)
@@ -346,12 +302,13 @@ std::string decode_text(std::string_view bytes, text_encoding encoding)
 std::string encode_text(std::string_view text, text_encoding encoding,
                         bool include_bom)
 {
-    const auto wide = utf8_to_wide(text);
     if (encoding == text_encoding::utf8 || encoding == text_encoding::utf8_sig)
     {
+        validate_utf8(text);
         return encoding == text_encoding::utf8_sig && include_bom
             ? "\xef\xbb\xbf" + std::string(text) : std::string(text);
     }
+    const auto wide = utf8_to_wide(text);
     if (encoding == text_encoding::gbk || encoding == text_encoding::gb18030)
     {
         return encode_code_page(wide, encoding == text_encoding::gbk

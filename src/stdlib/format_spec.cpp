@@ -10,6 +10,7 @@
 #include <string>
 #include <string_view>
 #include <typeinfo>
+#include <type_traits>
 #include <utility>
 
 namespace tx_generated
@@ -17,99 +18,7 @@ namespace tx_generated
 namespace
 {
 
-constexpr std::size_t max_format_size = 1000000;
-
-struct parsed_spec
-{
-    char fill = ' ';
-    char align = 0;
-    char sign = 0;
-    char type = 0;
-    bool zero = false;
-    std::size_t width = 0;
-    std::optional<std::size_t> precision;
-};
-
-bool is_digit(char value)
-{
-    return value >= '0' && value <= '9';
-}
-
-bool is_align(char value)
-{
-    return value == '<' || value == '>' || value == '^';
-}
-
-std::size_t parse_size(std::string_view spec, std::size_t& offset)
-{
-    if (offset == spec.size() || !is_digit(spec[offset]))
-    {
-        throw std::runtime_error("format 宽度或精度需要十进制数字");
-    }
-    std::size_t result = 0;
-    while (offset < spec.size() && is_digit(spec[offset]))
-    {
-        const auto digit = static_cast<std::size_t>(spec[offset++] - '0');
-        if (result > (max_format_size - digit) / 10)
-        {
-            throw std::runtime_error("format 宽度或精度过大");
-        }
-        result = result * 10 + digit;
-    }
-    return result;
-}
-
-parsed_spec parse_spec(std::string_view spec)
-{
-    parsed_spec result;
-    std::size_t offset = 0;
-    if (spec.size() >= 2 && is_align(spec[1]))
-    {
-        const auto fill = static_cast<unsigned char>(spec[0]);
-        if (fill < 0x20 || fill > 0x7e)
-        {
-            throw std::runtime_error("format 填充字符必须是单个 ASCII 字符");
-        }
-        result.fill = spec[0];
-        result.align = spec[1];
-        offset = 2;
-    }
-    else if (!spec.empty() && is_align(spec[0]))
-    {
-        result.align = spec[0];
-        offset = 1;
-    }
-    if (offset < spec.size() && (spec[offset] == '+' || spec[offset] == ' '))
-    {
-        result.sign = spec[offset++];
-    }
-    if (offset < spec.size() && spec[offset] == '0')
-    {
-        result.zero = true;
-        ++offset;
-    }
-    if (offset < spec.size() && is_digit(spec[offset]))
-    {
-        result.width = parse_size(spec, offset);
-    }
-    if (offset < spec.size() && spec[offset] == '.')
-    {
-        ++offset;
-        result.precision = parse_size(spec, offset);
-    }
-    if (offset < spec.size())
-    {
-        result.type = spec[offset++];
-    }
-    if (offset != spec.size() ||
-        (result.type != 0 &&
-         std::string_view("sdboxXfFeEgG").find(result.type) ==
-             std::string_view::npos))
-    {
-        throw std::runtime_error("format 不支持此格式说明");
-    }
-    return result;
-}
+using tx::format_spec;
 
 bool integer_type(char type)
 {
@@ -169,7 +78,7 @@ std::string floating_text(double value, char type, std::size_t precision)
     return result;
 }
 
-std::string apply_width(std::string text, const parsed_spec& spec,
+std::string apply_width(std::string text, const format_spec& spec,
                         bool numeric)
 {
     const auto align = spec.align == 0 ? (numeric ? '>' : '<') : spec.align;
@@ -203,15 +112,73 @@ std::string apply_width(std::string text, const parsed_spec& spec,
     return text;
 }
 
+template<class expected_type, class actual_type>
+bool format_has_type(const actual_type& value)
+{
+    if constexpr (std::is_same_v<actual_type, std::any>)
+    {
+        return value.type() == typeid(expected_type);
+    }
+    return std::is_same_v<expected_type, actual_type>;
+}
+
+template<class expected_type, class actual_type>
+const expected_type& format_value_as(const actual_type& value)
+{
+    if constexpr (std::is_same_v<actual_type, std::any>)
+    {
+        return std::any_cast<const expected_type&>(value);
+    }
+    else if constexpr (std::is_same_v<expected_type, actual_type>)
+    {
+        return value;
+    }
+    else
+    {
+        throw std::runtime_error("format 参数类型不匹配");
+    }
+}
+
+template<class value_type>
+std::string format_text(const value_type& value, bool repr)
+{
+    if constexpr (std::is_same_v<value_type, tx_int>)
+    {
+        return std::to_string(value);
+    }
+    else if constexpr (std::is_same_v<value_type, double>)
+    {
+        return tx_float_to_string(value);
+    }
+    else if constexpr (std::is_same_v<value_type, bool>)
+    {
+        return value ? "true" : "false";
+    }
+    else if constexpr (std::is_same_v<value_type, std::string>)
+    {
+        return repr ? format_repr_text(value) : value;
+    }
+    else
+    {
+        return repr ? format_repr_value(value) : format_print_value(value);
+    }
+}
+
 } // namespace
 
 std::string format_field_value(const std::any& value, std::string_view raw_spec,
                                char conversion)
 {
-    const auto spec = parse_spec(raw_spec);
+    return format_field_value(value, tx::parse_format_spec(raw_spec), conversion);
+}
+
+template<class value_type>
+std::string format_typed_field(const value_type& value, const format_spec& spec,
+                               char conversion)
+{
     const bool converted = conversion != 0;
-    const bool integer = !converted && value.type() == typeid(tx_int);
-    const bool floating = !converted && value.type() == typeid(double);
+    const bool integer = !converted && format_has_type<tx_int>(value);
+    const bool floating = !converted && format_has_type<double>(value);
     const bool numeric = integer || floating;
     if ((spec.sign != 0 || spec.zero) && !numeric)
     {
@@ -220,11 +187,11 @@ std::string format_field_value(const std::any& value, std::string_view raw_spec,
     std::string result;
     if (integer_type(spec.type))
     {
-        if (!integer || spec.precision)
+        if (!integer || spec.precision >= 0)
         {
             throw std::runtime_error("format 整数格式需要 int，且不支持精度");
         }
-        result = integer_text(std::any_cast<tx_int>(value), spec.type);
+        result = integer_text(format_value_as<tx_int>(value), spec.type);
     }
     else if (floating_type(spec.type))
     {
@@ -232,30 +199,29 @@ std::string format_field_value(const std::any& value, std::string_view raw_spec,
         {
             throw std::runtime_error("format 浮点格式需要 float");
         }
-        result = floating_text(std::any_cast<double>(value), spec.type,
-                               spec.precision.value_or(6));
+        result = floating_text(format_value_as<double>(value), spec.type,
+                               (spec.precision < 0 ? 6 : spec.precision));
     }
     else
     {
         if (spec.type == 's' && !converted &&
-            value.type() != typeid(std::string))
+            !format_has_type<std::string>(value))
         {
             throw std::runtime_error("format s 格式需要 str");
         }
-        result = conversion == 'r' ? format_repr_value(value)
-                                   : format_print_value(value);
-        if (spec.precision)
+        result = format_text(value, conversion == 'r');
+        if (spec.precision >= 0)
         {
             if (floating && spec.type == 0)
             {
-                result = floating_text(std::any_cast<double>(value), 'g',
-                                       *spec.precision);
+                result = floating_text(format_value_as<double>(value), 'g',
+                                       static_cast<std::size_t>(spec.precision));
             }
-            else if (converted || value.type() == typeid(std::string))
+            else if (converted || format_has_type<std::string>(value))
             {
                 const auto length = static_cast<std::size_t>(tx_len(result));
                 result = tx_fn_slice(result, 0, static_cast<tx_int>(
-                    std::min(length, *spec.precision)));
+                    std::min(length, static_cast<std::size_t>(spec.precision))));
             }
             else
             {
@@ -269,6 +235,31 @@ std::string format_field_value(const std::any& value, std::string_view raw_spec,
         result.insert(result.begin(), spec.sign);
     }
     return apply_width(std::move(result), spec, numeric);
+}
+
+std::string format_field_value(const std::any& value, const format_spec& spec, char conversion)
+{
+    return format_typed_field(value, spec, conversion);
+}
+
+std::string format_field_value(std::int64_t value, const format_spec& spec, char conversion)
+{
+    return format_typed_field(value, spec, conversion);
+}
+
+std::string format_field_value(double value, const format_spec& spec, char conversion)
+{
+    return format_typed_field(value, spec, conversion);
+}
+
+std::string format_field_value(bool value, const format_spec& spec, char conversion)
+{
+    return format_typed_field(value, spec, conversion);
+}
+
+std::string format_field_value(const std::string& value, const format_spec& spec, char conversion)
+{
+    return format_typed_field(value, spec, conversion);
 }
 
 } // namespace tx_generated

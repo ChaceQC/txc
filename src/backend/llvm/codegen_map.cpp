@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "frontend/ast/call_properties.hpp"
 
 namespace tx
 {
@@ -6,7 +7,11 @@ namespace tx
 llvm_code_generator::ir_value llvm_code_generator::emit_map_index(
     const index_expression& access, source_pos position)
 {
-    const auto map = expression_value(*access.object);
+    bool borrowed = false;
+    auto map = container_value(*access.object,
+        container_call_effects(access.object->type, "read").allows_borrow() &&
+        stable_value_expression(*access.index), borrowed);
+    map.borrowed = borrowed;
     const auto key = expression_value(*access.index);
     const auto result = container_operation(map.type, "read", {map, key},
         map.type.parameters[map.type.is_map() ? 1 : 0], position);
@@ -34,7 +39,12 @@ void llvm_code_generator::emit_map_assignment(
     const statement& item, const variable_assignment& assignment)
 {
     const auto& access = std::get<index_expression>(assignment.target->data);
-    const auto map = expression_value(*access.object);
+    bool borrowed = false;
+    auto map = container_value(*access.object,
+        container_call_effects(access.object->type, "set").allows_borrow() &&
+        stable_value_expression(*access.index) &&
+        stable_value_expression(*assignment.value), borrowed);
+    map.borrowed = borrowed;
     const auto key = expression_value(*access.index);
     auto value = expression_value(*assignment.value);
     if (assignment.operation != token_kind::equal)
@@ -59,7 +69,11 @@ llvm_code_generator::ir_value llvm_code_generator::emit_map_update(
     const expression& item, const update_expression& update)
 {
     const auto& access = std::get<index_expression>(update.target->data);
-    const auto map = expression_value(*access.object);
+    bool borrowed = false;
+    auto map = container_value(*access.object,
+        container_call_effects(access.object->type, "set").allows_borrow() &&
+        stable_value_expression(*access.index), borrowed);
+    map.borrowed = borrowed;
     const auto key = expression_value(*access.index);
     const auto current = container_operation(map.type, "read", {map, key}, item.type, item.position);
     const auto result = map_update_value(current,

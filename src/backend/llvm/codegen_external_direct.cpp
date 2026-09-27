@@ -178,13 +178,22 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     ir_value boxed_key{value_type::void_type, {}};
     const bool string_key = dictionary_key_call &&
         arguments[1].type == value_type::str_type;
-    if (dictionary_key_call && !string_key)
+    const bool scalar_key = dictionary_key_call &&
+        (arguments[1].type == value_type::int_type ||
+         arguments[1].type == value_type::float_type ||
+         arguments[1].type == value_type::bool_type);
+    if (dictionary_key_call && !string_key && !scalar_key)
     {
         boxed_key = box_any(arguments[1], item.position);
     }
     if (string_key)
     {
         symbol += "_str";
+    }
+    else if (scalar_key)
+    {
+        symbol += arguments[1].type == value_type::int_type ? "_i64" :
+            arguments[1].type == value_type::float_type ? "_f64" : "_bool";
     }
     std::string parameters;
     std::vector<ir_value> boxed_values;
@@ -194,7 +203,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         {
             parameters += ", ";
         }
-        auto argument = dictionary_key_call && !string_key && index == 1
+        auto argument = dictionary_key_call && !string_key && !scalar_key && index == 1
             ? boxed_key : arguments[index];
         if (target.parameters[index].type == value_type::any_type && !typed_random)
         {

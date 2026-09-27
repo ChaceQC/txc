@@ -43,6 +43,15 @@ double finish(const moments& state, aggregate_kind kind)
 
 double aggregate(const void* source, bool iterator, aggregate_kind kind)
 {
+    if (kind == aggregate_kind::mean)
+    {
+        mean_accumulator state;
+        visit(source, iterator, [&](double value)
+        {
+            state.add(value);
+        });
+        return state.finish();
+    }
     moments state;
     visit(source, iterator, [&](double value) { state.add(value); });
     return finish(state, kind);

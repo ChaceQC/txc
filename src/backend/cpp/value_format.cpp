@@ -318,6 +318,13 @@ std::string format_print_value(const std::any& value)
     return result;
 }
 
+std::string format_repr_text(std::string_view text)
+{
+    std::string output;
+    append_quoted(output, text);
+    return output;
+}
+
 std::string format_repr_value(const std::any& value)
 {
     std::string result;

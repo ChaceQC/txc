@@ -24,7 +24,9 @@ int container_new(void** result, arguments... values) noexcept
 template<class storage_type, class operation>
 int container_apply(const void* value, operation&& apply) noexcept
 {
-    return invoke_checked([&]
+    constexpr auto effect = storage_type::has_user_effects
+        ? error_effect::may_run_user_code : error_effect::local_only;
+    return invoke_checked<effect>([&]
     {
         // 调用符号已由编译器按完整类型选定；any 转换在进入此路径之前检查。
         const auto& container = std::any_cast<const container_handle&>(

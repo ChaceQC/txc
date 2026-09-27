@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "common/call_properties.hpp"
 #include "common/error_kind.hpp"
 #include "frontend/lexer/token.hpp"
 
@@ -146,6 +147,7 @@ struct call_expression
     bool indirect = false;
     std::optional<value_type> expected_result = std::nullopt;
     std::optional<value_type> explicit_type = std::nullopt;
+    call_properties properties = {};
 };
 
 using expression_data = std::variant<

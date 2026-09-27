@@ -22,6 +22,7 @@ struct function_signature
     bool accepts_any_value = false;
     bool external = false;
     source_pos position = {};
+    std::string external_name = {};
 };
 
 class semantic_analyzer
@@ -82,6 +83,7 @@ private:
         const expression& receiver_expression, source_pos position,
         std::optional<operator_binding>& binding) const;
     [[nodiscard]] value_type check_call(expression& item, call_expression& call);
+    void annotate_call_properties(call_expression& call) const;
     [[nodiscard]] value_type check_builtin(expression& item, call_expression& call);
     [[nodiscard]] value_type check_bind(expression& item, call_expression& call);
     [[nodiscard]] value_type check_constructor(expression& item, call_expression& call);

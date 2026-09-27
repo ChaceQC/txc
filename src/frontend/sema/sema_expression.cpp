@@ -489,6 +489,7 @@ value_type semantic_analyzer::check_expression(expression& item)
     else if (auto* call = std::get_if<call_expression>(&item.data))
     {
         item.type = check_call(item, *call);
+        annotate_call_properties(*call);
     }
     return item.type;
 }

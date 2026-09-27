@@ -20,7 +20,7 @@ constexpr std::size_t serde_max_bytes = 16 * 1024 * 1024;
 std::any wire_key(const serde_field& field, serde_format format)
 {
     return format == serde_format::json
-        ? std::any(field.name) : std::any(field.number);
+        ? std::any(std::string(field.name)) : std::any(field.number);
 }
 
 std::any version_key(serde_format format)
@@ -32,7 +32,7 @@ std::any version_key(serde_format format)
 bool known_key(const std::any& key, const serde_schema& schema,
                serde_format format)
 {
-    for (const auto& field : schema.fields)
+    for (const auto& field : schema.fields())
     {
         if (format == serde_format::json)
         {
@@ -86,12 +86,12 @@ std::string key_label(const std::any& key, serde_format format)
 void merge_unknown(tx_dict& output, const dynamic_struct& input,
                    const serde_schema& schema, serde_format format)
 {
-    if (!schema.unknown_index)
+    if (schema.unknown_index < 0)
     {
         return;
     }
     const auto* bag = std::any_cast<tx_dict>(
-        &input->fields[*schema.unknown_index].value);
+        &input->fields[schema.unknown_index].value);
     if (!bag)
     {
         serde_encode_error("type_mismatch", "serde 未知字段容器必须是 dict");
@@ -133,7 +133,7 @@ void merge_unknown(tx_dict& output, const dynamic_struct& input,
 }
 
 std::any serde_encode_struct(const std::any& value,
-    const std::shared_ptr<serde_schema>& schema, serde_format format,
+    const serde_schema* schema, serde_format format,
     serde_active& active, std::size_t depth)
 {
     if (depth > 128)
@@ -149,7 +149,7 @@ std::any serde_encode_struct(const std::any& value,
     serde_cycle_guard guard(active, input->identity());
     tx_dict result;
     (void)result.emplace_back(version_key(format), schema->version);
-    for (const auto& field : schema->fields)
+    for (const auto& field : schema->fields())
     {
         auto encoded = serde_encode_value((*input)->fields[field.index].value,
             field.type, format, active, depth + 1);
@@ -160,7 +160,7 @@ std::any serde_encode_struct(const std::any& value,
 }
 
 std::any serde_decode_struct(const std::any& value,
-    const std::shared_ptr<serde_schema>& schema, serde_format format,
+    const serde_schema* schema, serde_format format,
     std::size_t depth)
 {
     if (depth > 128)
@@ -182,11 +182,11 @@ std::any serde_decode_struct(const std::any& value,
         std::any_cast<std::int64_t>(*version) != schema->version)
     {
         serde_decode_error("schema_version",
-            "serde schema 版本缺失、不符或类型错误：" + schema->display_name);
+            "serde schema 版本缺失、不符或类型错误：" + std::string(schema->display_name));
     }
     // 所有字段先解码到局部槽，任何失败都不会交付部分结构体。
     struct_fields fields(schema->field_count);
-    for (const auto& field : schema->fields)
+    for (const auto& field : schema->fields())
     {
         const auto field_key = wire_key(field, format);
         const auto* input = object->find_value(field_key);
@@ -195,9 +195,9 @@ std::any serde_decode_struct(const std::any& value,
         {
             decoded = serde_decode_value(*input, field.type, format, depth + 1);
         }
-        else if (field.default_value)
+        else if (field.default_value.kind >= 0)
         {
-            decoded = *field.default_value;
+            decoded = serde_default_value(field.default_value);
         }
         else if (field.type.kind == serde_kind::option)
         {
@@ -207,9 +207,9 @@ std::any serde_decode_struct(const std::any& value,
         else
         {
             serde_decode_error("missing_field", "serde 缺少必需字段：" +
-                field.name);
+                std::string(field.name));
         }
-        fields[field.index] = {field.name.c_str(), std::move(decoded)};
+        fields[field.index] = {field.name, std::move(decoded)};
     }
     tx_dict unknown;
     object->for_each([&](const std::any& item_key, const std::any& item)
@@ -234,21 +234,21 @@ std::any serde_decode_struct(const std::any& value,
             (void)unknown.emplace_back(item_key, item);
         }
     });
-    if (schema->unknown_index)
+    if (schema->unknown_index >= 0)
     {
-        fields[*schema->unknown_index] = {schema->unknown_name.c_str(),
+        fields[schema->unknown_index] = {schema->unknown_name,
             std::move(unknown)};
     }
     return dynamic_struct(dynamic_struct_data{schema->type_name,
-        schema->display_name, std::move(fields), schema});
+        schema->display_name, std::move(fields)});
 }
 
-std::string serde_serialize_json(std::string_view schema,
+std::string serde_serialize_json(const serde_schema* schema,
                                  const std::any& value)
 {
     serde_active active;
     auto output = json_stringify(serde_encode_struct(value,
-        serde_parse_schema(schema), serde_format::json, active, 0));
+        schema, serde_format::json, active, 0));
     if (output.size() > serde_max_bytes)
     {
         serde_encode_error("size_limit", "serde JSON 输出超过 16 MiB");
@@ -256,31 +256,31 @@ std::string serde_serialize_json(std::string_view schema,
     return output;
 }
 
-std::any serde_deserialize_json(std::string_view schema, std::string_view text)
+std::any serde_deserialize_json(const serde_schema* schema, std::string_view text)
 {
     if (text.size() > serde_max_bytes)
     {
         serde_decode_error("size_limit", "serde JSON 输入超过 16 MiB");
     }
-    return serde_decode_struct(json_parse_unique(text), serde_parse_schema(schema),
+    return serde_decode_struct(json_parse_unique(text), schema,
         serde_format::json, 0);
 }
 
-byte_value serde_serialize_cbor(std::string_view schema,
+byte_value serde_serialize_cbor(const serde_schema* schema,
                                 const std::any& value)
 {
     serde_active active;
     const cbor_limits limits{serde_max_bytes, serde_max_bytes, 128, 1000000};
-    return cbor_encode(serde_encode_struct(value, serde_parse_schema(schema),
+    return cbor_encode(serde_encode_struct(value, schema,
         serde_format::cbor, active, 0), limits);
 }
 
-std::any serde_deserialize_cbor(std::string_view schema,
+std::any serde_deserialize_cbor(const serde_schema* schema,
                                 const byte_value& data)
 {
     const cbor_limits limits{serde_max_bytes, serde_max_bytes, 128, 1000000};
     return serde_decode_struct(cbor_decode(data, limits),
-        serde_parse_schema(schema), serde_format::cbor, 0);
+        schema, serde_format::cbor, 0);
 }
 
 } // namespace tx_generated

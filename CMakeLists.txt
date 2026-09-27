@@ -102,7 +102,8 @@ file(GLOB _tx_abi_files CONFIGURE_DEPENDS
     RELATIVE "${CMAKE_SOURCE_DIR}"
     "${CMAKE_SOURCE_DIR}/src/backend/cpp/*.hpp"
     "${CMAKE_SOURCE_DIR}/src/backend/llvm/*.cpp")
-list(APPEND _tx_abi_files "src/common/error_kind.hpp")
+list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hpp"
+    "src/common/text_encoding.hpp")
 list(SORT _tx_interface_files)
 list(SORT _tx_abi_files)
 set(TX_INTERFACE_COUNT 0)
@@ -137,8 +138,11 @@ if(MINGW)
 endif()
 
 add_executable(txc
+    src/common/format_spec.cpp
+    src/common/text_encoding.cpp
     src/frontend/lexer/lexer.cpp
     src/frontend/ast/ast.cpp
+    src/frontend/ast/call_properties.cpp
     src/frontend/parser/parser.cpp
     src/frontend/parser/parser_declarations.cpp
     src/frontend/parser/parser_serde.cpp
@@ -159,11 +163,14 @@ add_executable(txc
     src/frontend/sema/sema_expression.cpp
     src/frontend/sema/sema_operator.cpp
     src/frontend/sema/sema_call.cpp
+    src/frontend/sema/sema_call_properties.cpp
     src/frontend/sema/sema_class.cpp
     src/frontend/sema/sema_class_registration.cpp
     src/frontend/sema/sema_class_call.cpp
     src/backend/llvm/codegen.cpp
     src/backend/llvm/codegen_vector.cpp
+    src/backend/llvm/codegen_vector_reference.cpp
+    src/backend/llvm/codegen_vector_loop.cpp
     src/backend/llvm/codegen_vector_calls.cpp
     src/backend/llvm/codegen_sum.cpp
     src/backend/llvm/codegen_native_option.cpp
@@ -174,6 +181,9 @@ add_executable(txc
     src/backend/llvm/codegen_algorithm_declarations.cpp
     src/backend/llvm/codegen_algorithm.cpp
     src/backend/llvm/codegen_serde.cpp
+    src/backend/llvm/codegen_format.cpp
+    src/backend/llvm/codegen_encoding.cpp
+    src/backend/llvm/codegen_format_plan.cpp
     src/backend/llvm/codegen_container.cpp
     src/backend/llvm/codegen_key.cpp
     src/backend/llvm/codegen_container_declarations.cpp
@@ -211,6 +221,7 @@ add_executable(txc
     src/backend/llvm/codegen_string_borrow.cpp
     src/backend/llvm/codegen_string_literal_compare.cpp
     src/backend/llvm/codegen_call_binding.cpp
+    src/backend/llvm/codegen_call_borrow.cpp
     src/driver/module_loader.cpp
     src/driver/module_loader_class.cpp
     src/driver/compatibility.cpp
@@ -283,6 +294,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/text_direct_abi.cpp
     src/backend/cpp/array_direct_abi.cpp
     src/backend/cpp/dictionary_direct_abi.cpp
+    src/backend/cpp/dictionary_scalar_abi.cpp
     src/backend/cpp/array_abi.cpp
     src/backend/cpp/local_scalar_array_abi.cpp
     src/backend/cpp/filesystem_direct_abi.cpp
@@ -290,6 +302,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/system_env_direct_abi.cpp
     src/backend/cpp/file_direct_abi.cpp
     src/backend/cpp/format_direct_abi.cpp
+    src/backend/cpp/format_static_abi.cpp
     src/backend/cpp/io_time_direct_abi.cpp
     src/backend/cpp/value_abi.cpp
     src/backend/cpp/value_snapshot_abi.cpp
@@ -304,6 +317,8 @@ add_library(txstdlib STATIC
     src/stdlib/string.cpp
     src/stdlib/format.cpp
     src/stdlib/format_spec.cpp
+    src/common/format_spec.cpp
+    src/common/text_encoding.cpp
     src/stdlib/dictionary.cpp
     src/stdlib/conversion.cpp
     src/stdlib/parse.cpp

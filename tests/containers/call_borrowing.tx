@@ -1,0 +1,287 @@
+import "test.txh" as test
+import "dictionary.txh" as dictionary
+import "cancel.txh" as cancel
+import "error.txh" as errors
+
+struct holder
+{
+    mapping: map<int, int>
+    jobs: queue<int>
+    values: vector<int>
+    table: dict
+}
+
+def query_map(values: map<int, int>, key: int) -> int
+{
+    return values[key]
+}
+
+def query_set(values: set<int>, key: int) -> bool
+{
+    return values.contains(key)
+}
+
+def query_queue(values: queue<int>) -> int
+{
+    return values.front()
+}
+
+def query_length(values: queue<int>) -> int
+{
+    return len(values)
+}
+
+def query_dictionary(values: dict, key: int) -> bool
+{
+    return dictionary.contains(values, key)
+}
+
+def query_named(values: dict, key: int) -> bool
+{
+    return dictionary.contains(key=key, values=values)
+}
+
+def query_cancel(token: cancel_token) -> int
+{
+    return cancel.status(token)
+}
+
+def replace_map(state: holder) -> int
+{
+    state.mapping = map<int, int>()
+    return 7
+}
+
+def replace_queue(state: holder) -> int
+{
+    state.jobs = queue<int>()
+    return 9
+}
+
+def replace_vector(state: holder) -> int
+{
+    state.values = vector<int>(1, 99)
+    return 0
+}
+
+def replace_dictionary(state: holder) -> int
+{
+    state.table = {8: "new"}
+    return 7
+}
+
+def rebind_map(state: holder) -> int
+{
+    return state.mapping[replace_map(state)]
+}
+
+def rebind_dictionary(state: holder) -> bool
+{
+    return dictionary.contains(state.table, replace_dictionary(state))
+}
+
+def check_rebinding()
+{
+    auto state = holder(map<int, int>(), queue<int>(), vector<int>(1, 31), {7: "old"})
+    state.mapping[7] = 23
+    test.assert_equal(23, rebind_map(state))
+    test.assert_true(state.mapping.empty())
+    auto old_jobs = state.jobs
+    state.jobs.push(replace_queue(state))
+    test.assert_true(state.jobs.empty())
+    test.assert_equal(9, old_jobs.front())
+    test.assert_equal(31, state.values[replace_vector(state)])
+    test.assert_equal(99, state.values[0])
+    test.assert_true(rebind_dictionary(state))
+    test.assert_false(dictionary.contains(state.table, 7))
+    state.mapping[1] = 5
+    auto alias = state.mapping
+    alias[1]++
+    test.assert_equal(6, query_map(state.mapping, 1))
+}
+
+def check_dictionary()
+{
+    dict values = {1: "int", 1.0: "float", true: "bool", "1": "str", none: "none", -0.0: "zero"}
+    test.assert_equal("int", dictionary.get(values, 1) as str)
+    test.assert_equal("float", dictionary.get(values, 1.0) as str)
+    test.assert_equal("bool", dictionary.get(values, true) as str)
+    test.assert_equal("str", dictionary.get(values, "1") as str)
+    test.assert_equal("none", dictionary.get(values, none) as str)
+    test.assert_equal("zero", dictionary.get(values, 0.0) as str)
+    test.assert_true(query_dictionary(values, 1))
+    test.assert_true(query_named(values, 1))
+    test.assert_false(dictionary.contains(values, false))
+    auto infinite = 1e308 * 1e308
+    auto nan = infinite - infinite
+    values[nan] = 42
+    test.assert_false(dictionary.contains(values, nan))
+    test.assert_true(is_none(dictionary.get(values, nan)))
+    test.assert_false(dictionary.remove(values, nan))
+    test.assert_true(dictionary.remove(values, 1))
+    test.assert_true(dictionary.remove(values, 1.0))
+    test.assert_true(dictionary.remove(values, true))
+    test.assert_false(dictionary.remove(values, true))
+    test.assert_equal("str", dictionary.get(values, "1") as str)
+    test.assert_false(query_named(values, 7))
+}
+
+class witness
+{
+    public:
+        traces: vector<int>
+
+        def init(traces: vector<int>)
+        {
+            self.traces = traces
+        }
+
+        def deinit()
+        {
+            self.traces.push_back(1)
+            print(1 / 0)
+        }
+}
+
+def check_destructor()
+{
+    auto traces = vector<int>()
+    dict values = {1: witness(traces)}
+    auto caught = false
+    try
+    {
+        dictionary.remove(values, 1)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    test.assert_true(caught)
+    test.assert_equal(1, traces.size())
+    test.assert_false(dictionary.contains(values, 1))
+}
+
+def check_leaf_errors()
+{
+    auto values = map<float, int>()
+    auto caught = false
+    try
+    {
+        auto infinite = 1e308 * 1e308
+        values.contains(infinite - infinite)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    test.assert_true(caught)
+    values[0.0] = 4
+    test.assert_equal(4, values[-0.0])
+    auto jobs = queue<int>()
+    caught = false
+    try
+    {
+        query_queue(jobs)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    test.assert_true(caught)
+    jobs.push(7)
+    test.assert_equal(7, query_queue(jobs))
+    test.assert_equal(1, query_length(jobs))
+    auto owner = cancel.source()
+    auto token = cancel.token(owner)
+    test.assert_equal(0, query_cancel(token))
+    cancel.cancel(owner)
+    test.assert_equal(1, query_cancel(token))
+    auto seen = set<int>()
+    seen.insert(1)
+    test.assert_true(query_set(seen, 1))
+}
+
+struct callback_key
+{
+    id: int
+
+    def hash_key() -> int
+    {
+        if self.id < 0
+        {
+            return 1 / 0
+        }
+        return self.id
+    }
+
+    def operator ==(other: callback_key) -> bool
+    {
+        return self.id == other.id
+    }
+}
+
+def callback_index(values: vector<int>, lookup: map<callback_key, int>, key: callback_key) -> int
+{
+    return values[lookup[key]]
+}
+
+class bucket
+{
+    public:
+        items: vector<rebind_witness>
+}
+
+class rebind_witness
+{
+    public:
+        owner: bucket
+        traces: vector<int>
+
+        def init(owner: bucket, traces: vector<int>)
+        {
+            self.owner = owner
+            self.traces = traces
+        }
+
+        def deinit()
+        {
+            self.traces.push_back(1)
+            self.owner.items = vector<rebind_witness>()
+        }
+}
+
+def check_callbacks()
+{
+    auto values = vector<int>(1, 17)
+    auto lookup = map<callback_key, int>()
+    lookup[callback_key(1)] = 0
+    test.assert_equal(17, callback_index(values, lookup, callback_key(1)))
+    auto caught = false
+    try
+    {
+        callback_index(values, lookup, callback_key(-1))
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    test.assert_true(caught)
+    test.assert_equal(17, values[0])
+    auto state = bucket()
+    auto traces = vector<int>()
+    state.items.push_back(rebind_witness(state, traces))
+    state.items.clear()
+    test.assert_equal(1, traces.size())
+    test.assert_true(state.items.empty())
+}
+
+def main() -> int
+{
+    check_rebinding()
+    check_dictionary()
+    check_destructor()
+    check_leaf_errors()
+    check_callbacks()
+    print("call borrowing", test.failures())
+    return test.failures()
+}

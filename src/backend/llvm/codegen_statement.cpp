@@ -83,6 +83,7 @@ void llvm_code_generator::emit_declaration(
     const auto array_reference = type == value_type::array_type
         ? cache_array_reference(value.text, item.position) : std::string{};
     variable_slot slot{type, address, false, array_reference};
+    cache_vector_reference(slot, value.text);
     if (type == value_type::dict_type)
     {
         slot.dict_reference = cache_dict_reference(value.text, item.position);

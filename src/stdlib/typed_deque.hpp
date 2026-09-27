@@ -19,6 +19,8 @@ namespace tx_generated
 template<class element_type>
 struct deque_storage final : container_model<deque_storage<element_type>>
 {
+    static constexpr bool has_user_effects = std::is_same_v<element_type, std::any>;
+
     std::deque<element_type> values;
     std::string element_name;
 

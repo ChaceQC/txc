@@ -88,9 +88,10 @@ llvm_code_generator::emit_static_arguments(
     std::vector<std::pair<std::string, ir_value>> extra_keywords;
     std::size_t positional = 0;
     // 先按源码顺序求值，再把已知实参放到目标形参位置。
-    for (const auto& argument : call.arguments)
+    for (std::size_t argument_index = 0; argument_index < call.arguments.size(); ++argument_index)
     {
-        const auto value = expression_value(*argument.value);
+        const auto& argument = call.arguments[argument_index];
+        const auto value = call_argument_value(call, argument_index);
         if (argument.kind == argument_kind::positional)
         {
             if (positional < fixed_count)

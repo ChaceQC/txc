@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "frontend/ast/call_properties.hpp"
 
 namespace tx
 {
@@ -9,6 +10,7 @@ void llvm_code_generator::emit_vector_assignment(
     const auto& access = std::get<index_expression>(assignment.target->data);
     bool borrowed = false;
     const auto vector = container_value(*access.object,
+        container_call_effects(access.object->type, "set").allows_borrow() &&
         stable_value_expression(*access.index) &&
         stable_value_expression(*assignment.value), borrowed);
     const auto index = expression_value(*access.index);
@@ -109,7 +111,18 @@ void llvm_code_generator::emit_vector_for_each(const for_each& loop)
     const auto owner = allocate(vector.type, loop.values->position);
     write_instruction("store ptr " + vector.text + ", ptr " + owner);
     scopes_.back().emplace("$vector", variable_slot{vector.type, owner});
+    vector.vector_reference = vector_reference(vector);
     const auto length = vector_length(vector, false);
+    const auto& element_type = vector.type.parameters.front();
+    const bool stable = (element_type == value_type::int_type ||
+        element_type == value_type::float_type || element_type == value_type::bool_type) &&
+        stable_vector_loop(loop.body);
+    if (stable)
+    {
+        vector.vector_size = length.text;
+        vector.vector_data = temporary();
+        write_instruction(vector.vector_data + " = load ptr, ptr " + vector.vector_reference);
+    }
     const auto counter = allocate(value_type::int_type, loop.values->position);
     write_instruction("store i64 0, ptr " + counter);
     const auto check = label();
@@ -123,7 +136,7 @@ void llvm_code_generator::emit_vector_for_each(const for_each& loop)
     write_instruction("br i1 " + valid + ", label %" + body + ", label %" + end);
     start_block(body);
     push_scope();
-    const auto element = vector_read(vector, index, loop.values->position);
+    const auto element = vector_read(vector, index, loop.values->position, stable);
     const auto local = allocate(element.type, loop.values->position);
     write_instruction("store " + llvm_type(element.type, loop.values->position) + " " +
                       element.text + ", ptr " + local);
