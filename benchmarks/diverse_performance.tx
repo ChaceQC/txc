@@ -1,0 +1,266 @@
+import "time.txh" as time
+import "dictionary.txh" as dictionary
+import "format.txh" as fmt
+import "encoding.txh" as encoding
+import "serde.txh" as serde
+import "parse.txh" as parse
+
+struct payload serde(version=1)
+{
+    id: int serde(1)
+    name: str serde(2)
+}
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - started)
+    print(checksum)
+}
+
+def bench_vector_scale()
+{
+    vector<int> small = vector<int>(1000, 3)
+    vector<int> large = vector<int>(100000, 3)
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for repetition in 1..=1000
+    {
+        for value in small
+        {
+            checksum += value
+        }
+    }
+    report("vector_scan_1k", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for repetition in 1..=100
+    {
+        for value in large
+        {
+            checksum += value
+        }
+    }
+    report("vector_scan_100k", started, checksum)
+}
+
+def bench_vector_access()
+{
+    vector<int> values = vector<int>()
+    for i in 0..=8191
+    {
+        values.push_back(i % 97)
+    }
+
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=999999
+    {
+        checksum += values[i % 8192]
+    }
+    report("vector_index_sequential", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=999999
+    {
+        checksum += values[(i * 127) % 8192]
+    }
+    report("vector_index_strided", started, checksum)
+}
+
+def bench_map_distribution()
+{
+    map<int, int> small = map<int, int>()
+    map<int, int> large = map<int, int>()
+    for i in 0..=8191
+    {
+        large[i] = i
+        if i < 128
+        {
+            small[i] = i
+        }
+    }
+
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=499999
+    {
+        checksum += small[i % 128]
+    }
+    report("map_hit_128", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=499999
+    {
+        checksum += large[(i * 127) % 8192]
+    }
+    report("map_hit_8192", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=499999
+    {
+        int key = 100000 + (i % 8192)
+        if i % 10 == 0
+        {
+            key = i % 8192
+        }
+        if large.contains(key)
+        {
+            checksum += 1
+        }
+    }
+    report("map_hit_10_percent", started, checksum)
+}
+
+def bench_dictionary_keys()
+{
+    dict values = {7: 1, "seven": 2, true: 3}
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=199999
+    {
+        if dictionary.contains(values, 7)
+        {
+            checksum += 1
+        }
+    }
+    report("dictionary_int_hit", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=199999
+    {
+        if dictionary.contains(values, "seven")
+        {
+            checksum += 1
+        }
+    }
+    report("dictionary_text_hit", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=199999
+    {
+        if dictionary.contains(values, i)
+        {
+            checksum += 1
+        }
+    }
+    report("dictionary_mostly_miss", started, checksum)
+}
+
+def bench_format_paths()
+{
+    str template = "{}:{}"
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        checksum += len(fmt.format("{}:{}", "item", i))
+    }
+    report("format_literal", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        checksum += len(fmt.format(template, "item", i))
+    }
+    report("format_dynamic", started, checksum)
+}
+
+def bench_encoding_paths()
+{
+    str codec = "utf-8"
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        checksum += len(encoding.encode("Hello, 世界 🌍", "utf-8"))
+    }
+    report("encoding_literal", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        checksum += len(encoding.encode("Hello, 世界 🌍", codec))
+    }
+    report("encoding_dynamic", started, checksum)
+}
+
+def bench_serde_size()
+{
+    payload short_value = payload(7, "x")
+    payload long_value = payload(7, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=4999
+    {
+        payload decoded = serde.deserialize_json<payload>(serde.serialize_json(short_value))
+        checksum += decoded.id + len(decoded.name)
+    }
+    report("serde_short_text", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=4999
+    {
+        payload decoded = serde.deserialize_json<payload>(serde.serialize_json(long_value))
+        checksum += decoded.id + len(decoded.name)
+    }
+    report("serde_long_text", started, checksum)
+}
+
+def bench_parse_paths()
+{
+    vector<str> valid_inputs = vector<str>()
+    vector<str> invalid_inputs = vector<str>()
+    for i in 0..=999
+    {
+        str number = fmt.format("{}", i)
+        valid_inputs.push_back(number)
+        invalid_inputs.push_back(number + "x")
+    }
+
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        auto parsed = parse.try_parse_int(valid_inputs[i % 1000], 10)
+        if parsed.ok
+        {
+            checksum += 1
+        }
+    }
+    report("parse_valid", started, checksum)
+
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        auto parsed = parse.try_parse_int(invalid_inputs[i % 1000], 10)
+        if !parsed.ok
+        {
+            checksum += 1
+        }
+    }
+    report("parse_invalid", started, checksum)
+}
+
+def main() -> int
+{
+    bench_vector_scale()
+    bench_vector_access()
+    bench_map_distribution()
+    bench_dictionary_keys()
+    bench_format_paths()
+    bench_encoding_paths()
+    bench_serde_size()
+    bench_parse_paths()
+    return 0
+}
