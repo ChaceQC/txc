@@ -21,7 +21,7 @@
 | 并发 | 当前仅有无捕获的顶层函数值；网络服务循环同步执行 | 线程、任务、取消、同步原语、通道、异步文件/网络 I/O、进程间通信 |
 | 数据库 | 无公开数据库模块 | SQLite 与 PostgreSQL 连接、参数绑定、游标、事务、连接池和迁移接口 |
 | 测试与调试 | `test/log/debug` 与 `txc test` 已有第 3 节基础接口；仓库另有针对编译器/标准库的脚本和样例 | 参数化/性质测试、并行与超时、可替换日志 sink/轮转、性能分析及终态验收 |
-| 安全 | `crypto` 已有安全随机数、SHA-2、HMAC、HKDF/PBKDF2、AES-256-GCM；HTTP 客户端验证 TLS | Argon2id、非对称签名/密钥交换、X.509 与证书存储、可控密钥生命周期、大文件认证加密 |
+| 安全 | `crypto` 已有安全随机数、SHA-2、HMAC、HKDF/PBKDF2、AES-256-GCM；`secret_bytes` 与 `password` 已提供受控秘密缓冲和 Argon2id；HTTP 客户端验证 TLS | 非对称签名/密钥交换、X.509 与证书存储、大文件认证加密及第 9.7 节综合验收 |
 
 当前 `vector<T>` 已支持基础值、用户结构体和嵌套容器；4.1 新增的 `deque<T>` 已支持同类具体元素与双端操作。`map/set` 的哈希键支持满足编译期契约的结构体；4.2 将 `map` 值扩展为具体复合类型并提供 `entries()` 快照，新增 `ordered_map/ordered_set` 的比较器、范围查询与有序遍历。4.3 将 `heap/queue` 扩展为具体复合载荷、批量构建和稳定优先级条目。4.4～4.5 新增静态泛型算法接口，4.6 的集合交叉边界已定向验证。`requests` 的 `stream=true`、显式代理、自定义 CA/客户端证书和底层连接池尚未实现。网络的 HTTP/2 并行流等边界也尚无专项验证。具体工作项与依赖顺序见[标准库终态实施顺序](standard_library_plan.md)。
 
@@ -197,7 +197,7 @@ SQLite 使用受维护的 amalgamation，限定文件路径、journal/WAL、`bus
 
 ## 12. 密码学、密码处理与证书
 
-**保留：** `crypto.random_bytes`、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 和 `TXCG` 格式的 AES-256-GCM 单段加解密。已有 `bytes` 密钥的清零限制在[密码学标准库设计](crypto.md)中已说明，不能仅靠文档把普通 `bytes` 宣称为安全密钥容器。
+**保留：** `crypto.random_bytes`、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 和 `TXCG` 格式的 AES-256-GCM 单段加解密。已有 `bytes` 密钥的清零限制在[密码学标准库设计](crypto.md)中已说明，不能仅靠文档把普通 `bytes` 宣称为安全密钥容器。9.1～9.2 已交付的 `secret_bytes` 和 `password` 以[秘密字节](secret_bytes.md)及[密码存储](password.md)的接口和验证记录为准。
 
 | 模块/类型 | 终态能力 | 安全契约 |
 | --- | --- | --- |

@@ -84,6 +84,11 @@ void semantic_analyzer::register_class(
     std::unordered_set<std::string> own_fields;
     for (const auto& field : definition.fields)
     {
+        if (field.type == value_type::secret_bytes_type)
+        {
+            throw compile_error(field.position,
+                "secret_bytes 不能作为类字段");
+        }
         if (field.type.is_function())
         {
             throw compile_error(field.position, "类字段暂不支持 fn 类型");

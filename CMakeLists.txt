@@ -45,6 +45,9 @@ FetchContent_Declare(mbedtls
     URL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.5/mbedtls-3.6.5.tar.bz2
     URL_HASH SHA256=4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(argon2_reference
+    GIT_REPOSITORY https://github.com/P-H-C/phc-winner-argon2.git
+    GIT_TAG 62358ba2123abd17fccf2a108a301d4b52c01a7c)
 FetchContent_Declare(icu_binary
     URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-icu-78.3-4-any.pkg.tar.zst
     URL_HASH SHA256=8486a018aca2e56d1fcd2eed2069011f2e1da02e03af72b38916ee06cbe7203f
@@ -86,7 +89,16 @@ FetchContent_Declare(winpthread_runtime
 set(_tx_warn_deprecated ${CMAKE_WARN_DEPRECATED})
 set(CMAKE_WARN_DEPRECATED OFF)
 FetchContent_MakeAvailable(nghttp2 mbedtls icu_binary pcre2_binary libxml2
-    stdcpp_runtime gcc_runtime winpthread_runtime)
+    stdcpp_runtime gcc_runtime winpthread_runtime argon2_reference)
+add_library(argon2_reference_static STATIC
+    "${argon2_reference_SOURCE_DIR}/src/argon2.c"
+    "${argon2_reference_SOURCE_DIR}/src/core.c"
+    "${argon2_reference_SOURCE_DIR}/src/blake2/blake2b.c"
+    "${argon2_reference_SOURCE_DIR}/src/thread.c"
+    "${argon2_reference_SOURCE_DIR}/src/encoding.c"
+    "${argon2_reference_SOURCE_DIR}/src/ref.c")
+target_include_directories(argon2_reference_static PUBLIC
+    "${argon2_reference_SOURCE_DIR}/include")
 if(WIN32)
     # 上游 RC 资源在带空格的 MinGW 安装路径下无法完成预处理；静态库不需要版本资源。
     get_target_property(_tx_libxml2_sources LibXml2 SOURCES)
@@ -253,6 +265,8 @@ add_library(txstdlib STATIC
     src/backend/cpp/file_result_abi.cpp
     src/backend/cpp/bytes_abi.cpp
     src/backend/cpp/crypto_abi.cpp
+    src/backend/cpp/secret_abi.cpp
+    src/backend/cpp/password_abi.cpp
     src/backend/cpp/encoding_memory_abi.cpp
     src/backend/cpp/encoding_incremental_abi.cpp
     src/backend/cpp/unicode_abi.cpp
@@ -359,6 +373,8 @@ add_library(txstdlib STATIC
     src/stdlib/crypto_hash.cpp
     src/stdlib/crypto_kdf.cpp
     src/stdlib/crypto_aead.cpp
+    src/stdlib/secret.cpp
+    src/stdlib/password.cpp
     src/stdlib/file_stream.cpp
     src/stdlib/file_stream_lock.cpp
     src/stdlib/file_stream_text.cpp
@@ -423,7 +439,8 @@ target_include_directories(txstdlib PRIVATE
     "${icu_binary_SOURCE_DIR}/mingw64/include"
     "${pcre2_binary_SOURCE_DIR}/mingw64/include")
 target_compile_definitions(txstdlib PRIVATE PCRE2_STATIC)
-target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto LibXml2::LibXml2)
+target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto
+    argon2_reference_static LibXml2::LibXml2)
 add_dependencies(txc txstdlib)
 if(WIN32)
     target_link_libraries(txc PRIVATE shell32 bcrypt)

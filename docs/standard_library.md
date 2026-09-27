@@ -16,6 +16,10 @@
 
 导入 [crypto.txh](../tx/stdlib/crypto.txh) 使用安全随机数、SHA-256/SHA-512、HMAC-SHA256、HKDF-SHA256、PBKDF2-HMAC-SHA256 与 AES-256-GCM 认证加密。所有输入输出使用 `bytes`，加密接口自动生成 nonce，格式、错误码、密钥内存限制和定向验证见[密码学标准库](crypto.md)。现有 `random` 模块不是密码学安全随机源。
 
+导入 [secret.txh](../tx/stdlib/secret.txh) 可创建不透明的 `secret_bytes`、显式导入/导出并清零共享缓冲。接口、静态禁用规则和平台内存限制见[秘密字节](secret_bytes.md)。
+
+导入 [password.txh](../tx/stdlib/password.txh) 使用 Argon2id 创建和验证 PHC 密码哈希，并检测何时需要升级参数。密码以 `secret_bytes` 传入，参数和资源限制见[Argon2id 密码存储](password.md)。
+
 内置 `map<K, V>`、`set<T>`、`ordered_map<K, V>`、`ordered_set<T>`、`heap<T>`、`queue<T>`、`deque<T>` 与 `vector<T>` 一样无需导入，接口见[类型化容器](typed_containers.md)。映射的 `entries()` 返回成对的只读条目快照；有序容器支持显式比较器和范围查询。它们的 C++23 实现随标准库静态库交付，普通模块可在 `.txh` 中使用这些类型。
 
 ## 解析与可恢复错误

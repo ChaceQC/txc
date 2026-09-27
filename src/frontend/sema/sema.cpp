@@ -330,6 +330,12 @@ void semantic_analyzer::check_assignment(statement& item,
         call->expected_result = target_type;
     }
     auto value = check_expression(*assignment.value);
+    if (target_type == value_type::any_type &&
+        value == value_type::secret_bytes_type)
+    {
+        throw compile_error(assignment.value->position,
+            "secret_bytes 不能装入 any");
+    }
     if (value == value_type::void_type)
     {
         throw compile_error(assignment.value->position, "不能把无返回值的调用赋入变量");

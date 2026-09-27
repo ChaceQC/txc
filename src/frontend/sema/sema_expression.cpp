@@ -323,6 +323,16 @@ value_type semantic_analyzer::check_member(expression& item,
 
 value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast)
 {
+    if (cast.target == value_type::secret_bytes_type)
+    {
+        const auto source = check_expression(*cast.value);
+        if (source != value_type::secret_bytes_type)
+        {
+            throw compile_error(item.position,
+                "secret_bytes 不能从 any 或其他类型转换取得");
+        }
+        return cast.target;
+    }
     if (cast.target == value_type::bytes_type ||
         cast.target == value_type::binary_stream_type ||
         cast.target == value_type::text_stream_type ||

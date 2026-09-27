@@ -10,6 +10,7 @@
 #include "stdlib/cancellation.hpp"
 #include "stdlib/stdlib.hpp"
 #include "stdlib/bytes.hpp"
+#include "stdlib/secret.hpp"
 #include "stdlib/file_stream.hpp"
 #include "stdlib/encoding_incremental.hpp"
 #include "stdlib/regex.hpp"
@@ -110,6 +111,11 @@ public:
         {
             // bytes 载荷不可变，深拷贝仍可安全共享。
             return value;
+        }
+        if (value.type() == typeid(secret::handle))
+        {
+            throw runtime_failure({tx::error_kind::security, "invalid_state",
+                "secret_bytes 不能使用 deep_copy"});
         }
         if (value.type() == typeid(cancel_source) ||
             value.type() == typeid(cancel_token) ||

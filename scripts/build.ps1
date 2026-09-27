@@ -153,6 +153,7 @@ $dependency_archives = @(
     (Join-Path $build_dir '_deps/mbedtls-build/library/libmbedcrypto.a'),
     (Join-Path $build_dir '_deps/mbedtls-build/3rdparty/everest/libeverest.a'),
     (Join-Path $build_dir '_deps/mbedtls-build/3rdparty/p256-m/libp256m.a'),
+    (Join-Path $build_dir 'libargon2_reference_static.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuin.dll.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuuc.dll.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicudt.dll.a'),
@@ -163,7 +164,7 @@ foreach ($archive in $dependency_archives)
 {
     if (-not (Test-Path -LiteralPath $archive -PathType Leaf))
     {
-        throw "缺少 HTTP/2 静态依赖：$archive；build/ 已保留。"
+        throw "缺少标准库静态依赖：$archive；build/ 已保留。"
     }
 }
 $merged_library = Join-Path $build_dir 'libtxstdlib-combined.a'
@@ -185,6 +186,8 @@ Copy-Item -LiteralPath (Join-Path $build_dir '_deps/nghttp2-src/COPYING') `
     -Destination (Join-Path $tool_dir 'NGHTTP2-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/mbedtls-src/LICENSE') `
     -Destination (Join-Path $tool_dir 'MBEDTLS-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/argon2_reference-src/LICENSE') `
+    -Destination (Join-Path $tool_dir 'ARGON2-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/icu_binary-src/mingw64/share/icu/78.3/LICENSE') `
     -Destination (Join-Path $tool_dir 'ICU-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/share/licenses/pcre2/LICENCE.md') `

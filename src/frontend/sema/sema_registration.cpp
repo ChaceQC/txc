@@ -15,6 +15,7 @@ bool is_builtin_name(const std::string& name)
            name == "input" || name == "input_or_none" ||
            name == "any" || name == "void" || name == "unknown" ||
            name == "self" || name == "super" || name == "bind" ||
+           name == "secret_bytes" ||
            name == "assert_send" || name == "assert_sync" ||
            name == "cancel_source" || name == "cancel_token" ||
            name == "encoding_decoder" || name == "encoding_encoder" ||
@@ -25,6 +26,22 @@ bool is_builtin_name(const std::string& name)
            name == "csv_reader" || name == "csv_writer" ||
            name == "xml_reader" || name == "xml_writer" ||
            name == "xml_document" || name == "xml_node";
+}
+
+bool contains_secret(const value_type& type)
+{
+    if (type == value_type::secret_bytes_type)
+    {
+        return true;
+    }
+    for (const auto& parameter : type.parameters)
+    {
+        if (contains_secret(parameter))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 } // namespace
@@ -96,6 +113,12 @@ void semantic_analyzer::validate_ordered_key_shape(const value_type& type,
 
 void semantic_analyzer::validate_type(const value_type& type, source_pos position) const
 {
+    if (value_type::is_container_name(type.container_name()) &&
+        contains_secret(type))
+    {
+        throw compile_error(position,
+            "secret_bytes 不能作为容器或 option/result 的成员");
+    }
     if (type.is_function())
     {
         for (std::size_t index = 0; index < type.parameters.size(); ++index)
@@ -202,6 +225,7 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
     if (type == value_type::int_type || type == value_type::bool_type ||
         type == value_type::float_type || type == value_type::str_type ||
         type == value_type::bytes_type ||
+        type == value_type::secret_bytes_type ||
         type == value_type::binary_stream_type ||
         type == value_type::text_stream_type ||
         type == value_type::cancel_source_type ||
@@ -245,6 +269,11 @@ void semantic_analyzer::register_structs(program& source)
         std::unordered_set<std::string> fields;
         for (const auto& field : definition.fields)
         {
+            if (contains_secret(field.type))
+            {
+                throw compile_error(field.position,
+                    "secret_bytes 不能作为结构体字段");
+            }
             validate_type(field.type, field.position);
             if (!fields.insert(field.name).second)
             {

@@ -37,7 +37,8 @@ bool semantic_analyzer::matches_signature(
         if (signature.accepts_any_value && expected == value_type::any_type)
         {
             return actual != value_type::void_type &&
-                   actual != value_type::unknown_type;
+                   actual != value_type::unknown_type &&
+                   actual != value_type::secret_bytes_type;
         }
         return allow_upcast ? is_assignable(actual, expected)
                             : actual == expected;
@@ -49,7 +50,8 @@ bool semantic_analyzer::matches_signature(
             parameter_is_nullable(expected))
         {
             return actual != value_type::void_type &&
-                   actual != value_type::unknown_type;
+                   actual != value_type::unknown_type &&
+                   actual != value_type::secret_bytes_type;
         }
         if (actual == value_type::none_type &&
             parameter_is_nullable(expected))
@@ -237,6 +239,11 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
     }
     if (call.name == "deep_copy")
     {
+        if (actual == value_type::secret_bytes_type)
+        {
+            throw compile_error(argument.position,
+                "secret_bytes 不能使用 deep_copy");
+        }
         if (actual == value_type::void_type)
         {
             throw compile_error(argument.position, "deep_copy 不能复制 void 值");

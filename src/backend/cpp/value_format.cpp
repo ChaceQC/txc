@@ -7,6 +7,7 @@
 
 #include "stdlib/stdlib.hpp"
 #include "stdlib/bytes.hpp"
+#include "stdlib/secret.hpp"
 #include "stdlib/file_stream.hpp"
 #include "stdlib/encoding_incremental.hpp"
 #include "stdlib/regex.hpp"
@@ -153,6 +154,10 @@ void append_value(std::string& output, const std::any& value,
     {
         output += "bytes(" + std::to_string(bytes_length(
             std::any_cast<const byte_value&>(value))) + ")";
+    }
+    else if (value.type() == typeid(secret::handle))
+    {
+        throw std::runtime_error("secret_bytes 不可打印");
     }
     else if (value.type() == typeid(binary_stream))
     {

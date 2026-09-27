@@ -42,6 +42,10 @@ void llvm_code_generator::emit_array_elements(const array_literal& literal,
 llvm_code_generator::ir_value llvm_code_generator::box_any(
     const ir_value& value, source_pos position)
 {
+    if (value.type == value_type::secret_bytes_type)
+    {
+        throw compile_error(position, "secret_bytes 不能装入 any");
+    }
     const auto address = allocate(value_type::any_type, position);
     std::string name;
     if (value.type == value_type::int_type)

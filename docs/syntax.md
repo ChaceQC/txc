@@ -10,6 +10,10 @@
 
 内置 `bytes` 表示不可变原始字节，支持 `vector<bytes>`，并可作为 `array`、`dict` 的值；显式编码及文件流接口见[字节值、编码与文件流](bytes_file_stream.md)。
 
+不透明内置类型 `secret_bytes` 由 `secret.txh` 的 `from_bytes` 或 `random` 创建。普通赋值和参数传递共享同一受控缓冲；`secret.close` 清零缓冲并使全部别名失效，最后一个别名释放时也清零。它不能默认打印、装入 `any`、序列化、`deep_copy`，也不能作为结构体、类或容器字段；只能显式调用 `secret.to_bytes` 复制导出。导入时源 `bytes` 和导出后的 `bytes` 都不受秘密缓冲清零保证。接口及平台限制见[秘密字节](secret_bytes.md)，用法见[示例](../examples/secret_bytes.tx)。
+
+`password.txh` 接收 `secret_bytes`，输出 PHC 格式的 Argon2id 哈希字符串。密码验证、参数升级与资源限制见[Argon2id 密码存储](password.md)。
+
 不透明内置类型 `cancel_source` 与 `cancel_token` 分别表示取消权与只读观察权，只能由 `cancel.txh` 的函数创建或取得。令牌与单调截止时间、阻塞等待及跨模块传递规则见[取消令牌与截止时间](cancellation.md)。
 
 不透明内置类型 `fs_watcher` 只能由 `fs.watch` 创建。普通赋值共享同一监视状态，`fs.close_watch` 使所有别名失效，`deep_copy` 不复制监视器；监视器当前不满足 `Send/Sync`。接口与资源清理规则见[文件系统与路径扩展](filesystem_path.md#71-文件系统元信息筛选与监视)，用法见[定向示例](../tests/stdlib/filesystem_path_extended.tx)。

@@ -154,6 +154,7 @@ struct value_type
     static const value_type float_type;
     static const value_type str_type;
     static const value_type bytes_type;
+    static const value_type secret_bytes_type;
     static const value_type binary_stream_type;
     static const value_type text_stream_type;
     static const value_type cancel_source_type;
@@ -190,6 +191,7 @@ inline const value_type value_type::bool_type{"bool"};
 inline const value_type value_type::float_type{"float"};
 inline const value_type value_type::str_type{"str"};
 inline const value_type value_type::bytes_type{"bytes"};
+inline const value_type value_type::secret_bytes_type{"secret_bytes"};
 inline const value_type value_type::binary_stream_type{"binary_stream"};
 inline const value_type value_type::text_stream_type{"text_stream"};
 inline const value_type value_type::cancel_source_type{"cancel_source"};

@@ -40,7 +40,7 @@
 
 ## 3. 错误类别与稳定代码登记
 
-错误身份是 `(kind, code)` 二元组；`message` 为中文人类说明，允许改进措辞，程序不能按它分支。保留原 ABI 数值 `runtime=1`、`parse=2`、`io=3`；新增 `process=4`、`database=5`、`security=6`、`cancelled=7`。`error.txh` 中对应类型均有 `kind/code/message` 字段，`runtime_error` 继续作为兜底捕获。新类别已可声明和捕获，但对应未来模块尚未实现，不能把类别存在理解为操作可用。
+错误身份是 `(kind, code)` 二元组；`message` 为中文人类说明，允许改进措辞，程序不能按它分支。保留原 ABI 数值 `runtime=1`、`parse=2`、`io=3`；新增 `process=4`、`database=5`、`security=6`、`cancelled=7`。`error.txh` 中对应类型均有 `kind/code/message` 字段，`runtime_error` 继续作为兜底捕获。类别可声明和捕获；具体操作是否可用仍须查看对应模块的公开接口和完成记录。
 
 | 来源 | 已用且保留的 `kind/code` | 新接口预留的 `kind/code` |
 | --- | --- | --- |
@@ -49,7 +49,8 @@
 | 通用运行时、JSON 写入、现有 `crypto`、测试与日志 | `runtime_error/allocation_failed`、`unknown_error`、`operation_failed`、`invalid_argument`、`size_limit`、`invalid_indent`、`cyclic_value`、`unsupported_value`、`invalid_key`、`random_failed`、`authentication_failed`、`invalid_format`、`assertion_failed`、`invalid_tolerance`、`invalid_name`、`invalid_level`、`invalid_field` | `runtime_error/invalid_state`；现有 `crypto` 错误不悄悄改类，新安全 API 才使用 `security_error` |
 | 子进程 | `process.txh` 的接口与实施证据见[子进程与管道](process.md) | `process_error/spawn_failed`、`wait_failed`、`terminated`、`output_limit`、`invalid_state`、`timeout`、`invalid_argument`、`unsupported_operation`、`terminate_failed`、`pipe_failed`；等待超时及有界捕获的可预期停止使用显式状态并保留子进程句柄 |
 | 数据库 | 尚无公开入口 | `database_error/connection_failed`、`query_failed`、`constraint_violation`、`busy`、`pool_exhausted`、`invalid_state` |
-| 新密码/证书/TLS 接口 | 尚无公开入口 | `security_error/invalid_key`、`authentication_failed`、`invalid_certificate`、`certificate_expired`、`hostname_mismatch`、`untrusted_issuer`、`random_failed` |
+| `secret_bytes`、`password` | `security_error/invalid_state`、`size_limit`、`random_failed`、`invalid_argument`、`invalid_format`、`operation_failed`；秘密缓冲状态和 Argon2id PHC 参数见[秘密字节](secret_bytes.md)、[密码存储](password.md) | 后续密钥操作复用适用的安全错误码 |
+| 后续公钥/证书/TLS 接口 | 尚无公开入口 | `security_error/invalid_key`、`authentication_failed`、`invalid_certificate`、`certificate_expired`、`hostname_mismatch`、`untrusted_issuer` |
 | 取消与截止时间 | 尚无公开入口 | `cancelled_error/cancelled`、`deadline_exceeded`；已发生的外部效果由操作结果另行说明 |
 | 时间与计算扩展 | 6.1～6.6 已使用 `runtime_error/invalid_argument`、`out_of_range`、`timezone_failed`、`non_finite`、`empty_sample`、`insufficient_sample`、`division_by_zero`、`size_limit`、`invalid_state`；`parse_error/invalid_syntax`、`out_of_range`、`invalid_zone`、`nonexistent_time`、`ambiguous_time`；`cancelled_error/cancelled`、`deadline_exceeded` | 后续新增错误码须先在对应模块文档固定语义 |
 | JSON/CSV 增量扩展 | JSON schema 的 `parse_error/invalid_schema`、`schema_mismatch`；CSV 的 `parse_error/unexpected_bom`、`missing_header`、`invalid_header`、`row_width`，通用格式错误和限额沿用 `invalid_syntax/invalid_utf8/size_limit/depth_limit`；writer 数据错误使用同名 `runtime_error` 码，游标失效为 `runtime_error/invalid_state` | 精确定义分别见 [JSON](json.md#增量读写与-schema) 与 [CSV](csv.md)；底层流的 `io_error` 原样传播 |
@@ -86,9 +87,10 @@
 | --- | --- | --- |
 | nghttp2 | `1.68.0`；`5511d3128850e01b5b26ec92bf39df15381c767a63441438b25ad6235def902c` | MIT；源码由 CMake `FetchContent` 校验后静态归档，`tx/NGHTTP2-LICENSE` 随包 |
 | Mbed TLS | `3.6.5`；`4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8` | Apache-2.0 或 GPL-2.0-or-later，发行采用 Apache-2.0；静态归档，`tx/MBEDTLS-LICENSE` 随包 |
+| Argon2 参考实现 | `20190702`；Git 提交 `62358ba2123abd17fccf2a108a301d4b52c01a7c` | CC0-1.0 或 Apache-2.0，发行采用 Apache-2.0；静态归档，`tx/ARGON2-LICENSE` 随包 |
 | libxml2 | `2.13.8`；`277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a` | MIT；源码由 CMake `FetchContent` 校验后静态归档，`tx/LIBXML2-LICENSE` 随包 |
 
-CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。SQLite、libpq、Argon2、libsodium、MsQuic 等仍未引入。各模块若新增第三方依赖，须在构建配置中固定准确版本、源码归档 SHA-256、许可证选择及交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
+CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。Argon2 已随 9.2 引入；SQLite、libpq、libsodium、MsQuic 等仍未引入。各模块若新增第三方依赖，须在构建配置中固定准确版本及源码归档 SHA-256 或 Git 提交哈希、许可证选择和交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
 
 ### 第 1 节完成记录（2026-09-26）
 
