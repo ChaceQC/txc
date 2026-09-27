@@ -1,0 +1,156 @@
+import "xml.txh" as xml
+import "file.txh" as file
+import "file_stream.txh" as streams
+import "error.txh" as errors
+import "string.txh" as string
+import "test.txh" as test
+
+def check_location_and_limits() -> void
+{
+    auto limits = xml.default_limits()
+    limits.max_bytes = 1048576
+    bool failed = false
+    try
+    {
+        xml.parse("<root>\n<child></root>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "invalid_syntax" && string.contains(e.message, "第 2 行第")
+    }
+    test.assert_true(failed, "XML 语法错误应定位到行列")
+
+    limits.max_depth = 1
+    failed = false
+    try
+    {
+        xml.parse("<root><child/></root>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "depth_limit"
+    }
+    test.assert_true(failed, "XML 深度上限")
+    limits.max_depth = 128
+
+    limits.max_nodes = 2
+    failed = false
+    try
+    {
+        xml.parse("<root><a/><b/></root>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "size_limit"
+    }
+    test.assert_true(failed, "XML 节点数上限")
+    limits.max_nodes = 1000000
+
+    limits.max_attributes = 1
+    failed = false
+    try
+    {
+        xml.parse("<root a=\"1\" b=\"2\"/>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "size_limit"
+    }
+    test.assert_true(failed, "XML 属性数上限")
+    limits.max_attributes = 4096
+
+    limits.max_bytes = 8
+    failed = false
+    try
+    {
+        xml.parse("<root>long text</root>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "size_limit"
+    }
+    test.assert_true(failed, "XML 总输入上限")
+}
+
+def check_large_stream() -> void
+{
+    auto limits = xml.default_limits()
+    limits.max_bytes = 1048576
+    auto output = streams.open_binary("tx_build/formats_xml_large.xml", "write")
+    auto writer = xml.writer(output, limits)
+    xml.start_element(writer, "root", "", "")
+    for index in 0..=19999
+    {
+        xml.start_element(writer, "item", "", "")
+        xml.end_element(writer)
+    }
+    xml.end_element(writer)
+    xml.finish(writer)
+    xml.close(writer)
+    streams.close(output)
+
+    auto input = streams.open_binary("tx_build/formats_xml_large.xml", "read")
+    auto reader = xml.reader(input, limits)
+    int seen = 0
+    auto event = xml.next(reader)
+    while event.is_some()
+    {
+        if event.value().kind == "start_element"
+        {
+            seen = seen + 1
+        }
+        event = xml.next(reader)
+    }
+    test.assert_equal(20001, seen)
+    xml.close(reader)
+    streams.close(input)
+}
+
+def check_partial_write() -> void
+{
+    auto limits = xml.default_limits()
+    limits.max_bytes = 1048576
+    auto output = streams.open_binary("tx_build/formats_xml_partial.xml", "write")
+    auto writer = xml.writer(output, limits)
+    xml.start_element(writer, "root", "", "")
+    for index in 0..=4999
+    {
+        xml.start_element(writer, "item", "", "")
+        xml.end_element(writer)
+    }
+    streams.close(output)
+    bool failed = false
+    try
+    {
+        xml.end_element(writer)
+        xml.finish(writer)
+    }
+    exception errors.io_error as e
+    {
+        failed = e.code == "closed_stream"
+    }
+    test.assert_true(failed, "XML 应保留关闭底层流时的 I/O 错误")
+    test.assert_true(string.contains(file.read_text(
+        "tx_build/formats_xml_partial.xml", "utf-8"), "<item"),
+        "XML 已写入的前缀不会回滚")
+    failed = false
+    try
+    {
+        xml.finish(writer)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "invalid_state"
+    }
+    test.assert_true(failed, "XML 部分写入后的 writer 必须失效")
+    xml.close(writer)
+}
+
+def main() -> int
+{
+    check_location_and_limits()
+    check_large_stream()
+    check_partial_write()
+    print("FORMAT_XML_ACCEPTANCE_OK")
+    return 0
+}

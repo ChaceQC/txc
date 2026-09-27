@@ -1,0 +1,215 @@
+import "serde.txh" as serde
+import "cbor.txh" as cbor
+import "bytes.txh" as bytes
+import "error.txh" as errors
+import "test.txh" as test
+
+struct account_v1 serde(version=1, unknown="reject")
+{
+    id: int serde(1)
+    name: str serde(2)
+}
+
+struct account_v2 serde(version=2, unknown="preserve")
+{
+    id: int serde(1)
+    name: str serde(2)
+    nickname: str serde(3, default="")
+    extras: dict serde(unknown)
+}
+
+def upgrade(old: account_v1) -> account_v2
+{
+    return account_v2(old.id, old.name, "", {})
+}
+
+def check_json_contract() -> void
+{
+    bool failed = false
+    try
+    {
+        serde.deserialize_json<account_v1>(
+            "{\"$schema\":1,\"id\":7,\"name\":\"甲\",\"future\":true}")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "unknown_field"
+    }
+    test.assert_true(failed, "JSON 未知字段拒绝策略")
+
+    failed = false
+    try
+    {
+        serde.deserialize_json<account_v2>("{\"$schema\":2,\"name\":\"甲\"}")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "missing_field"
+    }
+    test.assert_true(failed, "JSON 缺少必需字段")
+
+    failed = false
+    try
+    {
+        serde.deserialize_json<account_v2>("{\"$schema\":2,\"id\":\"bad\",\"name\":\"甲\"}")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "type_mismatch"
+    }
+    test.assert_true(failed, "JSON 字段类型不符")
+
+    account_v2 preserved = serde.deserialize_json<account_v2>(
+        "{\"$schema\":2,\"id\":7,\"name\":\"甲\",\"future\":true}")
+    test.assert_true(preserved.extras["future"] as bool)
+    account_v2 restored = serde.deserialize_json<account_v2>(
+        serde.serialize_json(preserved))
+    test.assert_true(restored.extras["future"] as bool)
+}
+
+def check_cbor_contract() -> void
+{
+    auto limits = cbor.default_limits()
+    bool failed = false
+    try
+    {
+        serde.deserialize_cbor<account_v1>(
+            cbor.encode({0: 1, 1: 7, 2: "甲", 9: "future"}, limits))
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "unknown_field"
+    }
+    test.assert_true(failed, "CBOR 未知字段拒绝策略")
+
+    failed = false
+    try
+    {
+        serde.deserialize_cbor<account_v2>(cbor.encode({0: 2, 2: "甲"}, limits))
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "missing_field"
+    }
+    test.assert_true(failed, "CBOR 缺少必需字段")
+
+    failed = false
+    try
+    {
+        serde.deserialize_cbor<account_v2>(cbor.encode({0: 2, 1: "bad", 2: "甲"}, limits))
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "type_mismatch"
+    }
+    test.assert_true(failed, "CBOR 字段类型不符")
+
+    account_v2 preserved = serde.deserialize_cbor<account_v2>(
+        cbor.encode({0: 2, 1: 7, 2: "甲", 9: "future"}, limits))
+    test.assert_equal("future", preserved.extras[9] as str)
+    account_v2 restored = serde.deserialize_cbor<account_v2>(
+        serde.serialize_cbor(preserved))
+    test.assert_equal("future", restored.extras[9] as str)
+}
+
+def check_cycles() -> void
+{
+    dict extras = {}
+    extras["self"] = extras
+    account_v2 value = account_v2(1, "甲", "", extras)
+    bool failed = false
+    try
+    {
+        serde.serialize_json(value)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "cyclic_value"
+    }
+    test.assert_true(failed, "serde JSON 拒绝未知字段中的环")
+
+    dict binary_extras = {}
+    binary_extras[9] = binary_extras
+    account_v2 binary_value = account_v2(1, "甲", "", binary_extras)
+    failed = false
+    try
+    {
+        serde.serialize_cbor(binary_value)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "cyclic_value"
+    }
+    test.assert_true(failed, "serde CBOR 拒绝未知字段中的环")
+}
+
+def check_input_limit() -> void
+{
+    str oversized = "x"
+    for index in 0..=23
+    {
+        oversized = oversized + oversized
+    }
+    oversized = oversized + "x"
+    bool failed = false
+    try
+    {
+        serde.deserialize_json<account_v1>(oversized)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "size_limit"
+    }
+    test.assert_true(failed, "serde 在解析前拒绝超过 16 MiB 的输入")
+}
+
+def check_migration() -> void
+{
+    account_v1 old = account_v1(42, "甲")
+    auto old_json = serde.serialize_json(old)
+    auto old_cbor = serde.serialize_cbor(old)
+    bool failed = false
+    try
+    {
+        serde.deserialize_json<account_v2>(old_json)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "schema_version"
+    }
+    test.assert_true(failed, "JSON 旧版本不得自动升级")
+    failed = false
+    try
+    {
+        serde.deserialize_cbor<account_v2>(old_cbor)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "schema_version"
+    }
+    test.assert_true(failed, "CBOR 旧版本不得自动升级")
+
+    account_v2 from_json = upgrade(serde.deserialize_json<account_v1>(old_json))
+    account_v2 from_cbor = upgrade(serde.deserialize_cbor<account_v1>(old_cbor))
+    account_v2 json_roundtrip = serde.deserialize_json<account_v2>(
+        serde.serialize_json(from_cbor))
+    account_v2 cbor_roundtrip = serde.deserialize_cbor<account_v2>(
+        serde.serialize_cbor(from_json))
+    test.assert_equal(42, json_roundtrip.id)
+    test.assert_equal("甲", json_roundtrip.name)
+    test.assert_equal("", json_roundtrip.nickname)
+    test.assert_equal(42, cbor_roundtrip.id)
+    test.assert_equal("甲", cbor_roundtrip.name)
+    test.assert_equal("", cbor_roundtrip.nickname)
+}
+
+def main() -> int
+{
+    check_json_contract()
+    check_cbor_contract()
+    check_cycles()
+    check_input_limit()
+    check_migration()
+    print("FORMAT_SERDE_MIGRATION_OK")
+    return 0
+}
