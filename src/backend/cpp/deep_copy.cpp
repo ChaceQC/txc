@@ -13,6 +13,8 @@
 #include "stdlib/file_stream.hpp"
 #include "stdlib/encoding_incremental.hpp"
 #include "stdlib/regex.hpp"
+#include "stdlib/filesystem_watch.hpp"
+#include "stdlib/process.hpp"
 
 #include <any>
 #include <memory>
@@ -118,6 +120,14 @@ public:
             value.type() == typeid(encoding_encoder))
         {
             throw std::runtime_error("deep_copy 不支持复制文件流或增量编解码状态");
+        }
+        if (value.type() == typeid(process_child) || value.type() == typeid(process_pipe))
+        {
+            throw std::runtime_error("deep_copy 不支持复制子进程或管道");
+        }
+        if (value.type() == typeid(fs_watcher))
+        {
+            throw std::runtime_error("deep_copy 不支持复制文件监视器");
         }
         if (!value.has_value() || value.type() == typeid(std::int64_t) ||
             value.type() == typeid(double) || value.type() == typeid(bool) ||

@@ -1,0 +1,27 @@
+import "process.txh" as process
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    if args.empty()
+    {
+        print("用法：process.exe 可执行文件路径")
+        return 0
+    }
+    auto config = process.make_options(args[0], vector<str>())
+    config.stdin_mode = "null"
+    config.stdout_mode = "inherit"
+    config.stderr_mode = "inherit"
+    process_child child = process.spawn(config)
+    auto status = process.wait(child, 5000)
+    if status.state == "timeout"
+    {
+        // 明确选择强制结束；wait 超时本身不结束进程。
+        process.kill(child)
+        status = process.wait(child, -1)
+    }
+    print(status.state, status.exit_code)
+    process.close(child)
+    return 0
+}

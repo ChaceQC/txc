@@ -1,0 +1,25 @@
+import "process.txh" as process
+import "system.txh" as system
+import "bytes.txh" as byte_values
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    if args.empty()
+    {
+        print("用法：process_capture.exe 可执行文件路径 [参数...]")
+        return 0
+    }
+    str executable = args[0]
+    args.erase(0)
+    auto config = process.make_options(executable, args)
+    auto limits = process.make_limits(byte_values.empty(), 5000, 1048576)
+    // 明确选择超时、取消或输出超限后强制结束直接子进程。
+    limits.stop_action = "kill"
+    auto completed = process.run(config, limits)
+    print(completed.reason, completed.status.state, completed.status.exit_code)
+    print("stdout 字节数：", len(completed.stdout))
+    print("stderr 字节数：", len(completed.stderr))
+    process.close(completed.child)
+    return 0
+}

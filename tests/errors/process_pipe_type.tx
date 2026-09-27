@@ -1,0 +1,7 @@
+import "process.txh" as process
+
+def main() -> int
+{
+    process.read_pipe(1, 8, 0)
+    return 0
+}

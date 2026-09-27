@@ -203,6 +203,8 @@ add_library(txstdlib STATIC
     src/backend/cpp/iterator_abi.cpp
     src/backend/cpp/closure_abi.cpp
     src/backend/cpp/cancel_abi.cpp
+    src/backend/cpp/process_abi.cpp
+    src/backend/cpp/process_io_abi.cpp
     src/backend/cpp/vector_text_abi.cpp
     src/backend/cpp/algorithm_abi.cpp
     src/backend/cpp/algorithm_extended_abi.cpp
@@ -227,6 +229,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/array_abi.cpp
     src/backend/cpp/local_scalar_array_abi.cpp
     src/backend/cpp/filesystem_direct_abi.cpp
+    src/backend/cpp/filesystem_extended_abi.cpp
     src/backend/cpp/system_env_direct_abi.cpp
     src/backend/cpp/file_direct_abi.cpp
     src/backend/cpp/format_direct_abi.cpp
@@ -266,8 +269,11 @@ add_library(txstdlib STATIC
     src/stdlib/crypto_kdf.cpp
     src/stdlib/crypto_aead.cpp
     src/stdlib/file_stream.cpp
+    src/stdlib/file_stream_lock.cpp
     src/stdlib/file_stream_text.cpp
     src/stdlib/file.cpp
+    src/stdlib/file_binary.cpp
+    src/stdlib/file_atomic.cpp
     src/stdlib/math.cpp
     src/stdlib/math_extended.cpp
     src/stdlib/statistics_core.cpp
@@ -278,11 +284,20 @@ add_library(txstdlib STATIC
     src/stdlib/array.cpp
     src/stdlib/algorithm_numeric.cpp
     src/stdlib/filesystem.cpp
+    src/stdlib/filesystem_extended.cpp
+    src/stdlib/filesystem_watch.cpp
+    src/stdlib/process.cpp
+    src/stdlib/process_options.cpp
+    src/stdlib/process_spawn.cpp
+    src/stdlib/process_pipe.cpp
+    src/stdlib/process_run.cpp
     src/stdlib/filesystem_listing.cpp
     src/stdlib/filesystem_operations.cpp
     src/stdlib/path.cpp
     src/stdlib/system.cpp
+    src/stdlib/system_info.cpp
     src/stdlib/env.cpp
+    src/stdlib/env_snapshot.cpp
     src/stdlib/time.cpp
     src/stdlib/time_values.cpp
     src/stdlib/time_calendar.cpp

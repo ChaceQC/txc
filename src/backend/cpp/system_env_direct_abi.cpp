@@ -4,6 +4,8 @@
 #include "stdlib/system.hpp"
 #include "stdlib/vector.hpp"
 
+#include <any>
+
 namespace
 {
 
@@ -85,6 +87,47 @@ extern "C" int txrt_system_home_directory(void** result) noexcept
     });
 }
 
+extern "C" int txrt_system_operating_system(void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::string>(tx_generated::tx_fn_system_operating_system());
+    });
+}
+
+extern "C" int txrt_system_architecture(void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::string>(tx_generated::tx_fn_system_architecture());
+    });
+}
+
+extern "C" int txrt_system_cpu_count(std::int64_t* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_system_cpu_count();
+    });
+}
+
+extern "C" int txrt_system_process_id(std::int64_t* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_system_process_id();
+    });
+}
+
+extern "C" int txrt_system_has_capability(const void* name,
+                                           bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_system_has_capability(text_value(name));
+    });
+}
+
 extern "C" int txrt_env_contains(const void* name, bool* result) noexcept
 {
     return invoke_checked([&]
@@ -124,5 +167,13 @@ extern "C" int txrt_env_remove(const void* name, bool* result) noexcept
     return invoke_checked([&]
     {
         *result = tx_generated::tx_fn_env_remove(text_value(name));
+    });
+}
+
+extern "C" int txrt_env_snapshot(void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>(tx_generated::tx_fn_env_snapshot());
     });
 }

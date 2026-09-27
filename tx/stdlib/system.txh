@@ -4,3 +4,8 @@ def set_current_directory(path: str) -> void
 def executable_path() -> str
 def temp_directory() -> str
 def home_directory() -> str
+def operating_system() -> str
+def architecture() -> str
+def cpu_count() -> int
+def process_id() -> int
+def has_capability(name: str) -> bool

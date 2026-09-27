@@ -83,6 +83,17 @@ extern "C" int txrt_file_stream_open_binary(const void* path, const void* mode,
     }, tx::error_kind::io);
 }
 
+extern "C" int txrt_file_stream_open_binary_shared(const void* path,
+                                                     const void* mode,
+                                                     void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = make_handle<std::any>(tx_generated::open_binary_stream(
+            text_argument(path), text_argument(mode), true));
+    }, tx::error_kind::io);
+}
+
 extern "C" int txrt_file_stream_read_bytes(const void* source, std::int64_t size,
                                              const char* type_name,
                                              void** result) noexcept
@@ -139,6 +150,42 @@ extern "C" int txrt_file_stream_flush_binary(const void* target) noexcept
     return invoke_checked([&]
     {
         tx_generated::stream_flush(binary_argument(target));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_file_stream_sync_binary(const void* target) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::stream_sync(binary_argument(target));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_file_stream_lock(const void* target,
+                                      const void* mode) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::stream_lock(binary_argument(target), text_argument(mode));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_file_stream_try_lock(const void* target,
+                                          const void* mode,
+                                          bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::stream_try_lock(binary_argument(target),
+            text_argument(mode));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_file_stream_unlock(const void* target) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::stream_unlock(binary_argument(target));
     }, tx::error_kind::io);
 }
 
@@ -210,6 +257,14 @@ extern "C" int txrt_file_stream_flush_text(const void* target) noexcept
     return invoke_checked([&]
     {
         tx_generated::stream_flush(stream_argument(target));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_file_stream_sync_text(const void* target) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::stream_sync(stream_argument(target));
     }, tx::error_kind::io);
 }
 

@@ -217,3 +217,79 @@ extern "C" int txrt_path_replace_extension(const void* path, const void* extensi
             tx_generated::tx_fn_path_replace_extension(text_value(path), text_value(extension)));
     });
 }
+
+extern "C" int txrt_path_canonical(const void* path, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_path_canonical(text_value(path)));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_path_weakly_canonical(const void* path,
+    void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_path_weakly_canonical(text_value(path)));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_path_root_name(const void* path, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_path_root_name(text_value(path)));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_path_root_directory(const void* path,
+    void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_path_root_directory(text_value(path)));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_path_root_path(const void* path, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_path_root_path(text_value(path)));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_path_stem(const void* path, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::make_handle<std::string>(
+            tx_generated::tx_fn_path_stem(text_value(path)));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_path_compare(const void* left, const void* right,
+    std::int64_t* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_path_compare(
+            text_value(left), text_value(right));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_path_equivalent(const void* left, const void* right,
+    bool* result) noexcept
+{
+    return invoke_checked([&]
+    {
+        *result = tx_generated::tx_fn_path_equivalent(
+            text_value(left), text_value(right));
+    }, tx::error_kind::io);
+}

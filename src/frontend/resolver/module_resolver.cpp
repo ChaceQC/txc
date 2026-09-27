@@ -23,7 +23,8 @@ bool is_builtin_type(const std::string& name)
            name == "bytes" || name == "binary_stream" || name == "text_stream" ||
            name == "cancel_source" || name == "cancel_token" ||
            name == "encoding_decoder" || name == "encoding_encoder" ||
-           name == "regex_pattern" ||
+           name == "regex_pattern" || name == "fs_watcher" ||
+           name == "process_child" || name == "process_pipe" ||
            name == "bool" || name == "array" || name == "dict" || name == "any" ||
            name == "none" || name == "void" || name == "unknown" ||
            name == "fn";

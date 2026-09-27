@@ -10,6 +10,8 @@
 #include "stdlib/file_stream.hpp"
 #include "stdlib/encoding_incremental.hpp"
 #include "stdlib/regex.hpp"
+#include "stdlib/filesystem_watch.hpp"
+#include "stdlib/process.hpp"
 
 #include <stdexcept>
 #include <string_view>
@@ -175,6 +177,18 @@ void append_value(std::string& output, const std::any& value,
     else if (value.type() == typeid(regex_pattern))
     {
         output += "<regex_pattern>";
+    }
+    else if (value.type() == typeid(process_child))
+    {
+        output += "<process_child>";
+    }
+    else if (value.type() == typeid(process_pipe))
+    {
+        output += "<process_pipe>";
+    }
+    else if (value.type() == typeid(fs_watcher))
+    {
+        output += "<fs_watcher>";
     }
     else if (value.type() == typeid(tx_array))
     {

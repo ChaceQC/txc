@@ -7,3 +7,11 @@ def is_absolute(path: str) -> bool
 def absolute(path: str) -> str
 def relative(path: str, base: str) -> str
 def replace_extension(path: str, extension: str) -> str
+def canonical(path: str) -> str
+def weakly_canonical(path: str) -> str
+def root_name(path: str) -> str
+def root_directory(path: str) -> str
+def root_path(path: str) -> str
+def stem(path: str) -> str
+def compare(left: str, right: str) -> int
+def equivalent(left: str, right: str) -> bool

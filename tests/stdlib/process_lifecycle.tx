@@ -1,0 +1,122 @@
+import "process.txh" as process
+import "system.txh" as system
+import "env.txh" as env
+import "fs.txh" as fs
+import "cancel.txh" as cancel
+import "error.txh" as errors
+import "test.txh" as test
+
+def quiet_options(executable: str, mode: str) -> process.options
+{
+    auto config = process.make_options(executable, vector<str>([mode]))
+    config.stdin_mode = "null"
+    config.stdout_mode = "null"
+    config.stderr_mode = "null"
+    return config
+}
+
+def main() -> int
+{
+    str helper = system.args()[0]
+    fs.create_directories("子 目录")
+    env.set("TX_PROCESS_PARENT", "parent-only")
+    auto config = quiet_options(helper, "arguments")
+    config.args.push_back("")
+    config.args.push_back("中文 空格")
+    config.args.push_back("quote\"here")
+    config.args.push_back("\\\\")
+    config.args.push_back("tail\\")
+    config.args.push_back("x\\\"y")
+    config.args.push_back("&|><^%PATH%")
+    config.cwd = "子 目录"
+    config.clear_env = true
+    config.env.push_back("tx_process_test=old")
+    config.env.push_back("TX_PROCESS_TEST=覆盖=值")
+    auto child = process.spawn(config)
+    test.assert_true(process.id(child) > 0)
+    auto status = process.wait(child, 5000)
+    test.assert_equal("exited", status.state)
+    test.assert_equal(0, status.exit_code)
+    test.assert_equal(status.exit_code, process.try_wait(child).exit_code)
+    array boxed = [child]
+    process_child alias = boxed[0] as process_child
+    process.close(child)
+    process.close(alias)
+    bool closed = false
+    try
+    {
+        process.id(alias)
+    }
+    exception errors.process_error as e
+    {
+        closed = e.code == "invalid_state"
+    }
+    test.assert_true(closed)
+
+    auto inherited_config = quiet_options(helper, "inherit_environment")
+    inherited_config.env.push_back("TX_PROCESS_TEST=child-only")
+    auto inherited = process.spawn(inherited_config)
+    test.assert_equal(0, process.wait(inherited, 5000).exit_code)
+    test.assert_equal("parent-only", env.get("TX_PROCESS_PARENT"))
+    process.close(inherited)
+
+    auto sleeping = process.spawn(quiet_options(helper, "sleep"))
+    test.assert_equal("running", process.try_wait(sleeping).state)
+    test.assert_equal("timeout", process.wait(sleeping, 5).state)
+    auto source = cancel.source()
+    cancel.cancel(source)
+    bool cancelled = false
+    try
+    {
+        process.wait_with_cancel(sleeping, -1, cancel.token(source))
+    }
+    exception errors.cancelled_error as e
+    {
+        cancelled = e.code == "cancelled"
+    }
+    test.assert_true(cancelled)
+    test.assert_equal("running", process.try_wait(sleeping).state)
+    bool unsupported = false
+    try
+    {
+        process.terminate(sleeping)
+    }
+    exception errors.process_error as e
+    {
+        unsupported = e.code == "unsupported_operation"
+    }
+    test.assert_true(unsupported)
+    process.kill(sleeping)
+    test.assert_equal("terminated", process.wait(sleeping, 5000).state)
+    process.kill(sleeping)
+    process.terminate(sleeping)
+    process.close(sleeping)
+
+    auto nonzero = process.spawn(quiet_options(helper, "exit"))
+    bool copy_rejected = false
+    try
+    {
+        deep_copy(nonzero)
+    }
+    exception errors.runtime_error as e
+    {
+        copy_rejected = e.code == "operation_failed"
+    }
+    test.assert_true(copy_rejected)
+    test.assert_equal(37, process.wait(nonzero, 5000).exit_code)
+    test.assert_equal("exited", process.try_wait(nonzero).state)
+    process.close(nonzero)
+    bool failed = false
+    try
+    {
+        process.spawn(quiet_options("missing-process.exe", "exit"))
+    }
+    exception errors.process_error as e
+    {
+        failed = e.code == "spawn_failed"
+    }
+    test.assert_true(failed)
+    env.remove("TX_PROCESS_PARENT")
+    print("PROCESS_LIFECYCLE_OK")
+    return 0
+}

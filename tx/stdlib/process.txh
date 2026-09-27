@@ -1,0 +1,68 @@
+struct options
+{
+    executable: str
+    args: vector<str>
+    cwd: str
+    env: vector<str>
+    clear_env: bool
+    stdin_mode: str
+    stdout_mode: str
+    stderr_mode: str
+    new_process_group: bool
+}
+
+struct exit_status
+{
+    state: str
+    exit_code: int
+}
+
+def make_options(executable: str, args: vector<str>) -> options
+def spawn(config: options) -> process_child
+def id(child: process_child) -> int
+def wait(child: process_child, timeout_ms: int) -> exit_status
+def wait_with_cancel(child: process_child, timeout_ms: int, token: cancel_token) -> exit_status
+def try_wait(child: process_child) -> exit_status
+def terminate(child: process_child) -> void
+def kill(child: process_child) -> void
+def close(child: process_child) -> void
+
+struct pipe_chunk
+{
+    data: bytes
+    state: str
+}
+
+struct pipe_write
+{
+    written: int
+    state: str
+}
+
+struct run_limits
+{
+    input: bytes
+    timeout_ms: int
+    max_output_bytes: int
+    stop_action: str
+}
+
+struct completed
+{
+    child: process_child
+    status: exit_status
+    stdout: bytes
+    stderr: bytes
+    reason: str
+    input_written: int
+}
+
+def stdin_pipe(child: process_child) -> process_pipe
+def stdout_pipe(child: process_child) -> process_pipe
+def stderr_pipe(child: process_child) -> process_pipe
+def close_pipe(pipe: process_pipe) -> void
+def read_pipe(pipe: process_pipe, max_bytes: int, timeout_ms: int) -> pipe_chunk
+def write_pipe(pipe: process_pipe, data: bytes, timeout_ms: int) -> pipe_write
+def make_limits(input: bytes, timeout_ms: int, max_output_bytes: int) -> run_limits
+def run(config: options, limits: run_limits) -> completed
+def run_with_cancel(config: options, limits: run_limits, token: cancel_token) -> completed

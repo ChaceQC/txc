@@ -24,7 +24,7 @@ enum class stream_mode
 class stream_file
 {
 public:
-    stream_file(std::string_view path, stream_mode mode);
+    stream_file(std::string_view path, stream_mode mode, bool shared = false);
     ~stream_file() noexcept;
     stream_file(const stream_file&) = delete;
     stream_file& operator=(const stream_file&) = delete;
@@ -37,6 +37,9 @@ public:
     [[nodiscard]] std::int64_t tell();
     [[nodiscard]] std::int64_t seek(std::int64_t offset, std::string_view origin);
     void flush();
+    void sync();
+    bool lock(std::string_view mode, bool wait);
+    void unlock();
     void close();
 
 private:
@@ -49,11 +52,12 @@ private:
     std::FILE* file_ = nullptr;
     stream_mode mode_;
     direction last_ = direction::none;
+    bool locked_ = false;
 };
 
 struct binary_stream_state
 {
-    binary_stream_state(std::string_view path, stream_mode mode);
+    binary_stream_state(std::string_view path, stream_mode mode, bool shared);
     stream_file file;
 };
 
@@ -87,7 +91,8 @@ struct line_result_value
     std::string line;
 };
 
-binary_stream open_binary_stream(std::string_view path, std::string_view mode);
+binary_stream open_binary_stream(std::string_view path, std::string_view mode,
+                                 bool shared = false);
 byte_chunk_value stream_read_bytes(const binary_stream& source, std::int64_t size);
 byte_value stream_read_all_bytes(const binary_stream& source);
 void stream_write_bytes(const binary_stream& target, const byte_value& data);
@@ -95,6 +100,10 @@ std::int64_t stream_tell(const binary_stream& source);
 std::int64_t stream_seek(const binary_stream& source, std::int64_t offset,
                          std::string_view origin);
 void stream_flush(const binary_stream& target);
+void stream_sync(const binary_stream& target);
+void stream_lock(const binary_stream& target, std::string_view mode);
+bool stream_try_lock(const binary_stream& target, std::string_view mode);
+void stream_unlock(const binary_stream& target);
 void stream_close(const binary_stream& target);
 
 text_stream open_text_stream(std::string_view path, std::string_view mode,
@@ -105,6 +114,7 @@ line_result_value stream_read_line(const text_stream& source,
 void stream_write_text(const text_stream& target, std::string_view text);
 void stream_write_line(const text_stream& target, std::string_view text);
 void stream_flush(const text_stream& target);
+void stream_sync(const text_stream& target);
 void stream_close(const text_stream& target);
 
 } // namespace tx_generated

@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <filesystem>
 #include <limits>
+#include <share.h>
 #include <string>
 #include <vector>
 
@@ -67,15 +68,24 @@ std::filesystem::path stream_path(std::string_view value)
 
 } // namespace
 
-stream_file::stream_file(std::string_view path, stream_mode mode)
+stream_file::stream_file(std::string_view path, stream_mode mode, bool shared)
     : mode_(mode)
 {
     const auto native_path = stream_path(path);
     const wchar_t* native_mode = mode == stream_mode::read ? L"rb"
         : mode == stream_mode::write ? L"wb"
         : mode == stream_mode::append ? L"ab" : L"r+b";
-    const int status = _wfopen_s(&file_, native_path.c_str(), native_mode);
-    if (status != 0 || !file_)
+    int status = 0;
+    if (shared)
+    {
+        file_ = _wfsopen(native_path.c_str(), native_mode, _SH_DENYNO);
+        status = errno;
+    }
+    else
+    {
+        status = _wfopen_s(&file_, native_path.c_str(), native_mode);
+    }
+    if (!file_)
     {
         io_failure(system_error_code(status), "无法打开文件流：" +
             std::string(path));
@@ -231,20 +241,24 @@ void stream_file::close()
     }
     auto* closing = file_;
     file_ = nullptr;
+    locked_ = false;
     if (std::fclose(closing) != 0)
     {
         io_failure("operation_failed", "关闭文件流失败，写入可能未完成");
     }
 }
 
-binary_stream_state::binary_stream_state(std::string_view path, stream_mode mode)
-    : file(path, mode)
+binary_stream_state::binary_stream_state(std::string_view path, stream_mode mode,
+                                         bool shared)
+    : file(path, mode, shared)
 {
 }
 
-binary_stream open_binary_stream(std::string_view path, std::string_view mode)
+binary_stream open_binary_stream(std::string_view path, std::string_view mode,
+                                 bool shared)
 {
-    return std::make_shared<binary_stream_state>(path, parse_mode(mode, false));
+    return std::make_shared<binary_stream_state>(
+        path, parse_mode(mode, false), shared);
 }
 
 byte_chunk_value stream_read_bytes(const binary_stream& source, std::int64_t size)
@@ -298,6 +312,26 @@ std::int64_t stream_seek(const binary_stream& source, std::int64_t offset,
 void stream_flush(const binary_stream& target)
 {
     target->file.flush();
+}
+
+void stream_sync(const binary_stream& target)
+{
+    target->file.sync();
+}
+
+void stream_lock(const binary_stream& target, std::string_view mode)
+{
+    (void)target->file.lock(mode, true);
+}
+
+bool stream_try_lock(const binary_stream& target, std::string_view mode)
+{
+    return target->file.lock(mode, false);
+}
+
+void stream_unlock(const binary_stream& target)
+{
+    target->file.unlock();
 }
 
 void stream_close(const binary_stream& target)

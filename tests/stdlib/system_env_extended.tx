@@ -1,0 +1,63 @@
+import "system.txh" as system
+import "env.txh" as env
+import "error.txh" as errors
+
+def unknown_capability() -> bool
+{
+    try
+    {
+        system.has_capability("misspelled_capability")
+    }
+    exception errors.runtime_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def main() -> int
+{
+    if system.operating_system() != "windows" || system.architecture() != "x86_64"
+    {
+        return 1
+    }
+    if system.cpu_count() < 1 || system.process_id() < 1
+    {
+        return 1
+    }
+    if !system.has_capability("atomic_replace") || !system.has_capability("file_sync")
+    {
+        return 2
+    }
+    if !system.has_capability("file_lock") || !system.has_capability("file_watch")
+    {
+        return 2
+    }
+    if !system.has_capability("symlink") || !system.has_capability("process_spawn")
+    {
+        return 2
+    }
+    if !unknown_capability()
+    {
+        return 2
+    }
+    str name = "TX_ENV_SNAPSHOT_中文"
+    env.set(name, "快照值=1")
+    dict copy = env.snapshot()
+    if (copy[name] as str) != "快照值=1"
+    {
+        return 3
+    }
+    env.set(name, "新值")
+    if (copy[name] as str) != "快照值=1" || env.get(name) != "新值"
+    {
+        return 4
+    }
+    env.remove(name)
+    if (copy[name] as str) != "快照值=1" || env.contains(name)
+    {
+        return 5
+    }
+    print("SYSTEM_ENV_EXTENDED_OK")
+    return 0
+}

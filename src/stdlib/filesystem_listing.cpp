@@ -1,5 +1,7 @@
 #include "stdlib/encoding.hpp"
 #include "stdlib/filesystem_internal.hpp"
+#include "stdlib/filesystem_extended.hpp"
+#include "stdlib/error.hpp"
 #include "stdlib/stdlib.hpp"
 
 #include <algorithm>
@@ -62,6 +64,92 @@ std::vector<std::string> tx_fn_list_directory_vector(std::string path)
 std::vector<std::string> tx_fn_walk_directory(std::string path)
 {
     return detail::directory_names(path, true);
+}
+
+std::vector<std::string> fs_list_directory_filtered(
+    const std::string& path, const std::string& kind,
+    const std::string& extension, bool recursive)
+{
+    if (kind != "any" && kind != "file" && kind != "directory" &&
+        kind != "symlink")
+    {
+        throw runtime_failure({tx::error_kind::io, "invalid_argument",
+            "目录筛选类型只能是 any/file/directory/symlink"});
+    }
+    if (!extension.empty() && (extension.front() != '.' ||
+        extension.find_first_of("/\\") != std::string::npos))
+    {
+        throw runtime_failure({tx::error_kind::io, "invalid_argument",
+            "扩展名筛选应为空或带点后缀"});
+    }
+    const auto root = detail::checked_path(path);
+    std::error_code error;
+    std::vector<std::string> names;
+    const auto visit = [&](const std::filesystem::directory_entry& entry)
+    {
+        const auto status = entry.symlink_status(error);
+        if (error)
+        {
+            detail::fail_filesystem("筛选目录", path, error);
+        }
+        const auto type = status.type();
+        const bool matches = kind == "any" ||
+            (kind == "file" && type == std::filesystem::file_type::regular) ||
+            (kind == "directory" && type == std::filesystem::file_type::directory) ||
+            (kind == "symlink" && type == std::filesystem::file_type::symlink);
+        if (matches && (extension.empty() ||
+            detail::path_text(entry.path().extension()) == extension))
+        {
+            names.push_back(detail::path_text(entry.path().lexically_relative(root)));
+        }
+    };
+    if (recursive)
+    {
+        std::filesystem::recursive_directory_iterator item(root, error);
+        if (error)
+        {
+            detail::fail_filesystem("筛选目录", path, error);
+        }
+        const std::filesystem::recursive_directory_iterator end;
+        while (item != end)
+        {
+            visit(*item);
+            item.increment(error);
+            if (error)
+            {
+                detail::fail_filesystem("筛选目录", path, error);
+            }
+        }
+    }
+    else
+    {
+        std::filesystem::directory_iterator item(root, error);
+        if (error)
+        {
+            detail::fail_filesystem("筛选目录", path, error);
+        }
+        const std::filesystem::directory_iterator end;
+        while (item != end)
+        {
+            visit(*item);
+            item.increment(error);
+            if (error)
+            {
+                detail::fail_filesystem("筛选目录", path, error);
+            }
+        }
+    }
+    std::sort(names.begin(), names.end(),
+        [](const std::string& left, const std::string& right)
+        {
+            return std::lexicographical_compare(left.begin(), left.end(),
+                right.begin(), right.end(),
+                [](unsigned char first, unsigned char second)
+                {
+                    return first < second;
+                });
+        });
+    return names;
 }
 
 } // namespace tx_generated

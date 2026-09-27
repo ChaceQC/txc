@@ -18,7 +18,8 @@ bool is_builtin_name(const std::string& name)
            name == "assert_send" || name == "assert_sync" ||
            name == "cancel_source" || name == "cancel_token" ||
            name == "encoding_decoder" || name == "encoding_encoder" ||
-           name == "regex_pattern";
+           name == "regex_pattern" || name == "fs_watcher" ||
+           name == "process_child" || name == "process_pipe";
 }
 
 } // namespace
@@ -203,6 +204,9 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         type == value_type::encoding_decoder_type ||
         type == value_type::encoding_encoder_type ||
         type == value_type::regex_pattern_type ||
+        type == value_type::fs_watcher_type ||
+        type == value_type::process_child_type ||
+        type == value_type::process_pipe_type ||
         type == value_type::array_type || type == value_type::dict_type ||
         type == value_type::any_type || type == value_type::none_type ||
         structs_.contains(type.name) || classes_.contains(type.name))

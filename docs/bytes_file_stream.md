@@ -135,6 +135,18 @@ struct line_result
 - 异常离开作用域时，`deinit` 负责释放资源，但清理错误不应覆盖原始错误；需要可靠获知写入失败应显式 `flush`、`close`。关闭失败仍应标记流不可继续使用，避免重复写入。
 - 无论手动关闭、正常析构、循环回收或错误退出，原生句柄最多关闭一次。循环引用可能推迟 `deinit`，因此长时间运行的程序要在使用后及时 `close`。
 
+## 7.3 整文件二进制、原子替换与文件锁
+
+`file.txh` 增加 `read_bytes(path) -> bytes`、`write_bytes(path, data)`、`atomic_write_bytes(path, data)` 和 `atomic_write_text(path, text, encoding)`。整文件读取适合可放入内存的小文件；大文件继续使用分块流。普通 `write_bytes` 创建或清空文件，写入失败可能留下前缀。文本原子写入先按现有编码规则完整编码，编码失败不改动目标。
+
+两个原子写入接口在目标目录内用不可预测名称、排他创建临时文件，完整写入并刷新该文件，再用同卷重命名替换目标。提交前失败会尝试删除临时文件，目标保持原样；失败时绝不报告成功。替换成功后，新打开的读者看到完整新文件，已打开的句柄仍可能看到旧内容。目录、共享模式、权限、链接或文件系统不支持替换时返回 `io_error`，不回退为复制覆盖；替换可能改变目标的原有权限、属性和文件标识。临时文件与目标同目录，因而正常路径不跨卷；符号链接目标被替换的是目录项本身，不能把路径检查当作安全边界。文件内容在替换前显式刷新，但 Windows 不提供本接口可确认的目录元数据持久化承诺；断电后不能保证替换记录已落盘。
+
+`file_stream.txh` 增加 `sync(binary_stream/text_stream)`、`open_binary_shared(path, mode) -> binary_stream`、`lock(binary_stream, mode)`、`try_lock(binary_stream, mode) -> bool` 和 `unlock(binary_stream)`。原 `open_binary` 的系统共享打开行为保持不变；协作进程或多个句柄要参与文件锁时使用 `open_binary_shared`。共享打开不改变 TX 流对象的别名和游标语义，同一流状态的操作仍不提供跨线程并发保证。`flush` 只刷新 C 运行时缓冲；`sync` 再调用系统的文件缓冲刷新，要求可写流，成功表示系统已接受持久化请求，不保证磁盘硬件或远端存储在断电后仍保留数据。`mode` 只接受 `shared` 或 `exclusive`：共享锁要求可读流，独占锁要求可写流；锁住当前文件的整个字节范围。`lock` 等待其他协作方释放，`try_lock` 遇到锁冲突返回 `false`，其他故障抛错。一个流状态最多持有一把锁，别名共享锁状态；重复加锁和无锁解锁报 `io_error/invalid_state`。关闭流自动释放锁，关闭后锁操作报 `io_error/closed_stream`。锁只约束遵守同机锁协议的访问者，不提供事务、跨机器互斥或线程同步；关闭、崩溃与进程退出均由系统释放锁。
+
+新接口使用 `io_error`，并按情况给出 `not_found`、`permission_denied`、`invalid_path`、`invalid_encoding`、`invalid_mode`、`closed_stream`、`invalid_state`、`size_limit`、`operation_failed`。普通写入和 `sync` 失败时内容可能已部分写入；原子写入提交失败时极端外部故障下应重新读取目标确认结果。`sync` 不替代原子替换，原子替换也不替代应用层锁和事务。
+
+原来 `file.write_text("配置.txt", content, "utf-8")` 适合允许目标在失败时出现部分更新的场景；需要完整替换时改用 `file.atomic_write_text("配置.txt", content, "utf-8")`。已有流写入的 `flush` 只交出进程内缓冲；需要请求操作系统持久化时，在写入后调用 `file_stream.sync(writer)`，再显式 `close(writer)`。锁的典型流程是先用 `file_stream.open_binary_shared(path, "update")` 打开，再在 `file_stream.try_lock(writer, "exclusive")` 成功后写入，最后调用 `unlock(writer)` 或 `close(writer)`；整个流程的异常路径仍须确保关闭流。
+
 ## 与网络模块的关系和实施顺序
 
 [网络模块](network.md)提供文本、`bytes` 和文件流三套接口：`httpx.send_bytes`、二进制请求/响应，`websocket.send_binary/receive_binary`，以及 HTTP/1.1、HTTP/2 和 WebSocket 的 `binary_stream` 分块接口。原有文本接口仍要求有效 UTF-8，整条正文或消息的内存接口仍限 8 MiB。流式接口从源流当前位置按长度读入、向目标流逐块写出，调用方设置接收上限；网络同步读写提供背压。发生错误后目标文件可能保留已写入的前缀，网络调用不替调用方关闭或回滚文件流。完整签名与限制见网络模块说明。

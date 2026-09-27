@@ -358,6 +358,11 @@ void stream_flush(const text_stream& target)
     target->file.flush();
 }
 
+void stream_sync(const text_stream& target)
+{
+    target->file.sync();
+}
+
 void stream_close(const text_stream& target)
 {
     target->file.close();

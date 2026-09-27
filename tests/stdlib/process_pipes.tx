@@ -1,0 +1,146 @@
+import "process.txh" as process
+import "system.txh" as system
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "cancel.txh" as cancel
+import "error.txh" as errors
+import "test.txh" as test
+
+def options(helper: str, mode: str) -> process.options
+{
+    return process.make_options(helper, vector<str>([mode]))
+}
+
+def capture(helper: str) -> void
+{
+    bytes input = byte_values.from_vector(vector<int>(262144, 120))
+    auto limits = process.make_limits(input, 10000, 1048576)
+    auto result = process.run(options(helper, "flood"), limits)
+    test.assert_equal("completed", result.reason)
+    test.assert_equal(0, result.status.exit_code)
+    test.assert_equal(262144, result.input_written)
+    test.assert_equal(524288, len(result.stdout))
+    test.assert_equal(262144, len(result.stderr))
+    test.assert_true(byte_values.slice(result.stdout, 262144, 524288) == input)
+    test.assert_equal("oooo", encoding.decode(byte_values.slice(result.stdout, 0, 4), "utf-8"))
+    test.assert_equal("eeee", encoding.decode(byte_values.slice(result.stderr, 0, 4), "utf-8"))
+    process.close(result.child)
+
+    auto empty = process.make_limits(byte_values.empty(), 5000, 3)
+    auto binary = process.run(options(helper, "binary"), empty)
+    test.assert_equal("completed", binary.reason)
+    test.assert_equal("0001ff", byte_values.to_hex(binary.stdout))
+    process.close(binary.child)
+    empty.max_output_bytes = 0
+    auto no_output = process.run(options(helper, "exit"), empty)
+    test.assert_equal("completed", no_output.reason)
+    test.assert_equal(37, no_output.status.exit_code)
+    process.close(no_output.child)
+}
+
+def streaming(helper: str) -> void
+{
+    auto child = process.spawn(options(helper, "binary"))
+    auto input = process.stdin_pipe(child)
+    process.close_pipe(input)
+    process.close_pipe(input)
+    auto output = process.stdout_pipe(child)
+    array saved = [output]
+    process_pipe alias = saved[0] as process_pipe
+    auto chunk = process.read_pipe(alias, 64, 5000)
+    test.assert_equal("data", chunk.state)
+    test.assert_equal("0001ff", byte_values.to_hex(chunk.data))
+    test.assert_equal("eof", process.read_pipe(output, 64, 5000).state)
+    test.assert_equal("exited", process.wait(child, 5000).state)
+    process.close(child)
+    bool closed = false
+    try
+    {
+        process.read_pipe(alias, 1, 0)
+    }
+    exception errors.process_error as e
+    {
+        closed = e.code == "invalid_state"
+    }
+    test.assert_true(closed)
+
+    auto sleeper = process.spawn(options(helper, "sleep"))
+    test.assert_equal("timeout", process.read_pipe(process.stdout_pipe(sleeper), 8, 5).state)
+    bytes large = byte_values.from_vector(vector<int>(1048576, 97))
+    auto written = process.write_pipe(process.stdin_pipe(sleeper), large, 500)
+    test.assert_equal("written", written.state)
+    test.assert_true(written.written > 0 && written.written < len(large))
+    auto full = process.write_pipe(process.stdin_pipe(sleeper), large, 5)
+    int total = written.written
+    while full.state == "written" && total < len(large)
+    {
+        total += full.written
+        full = process.write_pipe(process.stdin_pipe(sleeper), large, 5)
+    }
+    test.assert_equal("timeout", full.state)
+    test.assert_equal(0, full.written)
+    process.kill(sleeper)
+    process.wait(sleeper, 5000)
+    process.close(sleeper)
+}
+
+def stopping(helper: str) -> void
+{
+    auto limits = process.make_limits(byte_values.empty(), 10, 1024)
+    auto kept = process.run(options(helper, "sleep"), limits)
+    test.assert_equal("timeout", kept.reason)
+    test.assert_equal("running", kept.status.state)
+    test.assert_equal("running", process.try_wait(kept.child).state)
+    process.kill(kept.child)
+    process.wait(kept.child, 5000)
+    process.close(kept.child)
+
+    limits.stop_action = "kill"
+    auto killed = process.run(options(helper, "sleep"), limits)
+    test.assert_equal("timeout", killed.reason)
+    test.assert_equal("terminated", killed.status.state)
+    process.close(killed.child)
+
+    limits.timeout_ms = 5000
+    limits.max_output_bytes = 4096
+    auto bounded = process.run(options(helper, "flood"), limits)
+    test.assert_equal("output_limit", bounded.reason)
+    test.assert_equal(4096, len(bounded.stdout) + len(bounded.stderr))
+    test.assert_equal("terminated", bounded.status.state)
+    process.close(bounded.child)
+
+    auto deadline = cancel.with_deadline_ms(100)
+    auto cancelled = process.run_with_cancel(options(helper, "sleep"), limits, cancel.token(deadline))
+    test.assert_equal("deadline_exceeded", cancelled.reason)
+    test.assert_equal("terminated", cancelled.status.state)
+    process.close(cancelled.child)
+
+    bool pre_cancelled = false
+    try
+    {
+        process.run_with_cancel(options(helper, "exit"), limits, cancel.token(deadline))
+    }
+    exception errors.cancelled_error as e
+    {
+        pre_cancelled = e.code == "deadline_exceeded"
+    }
+    test.assert_true(pre_cancelled)
+    limits.stop_action = "terminate"
+    limits.timeout_ms = 5
+    auto unsupported = process.run(options(helper, "sleep"), limits)
+    test.assert_equal("terminate_failed", unsupported.reason)
+    test.assert_equal("running", unsupported.status.state)
+    process.kill(unsupported.child)
+    process.wait(unsupported.child, 5000)
+    process.close(unsupported.child)
+}
+
+def main() -> int
+{
+    str helper = system.args()[0]
+    capture(helper)
+    streaming(helper)
+    stopping(helper)
+    print("PROCESS_PIPES_OK")
+    return 0
+}

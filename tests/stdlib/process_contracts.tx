@@ -1,0 +1,62 @@
+import "process.txh" as process
+import "system.txh" as system
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "test.txh" as test
+
+def rejected(config: process.options) -> bool
+{
+    try
+    {
+        auto child = process.spawn(config)
+        process.kill(child)
+        process.wait(child, 5000)
+        process.close(child)
+    }
+    exception errors.process_error as e
+    {
+        return e.code == "invalid_argument"
+    }
+    return false
+}
+
+def main() -> int
+{
+    str helper = system.args()[0]
+    auto config = process.make_options(helper, vector<str>(["exit"]))
+    config.env.push_back("missing-equals")
+    test.assert_true(rejected(config))
+    config.env.clear()
+    config.args.push_back(encoding.decode(byte_values.from_hex("00"), "utf-8"))
+    test.assert_true(rejected(config))
+    config.args = vector<str>(["exit"])
+    config.stdout_mode = "invalid-mode"
+    test.assert_true(rejected(config))
+    config.stdout_mode = "pipe"
+    config.executable = "implicit.cmd"
+    test.assert_true(rejected(config))
+    config.executable = helper
+
+    auto limits = process.make_limits(byte_values.empty(), 5000, -1)
+    bool limited = false
+    try
+    {
+        process.run(config, limits)
+    }
+    exception errors.process_error as e
+    {
+        limited = e.code == "invalid_argument"
+    }
+    test.assert_true(limited)
+    config.args = vector<str>(["close_input"])
+    limits.max_output_bytes = 32
+    limits.input = byte_values.from_vector(vector<int>(1048576, 97))
+    auto closed = process.run(config, limits)
+    test.assert_equal("completed", closed.reason)
+    test.assert_equal(0, closed.status.exit_code)
+    test.assert_true(closed.input_written < len(limits.input))
+    process.close(closed.child)
+    print("PROCESS_CONTRACTS_OK")
+    return 0
+}

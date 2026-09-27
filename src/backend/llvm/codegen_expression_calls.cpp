@@ -17,6 +17,7 @@ bool supported_external_call(std::string_view name)
            name.starts_with("debug.") ||
            name == "error.fail_io" || name == "error.stack_trace" ||
            name.starts_with("cancel.") ||
+           name.starts_with("process.") ||
            name.starts_with("time.") ||
            name == "io.write" || name == "io.write_line" ||
            name == "io.write_error" || name == "io.flush" ||
@@ -39,6 +40,9 @@ bool supported_external_call(std::string_view name)
            name == "file.try_read_text" || name == "file.try_write_text" ||
            name == "file.try_append_text" || name == "file.read_text" ||
            name == "file.write_text" || name == "file.append_text" ||
+           name == "file.read_bytes" || name == "file.write_bytes" ||
+           name == "file.atomic_write_bytes" ||
+           name == "file.atomic_write_text" ||
            name == "bytes.empty" || name == "bytes.from_vector" ||
            name == "bytes.to_vector" || name == "bytes.concat" ||
            name == "bytes.slice" || name == "bytes.to_hex" ||
@@ -50,11 +54,15 @@ bool supported_external_call(std::string_view name)
            name == "bytes.to_base64_chunk" ||
            name.starts_with("encoding.") ||
            name == "file_stream.open_binary" ||
+           name == "file_stream.open_binary_shared" ||
            name == "file_stream.read_bytes" ||
            name == "file_stream.read_all_bytes" ||
            name == "file_stream.write_bytes" ||
            name == "file_stream.tell" || name == "file_stream.seek" ||
            name == "file_stream.flush" || name == "file_stream.close" ||
+           name == "file_stream.sync" || name == "file_stream.lock" ||
+           name == "file_stream.try_lock" ||
+           name == "file_stream.unlock" ||
            name == "file_stream.open_text" ||
            name == "file_stream.read_chars" ||
            name == "file_stream.read_line" ||
@@ -76,25 +84,19 @@ bool supported_external_call(std::string_view name)
            name == "dictionary.remove" || name == "dictionary.keys" ||
            name == "dictionary.values" || name == "dictionary.clear" ||
            name == "dictionary.items" ||
-           name == "fs.exists" || name == "fs.is_file" ||
-           name == "fs.is_directory" ||
-           name == "fs.create_directories" ||
-           name == "fs.list_directory" ||
-           name == "fs.list_directory_vector" || name == "fs.walk_directory" ||
-           name == "fs.copy_file" || name == "fs.rename" ||
-           name == "fs.remove" || name == "fs.remove_all" ||
-           name == "fs.file_size" || name == "fs.modified_millis" ||
-           name == "path.join" || name == "path.parent" ||
-           name == "path.file_name" || name == "path.extension" ||
-           name == "path.normalize" || name == "path.is_absolute" ||
-           name == "path.absolute" || name == "path.relative" ||
-           name == "path.replace_extension" ||
+           name.starts_with("fs.") || name.starts_with("path.") ||
            name == "system.args" || name == "system.current_directory" ||
            name == "system.set_current_directory" ||
            name == "system.executable_path" || name == "system.temp_directory" ||
            name == "system.home_directory" ||
+           name == "system.operating_system" ||
+           name == "system.architecture" ||
+           name == "system.cpu_count" ||
+           name == "system.process_id" ||
+           name == "system.has_capability" ||
            name == "env.contains" || name == "env.get" ||
            name == "env.set" || name == "env.remove" ||
+           name == "env.snapshot" ||
            name == "time.unix_millis" ||
            name == "time.monotonic_millis" ||
            name == "time.monotonic_micros" ||

@@ -12,6 +12,10 @@
 
 不透明内置类型 `cancel_source` 与 `cancel_token` 分别表示取消权与只读观察权，只能由 `cancel.txh` 的函数创建或取得。令牌与单调截止时间、阻塞等待及跨模块传递规则见[取消令牌与截止时间](cancellation.md)。
 
+不透明内置类型 `fs_watcher` 只能由 `fs.watch` 创建。普通赋值共享同一监视状态，`fs.close_watch` 使所有别名失效，`deep_copy` 不复制监视器；监视器当前不满足 `Send/Sync`。接口与资源清理规则见[文件系统与路径扩展](filesystem_path.md#71-文件系统元信息筛选与监视)，用法见[定向示例](../tests/stdlib/filesystem_path_extended.tx)。
+
+不透明内置类型 `process_child` 与 `process_pipe` 只能由 `process.txh` 取得，普通赋值及从 `any` 显式恢复共享同一状态；禁止手工构造、`deep_copy` 和未经证明的跨线程传递。进程关闭使父侧管道别名失效，等待成功缓存退出状态且仍可读完输出。接口与失败语义见[子进程与管道](process.md)，用法见[process.tx](../examples/process.tx)。
+
 `assert_send(value)` 与 `assert_sync(value)` 在编译期检查跨线程传递/共享的基础类型规则，并在运行时正常求值该实参；当前不启动线程。可证明类型及尚未完成的唯一移动与同步封装边界见[Send/Sync 规则](send_sync.md)。
 
 `map<K, V>`、`set<T>`、`ordered_map<K, V>`、`ordered_set<T>`、`heap<T>`、`queue<T>`、`deque<T>` 的类型参数、接口、共享和快照遍历规则见[类型化容器](typed_containers.md)。这些类型在变量、函数及 `.txh` 签名、struct/class 字段中保留完整静态类型。`entry<K, V>` 是映射条目快照的内置只读值类型，字段为 `key: K` 和 `value: V`，不能自行构造或修改字段。`deque<T>` 与 `vector<T>` 使用相同的具体元素类型规则，支持整数下标读写；两端增删为 O(1)，中间插入/删除为 O(n)。普通函数的静态函数类型及作为参数传递的规则见[函数值与函数参数](function_values.md)。

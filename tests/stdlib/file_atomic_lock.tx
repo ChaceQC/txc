@@ -1,0 +1,129 @@
+import "bytes.txh" as byte_values
+import "error.txh" as errors
+import "file.txh" as file
+import "file_stream.txh" as streams
+
+def invalid_atomic_encoding() -> bool
+{
+    try
+    {
+        file.atomic_write_text("原子 文本.txt", "新内容", "not-an-encoding")
+    }
+    exception errors.io_error as e
+    {
+        return e.code == "invalid_encoding"
+    }
+    return false
+}
+
+def invalid_lock_mode(source: binary_stream) -> bool
+{
+    try
+    {
+        streams.try_lock(source, "bad")
+    }
+    exception errors.io_error as e
+    {
+        return e.code == "invalid_mode"
+    }
+    return false
+}
+
+def duplicate_lock(source: binary_stream) -> bool
+{
+    try
+    {
+        streams.lock(source, "exclusive")
+    }
+    exception errors.io_error as e
+    {
+        return e.code == "invalid_state"
+    }
+    return false
+}
+
+def readonly_sync(source: binary_stream) -> bool
+{
+    try
+    {
+        streams.sync(source)
+    }
+    exception errors.io_error as e
+    {
+        return e.code == "invalid_mode"
+    }
+    return false
+}
+
+def main() -> int
+{
+    bytes first = byte_values.from_hex("0001ff")
+    bytes second = byte_values.from_hex("ff0080")
+    file.write_bytes("原子 数据.bin", first)
+    if file.read_bytes("原子 数据.bin") != first
+    {
+        return 1
+    }
+    file.atomic_write_bytes("原子 数据.bin", second)
+    if file.read_bytes("原子 数据.bin") != second
+    {
+        return 2
+    }
+    file.atomic_write_bytes("新建.bin", first)
+    if file.read_bytes("新建.bin") != first
+    {
+        return 3
+    }
+    file.atomic_write_text("原子 文本.txt", "旧内容", "utf-8")
+    if !invalid_atomic_encoding() || file.read_text("原子 文本.txt", "utf-8") != "旧内容"
+    {
+        return 4
+    }
+    file.atomic_write_text("原子 文本.txt", "新内容", "utf-8")
+    if file.read_text("原子 文本.txt", "utf-8") != "新内容"
+    {
+        return 5
+    }
+
+    binary_stream first_handle = streams.open_binary_shared("原子 数据.bin", "update")
+    binary_stream second_handle = streams.open_binary_shared("原子 数据.bin", "update")
+    streams.sync(first_handle)
+    streams.lock(first_handle, "exclusive")
+    binary_stream alias = first_handle
+    if !duplicate_lock(alias) || !invalid_lock_mode(second_handle)
+    {
+        return 6
+    }
+    if streams.try_lock(second_handle, "exclusive")
+    {
+        return 7
+    }
+    streams.unlock(alias)
+    if !streams.try_lock(second_handle, "exclusive")
+    {
+        return 8
+    }
+    streams.close(second_handle)
+    if !streams.try_lock(first_handle, "shared")
+    {
+        return 9
+    }
+    streams.close(first_handle)
+
+    binary_stream reader = streams.open_binary("原子 数据.bin", "read")
+    if !readonly_sync(reader)
+    {
+        return 10
+    }
+    streams.close(reader)
+    text_stream writer = streams.open_text("同步.txt", "write", "utf-8")
+    streams.write_text(writer, "写入")
+    streams.sync(writer)
+    streams.close(writer)
+    if file.read_text("同步.txt", "utf-8") != "写入"
+    {
+        return 11
+    }
+    print("FILE_ATOMIC_LOCK_OK")
+    return 0
+}

@@ -1,0 +1,193 @@
+import "fs.txh" as fs
+import "path.txh" as path
+import "file.txh" as file
+import "error.txh" as errors
+
+def expect(condition: bool, label: str) -> void
+{
+    if !condition
+    {
+        print("FAIL", label)
+        print(1 / 0)
+    }
+}
+
+def check_metadata_and_watch() -> void
+{
+    fs.create_directories("中文 空格")
+    file.write_text("中文 空格/记录.tx", "你好", "utf-8")
+    auto info = fs.stat("中文 空格/记录.tx")
+    expect(info.kind == "file" && info.size == 6, "stat size")
+    expect(info.created_millis > 0 && info.modified_millis > 0, "stat time")
+    fs.set_permissions("中文 空格/记录.tx", 292)
+    expect(fs.stat("中文 空格/记录.tx").permissions == 292, "readonly")
+    fs.set_permissions("中文 空格/记录.tx", 438)
+    expect(fs.stat("中文 空格/记录.tx").permissions == 438, "writable")
+    int invalid_permissions = 0
+    try
+    {
+        fs.set_permissions("中文 空格/记录.tx", 7)
+    }
+    exception errors.io_error as failure
+    {
+        expect(failure.code == "invalid_argument", "permission code")
+        invalid_permissions = 1
+    }
+    expect(invalid_permissions == 1, "invalid permission rejected")
+    int missing = 0
+    try
+    {
+        print(fs.stat("中文 空格/缺失.txt").kind)
+    }
+    exception errors.io_error as failure
+    {
+        expect(failure.code == "not_found", "missing stat code")
+        missing = 1
+    }
+    expect(missing == 1, "missing stat")
+    fs.create_directories("中文 空格/子目录")
+    file.write_text("中文 空格/子目录/另一个.tx", "x", "utf-8")
+    auto selected = fs.list_directory_filtered("中文 空格", "file", ".tx", true)
+    expect(selected.size() == 2 && selected[0] == "子目录/另一个.tx" &&
+           selected[1] == "记录.tx", "filtered sorted")
+    if fs.exists("中文 空格/新增.txt")
+    {
+        fs.remove("中文 空格/新增.txt")
+    }
+    if fs.exists("中文 空格/子目录/深层.txt")
+    {
+        fs.remove("中文 空格/子目录/深层.txt")
+    }
+    auto watcher = fs.watch("中文 空格", false)
+    expect(fs.watch_next(watcher, 0).kind == "timeout", "watch timeout")
+    file.write_text("中文 空格/新增.txt", "event", "utf-8")
+    auto event = fs.watch_next(watcher, 5000)
+    expect(event.kind == "created" && event.path == "新增.txt", "watch event")
+    auto alias = watcher
+    fs.close_watch(alias)
+    fs.close_watch(watcher)
+    int caught = 0
+    try
+    {
+        print(fs.watch_next(watcher, 0).kind)
+    }
+    exception errors.io_error as failure
+    {
+        expect(failure.code == "closed_handle", "watch closed code")
+        caught = 1
+    }
+    expect(caught == 1, "watch closed")
+    auto recursive = fs.watch("中文 空格", true)
+    file.write_text("中文 空格/子目录/深层.txt", "x", "utf-8")
+    auto nested = fs.watch_next(recursive, 5000)
+    expect(nested.kind == "created" && nested.path == "子目录/深层.txt",
+           "recursive watch")
+    fs.close_watch(recursive)
+    print("FS_METADATA_WATCH_OK")
+}
+
+def check_symlink() -> void
+{
+    fs.create_directories("中文 空格")
+    file.write_text("中文 空格/目标.txt", "target", "utf-8")
+    for name in fs.list_directory_filtered("中文 空格", "symlink", "", false)
+    {
+        if name == "链接.txt"
+        {
+            fs.remove("中文 空格/链接.txt")
+        }
+    }
+    bool created = false
+    try
+    {
+        fs.create_symlink("目标.txt", "中文 空格/链接.txt", false)
+        created = true
+    }
+    exception errors.io_error as failure
+    {
+        expect(failure.code == "permission_denied", "symlink permission code")
+    }
+    if !created
+    {
+        print("FS_SYMLINK_CREATE_PERMISSION_DENIED")
+        return
+    }
+    expect(fs.read_symlink("中文 空格/链接.txt") == "目标.txt", "read link")
+    expect(fs.lstat("中文 空格/链接.txt").kind == "symlink", "lstat link")
+    expect(fs.stat("中文 空格/链接.txt").size == 6, "stat follows")
+    fs.remove("中文 空格/目标.txt")
+    expect(fs.lstat("中文 空格/链接.txt").kind == "symlink", "broken lstat")
+    int caught = 0
+    try
+    {
+        print(fs.stat("中文 空格/链接.txt").kind)
+    }
+    exception errors.io_error as failure
+    {
+        expect(failure.code == "not_found", "broken stat code")
+        caught = 1
+    }
+    expect(caught == 1, "broken stat")
+    print("FS_SYMLINK_OK")
+}
+
+def check_existing_junction() -> void
+{
+    # Windows 标准目录联接用于当前无创建链接权限的机器，只验证读取路径。
+    str junction = "C:/Users/All Users"
+    expect(fs.lstat(junction).kind == "symlink", "junction lstat")
+    expect(fs.stat(junction).kind == "directory", "junction stat")
+    expect(fs.read_symlink(junction) != "", "junction target")
+    print("FS_EXISTING_JUNCTION_OK")
+}
+
+def check_path() -> void
+{
+    fs.create_directories("中文 空格/子目录")
+    file.write_text("中文 空格/子目录/记录.tx", "a", "utf-8")
+    str actual = path.canonical("中文 空格/子目录/../子目录/记录.tx")
+    expect(path.equivalent(actual, "中文 空格/子目录/记录.tx"), "canonical")
+    expect(path.weakly_canonical("中文 空格/子目录/../新的.txt") ==
+           path.join(path.canonical("中文 空格"), "新的.txt"), "weak canonical")
+    expect(path.root_name(actual) != "" && path.root_directory(actual) == "/",
+           "root parts")
+    expect(path.root_path(actual) == path.root_name(actual) + "/", "root path")
+    expect(path.file_name(actual) == "记录.tx" && path.stem(actual) == "记录" &&
+           path.extension(actual) == ".tx", "name parts")
+    expect(path.compare("C:/目录/../ABC.tx", "c:/abc.tx") == 0,
+           "platform compare")
+    int caught = 0
+    try
+    {
+        print(path.canonical("中文 空格/缺失.txt"))
+    }
+    exception errors.io_error as failure
+    {
+        expect(failure.code == "not_found", "canonical missing code")
+        caught = 1
+    }
+    expect(caught == 1, "canonical missing")
+    print("PATH_EXTENDED_OK")
+}
+
+def main() -> int
+{
+    int mode = input() as int
+    if mode == 0
+    {
+        check_metadata_and_watch()
+    }
+    else if mode == 1
+    {
+        check_symlink()
+    }
+    else if mode == 2
+    {
+        check_path()
+    }
+    else
+    {
+        check_existing_junction()
+    }
+    return 0
+}

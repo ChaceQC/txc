@@ -11,3 +11,29 @@ def remove(path: str) -> bool
 def remove_all(path: str) -> int
 def file_size(path: str) -> int
 def modified_millis(path: str) -> int
+
+struct file_info
+{
+    kind: str
+    size: int
+    permissions: int
+    created_millis: int
+    accessed_millis: int
+    modified_millis: int
+}
+
+struct watch_event
+{
+    kind: str
+    path: str
+}
+
+def stat(path: str) -> file_info
+def lstat(path: str) -> file_info
+def set_permissions(path: str, permissions: int) -> void
+def create_symlink(target: str, link_path: str, directory: bool) -> void
+def read_symlink(path: str) -> str
+def list_directory_filtered(path: str, kind: str, extension: str, recursive: bool) -> vector<str>
+def watch(path: str, recursive: bool) -> fs_watcher
+def watch_next(watcher: fs_watcher, timeout_millis: int) -> watch_event
+def close_watch(watcher: fs_watcher) -> void

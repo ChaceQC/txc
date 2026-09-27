@@ -13,6 +13,8 @@
 #include "stdlib/file_stream.hpp"
 #include "stdlib/encoding_incremental.hpp"
 #include "stdlib/regex.hpp"
+#include "stdlib/filesystem_watch.hpp"
+#include "stdlib/process.hpp"
 
 #include <any>
 #include <stdexcept>
@@ -279,6 +281,12 @@ extern "C" int txrt_value_require_type(const void* value,
                 typeid(tx_generated::encoding_encoder)) ||
             (type == "regex_pattern" && item.type() ==
                 typeid(tx_generated::regex_pattern)) ||
+            (type == "fs_watcher" && item.type() ==
+                typeid(tx_generated::fs_watcher)) ||
+            (type == "process_child" && item.type() ==
+                typeid(tx_generated::process_child)) ||
+            (type == "process_pipe" && item.type() ==
+                typeid(tx_generated::process_pipe)) ||
             tx_generated::vector_matches(item, type) ||
             (item.type() == typeid(tx_generated::tx_iterator) &&
              type == "iterator<" +

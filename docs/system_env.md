@@ -39,6 +39,18 @@
 
 `get` 的两个重载返回静态 `str`。缺失、合法空值和操作失败分别由默认值/严格查询错误、空字符串和运行错误表示，不将它们混成同一个 none。`default_value` 与其他实参一样正常求值，不是延迟回调。设置和删除只影响当前进程及此后继承其环境的子进程，不修改父进程或系统持久配置；接口不提供跨调用的原子事务。
 
+## 7.4 系统信息、环境快照与能力
+
+`system.operating_system() -> str` 在当前 Windows 后端返回 `windows`；`architecture() -> str` 返回生成程序的目标架构 `x86_64`；`cpu_count() -> int` 返回系统当前活动的逻辑处理器数；`process_id() -> int` 返回当前进程 ID。处理器数可能随系统配置变化，不等于可独占使用的核心数。
+
+`system.has_capability(name: str) -> bool` 查询本发行物已接通的能力。已定义名称为 `atomic_replace`、`file_sync`、`file_lock`、`file_watch`、`symlink`、`process_spawn`；这六项均返回 `true`，子进程入口见[子进程与管道](process.md)。`true` 只表示此平台和发行物提供入口，不表示当前路径、权限、文件系统或执行环境允许这次操作；未知名称报 `runtime_error/invalid_argument`，避免拼写错误被当成不支持。
+
+`env.snapshot() -> dict` 一次复制当前进程的普通环境变量，键和值都是 `str`，允许用 `as str` 显式取值。Windows 隐藏的 `=盘符:` 工作目录条目不属于普通环境变量，会被排除。返回字典按现有字典规则区分大小写，实时 `env.get/contains` 仍按 Windows 环境变量规则查询；快照之后的 `env.set/remove` 不改变旧快照，其他线程或外部代码同时修改进程环境时不承诺跨所有变量的事务一致性。快照可能包含凭据，调用方应避免整表打印或写入日志。
+
+`system.set_current_directory` 和 `env.set/remove` 修改进程全局状态；并发代码需自行串行化相关读写，且调用外部库或启动子进程时应明确状态时点。7.4 的查询接口不改变这些全局状态。
+
+例如 `dict before = env.snapshot()` 可保留当前环境用于比较，随后 `env.set("TX_MODE", "test")` 不会更改 `before`。需要当前值时仍调用 `env.get("TX_MODE")`；不要把快照作为实时视图。
+
 ## 示例
 
 见 [system_env.tx](../examples/system_env.tx)：

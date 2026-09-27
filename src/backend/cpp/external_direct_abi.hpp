@@ -82,6 +82,11 @@ int txrt_file_write_text(const void* path, const void* text,
                           const void* encoding) noexcept;
 int txrt_file_append_text(const void* path, const void* text,
                            const void* encoding) noexcept;
+int txrt_file_read_bytes(const void* path, void** result) noexcept;
+int txrt_file_write_bytes(const void* path, const void* data) noexcept;
+int txrt_file_atomic_write_bytes(const void* path, const void* data) noexcept;
+int txrt_file_atomic_write_text(const void* path, const void* text,
+                                const void* encoding) noexcept;
 
 int txrt_fs_exists(const void* path, bool* result) noexcept;
 int txrt_fs_is_file(const void* path, bool* result) noexcept;
@@ -96,6 +101,18 @@ int txrt_fs_remove(const void* path, bool* result) noexcept;
 int txrt_fs_remove_all(const void* path, std::int64_t* result) noexcept;
 int txrt_fs_file_size(const void* path, std::int64_t* result) noexcept;
 int txrt_fs_modified_millis(const void* path, std::int64_t* result) noexcept;
+int txrt_fs_stat(const void* path, const char* type_name, void** result) noexcept;
+int txrt_fs_lstat(const void* path, const char* type_name, void** result) noexcept;
+int txrt_fs_set_permissions(const void* path, std::int64_t permissions) noexcept;
+int txrt_fs_create_symlink(const void* target, const void* link_path,
+                           bool directory) noexcept;
+int txrt_fs_read_symlink(const void* path, void** result) noexcept;
+int txrt_fs_list_directory_filtered(const void* path, const void* kind,
+    const void* extension, bool recursive, void** result) noexcept;
+int txrt_fs_watch(const void* path, bool recursive, void** result) noexcept;
+int txrt_fs_watch_next(const void* watcher, std::int64_t timeout_millis,
+    const char* type_name, void** result) noexcept;
+int txrt_fs_close_watch(const void* watcher) noexcept;
 int txrt_path_join(const void* left, const void* right,
                     void** result) noexcept;
 int txrt_path_parent(const void* path, void** result) noexcept;
@@ -107,6 +124,16 @@ int txrt_path_absolute(const void* path, void** result) noexcept;
 int txrt_path_relative(const void* path, const void* base, void** result) noexcept;
 int txrt_path_replace_extension(const void* path, const void* extension,
                                  void** result) noexcept;
+int txrt_path_canonical(const void* path, void** result) noexcept;
+int txrt_path_weakly_canonical(const void* path, void** result) noexcept;
+int txrt_path_root_name(const void* path, void** result) noexcept;
+int txrt_path_root_directory(const void* path, void** result) noexcept;
+int txrt_path_root_path(const void* path, void** result) noexcept;
+int txrt_path_stem(const void* path, void** result) noexcept;
+int txrt_path_compare(const void* left, const void* right,
+    std::int64_t* result) noexcept;
+int txrt_path_equivalent(const void* left, const void* right,
+    bool* result) noexcept;
 
 int txrt_system_initialize() noexcept;
 int txrt_system_args(void** result) noexcept;
@@ -115,12 +142,18 @@ int txrt_system_set_current_directory(const void* path) noexcept;
 int txrt_system_executable_path(void** result) noexcept;
 int txrt_system_temp_directory(void** result) noexcept;
 int txrt_system_home_directory(void** result) noexcept;
+int txrt_system_operating_system(void** result) noexcept;
+int txrt_system_architecture(void** result) noexcept;
+int txrt_system_cpu_count(std::int64_t* result) noexcept;
+int txrt_system_process_id(std::int64_t* result) noexcept;
+int txrt_system_has_capability(const void* name, bool* result) noexcept;
 int txrt_env_contains(const void* name, bool* result) noexcept;
 int txrt_env_get(const void* name, void** result) noexcept;
 int txrt_env_get_default(const void* name, const void* default_value,
                           void** result) noexcept;
 int txrt_env_set(const void* name, const void* value) noexcept;
 int txrt_env_remove(const void* name, bool* result) noexcept;
+int txrt_env_snapshot(void** result) noexcept;
 
 int txrt_io_write(const void* text) noexcept;
 int txrt_io_write_line(const void* text) noexcept;

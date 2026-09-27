@@ -149,6 +149,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         symbol = "txrt_env_get_default";
     }
     if (target.external_name == "file_stream.flush" ||
+        target.external_name == "file_stream.sync" ||
         target.external_name == "file_stream.close")
     {
         symbol += target.parameters.front().type == value_type::binary_stream_type
@@ -209,7 +210,24 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     {
         parameters += ", ptr " + global_bytes(item.type.name);
     }
-    if (target.external_name == "time.duration_from_micros" ||
+    if (target.external_name == "process.run" ||
+        target.external_name == "process.run_with_cancel")
+    {
+        const auto& status_type = structs_.at(item.type.name)->fields.at(1).type;
+        parameters += ", ptr " + global_bytes(item.type.name) +
+                      ", ptr " + global_bytes(status_type.name);
+    }
+    if (target.external_name == "process.make_options" ||
+        target.external_name == "process.make_limits" ||
+        target.external_name == "process.read_pipe" ||
+        target.external_name == "process.write_pipe" ||
+        target.external_name == "process.wait" ||
+        target.external_name == "process.wait_with_cancel" ||
+        target.external_name == "process.try_wait" ||
+        target.external_name == "fs.stat" ||
+        target.external_name == "fs.lstat" ||
+        target.external_name == "fs.watch_next" ||
+        target.external_name == "time.duration_from_micros" ||
         target.external_name == "time.duration_from_millis" ||
         target.external_name == "time.duration_from_seconds" ||
         target.external_name == "time.duration_add" ||
