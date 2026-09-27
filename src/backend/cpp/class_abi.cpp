@@ -32,11 +32,11 @@ bool finalize_class_object(const std::shared_ptr<dynamic_class>& object)
     {
         // 析构回调借用栈上接收者；额外引用保证回调期间字段仍然有效。
         std::any receiver = class_handle(object);
-        using destructor_fn = void (*)(void*);
+        using destructor_fn = void (*)(detail::runtime_context*, void*);
         auto callback = reinterpret_cast<destructor_fn>(
             const_cast<void*>(object->destructor_targets[index]));
         detail::error_cleanup_guard error_guard;
-        callback(&receiver);
+        callback(&detail::current_runtime_context(), &receiver);
     }
     return true;
 }
@@ -172,7 +172,7 @@ void* scalar_field_ptr(const void* value, std::size_t index,
             return result;
         }
     }
-    std::snprintf(tx_generated::detail::last_error, 256,
+    std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256,
                   "类字段不是 %s 或索引无效", type_name);
     txrt_require_success(1);
     return nullptr;
@@ -279,7 +279,7 @@ extern "C" void* txrt_class_virtual_target_fast(
     {
         return const_cast<void*>((*handle)->virtual_targets[slot]);
     }
-    std::snprintf(tx_generated::detail::last_error, 256,
+    std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256,
                   "虚方法槽索引越界或尚未实现");
     txrt_require_success(1);
     return nullptr;

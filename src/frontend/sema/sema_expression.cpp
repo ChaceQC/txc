@@ -333,7 +333,17 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
         cast.target == value_type::regex_pattern_type ||
         cast.target == value_type::fs_watcher_type ||
         cast.target == value_type::process_child_type ||
-        cast.target == value_type::process_pipe_type)
+        cast.target == value_type::process_pipe_type ||
+        cast.target == value_type::json_reader_type ||
+        cast.target == value_type::json_writer_type ||
+        cast.target == value_type::cbor_reader_type ||
+        cast.target == value_type::cbor_writer_type ||
+        cast.target == value_type::csv_reader_type ||
+        cast.target == value_type::csv_writer_type ||
+        cast.target == value_type::xml_reader_type ||
+        cast.target == value_type::xml_writer_type ||
+        cast.target == value_type::xml_document_type ||
+        cast.target == value_type::xml_node_type)
     {
         const auto source = check_expression(*cast.value);
         if (source != cast.target && source != value_type::any_type)

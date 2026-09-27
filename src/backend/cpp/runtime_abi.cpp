@@ -15,15 +15,9 @@ extern "C" std::int64_t txrt_test_failure_total() noexcept;
 namespace tx_generated::detail
 {
 
-thread_local char last_error[256]{};
-namespace
-{
-thread_local handle_link* newest_handle = nullptr;
-thread_local bool cleaning_handles = false;
-}
-
 void register_handle(handle_link* value, handle_kind kind) noexcept
 {
+    auto& newest_handle = current_runtime_context().newest_handle;
     value->kind = kind;
     value->newer = nullptr;
     value->older = newest_handle;
@@ -42,7 +36,7 @@ void unregister_handle(handle_link* value) noexcept
     }
     else
     {
-        newest_handle = value->older;
+        current_runtime_context().newest_handle = value->older;
     }
     if (value->older)
     {
@@ -52,11 +46,14 @@ void unregister_handle(handle_link* value) noexcept
 
 bool cleanup_in_progress() noexcept
 {
-    return cleaning_handles;
+    return current_runtime_context().cleaning_handles;
 }
 
 void cleanup_live_handles() noexcept
 {
+    auto& context = current_runtime_context();
+    auto& newest_handle = context.newest_handle;
+    auto& cleaning_handles = context.cleaning_handles;
     if (cleaning_handles)
     {
         return;
@@ -99,24 +96,25 @@ using tx_generated::detail::invoke_checked;
 
 extern "C" const char* txrt_last_error() noexcept
 {
-    return tx_generated::detail::last_error;
+    return tx_generated::detail::current_runtime_context().last_error;
 }
 
 extern "C" void txrt_require_success(int status) noexcept
 {
     if (status != 0)
     {
-        if (tx_generated::detail::last_error_kind == tx::error_kind::none)
+        auto& context = tx_generated::detail::current_runtime_context();
+        if (context.last_error_kind == tx::error_kind::none)
         {
-            tx_generated::detail::last_error_kind = tx::error_kind::runtime;
-            std::snprintf(tx_generated::detail::last_error_code, 64, "%s", "operation_failed");
+            context.last_error_kind = tx::error_kind::runtime;
+            std::snprintf(context.last_error_code, 64, "%s", "operation_failed");
         }
-        if (tx_generated::detail::propagate_errors)
+        if (context.propagate_errors)
         {
             return;
         }
-        std::cerr << "运行错误：" << tx_generated::detail::last_error << '\n';
-        for (const auto& frame : tx_generated::detail::last_error_stack)
+        std::cerr << "运行错误：" << context.last_error << '\n';
+        for (const auto& frame : context.last_error_stack)
         {
             std::cerr << "  位于 " << frame.function << " (" << frame.file
                       << ':' << frame.line << ':' << frame.column << ")\n";
@@ -178,7 +176,10 @@ extern "C" int txrt_exit_code(std::int64_t value) noexcept
 extern "C" int txrt_float_to_int(double value,
                                    std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_float_to_int(value); });
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_float_to_int(value);
+    });
 }
 
 extern "C" int txrt_str_new(const char* bytes, std::size_t length,
@@ -302,39 +303,60 @@ extern "C" int txrt_bool_to_str(bool value, void** result) noexcept
 extern "C" int txrt_add_i64(std::int64_t left, std::int64_t right,
                              std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_add(left, right); });
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_add(left, right);
+    });
 }
 
 extern "C" int txrt_sub_i64(std::int64_t left, std::int64_t right,
                              std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_sub(left, right); });
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_sub(left, right);
+    });
 }
 
 extern "C" int txrt_mul_i64(std::int64_t left, std::int64_t right,
                              std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_mul(left, right); });
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_mul(left, right);
+    });
 }
 
 extern "C" int txrt_div_i64(std::int64_t left, std::int64_t right,
                              std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_div(left, right); });
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_div(left, right);
+    });
 }
 
 extern "C" int txrt_mod_i64(std::int64_t left, std::int64_t right,
                              std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_mod(left, right); });
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_mod(left, right);
+    });
 }
 
 extern "C" int txrt_neg_i64(std::int64_t value, std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_neg(value); });
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_neg(value);
+    });
 }
 
 extern "C" int txrt_div_f64(double left, double right, double* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_float_div(left, right); });
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_float_div(left, right);
+    });
 }

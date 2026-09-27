@@ -7,10 +7,20 @@ void llvm_code_generator::write_sum_declarations()
 {
     module_ << R"txabi(
 declare i32 @txrt_option_new(ptr, i1, ptr, ptr)
+declare i32 @txrt_option_new_i64(ptr, i1, i64, ptr)
+declare i32 @txrt_option_new_f64(ptr, i1, double, ptr)
+declare i32 @txrt_option_new_bool(ptr, i1, i1, ptr)
 declare i32 @txrt_result_new(ptr, i1, ptr, ptr)
 declare i32 @txrt_result_from_legacy(ptr, ptr, ptr)
 declare i1 @txrt_sum_state(ptr)
 declare i32 @txrt_option_value(ptr, ptr)
+declare i32 @txrt_option_value_i64(ptr, ptr)
+declare i32 @txrt_option_value_f64(ptr, ptr)
+declare i32 @txrt_option_value_bool(ptr, ptr)
+declare i32 @txrt_option_unpack_i64(ptr, ptr, ptr)
+declare i32 @txrt_option_unpack_f64(ptr, ptr, ptr)
+declare i32 @txrt_option_unpack_bool(ptr, ptr, ptr)
+declare i32 @txrt_option_empty_error()
 declare i32 @txrt_option_value_or(ptr, ptr, ptr)
 declare i32 @txrt_result_value(ptr, ptr)
 declare i32 @txrt_result_error(ptr, ptr)
@@ -20,6 +30,10 @@ declare i32 @txrt_result_error(ptr, ptr)
 llvm_code_generator::ir_value llvm_code_generator::emit_sum_call(
     const expression& item, const call_expression& call)
 {
+    if (const auto native = emit_native_option_method(item, call))
+    {
+        return *native;
+    }
     const auto& type = call.container_type ? *call.container_type : call.receiver->type;
     const auto& element = type.parameters.front();
     if (call.container_type)
@@ -45,6 +59,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_sum_call(
             const bool present = !arguments.empty();
             const auto* input = arguments.empty() ? nullptr :
                 &arguments[type.is_result() && !success ? 1 : 0];
+            const auto* scalar_suffix = type.is_option() && input
+                ? scalar_option_suffix(input->type) : nullptr;
             std::string value = "null";
             if (input)
             {
@@ -52,16 +68,25 @@ llvm_code_generator::ir_value llvm_code_generator::emit_sum_call(
                 {
                     value = input->text;
                 }
-                else
+                else if (!scalar_suffix)
                 {
                     boxed = box_any(*input, item.position);
                     value = boxed.text;
                 }
             }
-            invocation = "@txrt_" + type.container_name() + "_new(ptr " +
-                name + ", i1 " + (type.is_option() ?
-                    (present ? "true" : "false") :
-                    (success ? "true" : "false")) + ", ptr " + value;
+            if (scalar_suffix)
+            {
+                invocation = "@txrt_option_new_" + std::string(scalar_suffix) +
+                    "(ptr " + name + ", i1 true, " +
+                    llvm_type(input->type, item.position) + " " + input->text;
+            }
+            else
+            {
+                invocation = "@txrt_" + type.container_name() + "_new(ptr " +
+                    name + ", i1 " + (type.is_option() ?
+                        (present ? "true" : "false") :
+                        (success ? "true" : "false")) + ", ptr " + value;
+            }
         }
         const auto output = allocate(type, item.position);
         const auto status = temporary();
@@ -77,14 +102,37 @@ llvm_code_generator::ir_value llvm_code_generator::emit_sum_call(
         write_instruction(result + " = load ptr, ptr " + output);
         return {type, result};
     }
-    const auto receiver = expression_value(*call.receiver);
+    bool borrowed_receiver = false;
+    const auto receiver = call.name == "value_or"
+        ? expression_value(*call.receiver)
+        : expression_value_or_borrow(*call.receiver, borrowed_receiver);
+    if (type.is_option() && call.name == "value")
+    {
+        if (const auto* suffix = scalar_option_suffix(element))
+        {
+            const auto output = allocate(element, item.position);
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @txrt_option_value_" +
+                suffix + "(ptr " + receiver.text + ", ptr " + output + ")");
+            write_instruction("call void @txrt_require_success(i32 " +
+                              status + ")");
+            if (!borrowed_receiver)
+            {
+                release(receiver);
+            }
+            return load({element, output});
+        }
+    }
     if (call.name == "is_some" || call.name == "is_none" ||
         call.name == "is_ok" || call.name == "is_err")
     {
         const auto state = temporary();
         write_instruction(state + " = call i1 @txrt_sum_state(ptr " +
                           receiver.text + ")");
-        release(receiver);
+        if (!borrowed_receiver)
+        {
+            release(receiver);
+        }
         if (call.name == "is_none" || call.name == "is_err")
         {
             const auto inverted = temporary();
@@ -122,7 +170,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_sum_call(
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
     release(boxed);
     release(fallback);
-    release(receiver);
+    if (!borrowed_receiver)
+    {
+        release(receiver);
+    }
     if (!returns_value)
     {
         return {value_type::void_type, {}};

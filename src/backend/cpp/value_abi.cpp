@@ -15,6 +15,10 @@
 #include "stdlib/regex.hpp"
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
+#include "stdlib/json_stream.hpp"
+#include "stdlib/cbor.hpp"
+#include "stdlib/csv.hpp"
+#include "stdlib/xml.hpp"
 
 #include <any>
 #include <stdexcept>
@@ -65,7 +69,7 @@ void* struct_scalar_ptr(const void* value, std::size_t index,
             return result;
         }
     }
-    std::snprintf(tx_generated::detail::last_error, 256,
+    std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256,
                   "结构体字段不是 %s 或索引无效", type_name);
     txrt_require_success(1);
     return nullptr;
@@ -287,6 +291,16 @@ extern "C" int txrt_value_require_type(const void* value,
                 typeid(tx_generated::process_child)) ||
             (type == "process_pipe" && item.type() ==
                 typeid(tx_generated::process_pipe)) ||
+            (type == "json_reader" && item.type() == typeid(tx_generated::json_reader)) ||
+            (type == "json_writer" && item.type() == typeid(tx_generated::json_writer)) ||
+            (type == "cbor_reader" && item.type() == typeid(tx_generated::cbor_reader)) ||
+            (type == "cbor_writer" && item.type() == typeid(tx_generated::cbor_writer)) ||
+            (type == "csv_reader" && item.type() == typeid(tx_generated::csv_reader)) ||
+            (type == "csv_writer" && item.type() == typeid(tx_generated::csv_writer)) ||
+            (type == "xml_reader" && item.type() == typeid(tx_generated::xml_reader)) ||
+            (type == "xml_writer" && item.type() == typeid(tx_generated::xml_writer)) ||
+            (type == "xml_document" && item.type() == typeid(tx_generated::xml_document)) ||
+            (type == "xml_node" && item.type() == typeid(tx_generated::xml_node)) ||
             tx_generated::vector_matches(item, type) ||
             (item.type() == typeid(tx_generated::tx_iterator) &&
              type == "iterator<" +

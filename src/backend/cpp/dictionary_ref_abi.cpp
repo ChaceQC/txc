@@ -84,7 +84,7 @@ extern "C" void* txrt_dict_ref(void* value) noexcept
     {
         return dictionary;
     }
-    std::snprintf(tx_generated::detail::last_error, 256, "对象不是字典");
+    std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256, "对象不是字典");
     txrt_require_success(1);
     return nullptr;
 }

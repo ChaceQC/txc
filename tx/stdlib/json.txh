@@ -14,3 +14,26 @@ def get_bool(object: dict, key: str) -> bool
 def get_str(object: dict, key: str) -> str
 def get_array(object: dict, key: str) -> array
 def get_object(object: dict, key: str) -> dict
+
+struct limits
+{
+    max_bytes: int
+    max_value_bytes: int
+    max_depth: int
+}
+
+def default_limits() -> limits
+def read(source: binary_stream, limits: limits) -> any
+def read(source: text_stream, limits: limits) -> any
+def reader(source: binary_stream, limits: limits) -> json_reader
+def reader(source: text_stream, limits: limits) -> json_reader
+def next(source: json_reader) -> option<any>
+def write(target: binary_stream, value: any, limits: limits) -> void
+def write(target: text_stream, value: any, limits: limits) -> void
+def writer(target: binary_stream, limits: limits) -> json_writer
+def writer(target: text_stream, limits: limits) -> json_writer
+def write_value(target: json_writer, value: any) -> void
+def finish(target: json_writer) -> void
+def close(target: json_reader) -> void
+def close(target: json_writer) -> void
+def validate(value: any, schema: dict) -> void

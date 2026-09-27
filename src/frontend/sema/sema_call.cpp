@@ -460,6 +460,16 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     {
         throw compile_error(item.position, "未定义函数：" + display_name);
     }
+    if (const auto intrinsic = serde_intrinsics_.find(call.name);
+        intrinsic != serde_intrinsics_.end())
+    {
+        return check_serde_intrinsic(item, call, intrinsic->second);
+    }
+    if (call.explicit_type)
+    {
+        throw compile_error(item.position,
+            "显式调用类型实参目前只支持 serde.deserialize_json/cbor");
+    }
     if (const auto intrinsic = algorithm_intrinsics_.find(call.name);
         intrinsic != algorithm_intrinsics_.end())
     {

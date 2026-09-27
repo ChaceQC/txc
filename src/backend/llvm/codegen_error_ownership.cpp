@@ -6,6 +6,11 @@ namespace tx
 void llvm_code_generator::store_variable(const variable_slot& variable,
                                           const ir_value& value, source_pos position)
 {
+    if (!variable.native_option_value.empty())
+    {
+        store_native_option(variable, value, position);
+        return;
+    }
     ir_value previous{value_type::void_type, {}};
     if (recoverable_errors_ &&
         (variable.type == value_type::str_type || is_value_handle(variable.type)))

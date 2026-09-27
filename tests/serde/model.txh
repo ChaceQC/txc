@@ -1,0 +1,4 @@
+struct payload serde(version=1)
+{
+    value: str serde(1)
+}

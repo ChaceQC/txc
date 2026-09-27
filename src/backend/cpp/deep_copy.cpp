@@ -15,6 +15,10 @@
 #include "stdlib/regex.hpp"
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
+#include "stdlib/json_stream.hpp"
+#include "stdlib/cbor.hpp"
+#include "stdlib/csv.hpp"
+#include "stdlib/xml.hpp"
 
 #include <any>
 #include <memory>
@@ -124,6 +128,23 @@ public:
         if (value.type() == typeid(process_child) || value.type() == typeid(process_pipe))
         {
             throw std::runtime_error("deep_copy 不支持复制子进程或管道");
+        }
+        if (value.type() == typeid(json_reader) || value.type() == typeid(json_writer))
+        {
+            throw std::runtime_error("deep_copy 不支持复制 JSON 游标");
+        }
+        if (value.type() == typeid(cbor_reader) || value.type() == typeid(cbor_writer))
+        {
+            throw std::runtime_error("deep_copy 不支持复制 CBOR 游标");
+        }
+        if (value.type() == typeid(csv_reader) || value.type() == typeid(csv_writer))
+        {
+            throw std::runtime_error("deep_copy 不支持复制 CSV 游标");
+        }
+        if (value.type() == typeid(xml_reader) || value.type() == typeid(xml_writer) ||
+            value.type() == typeid(xml_document) || value.type() == typeid(xml_node))
+        {
+            throw std::runtime_error("deep_copy 不支持复制 XML 句柄");
         }
         if (value.type() == typeid(fs_watcher))
         {
@@ -253,7 +274,7 @@ private:
         }
         dynamic_struct result(dynamic_struct_data{
             source->type_name, source->display_name,
-            struct_fields(source->fields.size())});
+            struct_fields(source->fields.size()), source->metadata_owner});
         copies_.emplace(source.identity(), result);
         for (std::size_t index = 0; index < source->fields.size(); ++index)
         {

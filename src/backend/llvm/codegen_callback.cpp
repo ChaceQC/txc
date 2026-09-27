@@ -122,17 +122,14 @@ void llvm_code_generator::emit_callback_wrapper(
     std::size_t overload)
 {
     std::string wrapper_parameters = "ptr %environment";
-    std::string wrapper_arguments;
+    std::string wrapper_arguments = "ptr %tx_context";
     bool nullable = false;
     for (std::size_t index = 0; index < function.parameters.size(); ++index)
     {
         const auto& parameter = function.parameters[index];
         const auto type = llvm_type(parameter.type, parameter.position);
         wrapper_parameters += ", ";
-        if (index != 0)
-        {
-            wrapper_arguments += ", ";
-        }
+        wrapper_arguments += ", ";
         wrapper_parameters += type + " %value" + std::to_string(index);
         if (parameter_is_nullable(parameter))
         {
@@ -148,6 +145,7 @@ void llvm_code_generator::emit_callback_wrapper(
     module_ << "define " << result_type << ' '
             << callback_name(symbol, overload) << '(' << wrapper_parameters
             << ") {\nentry:\n";
+    write_context_boundary();
     write_nullable_callback_boxes(function);
     if (function.return_type != value_type::void_type)
     {
@@ -160,7 +158,7 @@ void llvm_code_generator::emit_callback_wrapper(
     module_ << "call " << result_type << ' ' << function_name(symbol, overload)
             << '(' << wrapper_arguments << ")\n";
     write_callback_releases(function, true);
-    module_ << "  %pending = call i32 @txrt_error_status()\n"
+    module_ << "  %pending = load i32, ptr %tx_error_kind\n"
             << "  call void @txrt_require_success(i32 %pending)\n"
             << (function.return_type == value_type::void_type
                 ? "  ret void\n" : "  ret " + result_type + " %result\n");

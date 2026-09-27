@@ -1,0 +1,11 @@
+import "serde.txh" as serde
+
+struct invalid serde(version=1)
+{
+    handle: binary_stream serde(1)
+}
+
+def main() -> int
+{
+    return 0
+}

@@ -80,7 +80,8 @@ bool same_class_layout(const class_decl& left, const class_decl& right)
 
 bool same_struct_layout(const struct_decl& left, const struct_decl& right)
 {
-    if (left.fields.size() != right.fields.size() ||
+    if (left.serde != right.serde ||
+        left.fields.size() != right.fields.size() ||
         left.methods.size() != right.methods.size())
     {
         return false;
@@ -89,7 +90,7 @@ bool same_struct_layout(const struct_decl& left, const struct_decl& right)
     {
         const auto& a = left.fields[index];
         const auto& b = right.fields[index];
-        if (a.name != b.name || a.type != b.type)
+        if (a.name != b.name || a.type != b.type || a.serde != b.serde)
         {
             return false;
         }

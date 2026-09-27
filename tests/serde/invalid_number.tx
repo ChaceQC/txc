@@ -1,0 +1,12 @@
+import "serde.txh" as serde
+
+struct invalid serde(version=1, reserved=[2])
+{
+    name: str serde(2)
+}
+
+def main() -> int
+{
+    print(serde.serialize_json(invalid("x")))
+    return 0
+}

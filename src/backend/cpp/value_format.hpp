@@ -93,9 +93,18 @@ private:
 
 struct dynamic_struct_data
 {
+    dynamic_struct_data(std::string type, std::string display,
+        struct_fields values, std::shared_ptr<const void> owner = {})
+        : type_name(std::move(type)), display_name(std::move(display)),
+          fields(std::move(values)), metadata_owner(std::move(owner))
+    {
+    }
+
     std::string type_name;
     std::string display_name;
     struct_fields fields;
+    // 生成的 serde 字段名由 schema 持有，结构体及其 deep_copy 均保持其寿命。
+    std::shared_ptr<const void> metadata_owner;
 };
 
 struct dynamic_struct

@@ -28,23 +28,28 @@ std::string failed_return(const std::string& type)
 
 const char* capture_reader(const value_type& type)
 {
-    if (type == value_type::int_type)
-    {
-        return "txrt_value_to_i64";
-    }
-    if (type == value_type::float_type)
-    {
-        return "txrt_value_to_f64";
-    }
-    if (type == value_type::bool_type)
-    {
-        return "txrt_value_to_bool";
-    }
     if (type == value_type::str_type)
     {
         return "txrt_value_to_str";
     }
     return "txrt_value_clone";
+}
+
+const char* scalar_capture_reader(const value_type& type)
+{
+    if (type == value_type::int_type)
+    {
+        return "txrt_closure_capture_i64";
+    }
+    if (type == value_type::float_type)
+    {
+        return "txrt_closure_capture_f64";
+    }
+    if (type == value_type::bool_type)
+    {
+        return "txrt_closure_capture_bool";
+    }
+    return nullptr;
 }
 
 } // namespace
@@ -62,28 +67,47 @@ void llvm_code_generator::emit_bind_wrapper(const std::string& name,
         module_ << ", " << llvm_type(parent_type.parameters[index], {})
                 << " %argument_" << index;
     }
-    module_ << ") {\nentry:\n"
-            << "  %parent_slot = alloca ptr\n"
+    module_ << ") {\nentry:\n";
+    write_context_boundary();
+    module_ << "  %parent_slot = alloca ptr\n"
             << "  store ptr null, ptr %parent_slot\n";
     for (std::size_t index = 0; index < captured; ++index)
     {
         const auto& type = parent_type.parameters[index];
-        module_ << "  %raw_slot_" << index << " = alloca ptr\n"
-                << "  store ptr null, ptr %raw_slot_" << index << "\n"
-                << "  %typed_slot_" << index << " = alloca "
+        if (!scalar_capture_reader(type))
+        {
+            module_ << "  %raw_slot_" << index << " = alloca ptr\n"
+                    << "  store ptr null, ptr %raw_slot_" << index << "\n";
+        }
+        module_ << "  %typed_slot_" << index << " = alloca "
                 << llvm_type(type, {}) << '\n';
         if (type == value_type::str_type || is_value_handle(type))
         {
             module_ << "  store ptr null, ptr %typed_slot_" << index << '\n';
         }
     }
-    module_ << "  %parent_status = call i32 @txrt_closure_parent(ptr "
+    module_ << "  %parent_status = call i32 @txrt_closure_parent_borrow(ptr "
             << "%environment, ptr %parent_slot)\n"
             << "  %parent_failed = icmp ne i32 %parent_status, 0\n"
             << "  br i1 %parent_failed, label %failed, label %capture_0\n";
     for (std::size_t index = 0; index < captured; ++index)
     {
         const auto& type = parent_type.parameters[index];
+        if (const auto* reader = scalar_capture_reader(type))
+        {
+            module_ << "capture_" << index << ":\n"
+                    << "  %capture_status_" << index << " = call i32 @"
+                    << reader << "(ptr %environment, i64 " << index
+                    << ", ptr %typed_slot_" << index << ")\n"
+                    << "  %capture_failed_" << index << " = icmp ne i32 "
+                    << "%capture_status_" << index << ", 0\n"
+                    << "  br i1 %capture_failed_" << index
+                    << ", label %failed, label %"
+                    << (index + 1 == captured
+                        ? "call_ready" : "capture_" + std::to_string(index + 1))
+                    << '\n';
+            continue;
+        }
         module_ << "capture_" << index << ":\n"
                 << "  %capture_status_" << index
                 << " = call i32 @txrt_closure_capture(ptr %environment, i64 "
@@ -131,8 +155,7 @@ void llvm_code_generator::emit_bind_wrapper(const std::string& name,
         module_ << "%result = ";
     }
     module_ << "call " << result_type << " %code(" << arguments << ")\n"
-            << "  call void @txrt_value_release(ptr %parent)\n"
-            << "  %pending = call i32 @txrt_error_status()\n"
+            << "  %pending = load i32, ptr %tx_error_kind\n"
             << "  call void @txrt_require_success(i32 %pending)\n"
             << (result_type == "void" ? "  ret void\n"
                 : "  ret " + result_type + " %result\n")
@@ -141,10 +164,13 @@ void llvm_code_generator::emit_bind_wrapper(const std::string& name,
     for (std::size_t index = 0; index < captured; ++index)
     {
         const auto& type = parent_type.parameters[index];
-        module_ << "  %raw_cleanup_" << index
-                << " = load ptr, ptr %raw_slot_" << index << '\n'
-                << "  call void @txrt_value_release(ptr %raw_cleanup_"
-                << index << ")\n";
+        if (!scalar_capture_reader(type))
+        {
+            module_ << "  %raw_cleanup_" << index
+                    << " = load ptr, ptr %raw_slot_" << index << '\n'
+                    << "  call void @txrt_value_release(ptr %raw_cleanup_"
+                    << index << ")\n";
+        }
         if (type == value_type::str_type || is_value_handle(type))
         {
             module_ << "  %typed_cleanup_" << index
@@ -166,9 +192,7 @@ void llvm_code_generator::emit_bind_wrapper(const std::string& name,
                     << "(ptr %argument_" << index << ")\n";
         }
     }
-    module_ << "  %parent_cleanup = load ptr, ptr %parent_slot\n"
-            << "  call void @txrt_value_release(ptr %parent_cleanup)\n"
-            << "  call void @txrt_require_success(i32 1)\n"
+    module_ << "  call void @txrt_require_success(i32 1)\n"
             << "  " << failed_return(result_type) << "\n}\n\n";
 }
 

@@ -19,8 +19,8 @@ inline void require_ordered_callback(int status)
 {
     if (status != 0)
     {
-        throw runtime_failure({detail::last_error_kind,
-            detail::last_error_code, detail::last_error});
+        throw runtime_failure({detail::current_runtime_context().last_error_kind,
+            detail::current_runtime_context().last_error_code, detail::current_runtime_context().last_error});
     }
 }
 

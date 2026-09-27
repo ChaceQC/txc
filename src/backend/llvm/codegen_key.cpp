@@ -51,20 +51,21 @@ void llvm_code_generator::emit_key_callbacks(const struct_decl& definition)
             class_method_symbol(definition.name, less->name),
             less->overload_index);
         module_ << "define i32 " << key_less_symbol(key_type)
-                << "(ptr %left, ptr %right, ptr %out) {\nentry:\n"
-                << "  %slot = alloca ptr\n"
+                << "(ptr %left, ptr %right, ptr %out) {\nentry:\n";
+        write_context_boundary();
+        module_ << "  %slot = alloca ptr\n"
                 << "  %copy_status = call i32 @txrt_value_clone(ptr %right, ptr %slot)\n"
                 << "  %copy_failed = icmp ne i32 %copy_status, 0\n"
                 << "  br i1 %copy_failed, label %failed, label %ready\n"
                 << "ready:\n"
                 << "  %copy = load ptr, ptr %slot\n"
                 << "  %value = call i1 " << target
-                << "(ptr %left, ptr %copy)\n";
+                << "(ptr %tx_context, ptr %left, ptr %copy)\n";
         if (operator_parameter_borrowed(*less))
         {
             module_ << "  call void @txrt_value_release(ptr %copy)\n";
         }
-        module_ << "  %status = call i32 @txrt_error_status()\n"
+        module_ << "  %status = load i32, ptr %tx_error_kind\n"
                 << "  store i1 %value, ptr %out\n"
                 << "  ret i32 %status\n"
                 << "failed:\n"
@@ -79,28 +80,30 @@ void llvm_code_generator::emit_key_callbacks(const struct_decl& definition)
     const auto equal_target = function_name(
         class_method_symbol(definition.name, equal->name), equal->overload_index);
     module_ << "define i32 " << key_hash_symbol(key_type)
-            << "(ptr %key, ptr %out) {\nentry:\n"
-            << "  %value = call i64 " << hash_target << "(ptr %key)\n"
-            << "  %status = call i32 @txrt_error_status()\n"
+            << "(ptr %key, ptr %out) {\nentry:\n";
+    write_context_boundary();
+    module_ << "  %value = call i64 " << hash_target << "(ptr %tx_context, ptr %key)\n"
+            << "  %status = load i32, ptr %tx_error_kind\n"
             << "  store i64 %value, ptr %out\n"
             << "  ret i32 %status\n}\n\n";
 
     // 运算符方法可能取得实参所有权，因此先复制右侧，再按方法的借用约定释放。
     module_ << "define i32 " << key_equal_symbol(key_type)
-            << "(ptr %left, ptr %right, ptr %out) {\nentry:\n"
-            << "  %slot = alloca ptr\n"
+            << "(ptr %left, ptr %right, ptr %out) {\nentry:\n";
+    write_context_boundary();
+    module_ << "  %slot = alloca ptr\n"
             << "  %copy_status = call i32 @txrt_value_clone(ptr %right, ptr %slot)\n"
             << "  %copy_failed = icmp ne i32 %copy_status, 0\n"
             << "  br i1 %copy_failed, label %failed, label %ready\n"
             << "ready:\n"
             << "  %copy = load ptr, ptr %slot\n"
             << "  %value = call i1 " << equal_target
-            << "(ptr %left, ptr %copy)\n";
+            << "(ptr %tx_context, ptr %left, ptr %copy)\n";
     if (operator_parameter_borrowed(*equal))
     {
         module_ << "  call void @txrt_value_release(ptr %copy)\n";
     }
-    module_ << "  %status = call i32 @txrt_error_status()\n"
+    module_ << "  %status = load i32, ptr %tx_error_kind\n"
             << "  store i1 %value, ptr %out\n"
             << "  ret i32 %status\n"
             << "failed:\n"

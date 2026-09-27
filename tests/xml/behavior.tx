@@ -1,0 +1,184 @@
+import "xml.txh" as xml
+import "file_stream.txh" as streams
+import "file.txh" as file
+import "error.txh" as errors
+import "test.txh" as test
+import "string.txh" as string
+
+def main() -> int
+{
+    auto limits = xml.default_limits()
+    limits.max_bytes = 1048576
+    auto doc = xml.parse("<r xmlns=\"urn:r\" xmlns:p=\"urn:p\"><p:a p:id=\"7\">甲&amp;乙</p:a>tail</r>", limits)
+    auto root = xml.root(doc)
+    test.assert_equal("r", xml.local_name(root))
+    test.assert_equal("urn:r", xml.namespace_uri(root))
+    auto first = xml.first_child(root).value()
+    test.assert_equal("a", xml.local_name(first))
+    test.assert_equal("urn:p", xml.namespace_uri(first))
+    test.assert_equal("p", xml.prefix(first))
+    test.assert_equal("id", xml.attribute_local_name(first, 0))
+    test.assert_equal("urn:p", xml.attribute_namespace_uri(first, 0))
+    test.assert_equal("7", xml.attribute_value(first, 0))
+    test.assert_equal("甲&乙", xml.text(first))
+    test.assert_equal("text", xml.kind(xml.next_sibling(first).value()))
+
+    auto built = xml.new_document("root", "urn:root", "")
+    auto built_root = xml.root(built)
+    xml.set_attribute(built_root, "code", "urn:meta", "m", "x&y")
+    auto plain = xml.append_element(built_root, "plain", "", "")
+    xml.append_text(plain, "中文 < &")
+    auto serialized = xml.stringify(built, limits)
+    auto restored = xml.parse(serialized, limits)
+    auto restored_child = xml.first_child(xml.root(restored)).value()
+    test.assert_equal("", xml.namespace_uri(restored_child))
+    test.assert_equal("中文 < &", xml.text(restored_child))
+    test.assert_equal("urn:meta", xml.attribute_namespace_uri(xml.root(restored), 0))
+    auto tree_output = streams.open_binary("tx_build/xml_tree_check.xml", "write")
+    xml.write(tree_output, built, limits)
+    streams.close(tree_output)
+    auto tree_input = streams.open_binary("tx_build/xml_tree_check.xml", "read")
+    auto reread = xml.read(tree_input, limits)
+    test.assert_equal("root", xml.local_name(xml.root(reread)))
+    streams.close(tree_input)
+    array documents = [built]
+    any boxed = documents[0]
+    test.assert_equal("root", xml.local_name(xml.root(boxed as xml_document)))
+    bool failed = false
+    try
+    {
+        deep_copy(doc)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = string.contains(e.message, "deep_copy")
+    }
+    test.assert_true(failed)
+
+    failed = false
+    try
+    {
+        xml.parse("<!DOCTYPE r [<!ENTITY x 'secret'>]><r>&x;</r>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "forbidden_dtd"
+    }
+    test.assert_true(failed)
+    file.write_text("tx_build/xml_dtd_check.xml", "<!DOCTYPE r [<!ENTITY x 'secret'>]><r>&x;</r>", "utf-8")
+    auto dtd_input = streams.open_binary("tx_build/xml_dtd_check.xml", "read")
+    auto dtd_reader = xml.reader(dtd_input, limits)
+    failed = false
+    try
+    {
+        xml.next(dtd_reader)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "forbidden_dtd"
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        xml.next(dtd_reader)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "invalid_state"
+    }
+    test.assert_true(failed)
+    xml.close(dtd_reader)
+    streams.close(dtd_input)
+    limits.max_depth = 1
+    file.write_text("tx_build/xml_dtd_check.xml", "<r>ok</r>", "utf-8")
+    auto shallow_input = streams.open_binary("tx_build/xml_dtd_check.xml", "read")
+    auto shallow_reader = xml.reader(shallow_input, limits)
+    test.assert_equal("start_element", xml.next(shallow_reader).value().kind)
+    test.assert_equal("ok", xml.next(shallow_reader).value().text)
+    test.assert_equal("end_element", xml.next(shallow_reader).value().kind)
+    xml.close(shallow_reader)
+    streams.close(shallow_input)
+    limits.max_depth = 128
+
+    auto bad_output = streams.open_binary("tx_build/xml_writer_error.xml", "write")
+    auto bad_writer = xml.writer(bad_output, limits)
+    xml.start_element(bad_writer, "r", "", "")
+    xml.write_attribute(bad_writer, "id", "", "", "a")
+    failed = false
+    try
+    {
+        xml.write_attribute(bad_writer, "id", "", "", "b")
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "duplicate_attribute"
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        xml.end_element(bad_writer)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "invalid_state"
+    }
+    test.assert_true(failed)
+    xml.close(bad_writer)
+    streams.close(bad_output)
+    failed = false
+    try
+    {
+        xml.parse("<!DOCTYPE r SYSTEM 'file:///missing-secret'><r/>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "forbidden_dtd" && !string.contains(e.message, "missing-secret")
+    }
+    test.assert_true(failed)
+    limits.max_depth = 1
+    failed = false
+    try
+    {
+        xml.parse("<r><child/></r>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "depth_limit"
+    }
+    test.assert_true(failed)
+    limits.max_depth = 128
+    limits.max_attributes = 1
+    failed = false
+    try
+    {
+        xml.parse("<r a=\"1\" b=\"2\"/>", limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "size_limit"
+    }
+    test.assert_true(failed)
+    limits.max_attributes = 4096
+    auto include_doc = xml.parse("<r xmlns:xi=\"http://www.w3.org/2001/XInclude\"><xi:include href=\"file:///missing-secret\"/></r>", limits)
+    test.assert_equal("include", xml.local_name(xml.first_child(xml.root(include_doc)).value()))
+    test.assert_equal("", xml.text(xml.root(include_doc)))
+
+    auto text_output = streams.open_text("tx_build/xml_utf16.xml", "write", "utf-16")
+    auto writer = xml.writer(text_output, limits)
+    xml.start_element(writer, "r", "", "")
+    xml.write_text(writer, "音𝄞")
+    xml.end_element(writer)
+    xml.finish(writer)
+    xml.close(writer)
+    streams.close(text_output)
+    auto binary_input = streams.open_binary("tx_build/xml_utf16.xml", "read")
+    auto reader = xml.reader(binary_input, limits)
+    test.assert_equal("r", xml.next(reader).value().local_name)
+    test.assert_equal("音𝄞", xml.next(reader).value().text)
+    xml.close(reader)
+    streams.close(binary_input)
+    print("XML_BEHAVIOR_TX_OK")
+    return 0
+}

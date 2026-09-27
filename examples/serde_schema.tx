@@ -1,0 +1,32 @@
+import "serde.txh" as serde
+
+struct account_v1 serde(version=1, unknown="ignore")
+{
+    id: int serde(1)
+    name: str serde(2)
+}
+
+struct account_v2 serde(version=2, unknown="preserve", reserved=[4])
+{
+    id: int serde(1)
+    name: str serde(2)
+    nickname: str serde(3, default="")
+    extras: dict serde(unknown)
+}
+
+def upgrade(old: account_v1) -> account_v2
+{
+    return account_v2(old.id, old.name, "", {})
+}
+
+def main() -> int
+{
+    account_v1 old = serde.deserialize_json<account_v1>("{\"$schema\":1,\"id\":7,\"name\":\"Lin\"}")
+    account_v2 current = upgrade(old)
+    auto encoded = serde.serialize_json(current)
+    account_v2 restored = serde.deserialize_json<account_v2>(encoded)
+    auto binary = serde.serialize_cbor(restored)
+    account_v2 again = serde.deserialize_cbor<account_v2>(binary)
+    print(again.id, again.name, again.nickname)
+    return 0
+}

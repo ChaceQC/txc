@@ -13,6 +13,7 @@ namespace tx_generated
 {
 
 [[nodiscard]] std::any json_parse(std::string_view text);
+[[nodiscard]] std::any json_parse_unique(std::string_view text);
 [[nodiscard]] tx_dict json_parse_object(std::string_view text);
 [[nodiscard]] operation_result<std::any> json_try_parse(std::string_view text);
 [[nodiscard]] std::string json_stringify(const std::any& value);

@@ -38,6 +38,7 @@ private:
         std::optional<std::size_t> local_array_length;
         std::string dynamic_array_length;
         std::string dict_reference;
+        std::string native_option_value;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -67,7 +68,6 @@ private:
                                                    std::size_t overload);
     [[nodiscard]] std::string temporary();
     [[nodiscard]] std::string label();
-    [[nodiscard]] std::string random_context();
     [[nodiscard]] std::string allocate(const value_type& type,
                                        source_pos position, bool owned = true);
     struct error_root
@@ -179,6 +179,14 @@ private:
     void write_vector_declarations();
     void write_sum_declarations();
     void write_iterator_declarations();
+    [[nodiscard]] static const char* scalar_option_suffix(const value_type& type);
+    [[nodiscard]] bool emit_native_option_declaration(
+        const statement& item, const variable_declaration& declaration);
+    [[nodiscard]] std::optional<ir_value> emit_native_option_method(
+        const expression& item, const call_expression& call);
+    [[nodiscard]] ir_value load_native_option(const variable_slot& variable);
+    void store_native_option(const variable_slot& variable,
+                             const ir_value& value, source_pos position);
     [[nodiscard]] ir_value emit_sum_call(const expression& item,
                                           const call_expression& call);
     [[nodiscard]] ir_value emit_iterator_call(const expression& item,
@@ -199,6 +207,10 @@ private:
     [[nodiscard]] ir_value emit_algorithm_intrinsic(
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value emit_serde_intrinsic(
+        const expression& item, const function_decl& target,
+        const std::vector<ir_value>& arguments);
+    [[nodiscard]] std::string serde_schema_json(const value_type& type) const;
     [[nodiscard]] static std::string container_symbol(const value_type& type,
                                                       std::string_view operation);
     [[nodiscard]] ir_value container_operation(const value_type& type,
@@ -313,6 +325,8 @@ private:
                                        const update_expression& operation);
     void emit_statement(const statement& item);
     [[nodiscard]] bool gc_neutral_expression(const expression& item);
+    [[nodiscard]] bool gc_neutral_native_option_declaration(
+        const variable_declaration& declaration);
     [[nodiscard]] bool gc_neutral_statement(const statement& item);
     [[nodiscard]] bool gc_neutral_body(const std::vector<stmt_ptr>& body);
     [[nodiscard]] bool gc_neutral_function(const function_decl& function);
@@ -380,6 +394,11 @@ private:
                                  bool call_completed);
     void write_external_declarations();
     void write_instruction(const std::string& text);
+    void write_context_boundary();
+    void write_stack_frame(const function_decl& function);
+    void emit_stack_pop();
+    void emit_stack_location();
+    void emit_error_location();
     void emit_gc_safepoint();
     void start_block(const std::string& name);
     void push_scope();
@@ -399,7 +418,6 @@ private:
     std::size_t next_label_ = 0;
     std::size_t next_string_ = 0;
     std::size_t next_bind_ = 0;
-    std::string random_context_slot_;
     std::string current_method_owner_;
     std::unordered_map<std::size_t, std::string> entry_scalar_field_cache_;
     std::size_t virtual_slot_count_ = 0;
@@ -408,6 +426,7 @@ private:
     std::unordered_set<const function_decl*> gc_visiting_;
     std::unordered_map<const function_decl*, bool> gc_neutral_cache_;
     const std::vector<stmt_ptr>* current_function_body_ = nullptr;
+    const source_pos* current_statement_position_ = nullptr;
     bool recoverable_errors_ = false;
     std::vector<error_root> error_roots_;
     std::unordered_map<std::string, std::size_t> error_root_indices_;

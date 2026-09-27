@@ -1,3 +1,5 @@
+param([switch]$Incremental)
+
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -6,6 +8,15 @@ $project_root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $build_dir = [System.IO.Path]::GetFullPath((Join-Path $project_root 'build'))
 $tool_dir = Join-Path $project_root 'tx'
 $bundled_cmake = 'D:\CLion 2024.3.4\bin\cmake\win\x64\bin\cmake.exe'
+$parallel_jobs = [Math]::Max(1, [Math]::Min([Environment]::ProcessorCount, 8))
+if (-not $env:CCACHE_DIR)
+{
+    $env:CCACHE_DIR = Join-Path $env:LOCALAPPDATA 'TxCompiler\ccache'
+}
+if (-not $env:CCACHE_MAXSIZE)
+{
+    $env:CCACHE_MAXSIZE = '5G'
+}
 
 if (Test-Path -LiteralPath $bundled_cmake)
 {
@@ -23,7 +34,7 @@ if ($LASTEXITCODE -ne 0)
     throw 'CMake 配置失败；build/ 已保留。'
 }
 
-& $cmake_exe --build $build_dir
+& $cmake_exe --build $build_dir --parallel $parallel_jobs
 if ($LASTEXITCODE -ne 0)
 {
     throw '编译失败；build/ 已保留。'
@@ -145,7 +156,8 @@ $dependency_archives = @(
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuin.dll.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuuc.dll.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicudt.dll.a'),
-    (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/lib/libpcre2-8.a')
+    (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/lib/libpcre2-8.a'),
+    (Join-Path $build_dir '_deps/libxml2-build/libxml2.a')
 )
 foreach ($archive in $dependency_archives)
 {
@@ -177,6 +189,8 @@ Copy-Item -LiteralPath (Join-Path $build_dir '_deps/icu_binary-src/mingw64/share
     -Destination (Join-Path $tool_dir 'ICU-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/share/licenses/pcre2/LICENCE.md') `
     -Destination (Join-Path $tool_dir 'PCRE2-LICENCE.md') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/libxml2-src/Copyright') `
+    -Destination (Join-Path $tool_dir 'LIBXML2-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/stdcpp_runtime-src/mingw64/share/licenses/libstdc++/COPYING.RUNTIME') `
     -Destination (Join-Path $tool_dir 'GCC-RUNTIME-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/stdcpp_runtime-src/mingw64/share/licenses/libstdc++/COPYING3') `
@@ -237,6 +251,8 @@ if (-not (Test-Path -LiteralPath $compiler_path) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'cancel.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'parse.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'json.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'csv.txh')) -or
+    -not (Test-Path -LiteralPath (Join-Path $interface_dir 'xml.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'math.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'algorithm.txh')) -or
     -not (Test-Path -LiteralPath (Join-Path $interface_dir 'array.txh')) -or
@@ -284,7 +300,14 @@ if (($build_item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 
     throw '拒绝清理预期工作区以外的路径。'
 }
 
-Remove-Item -LiteralPath $resolved_build -Recurse -Force
+if (-not $Incremental)
+{
+    Remove-Item -LiteralPath $resolved_build -Recurse -Force
+}
 Write-Output "编译器已生成：$compiler_path"
 Write-Output "标准库已生成：$library_path"
 Write-Output "标准库接口：$interface_dir"
+if ($Incremental)
+{
+    Write-Output "增量构建目录已保留：$resolved_build"
+}

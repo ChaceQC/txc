@@ -12,6 +12,10 @@
 #include "stdlib/regex.hpp"
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
+#include "stdlib/json_stream.hpp"
+#include "stdlib/csv.hpp"
+#include "stdlib/xml.hpp"
+#include "stdlib/cbor.hpp"
 
 #include <stdexcept>
 #include <string_view>
@@ -181,6 +185,46 @@ void append_value(std::string& output, const std::any& value,
     else if (value.type() == typeid(process_child))
     {
         output += "<process_child>";
+    }
+    else if (value.type() == typeid(json_reader))
+    {
+        output += "<json_reader>";
+    }
+    else if (value.type() == typeid(json_writer))
+    {
+        output += "<json_writer>";
+    }
+    else if (value.type() == typeid(cbor_reader))
+    {
+        output += "<cbor_reader>";
+    }
+    else if (value.type() == typeid(cbor_writer))
+    {
+        output += "<cbor_writer>";
+    }
+    else if (value.type() == typeid(csv_reader))
+    {
+        output += "<csv_reader>";
+    }
+    else if (value.type() == typeid(csv_writer))
+    {
+        output += "<csv_writer>";
+    }
+    else if (value.type() == typeid(xml_reader))
+    {
+        output += "<xml_reader>";
+    }
+    else if (value.type() == typeid(xml_writer))
+    {
+        output += "<xml_writer>";
+    }
+    else if (value.type() == typeid(xml_document))
+    {
+        output += "<xml_document>";
+    }
+    else if (value.type() == typeid(xml_node))
+    {
+        output += "<xml_node>";
     }
     else if (value.type() == typeid(process_pipe))
     {

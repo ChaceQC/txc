@@ -1,0 +1,8 @@
+import "xml.txh" as xml
+
+def main() -> int
+{
+    auto doc = xml.new_document("root", "", "")
+    xml.start_element(doc, "child", "", "")
+    return 0
+}

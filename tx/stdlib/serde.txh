@@ -1,0 +1,4 @@
+def serialize_json<T>(value: T) -> str
+def deserialize_json<T>(text: str) -> T
+def serialize_cbor<T>(value: T) -> bytes
+def deserialize_cbor<T>(data: bytes) -> T

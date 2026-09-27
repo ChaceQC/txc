@@ -45,10 +45,15 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
         std::holds_alternative<floating_literal>(item.data) ||
         std::holds_alternative<boolean_literal>(item.data) ||
         std::holds_alternative<string_literal>(item.data) ||
-        std::holds_alternative<none_literal>(item.data) ||
-        std::holds_alternative<name_reference>(item.data))
+        std::holds_alternative<none_literal>(item.data))
     {
         return true;
+    }
+    if (std::holds_alternative<name_reference>(item.data))
+    {
+        // 作为普通值读取局部标量 option 时会在逃逸边界生成句柄。
+        return !item.type.is_option() ||
+            !scalar_option_suffix(item.type.parameters.front());
     }
     if (const auto* member = std::get_if<member_expression>(&item.data))
     {
@@ -86,6 +91,14 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
     if (call->is_super_view)
     {
         return true;
+    }
+    if (call->receiver && call->receiver->type.is_option() &&
+        scalar_option_suffix(call->receiver->type.parameters.front()) &&
+        (call->name == "value" || call->name == "is_some" ||
+         call->name == "is_none"))
+    {
+        // 名称接收者可直接借用或读取栈值；复杂接收者可能先创建句柄。
+        return std::holds_alternative<name_reference>(call->receiver->data);
     }
     if (call->receiver && !gc_neutral_expression(*call->receiver))
     {
@@ -130,11 +143,45 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
     return gc_neutral_function(target);
 }
 
+bool llvm_code_generator::gc_neutral_native_option_declaration(
+    const variable_declaration& declaration)
+{
+    if (declaration.array_length || !declaration.initializer)
+    {
+        return false;
+    }
+    const auto& type = declaration.declared_type
+        ? *declaration.declared_type : declaration.initializer->type;
+    if (!type.is_option() || !scalar_option_suffix(type.parameters.front()))
+    {
+        return false;
+    }
+    const auto* call = std::get_if<call_expression>(&declaration.initializer->data);
+    if (!call)
+    {
+        return false;
+    }
+    if (call->container_type && call->container_type->is_option())
+    {
+        return std::all_of(call->arguments.begin(), call->arguments.end(),
+            [this](const call_argument& argument)
+            {
+                return gc_neutral_expression(*argument.value);
+            });
+    }
+    return call->receiver && call->receiver->type.is_iterator() &&
+        call->name == "next" && gc_neutral_expression(*call->receiver);
+}
+
 bool llvm_code_generator::gc_neutral_statement(const statement& item)
 {
     if (const auto* declaration =
             std::get_if<variable_declaration>(&item.data))
     {
+        if (gc_neutral_native_option_declaration(*declaration))
+        {
+            return true;
+        }
         return !declaration->array_length && declaration->initializer &&
                gc_neutral_expression(*declaration->initializer);
     }
@@ -197,9 +244,11 @@ bool llvm_code_generator::gc_neutral_body(const std::vector<stmt_ptr>& body)
         if (const auto* declaration =
                 std::get_if<variable_declaration>(&item->data))
         {
-            if ((declaration->declared_type &&
+            const bool native_option =
+                gc_neutral_native_option_declaration(*declaration);
+            if ((!native_option && declaration->declared_type &&
                  is_value_handle(*declaration->declared_type)) ||
-                (declaration->initializer &&
+                (!native_option && declaration->initializer &&
                  is_value_handle(declaration->initializer->type)) ||
                 !gc_neutral_statement(*item))
             {
@@ -260,7 +309,11 @@ bool llvm_code_generator::gc_neutral_function(const function_decl& function)
 {
     if (function.external)
     {
-        return false;
+        // 这些入口的成功路径只读写标量或线程局部随机状态，不登记 GC 对象。
+        return function.external_name == "math.sqrt" ||
+               function.external_name == "random.seed" ||
+               function.external_name == "random.random_int" ||
+               function.external_name == "random.random_float";
     }
     if (const auto found = gc_neutral_cache_.find(&function);
         found != gc_neutral_cache_.end())

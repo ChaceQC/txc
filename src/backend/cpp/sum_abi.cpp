@@ -5,6 +5,7 @@
 #include "backend/cpp/value_format.hpp"
 
 #include <any>
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -71,6 +72,51 @@ dynamic_struct make_option(const char* name, bool present, const void* value)
     return dynamic_struct(dynamic_struct_data{name, "option", std::move(fields)});
 }
 
+template<class value_type>
+int new_scalar_option(const char* name, bool present, value_type value,
+                      void** result) noexcept
+{
+    return tx_generated::detail::invoke_checked([&]
+    {
+        struct_fields fields(2);
+        fields[0] = {"present", present};
+        fields[1] = {"value", present ? std::any(value) : std::any{}};
+        *result = tx_generated::detail::make_handle<std::any>(dynamic_struct(
+            dynamic_struct_data{name, "option", std::move(fields)}));
+    });
+}
+
+template<class value_type>
+int scalar_option_value(const void* value, value_type* result) noexcept
+{
+    return tx_generated::detail::invoke_checked([&]
+    {
+        const auto& option = require_sum(value, "option<");
+        if (!state(option))
+        {
+            throw runtime_failure({tx::error_kind::runtime,
+                "invalid_state", "空 option 没有值"});
+        }
+        *result = std::any_cast<value_type>(option->fields[1].value);
+    });
+}
+
+template<class value_type>
+int unpack_scalar_option(const void* source, bool* present,
+                         value_type* value) noexcept
+{
+    return tx_generated::detail::invoke_checked([&]
+    {
+        const auto& option = require_sum(source, "option<");
+        const bool has_value = state(option);
+        const value_type unpacked = has_value
+            ? std::any_cast<value_type>(option->fields[1].value)
+            : value_type{};
+        *present = has_value;
+        *value = unpacked;
+    });
+}
+
 dynamic_struct make_result(const char* name, bool success, const void* value)
 {
     struct_fields fields(3);
@@ -96,6 +142,24 @@ extern "C" int txrt_option_new(const char* type_name, bool present,
         }
         *result = make_handle<std::any>(make_option(type_name, present, value));
     });
+}
+
+extern "C" int txrt_option_new_i64(const char* type_name, bool present,
+    std::int64_t value, void** result) noexcept
+{
+    return new_scalar_option(type_name, present, value, result);
+}
+
+extern "C" int txrt_option_new_f64(const char* type_name, bool present,
+    double value, void** result) noexcept
+{
+    return new_scalar_option(type_name, present, value, result);
+}
+
+extern "C" int txrt_option_new_bool(const char* type_name, bool present,
+    bool value, void** result) noexcept
+{
+    return new_scalar_option(type_name, present, value, result);
 }
 
 extern "C" int txrt_result_new(const char* type_name, bool success,
@@ -159,6 +223,51 @@ extern "C" int txrt_option_value(const void* value, void** result) noexcept
                 "invalid_state", "空 option 没有值"});
         }
         *result = make_handle<std::any>(option->fields[1].value);
+    });
+}
+
+extern "C" int txrt_option_value_i64(const void* value,
+    std::int64_t* result) noexcept
+{
+    return scalar_option_value(value, result);
+}
+
+extern "C" int txrt_option_value_f64(const void* value,
+    double* result) noexcept
+{
+    return scalar_option_value(value, result);
+}
+
+extern "C" int txrt_option_value_bool(const void* value,
+    bool* result) noexcept
+{
+    return scalar_option_value(value, result);
+}
+
+extern "C" int txrt_option_unpack_i64(const void* source,
+    bool* present, std::int64_t* value) noexcept
+{
+    return unpack_scalar_option(source, present, value);
+}
+
+extern "C" int txrt_option_unpack_f64(const void* source,
+    bool* present, double* value) noexcept
+{
+    return unpack_scalar_option(source, present, value);
+}
+
+extern "C" int txrt_option_unpack_bool(const void* source,
+    bool* present, bool* value) noexcept
+{
+    return unpack_scalar_option(source, present, value);
+}
+
+extern "C" int txrt_option_empty_error() noexcept
+{
+    return invoke_checked([]
+    {
+        throw runtime_failure({tx::error_kind::runtime,
+            "invalid_state", "空 option 没有值"});
     });
 }
 

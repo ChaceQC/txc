@@ -1,0 +1,20 @@
+struct limits
+{
+    max_bytes: int
+    max_value_bytes: int
+    max_depth: int
+    max_items: int
+}
+
+def default_limits() -> limits
+def encode(value: any, limits: limits) -> bytes
+def decode(data: bytes, limits: limits) -> any
+def read(source: binary_stream, limits: limits) -> any
+def write(target: binary_stream, value: any, limits: limits) -> void
+def reader(source: binary_stream, limits: limits) -> cbor_reader
+def next(source: cbor_reader) -> option<any>
+def writer(target: binary_stream, count: int, limits: limits) -> cbor_writer
+def write_value(target: cbor_writer, value: any) -> void
+def finish(target: cbor_writer) -> void
+def close(source: cbor_reader) -> void
+def close(target: cbor_writer) -> void

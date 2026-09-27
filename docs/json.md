@@ -99,6 +99,30 @@ def main() -> int
 
 `server` 和 `first_task` 是共享引用，直接修改它们后，`config` 序列化时会包含这些更新。输出写到 `config.updated.json`，输入文件不会被覆盖。缺少字段仍遵循字典索引的运行错误规则；若需要判断字段是否存在，使用 `json.contains`。文件读写错误属于 `io_error`，JSON 解析错误属于 `parse_error`。
 
+## 增量读写与 schema
+
+`limits` 的三个字段为 `max_bytes`（整个输入/输出）、`max_value_bytes`（单个根值或根数组元素）和 `max_depth`。`default_limits()` 返回 1 GiB、16 MiB、128；可配置硬上限分别为 1 TiB、64 MiB、128，均须为正数。文本流的字节数和偏移指解码后的 UTF-8，二进制流按原始 UTF-8 计数。旧 `parse/stringify` 接口保持原有契约。
+
+| 接口 | 规则 |
+| --- | --- |
+| `read(source: binary_stream/text_stream, limits) -> any` | 分块读取一个完整根值并检查 EOF；返回值占用与该值大小相应的内存，不另存整个输入文本。 |
+| `reader(source: binary_stream/text_stream, limits) -> json_reader` | 打开根数组游标，按需读取，不预读整个数组。 |
+| `next(source: json_reader) -> option<any>` | 返回一个完整元素；合法 `null` 是有值的 option，其 value 为 none；数组闭合并确认 EOF 后才返回无值。 |
+| `write(target: binary_stream/text_stream, value: any, limits) -> void` | 以有界 UTF-8 块生成一个完整根值，不生成完整中间 JSON 字符串。 |
+| `writer(target: binary_stream/text_stream, limits) -> json_writer` | 开始写根数组。 |
+| `write_value(target: json_writer, value: any) -> void` | 追加一个元素，对象仍按 UTF-8 键排序。 |
+| `finish(target: json_writer) -> void` | 写入 `]` 并 flush；成功后重复 finish 无操作。 |
+| `close(target: json_reader/json_writer) -> void` | 释放游标状态，重复关闭无操作；writer 的 close 不补写、不提交。 |
+| `validate(value: any, schema: dict) -> void` | 显式执行下述 schema 校验，失败抛出 parse_error。 |
+
+游标持有流的共享引用，其存活期调用方不得交错读取、写入或 seek。解析/写入失败后游标进入失败状态，后续操作报 `invalid_state`；显式 close 或最后一个引用销毁释放内部缓冲和流引用。底层流若被调用方关闭，操作报原始 `io_error`，之后游标失败。已返回的元素和已写出的前缀不会回滚；最后一项已返回也不代表文件完整，须继续 next 直到无值。需要原子保存时先写临时文件，再原子替换。直接 write 不负责 flush，调用方使用 `file_stream.flush/sync/close`。
+
+严格语法、重复键最后值、数字类型与深度规则沿用旧接口；增量解析错误仍给出行、Unicode 标量列与 UTF-8 字节偏移。超限使用 `size_limit/depth_limit`，错误选项使用 `invalid_argument`。读取缓冲为固定块，根数组仅保留当前元素；生成缓冲为固定块，对象排序另需与对象字段数成正比的空间。
+
+schema 是明确受限的 JSON Schema 风格契约，不宣称支持完整 JSON Schema 草案：支持 `type`（单个 `null/boolean/integer/number/string/array/object`）、`properties`、`required`、布尔 `additionalProperties`、`items`、`minimum/maximum`、`minLength/maxLength`、`minItems/maxItems`。未声明的约束不限制值；`number` 接受 int 和有限 float，`integer` 只接受 TX int；长度按 Unicode 标量计数。所有未知关键字（包括 `$ref`、`format`）和类型错误均报 `invalid_schema`，不会默默忽略。schema 最大 128 层、10000 个节点；校验值须为无环可序列化 JSON 值，最大 64 MiB，校验最多访问 1000000 个节点。缺失必需字段使用 `missing_field`，类型错误使用 `type_mismatch`，其他约束使用 `schema_mismatch`；消息含实例路径，不输出字段值。所有 schema 分支均先检查有效性，即使实例没有对应字段。
+
+迁移时，小数据继续调用 `parse/stringify`；受限完整值使用 `read/write`；大数组使用 `reader/next` 和 `writer/write_value/finish`。需要 schema 时，对完整根值或逐项读取的元素显式调用 `validate`，校验通过后再使用或写出。
+
 ## 实现与验证
 
 2026-09-26：接口与实现已接入；`pwsh -NoProfile -File scripts/build.ps1` 构建通过并清理临时 `build/`。本轮只运行了两个定向场景：
@@ -107,3 +131,16 @@ def main() -> int
 - [边界用例](../tests/json/behavior.tx)编译运行并输出 `JSON_OK`，覆盖合法 `null`、Unicode 转义、整数边界、浮点数、重复字段、数组根值、紧凑与缩进序列化、带位置的格式错误、缺失字段、循环引用、非字符串键和非法缩进；还验证了 `any` 到 `dict` / `array` 的声明、赋值、返回、共享修改及类型不符错误。
 
 未运行全量回归或性能测试。
+
+## 8.1 实施记录
+
+2026-09-27：公开 `.txh`、不透明类型、标准库实现、直接 ABI/LLVM 调用、语言文档和 [增量示例](../examples/json_stream.tx) 已交付。解析器共用有界预读和位置追踪，生成器支持有界输出块；游标不保存 TX 回调或对象，关闭和最后引用释放原生资源，已返回的值沿用原有 GC 规则。未新增第三方依赖。
+
+`pwsh -NoProfile -File scripts/build.ps1` 完整构建 Windows x64 `tx/` 工具链和标准库成功，兼容指纹已更新，临时 `build/` 已清理。`python scripts/check_data_formats.py json` 通过：
+
+- 既有 `tests/json/behavior.tx` 的严格语法、重复键、数字、中文位置、稳定输出和循环拒绝回归。
+- `tests/json/stream.tx` 与示例的二进制/UTF-16 文本流、逐项 null/EOF、共享别名、any 恢复、deep_copy 拒绝、重复 finish/close、schema 与失败状态。
+- `tests/json/stream_native.cpp` 的 1/2/7/4096 字节分块、跨块 UTF-8/代理项、20000 元素持续生成（单值限额 16 字节）、大小/深度/尾部语法、全局行列/偏移、I/O 失败注入、半写入和关闭释放引用。
+- 错误实参在 TX 源码位置报类型诊断；生成文件由 Python `json` 独立读取并核对内容。
+
+8.1 的接口及上述定向验收已完成。schema 是本页列明的受限校验契约，未知关键字会拒绝，并非完整 JSON Schema 草案实现。未运行全库测试、跨平台验收、解析器模糊测试或性能基准；8.3～8.6 的其他格式、结构映射与终态交叉验收仍独立推进。

@@ -1,0 +1,101 @@
+import "csv.txh" as csv
+import "file_stream.txh" as streams
+import "file.txh" as file
+import "error.txh" as errors
+import "test.txh" as test
+import "string.txh" as string
+
+def main() -> int
+{
+    auto dialect = csv.default_dialect()
+    dialect.has_header = true
+    dialect.write_bom = true
+    dialect.allow_bom = true
+    auto output = streams.open_binary("tx_build/csv_stream_check.csv", "write")
+    auto writer = csv.writer(output, dialect)
+    array writer_handles = [writer]
+    any boxed_writer = writer_handles[0]
+    auto alias = boxed_writer as csv_writer
+    csv.write_row(writer, vector<str>(["name", "note", "empty"]))
+    csv.write_row(alias, vector<str>(["中文𝄞", "一\r\n二,\"三\"", ""]))
+    csv.finish(alias)
+    csv.finish(writer)
+    csv.close(writer)
+    csv.close(alias)
+    streams.close(output)
+
+    auto input = streams.open_binary("tx_build/csv_stream_check.csv", "read")
+    auto reader = csv.reader(input, dialect)
+    auto header = csv.header(reader)
+    test.assert_equal("name", header[0])
+    header[0] = "changed"
+    test.assert_equal("name", csv.header(reader)[0])
+    array reader_handles = [reader]
+    any boxed = reader_handles[0]
+    auto restored = boxed as csv_reader
+    auto item = csv.next_row(restored)
+    test.assert_true(item.is_some())
+    auto row = item.value()
+    test.assert_equal("中文𝄞", row[0])
+    test.assert_equal("一\r\n二,\"三\"", row[1])
+    test.assert_equal("", row[2])
+    test.assert_true(csv.next_row(reader).is_none())
+    test.assert_true(csv.next_row(restored).is_none())
+    bool failed = false
+    try
+    {
+        deep_copy(reader)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = string.contains(e.message, "deep_copy")
+    }
+    test.assert_true(failed)
+    csv.close(reader)
+    test.assert_equal("中文𝄞", row[0], "关闭不影响已返回行")
+    failed = false
+    try
+    {
+        csv.next_row(restored)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "invalid_state"
+    }
+    test.assert_true(failed)
+    streams.close(input)
+
+    auto custom = csv.default_dialect()
+    custom.delimiter = ";"
+    custom.quote = "'"
+    custom.newline = "\n"
+    auto rows = csv.parse("a;b\n'x;y';'it''s'", custom)
+    test.assert_equal(2, rows.size())
+    test.assert_equal("x;y", rows[1][0])
+    test.assert_equal("it's", rows[1][1])
+    test.assert_equal("a;b\n'x;y';'it''s'\n", csv.stringify(rows, custom))
+
+    auto text_output = streams.open_text("tx_build/csv_utf16.csv", "write", "utf-16")
+    auto text_writer = csv.writer(text_output, custom)
+    csv.write_row(text_writer, vector<str>(["甲", "乙\n丙"]))
+    csv.finish(text_writer)
+    csv.close(text_writer)
+    streams.close(text_output)
+    auto text_input = streams.open_text("tx_build/csv_utf16.csv", "read", "utf-16")
+    auto text_reader = csv.reader(text_input, custom)
+    test.assert_equal("乙\n丙", csv.next_row(text_reader).value()[1])
+    streams.close(text_input)
+    failed = false
+    try
+    {
+        csv.next_row(text_reader)
+    }
+    exception errors.io_error as e
+    {
+        failed = e.code == "closed_stream"
+    }
+    test.assert_true(failed, "关闭底层流后拒绝消费预读缓冲")
+    csv.close(text_reader)
+    print("CSV_STREAM_TX_OK")
+    return 0
+}

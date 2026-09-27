@@ -31,6 +31,10 @@ void llvm_code_generator::emit_declaration(
         emit_local_array_declaration(item, declaration, *length);
         return;
     }
+    if (emit_native_option_declaration(item, declaration))
+    {
+        return;
+    }
     ir_value value{value_type::void_type, {}};
     if (declaration.array_length)
     {
@@ -294,7 +298,7 @@ void llvm_code_generator::emit_return(const statement& item,
             error_targets_.pop_back();
         }
     }
-    body_ << "  call void @txrt_stack_pop()\n";
+    emit_stack_pop();
     write_instruction(result.value
         ? "ret " + llvm_type(return_type_, item.position) + " " + value.text
         : "ret void");
@@ -304,9 +308,8 @@ void llvm_code_generator::emit_return(const statement& item,
 
 void llvm_code_generator::emit_statement(const statement& item)
 {
-    body_ << "  call void @txrt_stack_location(ptr "
-          << global_bytes(item.position.file) << ", i64 "
-          << item.position.line << ", i64 " << item.position.column << ")\n";
+    const auto* previous_position = current_statement_position_;
+    current_statement_position_ = &item.position;
     if (const auto* declaration = std::get_if<variable_declaration>(&item.data))
     {
         emit_declaration(item, *declaration);
@@ -386,6 +389,7 @@ void llvm_code_generator::emit_statement(const statement& item)
     {
         emit_gc_safepoint();
     }
+    current_statement_position_ = previous_position;
 }
 
 } // namespace tx

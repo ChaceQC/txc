@@ -1,0 +1,137 @@
+import "serde.txh" as serde
+import "bytes.txh" as bytes
+import "error.txh" as errors
+import "test.txh" as test
+import "string.txh" as string
+
+struct child serde(version=1, unknown="reject")
+{
+    code: int serde(1)
+}
+
+struct ignored serde(version=1, unknown="ignore")
+{
+    code: int serde(1)
+}
+
+struct collection serde(version=1)
+{
+    items: vector<child> serde(1)
+    choices: vector<option<int>> serde(2)
+}
+
+struct record serde(version=2, unknown="preserve", reserved=[7])
+{
+    id: int serde(1)
+    nick: str serde(2, default="guest")
+    child_value: child serde(3)
+    tags: vector<str> serde(4)
+    maybe: option<int> serde(5)
+    payload: bytes serde(6)
+    extras: dict serde(unknown)
+}
+
+def main() -> int
+{
+    int deserialize_json = 2
+    test.assert_true(deserialize_json < 3)
+    str source = "{\"$schema\":2,\"id\":5,\"child_value\":{\"$schema\":1,\"code\":9},\"tags\":[\"a\",\"b\"],\"payload\":\"AAE\",\"future\":true}"
+    record value = serde.deserialize_json<record>(source)
+    test.assert_equal(5, value.id)
+    test.assert_equal("guest", value.nick)
+    test.assert_equal(9, value.child_value.code)
+    test.assert_equal("b", value.tags[1])
+    test.assert_true(value.maybe.is_none())
+    test.assert_equal("0001", bytes.to_hex(value.payload))
+    test.assert_true(value.extras["future"] as bool)
+    auto encoded = serde.serialize_json(value)
+    test.assert_true(string.contains(encoded, "\"future\":true"))
+    record roundtrip = serde.deserialize_json<record>(encoded)
+    test.assert_equal("guest", roundtrip.nick)
+    record copied = deep_copy(roundtrip)
+    test.assert_equal(5, serde.deserialize_json<record>(
+        serde.serialize_json(copied)).id)
+
+    record binary_value = record(11, "present", child(4), vector<str>(["x"]),
+        option<int>(23), bytes.from_hex("ff"), {8: "later"})
+    auto binary = serde.serialize_cbor(binary_value)
+    record from_binary = serde.deserialize_cbor<record>(binary)
+    test.assert_equal(11, from_binary.id)
+    test.assert_equal(23, from_binary.maybe.value())
+    test.assert_equal("later", from_binary.extras[8] as str)
+    test.assert_equal("ff", bytes.to_hex(from_binary.payload))
+    collection grouped = collection(vector<child>([child(1), child(2)]),
+        vector<option<int>>([option<int>(), option<int>(3)]))
+    collection decoded_group = serde.deserialize_cbor<collection>(
+        serde.serialize_cbor(grouped))
+    test.assert_equal(2, decoded_group.items[1].code)
+    test.assert_true(decoded_group.choices[0].is_none())
+    test.assert_equal(3, decoded_group.choices[1].value())
+
+    bool failed = false
+    try
+    {
+        serde.deserialize_json<record>("{\"$schema\":1,\"id\":5}")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "schema_version"
+    }
+    test.assert_true(failed, "版本不符必须拒绝")
+    failed = false
+    try
+    {
+        serde.deserialize_json<record>("{\"$schema\":2,\"nick\":\"x\"}")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "missing_field"
+    }
+    test.assert_true(failed, "缺少必需字段必须拒绝")
+    failed = false
+    try
+    {
+        serde.deserialize_json<record>("{\"$schema\":2,\"id\":\"x\"}")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "type_mismatch"
+    }
+    test.assert_true(failed, "类型不符必须拒绝")
+    failed = false
+    try
+    {
+        serde.deserialize_json<child>("{\"$schema\":1,\"code\":1,\"extra\":2}")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "unknown_field"
+    }
+    test.assert_true(failed, "拒绝策略必须拒绝未知字段")
+    ignored without_extra = serde.deserialize_json<ignored>(
+        "{\"$schema\":1,\"code\":4,\"future\":7}")
+    test.assert_true(!string.contains(serde.serialize_json(without_extra),
+        "future"), "忽略策略不应保留未知字段")
+    failed = false
+    try
+    {
+        serde.deserialize_json<child>("{\"$schema\":1,\"code\":1,\"code\":2}")
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "duplicate_key"
+    }
+    test.assert_true(failed, "重复字段名必须拒绝")
+    failed = false
+    try
+    {
+        serde.deserialize_cbor<record>(serde.serialize_cbor(child(3)))
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "schema_version"
+    }
+    test.assert_true(failed, "CBOR 版本不符必须拒绝")
+    print("SERDE_TX_OK")
+    return 0
+}

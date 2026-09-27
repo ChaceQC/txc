@@ -174,6 +174,10 @@ std::size_t llvm_code_generator::field_index(const value_type& type,
 llvm_code_generator::ir_value llvm_code_generator::load(
     const variable_slot& variable)
 {
+    if (!variable.native_option_value.empty())
+    {
+        return load_native_option(variable);
+    }
     if (!variable.snapshot_kind.empty())
     {
         const auto kind = temporary();
@@ -271,7 +275,8 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
                  item.type == value_type::str_type))
     {
         const auto variable = find_variable(name->name, item.position);
-        if (!variable.snapshot_kind.empty())
+        if (!variable.snapshot_kind.empty() ||
+            !variable.native_option_value.empty())
         {
             borrowed = false;
             return load(variable);
@@ -299,6 +304,10 @@ void llvm_code_generator::release(const ir_value& value)
 
 void llvm_code_generator::release_slot(const variable_slot& variable)
 {
+    if (!variable.native_option_value.empty())
+    {
+        return;
+    }
     if (!variable.dynamic_array_length.empty())
     {
         write_instruction("call void @txrt_local_scalar_array_release(ptr " +
@@ -348,6 +357,7 @@ void llvm_code_generator::write_instruction(const std::string& text)
         body_ << "  br i1 " << failed << ", label %" << error_label
               << ", label %" << success_label << '\n';
         start_block(error_label);
+        emit_error_location();
         body_ << "  " << text << "\n  unreachable\n";
         start_block(success_label);
         return;
@@ -443,6 +453,9 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
         }
     }
     module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
+            << "%tx_runtime_context = type { ptr, i32 }\n"
+            << "%tx_diagnostic_frame = type { ptr, ptr, i64, i64, ptr }\n"
+            << "declare ptr @txrt_runtime_context()\n"
             << "declare i32 @txrt_prepare_console()\n"
             << "declare void @txrt_require_success(i32)\n"
             << "declare i32 @txrt_gc_safepoint()\n"
@@ -511,7 +524,11 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare i32 @txrt_closure_bind(ptr, ptr, ptr, ptr, i64, ptr)\n"
             << "declare ptr @txrt_closure_code(ptr)\n"
             << "declare i32 @txrt_closure_parent(ptr, ptr)\n"
+            << "declare i32 @txrt_closure_parent_borrow(ptr, ptr)\n"
             << "declare i32 @txrt_closure_capture(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_closure_capture_i64(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_closure_capture_f64(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_closure_capture_bool(ptr, i64, ptr)\n"
             << "declare i32 @txrt_array_new(i64, ptr)\n"
             << "declare ptr @txrt_array_ref(ptr)\n"
             << "declare void @txrt_array_index_error()\n"
@@ -635,11 +652,13 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     {
         module_ << "  call void @txrt_error_propagation(i1 true)\n";
     }
-    module_ << "  %result = call i64 " << function_name("main", 0) << "()\n";
+    write_context_boundary();
+    module_ << "  %result = call i64 " << function_name("main", 0)
+            << "(ptr %tx_context)\n";
     if (recoverable_errors_)
     {
         module_ << "  call void @txrt_error_propagation(i1 false)\n"
-                << "  %error = call i32 @txrt_error_status()\n"
+                << "  %error = load i32, ptr %tx_error_kind\n"
                 << "  call void @txrt_require_success(i32 %error)\n";
     }
     module_

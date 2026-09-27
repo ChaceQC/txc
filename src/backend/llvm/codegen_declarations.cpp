@@ -48,18 +48,15 @@ void llvm_code_generator::write_external_declarations()
             }
             module_ << "declare " << llvm_type(function.return_type,
                 function.position) << ' '
-                << function_name(symbol, index) << '(';
+                << function_name(symbol, index) << "(ptr";
             if (method)
             {
-                module_ << "ptr";
+                module_ << ", ptr";
             }
             for (std::size_t parameter = 0;
                  parameter < function.parameters.size(); ++parameter)
             {
-                if (parameter != 0 || method)
-                {
-                    module_ << ", ";
-                }
+                module_ << ", ";
                 module_ << llvm_type(parameter_abi_type(
                                          function.parameters[parameter]),
                                      function.parameters[parameter].position);
@@ -90,6 +87,91 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_json_get_str(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_json_get_array(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_json_get_object(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_default_limits(ptr, ptr)\n"
+            << "declare i32 @txrt_json_read_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_read_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_reader_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_reader_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_next(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_write_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_write_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_writer_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_writer_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_json_write_value(ptr, ptr)\n"
+            << "declare i32 @txrt_json_finish(ptr)\n"
+            << "declare i32 @txrt_json_close_reader(ptr)\n"
+            << "declare i32 @txrt_json_close_writer(ptr)\n"
+            << "declare i32 @txrt_json_validate(ptr, ptr)\n"
+            << "declare i32 @txrt_serde_serialize_json(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_serde_deserialize_json(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_serde_serialize_cbor(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_serde_deserialize_cbor(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_default_limits(ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_encode(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_decode(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_read(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_write(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_reader(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_next(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_writer(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_write_value(ptr, ptr)\n"
+            << "declare i32 @txrt_cbor_finish(ptr)\n"
+            << "declare i32 @txrt_cbor_close_reader(ptr)\n"
+            << "declare i32 @txrt_cbor_close_writer(ptr)\n"
+            << "declare i32 @txrt_csv_default_dialect(ptr, ptr)\n"
+            << "declare i32 @txrt_csv_reader_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_csv_reader_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_csv_next_row(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_csv_header(ptr, ptr)\n"
+            << "declare i32 @txrt_csv_writer_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_csv_writer_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_csv_write_row(ptr, ptr)\n"
+            << "declare i32 @txrt_csv_finish(ptr)\n"
+            << "declare i32 @txrt_csv_close_reader(ptr)\n"
+            << "declare i32 @txrt_csv_close_writer(ptr)\n"
+            << "declare i32 @txrt_csv_parse(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_csv_stringify(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_default_limits(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_reader_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_reader_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_next(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_count_reader(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_local_name_reader(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_namespace_uri_reader(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_prefix_reader(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_value_reader(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_xml_close_reader(ptr)\n"
+            << "declare i32 @txrt_xml_parse(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_read_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_read_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_root(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_first_child(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_next_sibling(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_kind(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_local_name(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_namespace_uri(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_prefix(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_text(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_count_node(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_local_name_node(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_namespace_uri_node(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_prefix_node(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_xml_attribute_value_node(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_xml_new_document(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_append_element(ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_set_attribute(ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_append_text(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_stringify(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_write_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_write_text_stream(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_writer_binary(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_writer_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_start_element(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_write_attribute(ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_xml_write_text(ptr, ptr)\n"
+            << "declare i32 @txrt_xml_end_element(ptr)\n"
+            << "declare i32 @txrt_xml_finish(ptr)\n"
+            << "declare i32 @txrt_xml_close_writer(ptr)\n"
             << "declare i32 @txrt_file_try_read_text(ptr, ptr, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_file_try_write_text(ptr, ptr, ptr, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_file_try_append_text(ptr, ptr, ptr, ptr, ptr, ptr)\n"
@@ -172,9 +254,7 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_error_take(ptr, ptr)\n"
             << "declare i32 @txrt_error_fail_io(ptr, ptr)\n";
     module_ << "declare i32 @txrt_error_stack_trace(ptr)\n"
-            << "declare void @txrt_stack_push(ptr, ptr, i64, i64)\n"
-            << "declare void @txrt_stack_pop()\n"
-            << "declare void @txrt_stack_location(ptr, i64, i64)\n";
+            << "declare void @txrt_stack_error_location(ptr, ptr, i64, i64)\n";
     module_ << "declare i32 @txrt_test_assert_true(i1, ptr)\n"
             << "declare i32 @txrt_test_assert_false(i1, ptr)\n"
             << "declare i32 @txrt_test_assert_equal_i64(i64, i64, ptr)\n"
@@ -235,8 +315,8 @@ void llvm_code_generator::write_external_declarations()
             << "declare double @txrt_random_float_direct()\n"
             << "declare ptr @txrt_random_context()\n"
             << "declare i32 @txrt_random_seed_context(ptr, i64)\n"
-            << "declare i64 @txrt_random_int_context(ptr, i64, i64)\n"
-            << "declare double @txrt_random_float_context(ptr)\n\n";
+            << "declare i32 @txrt_random_int_context(ptr, i64, i64, ptr)\n"
+            << "declare i32 @txrt_random_float_context(ptr, ptr)\n\n";
     for (const auto* name : {"sin", "cos", "tan", "asin", "acos", "atan",
                              "sinh", "cosh", "tanh", "exp", "log", "log10"})
     {

@@ -1,0 +1,7 @@
+import "csv.txh" as csv
+
+def main() -> int
+{
+    csv.next_row(1)
+    return 0
+}

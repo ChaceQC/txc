@@ -25,6 +25,11 @@ bool is_builtin_type(const std::string& name)
            name == "encoding_decoder" || name == "encoding_encoder" ||
            name == "regex_pattern" || name == "fs_watcher" ||
            name == "process_child" || name == "process_pipe" ||
+           name == "json_reader" || name == "json_writer" ||
+           name == "cbor_reader" || name == "cbor_writer" ||
+           name == "csv_reader" || name == "csv_writer" ||
+           name == "xml_reader" || name == "xml_writer" ||
+           name == "xml_document" || name == "xml_node" ||
            name == "bool" || name == "array" || name == "dict" || name == "any" ||
            name == "none" || name == "void" || name == "unknown" ||
            name == "fn";
@@ -319,10 +324,11 @@ void module_resolver::resolve(program& source)
         {
             if (!function.external ||
                 (!function.external_name.starts_with("algorithm.") &&
-                 !function.external_name.starts_with("random.")))
+                 !function.external_name.starts_with("random.") &&
+                 !function.external_name.starts_with("serde.")))
             {
                 throw compile_error(function.position,
-                    "当前仅标准库 algorithm/random 接口支持泛型函数声明");
+                    "当前仅标准库 algorithm/random/serde 接口支持泛型函数声明");
             }
             const std::unordered_set<std::string> variables(
                 function.type_parameters.begin(), function.type_parameters.end());

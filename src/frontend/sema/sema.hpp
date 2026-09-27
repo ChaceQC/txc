@@ -48,6 +48,10 @@ private:
         expression& item, call_expression& call, std::string_view name);
     [[nodiscard]] value_type check_random_intrinsic(
         expression& item, call_expression& call, std::string_view name);
+    [[nodiscard]] value_type check_serde_intrinsic(
+        expression& item, call_expression& call, std::string_view name);
+    void validate_serde_definition(const struct_decl& definition) const;
+    void validate_serde_type(const value_type& type, source_pos position) const;
     void validate_type(const value_type& type, source_pos position) const;
     void validate_key_contract(const value_type& type,
                                source_pos position) const;
@@ -131,6 +135,7 @@ private:
     std::unordered_map<std::string, std::vector<function_signature>> functions_;
     std::unordered_map<std::string, std::string> algorithm_intrinsics_;
     std::unordered_map<std::string, std::string> random_intrinsics_;
+    std::unordered_map<std::string, std::string> serde_intrinsics_;
     value_type random_generator_type_;
     std::vector<std::unordered_map<std::string, symbol_info>> scopes_;
     value_type current_return_type_ = value_type::unknown_type;

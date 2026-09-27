@@ -1,0 +1,13 @@
+import "model.txh" as model
+import "serde.txh" as serde
+import "test.txh" as test
+
+def main() -> int
+{
+    model.payload value = model.payload("imported")
+    auto encoded = serde.serialize_json(value)
+    model.payload restored = serde.deserialize_json<model.payload>(encoded)
+    test.assert_equal("imported", restored.value)
+    print("SERDE_MODULE_OK")
+    return 0
+}

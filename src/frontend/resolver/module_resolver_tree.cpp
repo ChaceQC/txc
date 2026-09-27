@@ -112,6 +112,11 @@ void module_resolver::resolve_expression(
     }
     else if (auto* call = std::get_if<call_expression>(&item.data))
     {
+        if (call->explicit_type)
+        {
+            call->explicit_type = resolve_type(module_key, *call->explicit_type,
+                                                item.position);
+        }
         if (call->container_type)
         {
             call->container_type = resolve_type(module_key, *call->container_type,

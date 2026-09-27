@@ -10,6 +10,11 @@ struct_decl parser::parse_struct()
 {
     const auto position = consume(token_kind::keyword_struct, "需要 struct").position;
     const auto name = consume(token_kind::identifier, "需要结构体名称").text;
+    std::optional<serde_struct_metadata> serde;
+    if (check(token_kind::identifier) && current().text == "serde")
+    {
+        serde = parse_serde_struct_metadata();
+    }
     skip_newlines();
     (void)consume(token_kind::left_brace, "结构体需要左大括号");
     skip_newlines();
@@ -36,7 +41,12 @@ struct_decl parser::parse_struct()
         {
             const auto field = consume(token_kind::identifier, "需要字段名或运算符");
             (void)consume(token_kind::colon, "字段名后需要冒号");
-            fields.push_back({field.text, parse_type(), field.position});
+            struct_field definition{field.text, parse_type(), field.position, {}};
+            if (check(token_kind::identifier) && current().text == "serde")
+            {
+                definition.serde = parse_serde_field_metadata();
+            }
+            fields.push_back(std::move(definition));
         }
         if (!check(token_kind::right_brace) && !match(token_kind::newline))
         {
@@ -45,7 +55,8 @@ struct_decl parser::parse_struct()
         skip_newlines();
     }
     (void)advance();
-    return {name, std::move(fields), position, std::move(methods)};
+    return {name, std::move(fields), position, std::move(methods),
+            error_kind::none, std::move(serde), name};
 }
 
 function_decl parser::parse_function(bool declaration_only, bool member)

@@ -1,0 +1,96 @@
+import "cbor.txh" as cbor
+import "bytes.txh" as bytes
+import "file_stream.txh" as streams
+import "error.txh" as errors
+import "test.txh" as test
+
+def main() -> int
+{
+    auto limits = cbor.default_limits()
+    auto value = {"b": 2, "a": bytes.from_hex("00ff"), "null": none}
+    auto encoded = cbor.encode(value, limits)
+    test.assert_equal("a361614200ff616202646e756c6cf6", bytes.to_hex(encoded))
+    dict decoded = cbor.decode(encoded, limits)
+    test.assert_equal("00ff", bytes.to_hex(decoded["a"] as bytes))
+    test.assert_equal(2, decoded["b"] as int)
+    test.assert_true(is_none(decoded["null"]))
+    test.assert_equal("f93e00", bytes.to_hex(cbor.encode(1.5, limits)))
+
+    auto output = streams.open_binary("tx_build/cbor_stream_check.cbor", "write")
+    auto writer = cbor.writer(output, 3, limits)
+    auto alias = writer
+    cbor.write_value(writer, none)
+    cbor.write_value(alias, encoded)
+    cbor.write_value(writer, {"中文": true})
+    cbor.finish(alias)
+    cbor.finish(writer)
+    bool failed = false
+    try
+    {
+        cbor.write_value(writer, 4)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "invalid_state"
+    }
+    test.assert_true(failed, "完成后不能继续写")
+    cbor.close(writer)
+    cbor.close(alias)
+    streams.close(output)
+
+    auto single_output = streams.open_binary("tx_build/cbor_single_check.cbor", "write")
+    cbor.write(single_output, value, limits)
+    streams.close(single_output)
+    auto single_input = streams.open_binary("tx_build/cbor_single_check.cbor", "read")
+    dict single = cbor.read(single_input, limits)
+    test.assert_equal("00ff", bytes.to_hex(single["a"] as bytes))
+    streams.close(single_input)
+
+    auto input = streams.open_binary("tx_build/cbor_stream_check.cbor", "read")
+    auto reader = cbor.reader(input, limits)
+    array handles = [reader]
+    any boxed = handles[0]
+    auto restored = boxed as cbor_reader
+    auto first = cbor.next(restored)
+    test.assert_true(first.is_some() && is_none(first.value()), "null 不是 EOF")
+    auto second = cbor.next(reader)
+    test.assert_equal(bytes.to_hex(encoded), bytes.to_hex(second.value() as bytes))
+    dict third = cbor.next(reader).value()
+    test.assert_true(third["中文"] as bool)
+    test.assert_true(cbor.next(restored).is_none())
+    failed = false
+    try
+    {
+        deep_copy(reader)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "operation_failed"
+    }
+    test.assert_true(failed, "游标不能深拷贝")
+    cbor.close(reader)
+    failed = false
+    try
+    {
+        cbor.next(restored)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "invalid_state"
+    }
+    test.assert_true(failed, "关闭共享游标后拒绝继续读")
+    streams.close(input)
+
+    failed = false
+    try
+    {
+        cbor.decode(bytes.from_hex("a2616101616102"), limits)
+    }
+    exception errors.parse_error as e
+    {
+        failed = e.code == "duplicate_key"
+    }
+    test.assert_true(failed)
+    print("CBOR_TX_OK")
+    return 0
+}

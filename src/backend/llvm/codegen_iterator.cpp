@@ -12,13 +12,18 @@ void llvm_code_generator::write_iterator_declarations()
                 << "declare i32 @txrt_iterator_next_" << suffix
                 << "(ptr, ptr, ptr)\n";
     }
-    module_ << "declare i32 @txrt_iterator_close(ptr)\n";
+    module_ << "declare i32 @txrt_iterator_next_scalar_i64(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_iterator_next_scalar_f64(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_iterator_next_scalar_bool(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_iterator_close(ptr)\n";
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_iterator_call(
     const expression& item, const call_expression& call)
 {
-    const auto receiver = expression_value(*call.receiver);
+    bool borrowed_receiver = false;
+    const auto receiver = expression_value_or_borrow(*call.receiver,
+                                                     borrowed_receiver);
     const auto& type = call.receiver->type;
     std::string symbol;
     std::string parameters = "ptr " + receiver.text;
@@ -47,7 +52,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_iterator_call(
     const auto status = temporary();
     write_instruction(status + " = call i32 @" + symbol + "(" + parameters + ")");
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
-    release(receiver);
+    if (!borrowed_receiver)
+    {
+        release(receiver);
+    }
     if (!returns_value)
     {
         return {value_type::void_type, {}};

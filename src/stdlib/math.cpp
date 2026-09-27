@@ -148,48 +148,67 @@ tx_int tx_fn_ceil(double value)
 
 } // namespace tx_generated
 
-using tx_generated::detail::invoke_checked;
+using tx_generated::detail::invoke_leaf;
 
 extern "C" int txrt_math_abs_i64(std::int64_t value,
                                   std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_abs(value); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_abs(value);
+    });
 }
 
 extern "C" int txrt_math_abs_f64(double value, double* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_abs(value); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_abs(value);
+    });
 }
 
 extern "C" int txrt_math_min_i64(std::int64_t left, std::int64_t right,
                                   std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_min(left, right); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_min(left, right);
+    });
 }
 
 extern "C" int txrt_math_min_f64(double left, double right,
                                   double* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_min(left, right); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_min(left, right);
+    });
 }
 
 extern "C" int txrt_math_max_i64(std::int64_t left, std::int64_t right,
                                   std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_max(left, right); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_max(left, right);
+    });
 }
 
 extern "C" int txrt_math_max_f64(double left, double right,
                                   double* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_max(left, right); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_max(left, right);
+    });
 }
 
 extern "C" int txrt_math_clamp_i64(std::int64_t value, std::int64_t lower,
                                     std::int64_t upper,
                                     std::int64_t* result) noexcept
 {
-    return invoke_checked([&] {
+    return invoke_leaf([&]
+    {
         *result = tx_generated::tx_fn_clamp(value, lower, upper);
     });
 }
@@ -197,7 +216,8 @@ extern "C" int txrt_math_clamp_i64(std::int64_t value, std::int64_t lower,
 extern "C" int txrt_math_clamp_f64(double value, double lower, double upper,
                                     double* result) noexcept
 {
-    return invoke_checked([&] {
+    return invoke_leaf([&]
+    {
         *result = tx_generated::tx_fn_clamp(value, lower, upper);
     });
 }
@@ -205,18 +225,25 @@ extern "C" int txrt_math_clamp_f64(double value, double lower, double upper,
 extern "C" int txrt_math_mod_i64(std::int64_t left, std::int64_t right,
                                   std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_mod(left, right); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_mod(left, right);
+    });
 }
 
 extern "C" int txrt_math_sqrt_f64(double value, double* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_sqrt(value); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_sqrt(value);
+    });
 }
 
 extern "C" int txrt_math_pow_f64(double base, double exponent,
                                   double* result) noexcept
 {
-    return invoke_checked([&] {
+    return invoke_leaf([&]
+    {
         *result = tx_generated::tx_fn_pow(base, exponent);
     });
 }
@@ -224,11 +251,17 @@ extern "C" int txrt_math_pow_f64(double base, double exponent,
 extern "C" int txrt_math_floor_f64(double value,
                                     std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_floor(value); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_floor(value);
+    });
 }
 
 extern "C" int txrt_math_ceil_f64(double value,
                                    std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_ceil(value); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_ceil(value);
+    });
 }

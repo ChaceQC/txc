@@ -2,7 +2,7 @@
 
 本文定义 TX 对常用通用程序提供的**完整标准库目标**，覆盖集合与数据结构、字符串与编码、文件与系统、时间与数学、网络、数据格式、并发、数据库、测试与调试、安全十类能力。这里的“终态”指以下能力、语义和验收条件全部交付后的状态，不表示当前代码已经支持本文列出的新增接口，也不以某个先行版本代替最终目标。
 
-本文以 2026-09-26 仓库中的 `tx/stdlib/*.txh`、`src/stdlib/`、`CMakeLists.txt` 和现有语言文档为静态核对依据；未在本次文档工作中构建或运行程序。已经公开的行为以现有模块文档为准；本文中标明“新增”或“扩展”的签名是**拟定终态契约**，落地前须同步 `docs/syntax.md`、模块文档和可运行示例。泛型签名里的 `T`、`K`、`V` 是设计记法，不是现有 .txh 可直接解析的源码。
+本文以 2026-09-26 仓库中的 `tx/stdlib/*.txh`、`src/stdlib/`、`CMakeLists.txt` 和现有语言文档为静态核对依据；未在本次文档工作中构建或运行程序。已经公开的行为以现有模块文档为准；本文中标明“新增”或“扩展”的签名是**拟定终态契约**，落地前须同步 `docs/syntax.md`、模块文档和可运行示例。泛型签名里的 `T`、`K`、`V` 是设计记法；其中 `algorithm` 和 `serde` 已落地为受限的标准库泛型接口声明，普通用户泛型函数体仍不支持。
 
 ## 1. 完成边界与现状
 
@@ -17,7 +17,7 @@
 | 文件与系统 | `file/file_stream/fs/path/system/env`；文本和二进制流、常用路径与环境操作 | 子进程、管道、原子替换、权限/符号链接/元信息、文件监视、系统能力查询 |
 | 时间与数学 | 时间戳、单调计时、休眠、伪随机数和基础数学 | 日历/时区、可控随机数实例、统计、高级数学、十进制定点数 |
 | 网络 | `httpx`、`websocket` 和 `requests` 的同步 HTTP/WS 能力，含 HTTP/2 与文件流 | TCP/UDP/DNS/TLS 低层公开接口、异步 I/O、连接池、代理/自定义信任、完善流式会话与服务端并发 |
-| 数据格式 | 严格 JSON 解析、序列化、字段读取 | CSV、XML、跨版本二进制序列化、结构化类型映射与流式处理 |
+| 数据格式 | 严格 JSON 解析、序列化、字段读取、增量数组与受限 schema；CSV 流式读写、表头与 dialect；XML reader、树、writer 与安全默认值；CBOR 确定性编解码与根数组流；`serde` 固定 schema 的 JSON/CBOR 结构体映射和显式版本迁移 | 第 8.6/13 节跨格式、大数据和跨平台专项验收 |
 | 并发 | 当前仅有无捕获的顶层函数值；网络服务循环同步执行 | 线程、任务、取消、同步原语、通道、异步文件/网络 I/O、进程间通信 |
 | 数据库 | 无公开数据库模块 | SQLite 与 PostgreSQL 连接、参数绑定、游标、事务、连接池和迁移接口 |
 | 测试与调试 | `test/log/debug` 与 `txc test` 已有第 3 节基础接口；仓库另有针对编译器/标准库的脚本和样例 | 参数化/性质测试、并行与超时、可替换日志 sink/轮转、性能分析及终态验收 |
@@ -139,7 +139,7 @@ HTTP 请求/响应中的状态码、头、Cookie、重定向和压缩遵循相�
 | `csv.txh` | `reader(stream, dialect)`、`next_row() -> option<vector<str>>`、`writer`、`write_row`，以及整文本便捷接口 | 默认 RFC 4180；分隔符、引号、换行和表头策略显式配置。嵌入换行、空字段、最后无换行、BOM 与编码都可区分；行宽和字段长度有限额。 |
 | `xml.txh` | 拉取式 `reader`、树形 `document`、命名空间/属性/文本访问、`writer` | 支持 XML 1.0 与 UTF-8/UTF-16；保留元素顺序、命名空间 URI 与文本内容。默认禁止 DTD、外部实体、网络实体和 XInclude；深度与实体扩展有上限。 |
 | `cbor.txh` | `encode/decode` 与流式 reader/writer，支持规范化编码 | 以带类型的二进制数据互通；整数、浮点、字符串、字节、数组、映射、布尔和 null 有明确对应；拒绝不符合规范的重复键及无限制嵌套。 |
-| `serde.txh` | 为标记的 TX 数据结构生成 JSON/CBOR 编解码器，提供 `serialize<T>`、`deserialize<T>` | 结构体字段拥有稳定名称/编号、必需或可选属性、默认值和 schema 版本。不能序列化函数、线程、文件、socket、数据库句柄或密钥对象。 |
+| `serde.txh` | 为标记的 TX 数据结构生成 JSON/CBOR 编解码器，提供 `serialize_json<T>`、`deserialize_json<T>`、`serialize_cbor<T>`、`deserialize_cbor<T>` | 结构体字段拥有稳定名称/编号、必需或可选属性、默认值和 schema 版本。不能序列化函数、线程、文件、socket、数据库句柄或密钥对象。 |
 
 `serde` 的字段元数据属于编译期声明，代码生成时固定编码器和解码器，不在运行时按字段名遍历任意对象。向后兼容规则为：新增字段必须可选或有默认值；删除字段保留其编号；字段类型改变需要新编号或显式迁移；未知字段按 schema 策略忽略或保留，绝不悄悄映射到另一个字段。反序列化先校验长度、类型、深度和字段约束，再交付完整对象。没有“反序列化任意类并执行构造器”的入口。
 
@@ -225,12 +225,14 @@ SQLite 使用受维护的 amalgamation，限定文件路径、journal/WAL、`bus
 | 领域 | 依赖或系统后端 | 交付要求 |
 | --- | --- | --- |
 | Unicode/时区 | ICU4C 与随发行物固定的 Unicode、IANA 时区数据 | 公开数据版本；区域差异仅经显式 locale/zone 进入结果。 |
-| 正则/XML/CBOR | PCRE2、libxml2、QCBOR | 解析选项默认安全；新增静态库、许可证与资源限额随工具链交付。 |
-
-第五部分锁定 Windows x64 的 MSYS2 mingw64 包：ICU4C `78.3-4`（包 SHA-256 `8486a018aca2e56d1fcd2eed2069011f2e1da02e03af72b38916ee06cbe7203f`）和 PCRE2 `10.48-3`（包 SHA-256 `c67c23f448693e8c9cc3973872372dabec2abdf6afacb563096f7eb0e6837f57`）。构建时按哈希验证下载包；ICU 导入库和 PCRE2 静态库归档到 `libtxstdlib.a`，ICU 运行时 DLL 及许可证随 `tx/` 交付。ICU 静态库与当前 CLion MinGW 运行库存在 ABI 冲突，故使用固定版本 DLL；配套 `libstdc++` 与 `libgcc` 锁定为 MSYS2 `16.2.0-4`（包 SHA-256 分别为 `3d4c3faf4c2c5c7a851ff12214ddcbf8c0d6df0964fc1d3ebd8c38f227183034`、`d615f6a8536ca16b1f049daea1fa440a3b7a405449ec0e93ad6106db43682d54`），`libwinpthread` 锁定 `14.0.0.r426.g4564ee4b5-1`（包 SHA-256 `543017ce2731292b215bf1d36fd70a86d8a8d5ed0afba9d3db9fff89804cda71`）。打包时仅将两份 ICU DLL 的同长度导入名改为私有的 `libstdc++-u.dll`，TX 程序继续使用原编译器的 `libstdc++-6.dll`，两套运行库只通过 ICU C ABI 交互。Unicode 数据版本由随库提供的 `unicode.version()` 查询，不依赖宿主机 ICU 或区域设置；旧 `string.lower/upper` 仍是 ASCII 行为。
+| 正则/XML/CBOR | PCRE2、libxml2；CBOR 采用仓库内实现 | CBOR 8.4 的受限核心确定性编码不引入 QCBOR；新增静态库仍须随工具链交付许可证与资源限额。 |
 | 数据库 | SQLite 官方 amalgamation、PostgreSQL libpq | 明确驱动版本、TLS 能力、线程模式和事务语义。 |
 | 密码学 | 现有 Mbed TLS；Argon2 参考实现；libsodium 提供 Ed25519/X25519 | 只在支持的算法入口使用；标准向量和跨库互操作随模块验证。 |
 | 网络/任务 | Windows IOCP 与系统 socket；HTTP/3 使用 MsQuic；其他平台采用等价事件后端 | 公开相同的取消、超时和错误契约；平台缺失时在构建或初始化时明确报告能力不可用。 |
+
+第五部分锁定 Windows x64 的 MSYS2 mingw64 包：ICU4C `78.3-4`（包 SHA-256 `8486a018aca2e56d1fcd2eed2069011f2e1da02e03af72b38916ee06cbe7203f`）和 PCRE2 `10.48-3`（包 SHA-256 `c67c23f448693e8c9cc3973872372dabec2abdf6afacb563096f7eb0e6837f57`）。构建时按哈希验证下载包；ICU 导入库和 PCRE2 静态库归档到 `libtxstdlib.a`，ICU 运行时 DLL 及许可证随 `tx/` 交付。ICU 静态库与当前 CLion MinGW 运行库存在 ABI 冲突，故使用固定版本 DLL；配套 `libstdc++` 与 `libgcc` 锁定为 MSYS2 `16.2.0-4`（包 SHA-256 分别为 `3d4c3faf4c2c5c7a851ff12214ddcbf8c0d6df0964fc1d3ebd8c38f227183034`、`d615f6a8536ca16b1f049daea1fa440a3b7a405449ec0e93ad6106db43682d54`），`libwinpthread` 锁定 `14.0.0.r426.g4564ee4b5-1`（包 SHA-256 `543017ce2731292b215bf1d36fd70a86d8a8d5ed0afba9d3db9fff89804cda71`）。打包时仅将两份 ICU DLL 的同长度导入名改为私有的 `libstdc++-u.dll`，TX 程序继续使用原编译器的 `libstdc++-6.dll`，两套运行库只通过 ICU C ABI 交互。Unicode 数据版本由随库提供的 `unicode.version()` 查询，不依赖宿主机 ICU 或区域设置；旧 `string.lower/upper` 仍是 ASCII 行为。
+
+第八部分的 XML 后端固定 libxml2 `2.13.8` 源码归档（SHA-256 `277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a`），构建时校验哈希并静态归档到 `libtxstdlib.a`；`tx/LIBXML2-LICENSE` 随包。禁用网络协议、动态模块与 XInclude 构建选项，解析入口还关闭 DTD 装载、实体替换与验证；接口限额和具体语义见 [XML 模块说明](xml.md)。
 
 `txc`、`.txh`、标准库静态库和运行时 ABI 需要共同的兼容版本/指纹；混用不匹配产物应在编译或链接前报告，而不是等待程序崩溃。构建脚本校验所有源码归档，保留许可证与依赖清单；安装后的示例只依赖交付目录内和目标系统已声明的组件。
 

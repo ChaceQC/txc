@@ -15,8 +15,6 @@
 namespace tx_generated::detail
 {
 
-extern thread_local char last_error[256];
-
 enum class handle_kind
 {
     text,
@@ -89,7 +87,13 @@ void destroy_handle(value_type* value) noexcept
     delete record;
 }
 
-template<class operation>
+enum class error_effect
+{
+    local_only,
+    may_run_user_code
+};
+
+template<error_effect effect = error_effect::may_run_user_code, class operation>
 int invoke_checked(operation&& run,
                    tx::error_kind fallback = tx::error_kind::runtime) noexcept
 {
@@ -97,7 +101,11 @@ int invoke_checked(operation&& run,
     {
         std::forward<operation>(run)();
         // 回调中的 TX 函数可能通过状态返回；成功不清空错误，避免丢失析构错误。
-        return static_cast<int>(last_error_kind);
+        if constexpr (effect == error_effect::may_run_user_code)
+        {
+            return static_cast<int>(current_runtime_context().last_error_kind);
+        }
+        return 0;
     }
     catch (const runtime_failure& error)
     {
@@ -116,6 +124,15 @@ int invoke_checked(operation&& run,
         set_error(tx::error_kind::runtime, "unknown_error", "未知运行时错误");
     }
     return 1;
+}
+
+// 仅用于已经确认不会执行 TX 回调或释放用户对象的操作。
+template<class operation>
+int invoke_leaf(operation&& run,
+                tx::error_kind fallback = tx::error_kind::runtime) noexcept
+{
+    return invoke_checked<error_effect::local_only>(
+        std::forward<operation>(run), fallback);
 }
 
 } // namespace tx_generated::detail

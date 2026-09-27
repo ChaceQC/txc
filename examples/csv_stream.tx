@@ -1,0 +1,28 @@
+import "csv.txh" as csv
+import "file_stream.txh" as streams
+
+def main() -> int
+{
+    auto dialect = csv.default_dialect()
+    dialect.has_header = true
+    auto output = streams.open_binary("tx_build/csv_stream.csv", "write")
+    auto writer = csv.writer(output, dialect)
+    csv.write_row(writer, vector<str>(["name", "note"]))
+    csv.write_row(writer, vector<str>(["天心", "第一行\r\n第二行,含逗号与\"引号\""]))
+    csv.finish(writer)
+    csv.close(writer)
+    streams.close(output)
+
+    auto input = streams.open_binary("tx_build/csv_stream.csv", "read")
+    auto reader = csv.reader(input, dialect)
+    print(csv.header(reader))
+    auto row = csv.next_row(reader)
+    while row.is_some()
+    {
+        print(row.value())
+        row = csv.next_row(reader)
+    }
+    csv.close(reader)
+    streams.close(input)
+    return 0
+}

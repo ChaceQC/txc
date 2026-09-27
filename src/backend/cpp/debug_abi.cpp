@@ -15,7 +15,7 @@ using tx_generated::detail::source_frame;
 
 std::string location_text(const source_frame& frame)
 {
-    return frame.file + ":" + std::to_string(frame.line) + ":" +
+    return std::string(frame.file) + ":" + std::to_string(frame.line) + ":" +
            std::to_string(frame.column);
 }
 
@@ -28,7 +28,8 @@ std::string stack_text(const std::vector<source_frame>& stack)
         {
             result += '\n';
         }
-        result += frame.function + " (" + location_text(frame) + ")";
+        result += frame.function;
+        result += " (" + location_text(frame) + ")";
     }
     return result;
 }
@@ -40,9 +41,9 @@ void return_text(std::string value, void** result)
 
 void print_value(const char* type, const std::string& value)
 {
-    const auto& stack = tx_generated::detail::active_stack;
-    const auto position = stack.empty() ? std::string("<unknown>:0:0")
-        : location_text(stack.back());
+    const auto* frame = tx_generated::detail::current_runtime_context().active_frame;
+    const auto position = frame ? location_text(frame->source)
+        : std::string("<unknown>:0:0");
     tx_generated::tx_fn_write_error("调试 [" + std::string(type) + "] " +
         position + " = " + value + "\n");
 }
@@ -53,7 +54,8 @@ extern "C" int txrt_debug_stack_trace(void** result) noexcept
 {
     return invoke_checked([&]
     {
-        return_text(stack_text(tx_generated::detail::active_stack), result);
+        return_text(stack_text(tx_generated::detail::capture_stack(
+            tx_generated::detail::current_runtime_context())), result);
     });
 }
 
@@ -61,7 +63,7 @@ extern "C" int txrt_debug_last_error_stack(void** result) noexcept
 {
     return invoke_checked([&]
     {
-        return_text(stack_text(tx_generated::detail::last_error_stack), result);
+        return_text(stack_text(tx_generated::detail::current_runtime_context().last_error_stack), result);
     });
 }
 
@@ -69,8 +71,8 @@ extern "C" int txrt_debug_location(void** result) noexcept
 {
     return invoke_checked([&]
     {
-        const auto& stack = tx_generated::detail::active_stack;
-        return_text(stack.empty() ? "" : location_text(stack.back()), result);
+        const auto* frame = tx_generated::detail::current_runtime_context().active_frame;
+        return_text(frame ? location_text(frame->source) : "", result);
     });
 }
 

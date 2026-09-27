@@ -1,16 +1,16 @@
-# TX 与 C++ 语言特性性能对照
+# TX、C++、Python 与 Java 语言特性性能对照
 
-`compare.tx` 与 C++23 Release 对照使用相同的输入、循环次数和校验值，分别测量 22 项语言特性及运行时负载。每项输出三行：名称、程序内部耗时、校验值；TX 原始耗时以微秒输出，C++ 以毫秒输出，比较脚本统一换算为毫秒。TX 的 `workload.txh`/`workload.tx` 和 C++ 的 `workload.hpp`/`workload.cpp` 都让 `module_call` 跨源文件调用。
+`compare.tx`、C++23 Release、`compare_py.py` 和 `compare_java.java` 使用相同的输入、循环次数和校验值，分别测量 22 项语言特性及运行时负载。每项输出三行：名称、程序内部耗时、校验值；TX 原始耗时以微秒输出，其余三种语言以毫秒输出，比较脚本统一换算为毫秒。TX 的 `workload.txh`/`workload.tx`、C++ 的 `workload.hpp`/`workload.cpp`、Python 的 `feature_workload.py` 和 Java 的 `feature_workload.java` 都让 `module_call` 跨源文件调用。
 
-从仓库根目录运行。编译器源码有改动时先执行 `scripts/build.ps1`，确保 `tx/txc.exe` 与运行时库对应当前源码。比较脚本会用 CMake 的 Release 配置构建 C++ 对照、编译 TX，分别预热一次，再交替顺序测量 7 轮；每轮逐项检查两边的校验值，最后输出耗时中位数和 TX/C++ 倍率。CMake 优先使用本机 CLion 附带的版本，找不到时使用 PATH 中的 `cmake`。
+从仓库根目录运行。编译器源码有改动时先执行 `scripts/build.ps1`，确保 `tx/txc.exe` 与运行时库对应当前源码。比较脚本会用 CMake 的 Release 配置构建 C++ 对照、编译 TX、用 `javac` 编译 Java；四种程序分别预热一次，再交替顺序测量 7 轮。每轮逐项检查四种程序的校验值，最后输出耗时中位数和 TX 相对其余三种语言的倍率。CMake 优先使用本机 CLion 附带的版本，找不到时使用 PATH 中的 `cmake`。
 
 ```powershell
 .\benchmarks\language_features\run_compare.ps1
 ```
 
-可用 `-Rounds 3` 指定较少轮数做快速检查。两边的生成程序分别位于 `tx_build/language_features_tx.exe` 和 `tx_build/language_features_cmake/language_features_cpp.exe`，也可以从仓库根目录单独运行。若要观察编译器自身的耗时，可分别对 `txc check` 和完整编译命令使用 PowerShell 的 `Measure-Command`；下表的程序内部计时不含编译、启动和输出。
+可用 `-Rounds 3` 指定较少轮数做快速检查。生成程序分别位于 `tx_build/language_features_tx.exe`、`tx_build/language_features_cmake/language_features_cpp.exe` 和 `tx_build/language_features_java/`；Python 直接运行 `compare_py.py`。若要观察编译器自身的耗时，可分别对 `txc check` 和完整编译命令使用 PowerShell 的 `Measure-Command`；下表的程序内部计时不含编译、启动和输出。
 
-C++ 对照按同一运算顺序实现。C++ 没有命名实参和 `**kwargs` 语法，因此对应项目使用已经绑定好顺序的函数调用和按值传入的动态容器。数组使用 `std::vector<std::any>`，字典使用按键类型区分的 `std::unordered_map`，结构体和类引用使用 `std::shared_ptr`。`deep_copy` 的 C++ 实现复制此用例已知的嵌套形状；`copy_cycle` 使用对象身份表保留自环；`cycle_gc` 使用只识别本用例单节点自环的专用回收器。后面三项以及字典的容器表示并不提供与 TX 运行时完全相同的通用语义，倍率只表示这里写出的两份实现的耗时差。C++ Release 使用优化编译，当前 TX 目标程序由随 TX 分发的 clang 以 `-O3` 生成。
+C++ 对照按同一运算顺序实现。C++ 和 Java 没有命名实参和 `**kwargs` 语法，因此对应项目使用已经绑定好顺序的函数调用和动态容器；Python 保留真实的命名实参与 `*args`、`**kwargs`，但没有基于静态参数类型的重载，使用两个已解析目标函数。Python 的 `True` 与 `1` 是同一个字典键，故用类型标签保留 TX 的三种不同键。C++ 数组使用 `std::vector<std::any>`、结构体和类引用使用 `std::shared_ptr`；Java 用对象数组、哈希表和类，Python 用列表、字典和类。C++/Java 的 `deep_copy` 只复制已知嵌套形状，`copy_cycle` 使用对象身份表保留自环；Python 使用通用 `copy.deepcopy`。C++/Java 的 `cycle_gc` 只识别本用例单节点自环，Python 使用真实循环 GC；Java 的 `deinit` 用显式 `close()` 回调模拟确定释放，不能当作 JVM 析构性能。这些语义差异使倍率只表示各行代码的耗时，不代表语言的通用开销。C++ Release 使用优化编译，当前 TX 目标程序由随 TX 分发的 clang 以 `-O3` 生成。
 
 | 项目 | 主要覆盖 | 循环次数 | 预期校验值 |
 | --- | --- | ---: | ---: |
@@ -41,7 +41,7 @@ C++ 对照按同一运算顺序实现。C++ 没有命名实参和 `**kwargs` 语
 
 `cycle_gc` 在循环后最多增加 4096 次分配安全点，直到本轮创建的 1000 个环都完成析构；若校验值不足 1000，脚本会报错。`deep_copy` 的原件未被修改检查和 `cycle_gc` 的补充安全点属于各自的计时范围，进程退出时的清理不算进计时。
 
-TX 使用单调时钟的微秒读数，C++ 使用更细的计时；短项目的单轮倍率仍会受调度扰动。运行顺序、GC 阈值和其他系统负载也会影响数值。标准库与 C++ Release 的对照仍在 [library_compare](../library_compare/README.md)，两组负载和倍率分别解读。
+TX 使用单调时钟的微秒读数，其余语言使用更细的计时；短项目的单轮倍率仍会受调度扰动。Java 的进程内 JIT 可能发生在计时区间，C++ Release 也可能大幅消去短循环。运行顺序、GC 阈值和其他系统负载会影响数值。标准库与 C++ Release 的对照仍在 [library_compare](../library_compare/README.md)，两组负载和倍率分别解读。
 
 ## 2026-09-25 优化前本机运行结果
 
@@ -177,3 +177,34 @@ C++ 耗时低于 1 ms 的项目对计时扰动更敏感，表中的倍率仅供�
 | `cycle_gc` | 1.47 | 0.0704 | 20.82 |
 
 与上一节的历史记录相比，TX 的 `array_destructure` 从 17.57 ms 降到 4.14 ms；`array_padded` 从 34.73 ms 降到 0.02 ms。后者的局部数组在优化后可被编译器大幅消去，且绝对耗时接近微秒计时精度，不能用 0.01 倍推断通用数组性能。混合类型、别名和逃逸数组仍需看下面的标准库组合基准。
+
+## 2026-09-27 四语言复测
+
+使用当前工作树完整重建的 TX 工具链，C++ 由 GCC 13.1.0 以 Release 配置构建，Python 3.12.10，Java 23.0.2。执行 `run_compare.ps1 -Rounds 7`，四种程序分别预热一次、交替测 7 轮。22 项每一轮的四语言校验值均符合上表预期。下表为程序内部耗时的中位数，单位毫秒；倍率大于 1 表示 TX 更慢。
+
+| 项目 | TX | C++ | Python | Java | TX/C++ | TX/Python | TX/Java |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `scalar_control` | 0.17 | 0.2423 | 23.043 | 2.624 | 0.70 | 0.01 | 0.06 |
+| `updates` | 7.83 | 1.2890 | 60.537 | 4.926 | 6.07 | 0.13 | 1.59 |
+| `while_logic` | 0.16 | 0.1759 | 30.726 | 2.214 | 0.92 | 0.01 | 0.07 |
+| `float_arithmetic` | 7.57 | 0.3575 | 23.750 | 1.771 | 21.17 | 0.32 | 4.27 |
+| `overloads` | 25.83 | 0.1875 | 18.497 | 3.676 | 137.75 | 1.40 | 7.03 |
+| `named_arguments` | 27.15 | 0.3751 | 25.723 | 2.844 | 72.39 | 1.06 | 9.55 |
+| `recursion` | 34.29 | 0.0673 | 11.691 | 1.013 | 509.47 | 2.93 | 33.86 |
+| `variadic_unpack` | 11.37 | 1.7220 | 3.412 | 0.998 | 6.60 | 3.33 | 11.39 |
+| `array_destructure` | 3.94 | 1.1084 | 4.201 | 4.868 | 3.55 | 0.94 | 0.81 |
+| `array_padded` | 0.03 | 2.1036 | 7.315 | 8.103 | 0.01 | 0.00 | 0.00 |
+| `dict_iteration` | 47.30 | 4.1824 | 20.070 | 45.398 | 11.31 | 2.36 | 1.04 |
+| `struct_operators` | 172.05 | 12.6966 | 79.912 | 11.489 | 13.55 | 2.15 | 14.98 |
+| `class_methods` | 52.74 | 0.1621 | 46.447 | 5.028 | 325.34 | 1.14 | 10.49 |
+| `virtual_interface` | 98.25 | 0.4245 | 34.780 | 3.686 | 231.44 | 2.82 | 26.65 |
+| `class_operator` | 37.42 | 0.2374 | 16.115 | 2.303 | 157.64 | 2.32 | 16.25 |
+| `runtime_cast` | 38.56 | 1.8586 | 12.435 | 2.325 | 20.75 | 3.10 | 16.59 |
+| `module_call` | 60.56 | 3.5337 | 25.854 | 5.904 | 17.14 | 2.34 | 10.26 |
+| `string_conversion` | 11.56 | 2.9816 | 9.771 | 13.823 | 3.88 | 1.18 | 0.84 |
+| `deep_copy` | 37.82 | 2.3452 | 63.868 | 5.686 | 16.13 | 0.59 | 6.65 |
+| `copy_cycle` | 15.51 | 1.9689 | 11.277 | 3.646 | 7.88 | 1.38 | 4.26 |
+| `deinit` | 22.11 | 0.7205 | 3.987 | 1.686 | 30.69 | 5.55 | 13.12 |
+| `cycle_gc` | 2.09 | 0.0688 | 1.322 | 1.587 | 30.38 | 1.58 | 1.32 |
+
+与本机 2026-09-27 早些时候的审计记录相比，TX 的 `scalar_control` 从 48.46 ms 降到 0.17 ms，`while_logic` 从 74.02 ms 降到 0.16 ms；`class_methods` 从 114.23 ms 降到 52.74 ms，`virtual_interface` 从 151.47 ms 降到 98.25 ms，仍有明显差距。`array_padded` 的 TX 耗时接近微秒计时精度且代码可被消去；`deinit` 和 `cycle_gc` 四语言回收机制不同，不能把对应倍率理解为通用 GC 性能。

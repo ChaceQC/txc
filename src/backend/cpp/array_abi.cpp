@@ -54,14 +54,14 @@ extern "C" void* txrt_array_ref(void* value) noexcept
     {
         return array;
     }
-    std::snprintf(tx_generated::detail::last_error, 256, "对象不是数组");
+    std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256, "对象不是数组");
     txrt_require_success(1);
     return nullptr;
 }
 
 extern "C" void txrt_array_index_error() noexcept
 {
-    std::snprintf(tx_generated::detail::last_error, 256, "数组索引越界");
+    std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256, "数组索引越界");
     txrt_require_success(1);
 }
 
@@ -384,7 +384,7 @@ extern "C" void txrt_array_require_spread(const void* value) noexcept
     {
         return;
     }
-    std::snprintf(tx_generated::detail::last_error, 256,
+    std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256,
                   "* 展开需要数组");
     txrt_require_success(1);
 }

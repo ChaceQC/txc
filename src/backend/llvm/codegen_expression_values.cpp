@@ -96,6 +96,16 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
             target == value_type::fs_watcher_type ||
             target == value_type::process_child_type ||
             target == value_type::process_pipe_type ||
+            target == value_type::json_reader_type ||
+            target == value_type::json_writer_type ||
+            target == value_type::cbor_reader_type ||
+            target == value_type::cbor_writer_type ||
+            target == value_type::csv_reader_type ||
+            target == value_type::csv_writer_type ||
+            target == value_type::xml_reader_type ||
+            target == value_type::xml_writer_type ||
+            target == value_type::xml_document_type ||
+            target == value_type::xml_node_type ||
             target.is_function() || target.is_vector() || target.is_iterator() ||
             target.is_typed_container() ||
             target.is_sum_type() || structs_.contains(target.name))

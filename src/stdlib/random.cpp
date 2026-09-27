@@ -18,35 +18,29 @@ namespace tx_generated
 namespace
 {
 
-struct random_state
-{
-    std::mt19937_64 engine;
-    bool initialized = false;
-};
+using random_state = detail::runtime_context;
 
 random_state& state()
 {
-    // TX 暂无线程 API；把生成器状态限制在调用线程内，避免全局共享状态。
-    static thread_local random_state value;
-    return value;
+    return detail::current_runtime_context();
 }
 
 std::mt19937_64& generator(random_state& current)
 {
-    if (!current.initialized)
+    if (!current.random_initialized)
     {
         std::random_device entropy;
         std::seed_seq seeds{entropy(), entropy(), entropy(), entropy()};
-        current.engine.seed(seeds);
-        current.initialized = true;
+        current.random_engine.seed(seeds);
+        current.random_initialized = true;
     }
-    return current.engine;
+    return current.random_engine;
 }
 
 void seed_state(random_state& current, tx_int value)
 {
-    current.engine.seed(static_cast<std::uint64_t>(value));
-    current.initialized = true;
+    current.random_engine.seed(static_cast<std::uint64_t>(value));
+    current.random_initialized = true;
 }
 
 tx_int generate_int(random_state& current, tx_int lower, tx_int upper)
@@ -105,7 +99,7 @@ double tx_random_float_context(void* context)
 
 } // namespace tx_generated
 
-using tx_generated::detail::invoke_checked;
+using tx_generated::detail::invoke_leaf;
 
 namespace
 {
@@ -114,10 +108,11 @@ template<class operation>
 auto invoke_direct(operation&& run) noexcept -> decltype(run())
 {
     decltype(run()) result{};
-    txrt_require_success(invoke_checked([&]
+    const auto status = invoke_leaf([&]
     {
         result = run();
-    }));
+    });
+    txrt_require_success(status);
     return result;
 }
 
@@ -125,59 +120,73 @@ auto invoke_direct(operation&& run) noexcept -> decltype(run())
 
 extern "C" int txrt_random_seed_i64(std::int64_t value) noexcept
 {
-    return invoke_checked([&] { tx_generated::tx_fn_seed(value); });
+    return invoke_leaf([&]
+    {
+        tx_generated::tx_fn_seed(value);
+    });
 }
 
 extern "C" int txrt_random_int_i64(std::int64_t lower, std::int64_t upper,
                                     std::int64_t* result) noexcept
 {
-    return invoke_checked([&] {
+    return invoke_leaf([&]
+    {
         *result = tx_generated::tx_fn_random_int(lower, upper);
     });
 }
 
 extern "C" int txrt_random_float_f64(double* result) noexcept
 {
-    return invoke_checked([&] { *result = tx_generated::tx_fn_random_float(); });
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_fn_random_float();
+    });
 }
 
 extern "C" std::int64_t txrt_random_int_direct(std::int64_t lower,
                                                  std::int64_t upper) noexcept
 {
-    return invoke_direct([&] {
+    return invoke_direct([&]
+    {
         return tx_generated::tx_fn_random_int(lower, upper);
     });
 }
 
 extern "C" double txrt_random_float_direct() noexcept
 {
-    return invoke_direct([] { return tx_generated::tx_fn_random_float(); });
+    return invoke_direct([]
+    {
+        return tx_generated::tx_fn_random_float();
+    });
 }
 
 extern "C" void* txrt_random_context() noexcept
 {
-    return invoke_direct([] { return tx_generated::tx_random_context(); });
+    return tx_generated::tx_random_context();
 }
 
 extern "C" int txrt_random_seed_context(void* context,
                                           std::int64_t value) noexcept
 {
-    return invoke_checked([&] {
+    return invoke_leaf([&]
+    {
         tx_generated::tx_seed_context(context, value);
     });
 }
 
-extern "C" std::int64_t txrt_random_int_context(
-    void* context, std::int64_t lower, std::int64_t upper) noexcept
+extern "C" int txrt_random_int_context(void* context, std::int64_t lower,
+    std::int64_t upper, std::int64_t* result) noexcept
 {
-    return invoke_direct([&] {
-        return tx_generated::tx_random_int_context(context, lower, upper);
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_random_int_context(context, lower, upper);
     });
 }
 
-extern "C" double txrt_random_float_context(void* context) noexcept
+extern "C" int txrt_random_float_context(void* context, double* result) noexcept
 {
-    return invoke_direct([&] {
-        return tx_generated::tx_random_float_context(context);
+    return invoke_leaf([&]
+    {
+        *result = tx_generated::tx_random_float_context(context);
     });
 }

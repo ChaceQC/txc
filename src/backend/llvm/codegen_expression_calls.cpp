@@ -18,6 +18,10 @@ bool supported_external_call(std::string_view name)
            name == "error.fail_io" || name == "error.stack_trace" ||
            name.starts_with("cancel.") ||
            name.starts_with("process.") ||
+           name.starts_with("json.") ||
+           name.starts_with("cbor.") ||
+           name.starts_with("csv.") ||
+           name.starts_with("xml.") ||
            name.starts_with("time.") ||
            name == "io.write" || name == "io.write_line" ||
            name == "io.write_error" || name == "io.flush" ||
@@ -272,6 +276,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
     const expression& item, const call_expression& call,
     const function_decl& target, const std::vector<ir_value>& arguments)
 {
+    if (target.external_name.starts_with("serde."))
+    {
+        return emit_serde_intrinsic(item, target, arguments);
+    }
     if (target.external_name.starts_with("algorithm.") &&
         target.external_name != "algorithm.sort" &&
         target.external_name != "algorithm.sorted" &&
@@ -293,7 +301,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
         if (!recoverable_errors_)
         {
             const auto status = temporary();
-            write_instruction(status + " = call i32 @txrt_error_status()");
+            write_instruction(status + " = load i32, ptr %tx_error_kind");
             write_instruction("call void @txrt_require_success(i32 " + status + ")");
         }
         for (std::size_t index = 0; index < arguments.size(); ++index)
@@ -319,13 +327,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
     std::string_view symbol_override)
 {
     const auto passed = coerce_nullable_arguments(target, arguments);
-    std::string arguments_text;
+    std::string arguments_text = "ptr %tx_context";
     for (std::size_t index = 0; index < passed.size(); ++index)
     {
-        if (index != 0)
-        {
-            arguments_text += ", ";
-        }
+        arguments_text += ", ";
         arguments_text += llvm_type(passed[index].type, item.position) +
                           " " + passed[index].text;
     }
@@ -335,6 +340,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
         " " + function_name(symbol, *call.overload_index) +
         "(" + arguments_text + ")";
     transfer_call_arguments(target, passed);
+    emit_stack_location();
     if (target.return_type == value_type::void_type)
     {
         write_instruction(invocation);
@@ -349,7 +355,20 @@ llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
     const expression& item, const call_expression& call)
 {
     const auto& variable = find_variable(call.source_name, item.position);
-    const auto closure = load(variable);
+    // 简单实参不会改写调用目标；局部变量在同步调用结束前持续持有闭包。
+    const bool borrow_closure = !variable.borrowed &&
+        std::all_of(call.arguments.begin(), call.arguments.end(), simple_argument);
+    ir_value closure{variable.type, {}};
+    if (borrow_closure)
+    {
+        const auto handle = temporary();
+        write_instruction(handle + " = load ptr, ptr " + variable.address);
+        closure.text = handle;
+    }
+    else
+    {
+        closure = load(variable);
+    }
     const auto pointer = temporary();
     write_instruction(pointer + " = call ptr @txrt_closure_code(ptr " +
                       closure.text + ")");
@@ -367,15 +386,22 @@ llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
     {
         forget_owned_value(argument);
     }
+    emit_stack_location();
     if (item.type == value_type::void_type)
     {
         write_instruction(invocation);
-        release(closure);
+        if (!borrow_closure)
+        {
+            release(closure);
+        }
         return {item.type, {}};
     }
     const auto result = temporary();
     write_instruction(result + " = " + invocation);
-    release(closure);
+    if (!borrow_closure)
+    {
+        release(closure);
+    }
     return own_direct_value({item.type, result});
 }
 

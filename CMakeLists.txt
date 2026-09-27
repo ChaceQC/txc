@@ -6,6 +6,26 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 include(FetchContent)
+if(WIN32)
+    FetchContent_Declare(ccache_binary
+        URL https://github.com/ccache/ccache/releases/download/v4.14/ccache-4.14-windows-x86_64.zip
+        URL_HASH SHA256=2568347a697e103ca1b073981c704ad76fb2507d066c38dba038dd73399d968f
+        SOURCE_SUBDIR _tx_no_cmake_project
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+    FetchContent_MakeAvailable(ccache_binary)
+    set(_tx_ccache_exe "${ccache_binary_SOURCE_DIR}/ccache.exe")
+    if(NOT EXISTS "${_tx_ccache_exe}")
+        message(FATAL_ERROR "缺少固定版本的 ccache 编译缓存工具")
+    endif()
+    set(CMAKE_C_COMPILER_LAUNCHER "${_tx_ccache_exe}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${_tx_ccache_exe}")
+else()
+    find_program(_tx_ccache_exe NAMES ccache)
+    if(_tx_ccache_exe)
+        set(CMAKE_C_COMPILER_LAUNCHER "${_tx_ccache_exe}")
+        set(CMAKE_CXX_COMPILER_LAUNCHER "${_tx_ccache_exe}")
+    endif()
+endif()
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
@@ -33,6 +53,24 @@ FetchContent_Declare(pcre2_binary
     URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-pcre2-10.48-3-any.pkg.tar.zst
     URL_HASH SHA256=c67c23f448693e8c9cc3973872372dabec2abdf6afacb563096f7eb0e6837f57
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(libxml2
+    URL https://download.gnome.org/sources/libxml2/2.13/libxml2-2.13.8.tar.xz
+    URL_HASH SHA256=277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+set(LIBXML2_WITH_C14N OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_CATALOG OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_DEBUG OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_FTP OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_HTTP OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_ICONV OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_ICU OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_LZMA OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_MODULES OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_PYTHON OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_XINCLUDE OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_ZLIB OFF CACHE BOOL "" FORCE)
+set(LIBXML2_WITH_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(stdcpp_runtime
     URL https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-libstdc%2B%2B-16.2.0-4-any.pkg.tar.zst
     URL_HASH SHA256=3d4c3faf4c2c5c7a851ff12214ddcbf8c0d6df0964fc1d3ebd8c38f227183034
@@ -47,8 +85,14 @@ FetchContent_Declare(winpthread_runtime
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 set(_tx_warn_deprecated ${CMAKE_WARN_DEPRECATED})
 set(CMAKE_WARN_DEPRECATED OFF)
-FetchContent_MakeAvailable(nghttp2 mbedtls icu_binary pcre2_binary
+FetchContent_MakeAvailable(nghttp2 mbedtls icu_binary pcre2_binary libxml2
     stdcpp_runtime gcc_runtime winpthread_runtime)
+if(WIN32)
+    # 上游 RC 资源在带空格的 MinGW 安装路径下无法完成预处理；静态库不需要版本资源。
+    get_target_property(_tx_libxml2_sources LibXml2 SOURCES)
+    list(FILTER _tx_libxml2_sources EXCLUDE REGEX "libxml2[.]rc$")
+    set_property(TARGET LibXml2 PROPERTY SOURCES "${_tx_libxml2_sources}")
+endif()
 set(CMAKE_WARN_DEPRECATED ${_tx_warn_deprecated})
 
 # 编译器内嵌公开接口和 ABI 的内容摘要；增删或修改文件都会触发重新配置。
@@ -97,6 +141,7 @@ add_executable(txc
     src/frontend/ast/ast.cpp
     src/frontend/parser/parser.cpp
     src/frontend/parser/parser_declarations.cpp
+    src/frontend/parser/parser_serde.cpp
     src/frontend/parser/parser_expression.cpp
     src/frontend/parser/parser_class.cpp
     src/frontend/parser/parser_exception.cpp
@@ -108,6 +153,7 @@ add_executable(txc
     src/frontend/sema/sema_container.cpp
     src/frontend/sema/sema_algorithm.cpp
     src/frontend/sema/sema_random.cpp
+    src/frontend/sema/sema_serde.cpp
     src/frontend/sema/sema_exception.cpp
     src/frontend/sema/sema_registration.cpp
     src/frontend/sema/sema_expression.cpp
@@ -120,12 +166,14 @@ add_executable(txc
     src/backend/llvm/codegen_vector.cpp
     src/backend/llvm/codegen_vector_calls.cpp
     src/backend/llvm/codegen_sum.cpp
+    src/backend/llvm/codegen_native_option.cpp
     src/backend/llvm/codegen_iterator.cpp
     src/backend/llvm/codegen_closure.cpp
     src/backend/llvm/codegen_vector_statement.cpp
     src/backend/llvm/codegen_vector_declarations.cpp
     src/backend/llvm/codegen_algorithm_declarations.cpp
     src/backend/llvm/codegen_algorithm.cpp
+    src/backend/llvm/codegen_serde.cpp
     src/backend/llvm/codegen_container.cpp
     src/backend/llvm/codegen_key.cpp
     src/backend/llvm/codegen_container_declarations.cpp
@@ -135,6 +183,7 @@ add_executable(txc
     src/backend/llvm/codegen_functions.cpp
     src/backend/llvm/codegen_callback.cpp
     src/backend/llvm/codegen_exception.cpp
+    src/backend/llvm/codegen_context.cpp
     src/backend/llvm/codegen_error_ownership.cpp
     src/backend/llvm/codegen_declarations.cpp
     src/backend/llvm/codegen_control.cpp
@@ -173,11 +222,19 @@ add_library(txstdlib STATIC
     src/backend/cpp/runtime.cpp
     src/backend/cpp/runtime_abi.cpp
     src/backend/cpp/error_abi.cpp
+    src/backend/cpp/runtime_context.cpp
     src/backend/cpp/test_abi.cpp
     src/backend/cpp/log_abi.cpp
     src/backend/cpp/debug_abi.cpp
     src/backend/cpp/parse_abi.cpp
     src/backend/cpp/json_abi.cpp
+    src/backend/cpp/json_stream_abi.cpp
+    src/backend/cpp/cbor_abi.cpp
+    src/backend/cpp/serde_abi.cpp
+    src/backend/cpp/csv_abi.cpp
+    src/backend/cpp/xml_reader_abi.cpp
+    src/backend/cpp/xml_tree_abi.cpp
+    src/backend/cpp/xml_writer_abi.cpp
     src/backend/cpp/network_abi.cpp
     src/backend/cpp/network_stream_abi.cpp
     src/backend/cpp/network_http2_abi.cpp
@@ -251,6 +308,25 @@ add_library(txstdlib STATIC
     src/stdlib/conversion.cpp
     src/stdlib/parse.cpp
     src/stdlib/json_parser.cpp
+    src/stdlib/json_parser_string.cpp
+    src/stdlib/json_stream.cpp
+    src/stdlib/json_schema.cpp
+    src/stdlib/cbor_common.cpp
+    src/stdlib/cbor_reader.cpp
+    src/stdlib/cbor_writer.cpp
+    src/stdlib/serde_schema.cpp
+    src/stdlib/serde_value.cpp
+    src/stdlib/serde.cpp
+    src/stdlib/cbor_stream.cpp
+    src/stdlib/format_stream.cpp
+    src/stdlib/csv.cpp
+    src/stdlib/csv_reader.cpp
+    src/stdlib/csv_writer.cpp
+    src/stdlib/xml_common.cpp
+    src/stdlib/xml_reader.cpp
+    src/stdlib/xml_tree_parse.cpp
+    src/stdlib/xml_tree_nodes.cpp
+    src/stdlib/xml_writer.cpp
     src/stdlib/json_writer.cpp
     src/stdlib/json_fields.cpp
     src/stdlib/log.cpp
@@ -332,7 +408,7 @@ target_include_directories(txstdlib PRIVATE
     "${icu_binary_SOURCE_DIR}/mingw64/include"
     "${pcre2_binary_SOURCE_DIR}/mingw64/include")
 target_compile_definitions(txstdlib PRIVATE PCRE2_STATIC)
-target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto)
+target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto LibXml2::LibXml2)
 add_dependencies(txc txstdlib)
 if(WIN32)
     target_link_libraries(txc PRIVATE shell32 bcrypt)

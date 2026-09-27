@@ -3,7 +3,7 @@
 #include <cstdint>
 
 // 类型已由前端检查；状态码函数失败时交给 txrt_require_success。
-// 随机数上下文函数直接返回结果；可恢复模式下由生成代码检查错误状态。
+// 随机数上下文函数接收 runtime_context，返回状态并通过输出参数交付结果。
 extern "C"
 {
 
@@ -58,8 +58,8 @@ std::int64_t txrt_random_int_direct(std::int64_t lower,
 double txrt_random_float_direct() noexcept;
 void* txrt_random_context() noexcept;
 int txrt_random_seed_context(void* context, std::int64_t value) noexcept;
-std::int64_t txrt_random_int_context(void* context, std::int64_t lower,
-                                     std::int64_t upper) noexcept;
-double txrt_random_float_context(void* context) noexcept;
+int txrt_random_int_context(void* context, std::int64_t lower,
+                            std::int64_t upper, std::int64_t* result) noexcept;
+int txrt_random_float_context(void* context, double* result) noexcept;
 
 }

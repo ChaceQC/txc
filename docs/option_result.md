@@ -23,7 +23,7 @@
 
 ## 2.2 实施记录
 
-- **代码：** 解析器、模块解析、语义分析和 LLVM 后端识别内置 `option/result`；运行时保存独立状态和值，失败结果保存 `error.error_info` 并在 `value()` 时按原 `(kind, code)` 传播。`error()` 在导入 `error.txh` 后返回静态类型的 `error_info`。旧具体结果的公开结构和函数保持原样，`result<T>(旧结果)` 提供迁入桥。
+- **代码：** 解析器、模块解析、语义分析和 LLVM 后端识别内置 `option/result`；运行时保存独立状态和值，失败结果保存 `error.error_info` 并在 `value()` 时按原 `(kind, code)` 传播。局部 `option<int/float/bool>` 使用栈上的“是否有值 + 标量值”，构造、状态检查和 `value()` 直接读写；跨函数传参或返回、进入 `any` 和复合值时按原类型标记生成运行时句柄，恢复为局部变量时再解包。空值仍报 `runtime_error/invalid_state`。`error()` 在导入 `error.txh` 后返回静态类型的 `error_info`。旧具体结果的公开结构和函数保持原样，`result<T>(旧结果)` 提供迁入桥。
 - **构建：** `scripts/build.ps1` 在 Windows x64 成功生成编译器、标准库静态库和包兼容清单，确认后清理 `build/`。
 - **定向验证：** `examples/option_result.tx` 编译运行，覆盖 option 空/有值、`value_or`、成功/失败的 `result<int>`、`result<void>`、旧结果成功/失败转换、异常类别与代码传播、`deep_copy` 和包含引用环的 option。`tests/stdlib/sum_module/main.tx` 跨 `.txh` 返回两种新类型并输出 `23 42`；`sum_invalid_type.tx` 在源码位置拒绝 `option<void>`，`sum_type_mismatch.tx` 在动态恢复到错误类型时失败。未运行全量套件。
 - **边界与验收：** 现有 `error.*_result` 尚无反向生成桥；旧接口完全保留。`error()` 使用前须导入 `error.txh`。当前证据限于本机 Windows x64 的定向场景；2.6～2.8 与终态矩阵仍待实施和验收。

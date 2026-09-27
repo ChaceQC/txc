@@ -1,0 +1,29 @@
+struct dialect
+{
+    delimiter: str
+    quote: str
+    newline: str
+    has_header: bool
+    strict_width: bool
+    allow_bom: bool
+    write_bom: bool
+    max_field_bytes: int
+    max_row_bytes: int
+    max_columns: int
+    max_bytes: int
+    max_rows: int
+}
+
+def default_dialect() -> dialect
+def reader(source: binary_stream, dialect: dialect) -> csv_reader
+def reader(source: text_stream, dialect: dialect) -> csv_reader
+def next_row(source: csv_reader) -> option<vector<str>>
+def header(source: csv_reader) -> vector<str>
+def writer(target: binary_stream, dialect: dialect) -> csv_writer
+def writer(target: text_stream, dialect: dialect) -> csv_writer
+def write_row(target: csv_writer, row: vector<str>) -> void
+def finish(target: csv_writer) -> void
+def close(target: csv_reader) -> void
+def close(target: csv_writer) -> void
+def parse(text: str, dialect: dialect) -> vector<vector<str>>
+def stringify(rows: vector<vector<str>>, dialect: dialect) -> str

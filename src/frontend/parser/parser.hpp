@@ -24,6 +24,9 @@ private:
     [[nodiscard]] value_type parse_type();
     [[nodiscard]] import_decl parse_import();
     [[nodiscard]] struct_decl parse_struct();
+    [[nodiscard]] serde_struct_metadata parse_serde_struct_metadata();
+    [[nodiscard]] struct_field::serde_field_metadata parse_serde_field_metadata();
+    [[nodiscard]] std::int64_t parse_serde_number();
     [[nodiscard]] class_decl parse_class(bool is_abstract = false,
                                          bool is_interface = false);
     [[nodiscard]] function_decl parse_function(bool declaration_only = false,

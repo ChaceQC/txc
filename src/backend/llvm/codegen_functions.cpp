@@ -29,18 +29,18 @@ void llvm_code_generator::emit_function(const function_decl& function)
     next_value_ = 0;
     next_slot_ = 0;
     next_label_ = 0;
-    random_context_slot_.clear();
     current_method_owner_ = function.owner_class;
     current_function_body_ = &function.body;
+    current_statement_position_ = &function.position;
     entry_scalar_field_cache_.clear();
     terminated_ = false;
     in_entry_block_ = true;
     push_scope();
 
-    std::string parameters;
+    std::string parameters = "ptr %tx_context";
     if (!function.owner_class.empty())
     {
-        parameters = "ptr %arg0";
+        parameters += ", ptr %arg0";
         const auto address = allocate(value_type(function.owner_class),
                                       function.position, false);
         write_instruction("store ptr %arg0, ptr " + address);
@@ -50,10 +50,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
     for (std::size_t i = 0; i < function.parameters.size(); ++i)
     {
         const auto& parameter = function.parameters[i];
-        if (i != 0 || !function.owner_class.empty())
-        {
-            parameters += ", ";
-        }
+        parameters += ", ";
         const auto abi_type = parameter_abi_type(parameter);
         const auto type = llvm_type(abi_type, parameter.position);
         const auto argument_index = i + (function.owner_class.empty() ? 0 : 1);
@@ -86,22 +83,18 @@ void llvm_code_generator::emit_function(const function_decl& function)
             (void)name;
             release_slot(variable);
         }
-        body_ << "  call void @txrt_stack_pop()\n";
+        emit_stack_pop();
         write_instruction(function.return_type == value_type::void_type
             ? "ret void" : "unreachable");
         terminated_ = true;
     }
     pop_scope();
 
-    const auto display_name = function.source_name.empty()
-        ? function.name : function.source_name;
     module_ << "define " << llvm_type(function.return_type, function.position)
             << ' ' << function_name(symbol, index) << '(' << parameters
-            << ") {\nentry:\n" << allocations_.str()
-            << "  call void @txrt_stack_push(ptr " << global_bytes(display_name)
-            << ", ptr " << global_bytes(function.position.file) << ", i64 "
-            << function.position.line << ", i64 " << function.position.column
-            << ")\n" << body_.str() << "}\n\n";
+            << ") {\nentry:\n";
+    write_stack_frame(function);
+    module_ << allocations_.str() << body_.str() << "}\n\n";
     if (function.owner_class.empty() &&
         std::all_of(function.parameters.begin(), function.parameters.end(),
             [](const parameter& item)
@@ -111,6 +104,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
     }
     current_method_owner_.clear();
     current_function_body_ = nullptr;
+    current_statement_position_ = nullptr;
 }
 
 } // namespace tx

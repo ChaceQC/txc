@@ -46,40 +46,75 @@ int create_iterator(const void* source, const char* element_name,
 }
 
 template<class element_type>
+const element_type* read_next(const void* source)
+{
+    auto& iterator = std::any_cast<const tx_iterator&>(
+        *static_cast<const std::any*>(source)).data();
+    if (iterator.closed)
+    {
+        throw runtime_failure({tx::error_kind::runtime,
+            "invalid_state", "已关闭的 iterator 不能继续读取"});
+    }
+    if (iterator.exhausted)
+    {
+        return nullptr;
+    }
+    const auto& values = std::any_cast<const tx_vector<element_type>&>(
+        iterator.values).data().values;
+    if (iterator.index < values.size())
+    {
+        return &values[iterator.index++];
+    }
+    iterator.exhausted = true;
+    return nullptr;
+}
+
+template<class element_type>
 int next_element(const void* source, const char* option_type,
                  void** result) noexcept
 {
     return invoke_checked([&]
     {
-        auto& iterator = std::any_cast<const tx_iterator&>(
-            *static_cast<const std::any*>(source)).data();
-        if (iterator.closed)
+        const auto* item = read_next<element_type>(source);
+        int status = 0;
+        if constexpr (std::is_same_v<element_type, std::int64_t>)
         {
-            throw runtime_failure({tx::error_kind::runtime,
-                "invalid_state", "已关闭的 iterator 不能继续读取"});
+            status = txrt_option_new_i64(option_type, item != nullptr,
+                item ? *item : 0, result);
         }
-        std::any item;
-        bool present = false;
-        if (!iterator.exhausted)
+        else if constexpr (std::is_same_v<element_type, double>)
         {
-            const auto& values = std::any_cast<const tx_vector<element_type>&>(
-                iterator.values).data().values;
-            if (iterator.index < values.size())
-            {
-                item = box_element(values[iterator.index++]);
-                present = true;
-            }
-            else
-            {
-                iterator.exhausted = true;
-            }
+            status = txrt_option_new_f64(option_type, item != nullptr,
+                item ? *item : 0.0, result);
         }
-        const int status = txrt_option_new(option_type, present,
-            present ? &item : nullptr, result);
+        else if constexpr (std::is_same_v<element_type, std::uint8_t>)
+        {
+            status = txrt_option_new_bool(option_type, item != nullptr,
+                item && *item != 0, result);
+        }
+        else
+        {
+            std::any boxed = item ? box_element(*item) : std::any{};
+            status = txrt_option_new(option_type, item != nullptr,
+                item ? &boxed : nullptr, result);
+        }
         if (status != 0)
         {
-            throw runtime_failure({last_error_kind, last_error_code, last_error});
+            throw runtime_failure({current_runtime_context().last_error_kind,
+                current_runtime_context().last_error_code, current_runtime_context().last_error});
         }
+    });
+}
+
+template<class element_type, class scalar_type>
+int next_scalar(const void* source, bool* present,
+                scalar_type* value) noexcept
+{
+    return invoke_checked([&]
+    {
+        const auto* item = read_next<element_type>(source);
+        *present = item != nullptr;
+        *value = item ? static_cast<scalar_type>(*item) : scalar_type{};
     });
 }
 
@@ -105,6 +140,24 @@ TX_ITERATOR(bytes, byte_value)
 TX_ITERATOR(object, std::any)
 
 #undef TX_ITERATOR
+
+extern "C" int txrt_iterator_next_scalar_i64(const void* source,
+    bool* present, std::int64_t* value) noexcept
+{
+    return next_scalar<std::int64_t>(source, present, value);
+}
+
+extern "C" int txrt_iterator_next_scalar_f64(const void* source,
+    bool* present, double* value) noexcept
+{
+    return next_scalar<double>(source, present, value);
+}
+
+extern "C" int txrt_iterator_next_scalar_bool(const void* source,
+    bool* present, bool* value) noexcept
+{
+    return next_scalar<std::uint8_t>(source, present, value);
+}
 
 extern "C" int txrt_iterator_close(const void* source) noexcept
 {

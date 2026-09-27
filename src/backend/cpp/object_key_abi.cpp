@@ -21,7 +21,8 @@ void require_callback_success(int status)
 {
     if (status != 0)
     {
-        throw runtime_failure({last_error_kind, last_error_code, last_error});
+        throw runtime_failure({current_runtime_context().last_error_kind,
+                current_runtime_context().last_error_code, current_runtime_context().last_error});
     }
 }
 

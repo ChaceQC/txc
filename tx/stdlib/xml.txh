@@ -1,0 +1,66 @@
+struct limits
+{
+    max_bytes: int
+    max_depth: int
+    max_nodes: int
+    max_text_bytes: int
+    max_attributes: int
+}
+
+struct event
+{
+    kind: str
+    depth: int
+    local_name: str
+    namespace_uri: str
+    prefix: str
+    text: str
+    empty_element: bool
+    line: int
+    column: int
+}
+
+def default_limits() -> limits
+def reader(source: binary_stream, limits: limits) -> xml_reader
+def reader(source: text_stream, limits: limits) -> xml_reader
+def next(source: xml_reader) -> option<event>
+def attribute_count(source: xml_reader) -> int
+def attribute_local_name(source: xml_reader, index: int) -> str
+def attribute_namespace_uri(source: xml_reader, index: int) -> str
+def attribute_prefix(source: xml_reader, index: int) -> str
+def attribute_value(source: xml_reader, index: int) -> str
+def close(source: xml_reader) -> void
+
+def parse(text: str, limits: limits) -> xml_document
+def read(source: binary_stream, limits: limits) -> xml_document
+def read(source: text_stream, limits: limits) -> xml_document
+def root(document: xml_document) -> xml_node
+def first_child(node: xml_node) -> option<xml_node>
+def next_sibling(node: xml_node) -> option<xml_node>
+def kind(node: xml_node) -> str
+def local_name(node: xml_node) -> str
+def namespace_uri(node: xml_node) -> str
+def prefix(node: xml_node) -> str
+def text(node: xml_node) -> str
+def attribute_count(node: xml_node) -> int
+def attribute_local_name(node: xml_node, index: int) -> str
+def attribute_namespace_uri(node: xml_node, index: int) -> str
+def attribute_prefix(node: xml_node, index: int) -> str
+def attribute_value(node: xml_node, index: int) -> str
+
+def new_document(local_name: str, namespace_uri: str, prefix: str) -> xml_document
+def append_element(parent: xml_node, local_name: str, namespace_uri: str, prefix: str) -> xml_node
+def set_attribute(node: xml_node, local_name: str, namespace_uri: str, prefix: str, value: str) -> void
+def append_text(node: xml_node, value: str) -> void
+def stringify(document: xml_document, limits: limits) -> str
+def write(target: binary_stream, document: xml_document, limits: limits) -> void
+def write(target: text_stream, document: xml_document, limits: limits) -> void
+
+def writer(target: binary_stream, limits: limits) -> xml_writer
+def writer(target: text_stream, limits: limits) -> xml_writer
+def start_element(target: xml_writer, local_name: str, namespace_uri: str, prefix: str) -> void
+def write_attribute(target: xml_writer, local_name: str, namespace_uri: str, prefix: str, value: str) -> void
+def write_text(target: xml_writer, value: str) -> void
+def end_element(target: xml_writer) -> void
+def finish(target: xml_writer) -> void
+def close(target: xml_writer) -> void

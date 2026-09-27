@@ -121,7 +121,53 @@ expr_ptr parser::parse_postfix()
     auto value = parse_atom();
     while (true)
     {
-        if (match(token_kind::left_paren))
+        std::optional<value_type> explicit_type;
+        const auto* generic_name = std::get_if<name_reference>(&value->data);
+        const auto* generic_member = std::get_if<member_expression>(&value->data);
+        const auto callable_name = generic_name ? generic_name->name :
+            generic_member ? generic_member->field : std::string{};
+        bool opening_call = false;
+        bool serde_type_call = false;
+        if (check(token_kind::less) &&
+            (callable_name == "deserialize_json" ||
+             callable_name == "deserialize_cbor"))
+        {
+            std::size_t cursor = index_;
+            int depth = 0;
+            while (cursor < tokens_.size() &&
+                   tokens_[cursor].kind != token_kind::newline &&
+                   tokens_[cursor].kind != token_kind::end_of_file)
+            {
+                if (tokens_[cursor].kind == token_kind::less)
+                {
+                    ++depth;
+                }
+                else if (tokens_[cursor].kind == token_kind::greater)
+                {
+                    --depth;
+                    if (depth == 0)
+                    {
+                        serde_type_call = cursor + 1 < tokens_.size() &&
+                            tokens_[cursor + 1].kind == token_kind::left_paren;
+                        break;
+                    }
+                }
+                ++cursor;
+            }
+        }
+        if (serde_type_call)
+        {
+            (void)advance();
+            explicit_type = parse_type();
+            (void)consume(token_kind::greater, "serde 类型实参缺少 >");
+            (void)consume(token_kind::left_paren, "serde 类型实参后需要左括号");
+            opening_call = true;
+        }
+        else
+        {
+            opening_call = match(token_kind::left_paren);
+        }
+        if (opening_call)
         {
             const auto position = value->position;
             const auto* name = std::get_if<name_reference>(&value->data);
@@ -146,6 +192,8 @@ expr_ptr parser::parse_postfix()
                                           false, callable, std::nullopt,
                                           std::move(receiver), false, 0, {}, 0,
                                           false, {}});
+            std::get<call_expression>(value->data).explicit_type =
+                std::move(explicit_type);
         }
         else if (match(token_kind::left_bracket))
         {

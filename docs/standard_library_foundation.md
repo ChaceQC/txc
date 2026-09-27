@@ -11,7 +11,7 @@
 | 文件与系统 | `file.txh`、`file_stream.txh`、`fs.txh`、`path.txh`、`system.txh`、`env.txh`；`src/stdlib/file*.cpp`、`filesystem*.cpp`、`path.cpp`、`system.cpp`、`env.cpp`。见[流](bytes_file_stream.md)、[系统](system_env.md) | `process`、管道、原子替换、文件监视、权限/符号链接/元信息与能力查询 | 已有 `scripts/check_system_env.py` 的既往定向记录；短读短写、符号链接竞争、断电/跨卷和子进程清理仍待专项证据 |
 | 时间与数学 | `time.txh`、`random.txh`、`math.txh`；`src/stdlib/time.cpp`、`random.cpp`、`math.cpp` | 日期时区、独立随机数生成器、扩展数学、`statistics`、`decimal` | 现有 `examples/time_random.tx` 和标准库示例；夏令时歧义、随机算法版本、统计空样本与十进制舍入未验证 |
 | 网络 | `httpx.txh`、`websocket.txh`、`requests.txh`；`src/stdlib/httpx*.cpp`、`http2*.cpp`、`ws*.cpp`、`requests_*.tx`。见[网络](network.md)、[Requests](requests.md) | 公开 `dns/socket/tls`、异步 I/O、连接池、代理/证书配置、HTTP/3、服务端并发与完整流式会话 | 有 `tests/network/` 的既有本地场景；HTTP/2 并行流、非法帧、慢连接、重定向凭据和不可信输入限额尚无终态专项证据。`requests` 的部分选项仍以 `unsupported_option` 拒绝 |
-| 数据格式 | `json.txh`、`parse.txh`；`src/stdlib/json_*.cpp`、`parse.cpp`。见[JSON](json.md)、[解析](errors_and_parse.md) | JSON 增量和 schema、`csv/xml/cbor/serde` | 有 `tests/json/`、`scripts/check_parse_errors.py` 的既往场景；大数据流、XML 实体禁用、CBOR 规范化与跨 schema 迁移未验证 |
+| 数据格式 | `json.txh`、`csv.txh`、`xml.txh`、`cbor.txh`、`serde.txh`、`parse.txh`；`src/stdlib/json_*.cpp`、`csv*.cpp`、`xml*.cpp`、`cbor*.cpp`、`serde*.cpp`、`parse.cpp`。见[JSON](json.md)、[CSV](csv.md)、[XML](xml.md)、[CBOR](cbor.md)、[serde](serde.md)、[解析](errors_and_parse.md) | 第 8.6 的跨格式专项验收 | 8.1～8.2 的 `scripts/check_data_formats.py json/csv`、8.3 的 `scripts/check_xml.py`、8.4 的 `tests/cbor/` 和 8.5 的 `tests/serde/` 覆盖对应接口与边界；跨平台终态验收仍待完成 |
 | 并发 | 无公开线程/任务/通道模块；现有同步网络和无捕获顶层函数值见[函数值](function_values.md) | `thread/task/channel`、同步原语、取消、`async/await`、IPC | 无 TX 用户级并发验收证据；数据竞争、取消竞态、GC/析构和句柄上限待第 10 节 |
 | 数据库 | 无公开数据库模块或对应 `src/stdlib` 实现 | 统一 `db.txh` 的 SQLite/PostgreSQL 驱动、池与迁移接口 | 无验收证据；参数绑定、事务回滚、NULL/无行、TLS、池耗尽与断连待第 12 节 |
 | 测试与诊断 | `test.txh`、`log.txh`、`debug.txh` 和 `txc test`；原有 `scripts/check_*.py` 与 `tests/` 是仓库自身验证工具。见[测试、日志与诊断](test_log_debug.md) | `profile.txh`、`txc profile`；参数化/性质测试、可配置隔离/并行/超时、轮转文件与并发日志 | 第 3 节已有断言位置、错误/编译错误统计、结构化遮蔽和 Release 栈的定向证据；原生崩溃注入、并发完整性与采样精度待第 13 节专项验证 |
@@ -52,6 +52,10 @@
 | 新密码/证书/TLS 接口 | 尚无公开入口 | `security_error/invalid_key`、`authentication_failed`、`invalid_certificate`、`certificate_expired`、`hostname_mismatch`、`untrusted_issuer`、`random_failed` |
 | 取消与截止时间 | 尚无公开入口 | `cancelled_error/cancelled`、`deadline_exceeded`；已发生的外部效果由操作结果另行说明 |
 | 时间与计算扩展 | 6.1～6.6 已使用 `runtime_error/invalid_argument`、`out_of_range`、`timezone_failed`、`non_finite`、`empty_sample`、`insufficient_sample`、`division_by_zero`、`size_limit`、`invalid_state`；`parse_error/invalid_syntax`、`out_of_range`、`invalid_zone`、`nonexistent_time`、`ambiguous_time`；`cancelled_error/cancelled`、`deadline_exceeded` | 后续新增错误码须先在对应模块文档固定语义 |
+| JSON/CSV 增量扩展 | JSON schema 的 `parse_error/invalid_schema`、`schema_mismatch`；CSV 的 `parse_error/unexpected_bom`、`missing_header`、`invalid_header`、`row_width`，通用格式错误和限额沿用 `invalid_syntax/invalid_utf8/size_limit/depth_limit`；writer 数据错误使用同名 `runtime_error` 码，游标失效为 `runtime_error/invalid_state` | 精确定义分别见 [JSON](json.md#增量读写与-schema) 与 [CSV](csv.md)；底层流的 `io_error` 原样传播 |
+| XML | `parse_error/forbidden_dtd` 拒绝 DTD、自定义实体；`invalid_syntax`、`empty_input`、`size_limit`、`depth_limit` 沿用通用格式语义。生成端使用 `runtime_error/invalid_name`、`duplicate_attribute`、`invalid_state`、`size_limit`、`depth_limit` | 见 [XML](xml.md)；输入错误定位，底层流的 `io_error` 原样传播 |
+| CBOR | `parse_error/non_canonical`、`duplicate_key`、`invalid_syntax`、`invalid_utf8`、`empty_input`、`type_mismatch`、`out_of_range`、`depth_limit`、`size_limit`；生成端使用 `runtime_error/unsupported_type`、`cyclic_value`、`invalid_argument`、`invalid_state`、`size_limit`、`depth_limit`、`duplicate_key` | 见 [CBOR](cbor.md)；错误位置按字节偏移，底层流的 `io_error` 原样传播 |
+| serde | `parse_error/schema_version`、`missing_field`、`unknown_field`、`type_mismatch`、`duplicate_key`、`size_limit`、`depth_limit`；生成端使用 `runtime_error/type_mismatch`、`unknown_collision`、`cyclic_value`、`size_limit`、`depth_limit` | 见 [serde](serde.md)；JSON/CBOR 底层语法、编码与大小错误保留原格式的 `parse_error` 代码 |
 
 同一 `code` 可出现于不同 `kind`，所以只按完整二元组判断。新增代码先登记到本表与模块文档，不重复赋予不同含义；旧的 `operation_failed` 保持兼容，新接口优先使用能区分失败原因的代码。缺键、EOF、无匹配、查询无行是正常分支，使用 `option<T>` 或显式状态；可能失败的严格接口抛上述错误，`try_*`/`result<T>` 使用完全相同的二元组。现有具体 `error.*_result` 保留到无损转换桥就绪。取消与超时分开，取消不能吞掉已经完成的外部效果。
 
@@ -82,8 +86,9 @@
 | --- | --- | --- |
 | nghttp2 | `1.68.0`；`5511d3128850e01b5b26ec92bf39df15381c767a63441438b25ad6235def902c` | MIT；源码由 CMake `FetchContent` 校验后静态归档，`tx/NGHTTP2-LICENSE` 随包 |
 | Mbed TLS | `3.6.5`；`4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8` | Apache-2.0 或 GPL-2.0-or-later，发行采用 Apache-2.0；静态归档，`tx/MBEDTLS-LICENSE` 随包 |
+| libxml2 | `2.13.8`；`277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a` | MIT；源码由 CMake `FetchContent` 校验后静态归档，`tx/LIBXML2-LICENSE` 随包 |
 
-未来的 ICU、PCRE2、libxml2、QCBOR、SQLite、libpq、Argon2、libsodium、MsQuic 等当前**未引入**。各模块实现前须在构建配置中固定准确版本、源码归档 SHA-256、许可证选择及交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
+CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。SQLite、libpq、Argon2、libsodium、MsQuic 等仍未引入。各模块若新增第三方依赖，须在构建配置中固定准确版本、源码归档 SHA-256、许可证选择及交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
 
 ### 第 1 节完成记录（2026-09-26）
 

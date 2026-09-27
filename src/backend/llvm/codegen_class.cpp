@@ -165,7 +165,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
         auto owned_arguments = arguments;
         owned_arguments.insert(owned_arguments.begin(), {item.type, object});
         const auto passed = coerce_nullable_arguments(init, owned_arguments);
-        std::string parameters = "ptr " + object;
+        std::string parameters = "ptr %tx_context, ptr " + object;
         for (std::size_t index = 1; index < passed.size(); ++index)
         {
             const auto& argument = passed[index];
@@ -174,13 +174,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
         }
         if (init.external_name == "requests.session.init")
         {
+            emit_stack_location();
             write_instruction("call void " + function_name(
                 "m0_bridge_session_init", call.constructor_init_index) +
                 "(" + parameters + ")");
             if (!recoverable_errors_)
             {
                 const auto pending = temporary();
-                write_instruction(pending + " = call i32 @txrt_error_status()");
+                write_instruction(pending + " = load i32, ptr %tx_error_kind");
                 write_instruction("call void @txrt_require_success(i32 " +
                                   pending + ")");
             }
@@ -188,6 +189,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(
         else
         {
             transfer_call_arguments(init, passed);
+            emit_stack_location();
             write_instruction("call void " + function_name(
                 call.constructor_init_symbol, call.constructor_init_index) +
                 "(" + parameters + ")");
@@ -248,7 +250,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
         " = call ptr @txrt_class_virtual_target_fast(ptr " +
         receiver.text + ", i64 " + std::to_string(call.virtual_slot) + ")");
     const auto passed = coerce_nullable_arguments(target, arguments);
-    std::string parameters;
+    std::string parameters = "ptr %tx_context";
     for (const auto& argument : passed)
     {
         if (!parameters.empty())
@@ -260,6 +262,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     const auto invocation = "call " + llvm_type(item.type, item.position) +
         " " + target_address + "(" + parameters + ")";
     transfer_call_arguments(target, passed);
+    emit_stack_location();
     if (item.type == value_type::void_type)
     {
         write_instruction(invocation);
@@ -291,7 +294,7 @@ llvm_code_generator::emit_precompiled_requests_method(
     const auto symbol = session_method
         ? "m0_bridge_session_" + target.external_name.substr(17)
         : "m0_bridge_" + target.external_name.substr(18);
-    std::string parameters;
+    std::string parameters = "ptr %tx_context";
     for (const auto& argument : passed)
     {
         if (!parameters.empty())
@@ -304,6 +307,7 @@ llvm_code_generator::emit_precompiled_requests_method(
     const auto return_type = llvm_type(item.type, item.position);
     const auto invocation = "call " + return_type + " " +
         function_name(symbol, *call.overload_index) + "(" + parameters + ")";
+    emit_stack_location();
     for (std::size_t index = 1; index < passed.size(); ++index)
     {
         if (target.parameters[index - 1].kind != parameter_kind::ordinary ||
@@ -325,7 +329,7 @@ llvm_code_generator::emit_precompiled_requests_method(
     if (!recoverable_errors_)
     {
         const auto status = temporary();
-        write_instruction(status + " = call i32 @txrt_error_status()");
+        write_instruction(status + " = load i32, ptr %tx_error_kind");
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
     }
     for (std::size_t index = 1; index < passed.size(); ++index)

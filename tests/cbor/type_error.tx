@@ -1,0 +1,8 @@
+import "cbor.txh" as cbor
+import "file_stream.txh" as streams
+
+def main() -> int
+{
+    cbor.reader(streams.open_text("input.txt", "read", "utf-8"), cbor.default_limits())
+    return 0
+}

@@ -5,6 +5,7 @@
 #include "frontend/lexer/token.hpp"
 
 #include <memory>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -144,6 +145,7 @@ struct call_expression
     std::optional<value_type> container_type = std::nullopt;
     bool indirect = false;
     std::optional<value_type> expected_result = std::nullopt;
+    std::optional<value_type> explicit_type = std::nullopt;
 };
 
 using expression_data = std::variant<
@@ -293,6 +295,26 @@ struct struct_field
     std::string name;
     value_type type;
     source_pos position;
+    struct serde_field_metadata
+    {
+        std::int64_t number = 0;
+        bool unknown_capture = false;
+        std::optional<std::string> default_literal;
+        friend bool operator==(const serde_field_metadata&,
+                               const serde_field_metadata&) = default;
+    };
+    std::optional<serde_field_metadata> serde;
+};
+
+enum class serde_unknown_policy { reject, ignore, preserve };
+
+struct serde_struct_metadata
+{
+    std::int64_t version = 0;
+    serde_unknown_policy unknown = serde_unknown_policy::reject;
+    std::vector<std::int64_t> reserved;
+    friend bool operator==(const serde_struct_metadata&,
+                           const serde_struct_metadata&) = default;
 };
 
 enum class member_access { private_access, protected_access, public_access };
@@ -334,6 +356,8 @@ struct struct_decl
     source_pos position;
     std::vector<function_decl> methods;
     error_kind exception_kind = error_kind::none;
+    std::optional<serde_struct_metadata> serde;
+    std::string source_name;
 };
 
 struct virtual_target

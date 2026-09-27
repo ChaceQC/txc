@@ -62,8 +62,9 @@ callback_result invoke_operation(const void* operation)
         throw std::runtime_error("预期异常回调没有调用目标");
     }
     using callback_type = void (*)(void*);
-    const bool previous_propagation = tx_generated::detail::propagate_errors;
-    tx_generated::detail::propagate_errors = true;
+    auto& context = tx_generated::detail::current_runtime_context();
+    const bool previous_propagation = context.propagate_errors;
+    context.propagate_errors = true;
     try
     {
         reinterpret_cast<callback_type>(const_cast<void*>(state.target))(
@@ -71,22 +72,22 @@ callback_result invoke_operation(const void* operation)
     }
     catch (...)
     {
-        tx_generated::detail::propagate_errors = previous_propagation;
+        context.propagate_errors = previous_propagation;
         throw;
     }
-    tx_generated::detail::propagate_errors = previous_propagation;
+    context.propagate_errors = previous_propagation;
     callback_result result;
-    result.raised = tx_generated::detail::last_error_kind !=
+    result.raised = context.last_error_kind !=
         tx::error_kind::none;
     if (result.raised)
     {
-        result.code = tx_generated::detail::last_error_code;
-        result.message = tx_generated::detail::last_error;
-        result.stack = std::move(tx_generated::detail::last_error_stack);
+        result.code = context.last_error_code;
+        result.message = context.last_error;
+        result.stack = std::move(context.last_error_stack);
     }
     // 预期错误在此边界被消费，不改变之后断言的错误状态。
-    tx_generated::detail::last_error_kind = tx::error_kind::none;
-    tx_generated::detail::last_error_stack.clear();
+    context.last_error_kind = tx::error_kind::none;
+    context.last_error_stack.clear();
     return result;
 }
 
@@ -126,8 +127,11 @@ bool run_case(const void* name_value, const void* operation)
         "] " + result.message + "\n";
     for (const auto& frame : result.stack)
     {
-        report += "  位于 " + frame.function + " (" + frame.file + ":" +
-            std::to_string(frame.line) + ":" +
+        report += "  位于 ";
+        report += frame.function;
+        report += " (";
+        report += frame.file;
+        report += ":" + std::to_string(frame.line) + ":" +
             std::to_string(frame.column) + ")\n";
     }
     tx_generated::tx_fn_write_error(report);

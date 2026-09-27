@@ -26,6 +26,24 @@
 
 导入 [json.txh](../tx/stdlib/json.txh) 可解析和序列化 JSON；配置文件可通过 `file.read_text`、`json.parse_object` 得到普通 `dict`，直接索引和修改字段，再用 `json.stringify_pretty` 与 `file.write_text` 保存。`try_parse` 返回可区分合法 `null` 与失败的 `error.any_result`，`parse` 在错误时抛出含行、列和字节偏移的 `parse_error`。`contains`、`get` 及类型化 `get_*` 也可用于明确的字段读取。完整流程、类型对应和错误码见 [JSON 模块说明](json.md)。
 
+大文件可使用 `read/write` 或根数组的 `reader/next`、`writer/write_value/finish`，并通过 `limits` 限制总量、单值和深度；`validate` 显式执行文档列出的 schema 约束。用法见 [JSON 增量示例](../examples/json_stream.tx)。
+
+## CSV
+
+导入 [csv.txh](../tx/stdlib/csv.txh) 后，可逐行读取 `option<vector<str>>`、取得表头快照或写入类型明确的字符串行。dialect 显式控制分隔符、引号、换行、表头、BOM 和输入限额；小数据可使用 `parse/stringify`，大数据使用文件流和游标。契约见 [CSV 模块说明](csv.md)，用法见 [CSV 增量示例](../examples/csv_stream.tx)。
+
+## XML
+
+导入 [xml.txh](../tx/stdlib/xml.txh) 后，可通过 `reader/next` 逐事件读取、`parse/read` 构建文档树，或用 `writer` 逐步生成文档。元素与属性分别保存本地名、命名空间 URI 和前缀；默认拒绝 DTD 和自定义实体，也不处理 XInclude。二进制输入支持 UTF-8/UTF-16，`limits` 控制总量、深度、节点和属性数。完整规则见 [XML 模块说明](xml.md)，用法见 [XML 流式示例](../examples/xml_stream.tx)。
+
+## CBOR
+
+导入 [cbor.txh](../tx/stdlib/cbor.txh) 后，可对 `int/float/str/bytes/array/dict/bool/none` 使用规范化 `encode/decode`，或用二进制文件流的 `read/write` 处理完整值。大数组使用 `reader/next` 逐项读取；写入前须给 `writer` 提供元素数量，再调用 `write_value/finish`。重复键、非规范编码和无效 UTF-8 会拒绝；限额和类型边界见 [CBOR 模块说明](cbor.md)。
+
+## serde
+
+导入 [serde.txh](../tx/stdlib/serde.txh) 后，可为标记 `serde(version=...)` 的结构体生成固定字段映射，并使用 `serialize_json/deserialize_json<T>`、`serialize_cbor/deserialize_cbor<T>`。字段编号、默认值、未知字段策略和显式跨版本迁移见 [serde 模块说明](serde.md)与[示例](../examples/serde_schema.tx)。解码先校验 schema 版本及字段类型，资源句柄和动态 `any` 字段在编译期拒绝。
+
 ## 容器算法
 
 导入 [algorithm.txh](../tx/stdlib/algorithm.txh)，提供 `sort`、`sorted`、`find`、`count`、`lower_bound`、`upper_bound`、`reverse`，以及数值向量的 `sum`、`min_element`、`max_element`。排序与二分覆盖 `vector<int/float/str>`；查找、计数和原地反转还支持 `vector<bool>`。

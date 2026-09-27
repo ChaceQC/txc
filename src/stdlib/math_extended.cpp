@@ -94,7 +94,7 @@ std::int64_t round_to_integer(double value, std::string_view mode)
 #define TX_MATH_UNARY(name, operation)                                      \
 extern "C" int txrt_math_##name(double value, double* result) noexcept       \
 {                                                                          \
-    return tx_generated::detail::invoke_checked([&]                        \
+    return tx_generated::detail::invoke_leaf([&]                        \
     {                                                                      \
         *result = operation(value);                                        \
     });                                                                    \
@@ -117,7 +117,7 @@ TX_MATH_UNARY(log10, std::log10)
 
 extern "C" int txrt_math_atan2(double y, double x, double* result) noexcept
 {
-    return tx_generated::detail::invoke_checked([&]
+    return tx_generated::detail::invoke_leaf([&]
     {
         *result = std::atan2(y, x);
     });
@@ -144,7 +144,7 @@ extern "C" int txrt_math_is_infinite(double value, bool* result) noexcept
 extern "C" int txrt_math_gcd(std::int64_t left, std::int64_t right,
                               std::int64_t* result) noexcept
 {
-    return tx_generated::detail::invoke_checked([&]
+    return tx_generated::detail::invoke_leaf([&]
     {
         auto first = magnitude(left);
         auto second = magnitude(right);
@@ -166,7 +166,7 @@ extern "C" int txrt_math_gcd(std::int64_t left, std::int64_t right,
 extern "C" int txrt_math_lcm(std::int64_t left, std::int64_t right,
                               std::int64_t* result) noexcept
 {
-    return tx_generated::detail::invoke_checked([&]
+    return tx_generated::detail::invoke_leaf([&]
     {
         if (left == 0 || right == 0)
         {
@@ -197,7 +197,7 @@ extern "C" int txrt_math_lcm(std::int64_t left, std::int64_t right,
 extern "C" int txrt_math_pow_int(std::int64_t base, std::int64_t exponent,
                                   std::int64_t* result) noexcept
 {
-    return tx_generated::detail::invoke_checked([&]
+    return tx_generated::detail::invoke_leaf([&]
     {
         if (exponent < 0)
         {
@@ -225,7 +225,7 @@ extern "C" int txrt_math_pow_int(std::int64_t base, std::int64_t exponent,
 extern "C" int txrt_math_round_to_int(double value, const void* mode,
                                         std::int64_t* result) noexcept
 {
-    return tx_generated::detail::invoke_checked([&]
+    return tx_generated::detail::invoke_leaf([&]
     {
         *result = round_to_integer(value, *static_cast<const std::string*>(mode));
     });

@@ -16,6 +16,10 @@
 
 不透明内置类型 `process_child` 与 `process_pipe` 只能由 `process.txh` 取得，普通赋值及从 `any` 显式恢复共享同一状态；禁止手工构造、`deep_copy` 和未经证明的跨线程传递。进程关闭使父侧管道别名失效，等待成功缓存退出状态且仍可读完输出。接口与失败语义见[子进程与管道](process.md)，用法见[process.tx](../examples/process.tx)。
 
+不透明内置类型 `json_reader` 与 `json_writer` 只能由 `json.txh` 创建，用于逐项读取或生成根数组。赋值及从 `any` 显式恢复共享同一游标；禁止手工构造、`deep_copy` 和跨线程传递。`close` 只释放游标持有的文件流引用，不关闭调用方的流；写入必须显式 `finish` 才补齐根数组。接口、限额与失败后的状态见 [JSON 增量接口](json.md#增量读写与-schema)，示例见 [json_stream.tx](../examples/json_stream.tx)。
+
+不透明内置类型 `csv_reader` 与 `csv_writer` 使用相同的共享游标、`any` 恢复、禁止复制和跨线程传递规则。`csv.next_row` 返回 `option<vector<str>>`；表头快照与已返回行独立于游标，关闭后仍可使用。dialect、字段限额与失败语义见 [CSV](csv.md)，示例见 [csv_stream.tx](../examples/csv_stream.tx)。
+
 `assert_send(value)` 与 `assert_sync(value)` 在编译期检查跨线程传递/共享的基础类型规则，并在运行时正常求值该实参；当前不启动线程。可证明类型及尚未完成的唯一移动与同步封装边界见[Send/Sync 规则](send_sync.md)。
 
 `map<K, V>`、`set<T>`、`ordered_map<K, V>`、`ordered_set<T>`、`heap<T>`、`queue<T>`、`deque<T>` 的类型参数、接口、共享和快照遍历规则见[类型化容器](typed_containers.md)。这些类型在变量、函数及 `.txh` 签名、struct/class 字段中保留完整静态类型。`entry<K, V>` 是映射条目快照的内置只读值类型，字段为 `key: K` 和 `value: V`，不能自行构造或修改字段。`deque<T>` 与 `vector<T>` 使用相同的具体元素类型规则，支持整数下标读写；两端增删为 O(1)，中间插入/删除为 O(n)。普通函数的静态函数类型及作为参数传递的规则见[函数值与函数参数](function_values.md)。
@@ -221,6 +225,8 @@ else
 - 数组索引从 0 开始，索引必须是 int，越界会在运行时报错。len(数组) 返回 int；数组元素实际存放数组时，也可以直接写 len(外层数组[索引])。is_none(数组元素) 可判断空位置。数组元素可用 = 赋任意受支持的值。for 遍历数组时读取一次数组表达式并记录当时的长度；遍历期间仍读取共享数组中的当前元素，新追加的元素不进入本次遍历。
 - 字典类型写为 `dict`，字面量写为 `{键: 值, ...}`，空字典写为 `{}`，也可用 `dict 名称 = 初值` 声明。键必须是可哈希的 `int`、`float`、`bool`、`str` 或 `none`；值可为任意受支持的值类型。键按类型和值比较，重复键保留最后赋入的值；字典不保证遍历顺序。`字典[键]` 读取元素，键不存在时在运行时报错；`字典[键] = 值` 可以插入或更新。`len(字典)` 返回键数；`for key in 字典` 遍历进入循环时的键快照，循环变量类型为 any。允许缺键的查询、删除等操作见[字典标准库](standard_library.md#字典操作)。
 - 顶层用 struct 定义字段及运算符成员。字段按声明顺序构造，字段名必须唯一且类型有效。结构体可以作为函数参数、返回值和数组元素；字段可以是 array 或先前声明的结构体。当前不支持递归结构体。
+- 可序列化数据结构在结构体名称后写 `serde(version=正整数, unknown="reject"|"ignore"|"preserve", reserved=[已删除字段编号...])`。每个普通字段末尾写 `serde(正整数字段编号)`；有默认值的字段可写 `serde(编号, default=字面量)`；`option<T>` 字段缺失时取 `none`。`unknown="preserve"` 时须有且仅有一个 `dict` 字段写 `serde(unknown)` 接收未知字段。字段编号不能重复或占用 `reserved`，0 留给 CBOR schema 版本；JSON 的 `$schema` 也为保留字段。默认值目前只接受与字段类型相同的 `int/float/bool/str` 字面量。仅允许 `int/float/bool/str/bytes`、这些类型及已标记结构体的 `vector<T>`/`option<T>` 和已标记的嵌套结构体；函数、类、动态 `any/array/dict`（未知字段容器除外）及资源句柄不能成为可序列化字段。详见 [serde 模块](serde.md)。
+- `serde.deserialize_json<类型>(文本)` 与 `serde.deserialize_cbor<类型>(字节)` 使用显式返回类型参数，类型须为已标记的结构体。这是当前仅支持的调用位置类型实参语法；普通泛型函数仍由值参数推断类型。解码器只接受声明的 schema 版本；跨版本转换须显式读取旧结构体，再由用户函数构造新结构体。
 - `struct`、`class` 在 `.txh` 和配对 `.tx` 中的放置规则不同，见 [模块导入：文件分工](modules.md)。
 - 数组、字典、结构体和类对象默认按引用共享：赋值、传参、返回和放入其他复合值时只复制引用，之后通过任一引用修改字段或元素，其他引用都能看到。`deep_copy(值)` 显式递归复制可达的数组、字典、结构体和类对象，返回值保持实参的静态类型；`any` 也可传入，结果保留其实际类型。复制会保留原对象图中的共享关系和循环关系，但新对象图与原图互不共享这些复合对象。类对象复制字段与运行时类型，不重新执行 `init`；新对象释放时仍按通常规则调用 `deinit`。不可变的数字、布尔值、字符串和 none 按值处理。不可达的引用环由[循环回收器](garbage_collection.md)在安全点处理，`deep_copy` 也会保留环。
 - `int`、`float` 和 `bool` 的赋值直接复制值。例如 `int a = 2`、`auto b = a`、`b = 3` 执行后，`a` 仍为 `2`，`b` 为 `3`。

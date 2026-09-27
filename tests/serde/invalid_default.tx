@@ -1,0 +1,11 @@
+import "serde.txh" as serde
+
+struct invalid serde(version=1)
+{
+    number: int serde(1, default="wrong")
+}
+
+def main() -> int
+{
+    return 0
+}

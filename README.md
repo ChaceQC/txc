@@ -20,6 +20,8 @@ Unicode 规范化、字素和显式 locale 比较见 [Unicode 示例](examples/u
 
 最终编译器产物 `txc.exe`、`clang.exe`、`libtxstdlib.a`、链接组件和运行时 DLL 位于 `tx/`；构建成功后清理 `build/` 中间文件。txc 默认将 .tx 程序放在 `tx_build/`。
 
+开发时可用 `scripts/build.ps1 -Incremental` 保留 `build/` 并启用并行编译与持久编译缓存；默认构建仍会清理中间目录。见[构建说明](docs/usage.md#构建编译器)。
+
 txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的链接组件；运行 txc 编译 `.tx` 时不需要安装 g++。构建与发行结构见 [编译与运行](docs/usage.md)和[原生后端说明](docs/native_backend.md)。
 
 字符串、浮点数、混合类型数组和结构体的用法见 [数据类型示例](examples/data_types.tx)。
@@ -45,6 +47,9 @@ Python 风格的 HTTP 客户端见 [requests 模块](docs/requests.md)和[请求
 程序参数、环境变量、工作目录和常用系统路径见[系统接口说明](docs/system_env.md)与[示例](examples/system_env.tx)。
 `parse`、统一的 `ok/value/error` 结果，以及 `try { } exception type as e { }` 的规则见[解析与可恢复错误](docs/errors_and_parse.md)与[示例](examples/parse_errors.tx)。实现已接入，6 个定向场景通过，验证范围见该文档末尾。
 JSON 解析、序列化和字段读取见 [JSON 模块说明](docs/json.md)与[示例](examples/json.tx)。
+JSON 增量数组与 schema 校验见 [JSON 增量接口](docs/json.md#增量读写与-schema)与[示例](examples/json_stream.tx)；CSV 的流式读写、表头、dialect 与限额见 [CSV 模块](docs/csv.md)与[示例](examples/csv_stream.tx)。
+XML 的拉取式读取、文档树、命名空间和流式写入见 [XML 模块](docs/xml.md)与[示例](examples/xml_stream.tx)。
+可序列化结构体的编译期字段元数据、JSON/CBOR 映射和跨版本迁移见 [serde 模块](docs/serde.md)与[示例](examples/serde_schema.tx)。
 毫秒计时和可设种子的随机数用法见 [时间与随机数示例](examples/time_random.tx)。
 时区、独立随机生成器、扩展数学、统计及十进制金额计算见[第六部分接口契约](docs/time_math_statistics.md)、[统计示例](examples/statistics_summary.tx)和[金额示例](examples/decimal_money.tx)。
 语言特性和运行时的 TX/C++ 性能对照见 [语言特性基准](benchmarks/language_features/README.md)；标准库与 C++ Release 的对照见 [标准库基准](benchmarks/library_compare/README.md)。

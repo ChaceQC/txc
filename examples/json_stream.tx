@@ -1,0 +1,26 @@
+import "json.txh" as json
+import "file_stream.txh" as file_stream
+
+def main() -> int
+{
+    auto limits = json.default_limits()
+    auto output = file_stream.open_binary("tx_build/json_stream.json", "write")
+    auto writer = json.writer(output, limits)
+    json.write_value(writer, {"name": "天心", "count": 2})
+    json.write_value(writer, none)
+    json.finish(writer)
+    json.close(writer)
+    file_stream.close(output)
+
+    auto input = file_stream.open_binary("tx_build/json_stream.json", "read")
+    auto reader = json.reader(input, limits)
+    auto item = json.next(reader)
+    while item.is_some()
+    {
+        print(json.stringify(item.value()))
+        item = json.next(reader)
+    }
+    json.close(reader)
+    file_stream.close(input)
+    return 0
+}

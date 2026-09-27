@@ -22,14 +22,6 @@ namespace
 
 constexpr std::size_t collection_interval = 64;
 
-struct registered_node
-{
-    std::weak_ptr<void> object;
-    gc_trace trace;
-    gc_clear clear;
-    gc_finalize finalize;
-};
-
 struct live_node
 {
     std::shared_ptr<void> object;
@@ -46,10 +38,6 @@ struct object_graph
     std::vector<std::int64_t> external_refs;
     std::vector<bool> reachable;
 };
-
-thread_local std::vector<registered_node> registered_nodes;
-thread_local std::size_t allocations_since_collection = 0;
-thread_local bool collecting = false;
 
 const void* object_identity(const std::any& value)
 {
@@ -132,8 +120,9 @@ void mark_reachable(object_graph& graph)
     }
 }
 
-object_graph inspect_graph()
+object_graph inspect_graph(const detail::runtime_context& context)
 {
+    const auto& registered_nodes = context.registered_nodes;
     object_graph graph;
     graph.nodes.reserve(registered_nodes.size());
     for (const auto& entry : registered_nodes)
@@ -166,9 +155,11 @@ object_graph inspect_graph()
 
 struct collection_guard
 {
+    detail::runtime_context& context;
+
     ~collection_guard()
     {
-        collecting = false;
+        context.collecting = false;
     }
 };
 
@@ -177,27 +168,29 @@ struct collection_guard
 void register_gc_node(const std::shared_ptr<void>& object, gc_trace trace,
                       gc_clear clear, gc_finalize finalize)
 {
-    registered_nodes.push_back({object, trace, clear, finalize});
-    ++allocations_since_collection;
+    auto& context = detail::current_runtime_context();
+    context.registered_nodes.push_back({object, trace, clear, finalize});
+    ++context.allocations_since_collection;
 }
 
 void note_gc_allocation() noexcept
 {
-    ++allocations_since_collection;
+    ++detail::current_runtime_context().allocations_since_collection;
 }
 
 void collect_cycles()
 {
-    if (collecting)
+    auto& context = detail::current_runtime_context();
+    if (context.collecting)
     {
         return;
     }
-    collecting = true;
-    collection_guard guard;
+    context.collecting = true;
+    collection_guard guard{context};
     bool completed = false;
     for (std::size_t round = 0; round < 16; ++round)
     {
-        auto graph = inspect_graph();
+        auto graph = inspect_graph(context);
         bool finalized = false;
         for (std::size_t index = 0; index < graph.nodes.size(); ++index)
         {
@@ -222,23 +215,24 @@ void collect_cycles()
         completed = true;
         break;
     }
-    std::erase_if(registered_nodes, [](const registered_node& entry)
+    std::erase_if(context.registered_nodes, [](const detail::registered_gc_node& entry)
     {
         return entry.object.expired();
     });
-    allocations_since_collection = completed ? 0 :
-        std::max(collection_interval, registered_nodes.size() / 2);
+    context.allocations_since_collection = completed ? 0 :
+        std::max(collection_interval, context.registered_nodes.size() / 2);
 }
 
 void gc_safepoint()
 {
-    if (collecting || registered_nodes.empty())
+    const auto& context = detail::current_runtime_context();
+    if (context.collecting || context.registered_nodes.empty())
     {
         return;
     }
     const auto threshold = std::max(collection_interval,
-                                    registered_nodes.size() / 2);
-    if (allocations_since_collection >= threshold)
+                                    context.registered_nodes.size() / 2);
+    if (context.allocations_since_collection >= threshold)
     {
         collect_cycles();
     }

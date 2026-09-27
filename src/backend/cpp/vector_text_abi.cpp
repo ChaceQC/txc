@@ -78,7 +78,7 @@ using tx_generated::detail::make_handle;
 
 extern "C" void txrt_vector_index_error() noexcept
 {
-    std::snprintf(tx_generated::detail::last_error, 256, "vector 索引越界");
+    std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256, "vector 索引越界");
     txrt_require_success(1);
 }
 

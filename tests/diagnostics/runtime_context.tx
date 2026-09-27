@@ -1,0 +1,145 @@
+import "test.txh" as test
+import "debug.txh" as debug
+import "error.txh" as errors
+import "random.txh" as random
+import "math.txh" as math
+import "string.txh" as string
+import "requests.txh" as requests
+
+def recursive_trace(depth: int) -> str
+{
+    if depth == 0
+    {
+        return debug.stack_trace()
+    }
+    return recursive_trace(depth - 1)
+}
+
+def recursive_failure(depth: int) -> int
+{
+    if depth == 0
+    {
+        return 8 / 0
+    }
+    return recursive_failure(depth - 1)
+}
+
+def failing_callback()
+{
+    print(recursive_failure(2))
+}
+
+class destructor_witness
+{
+    public:
+        traces: vector<str>
+
+        def init(traces: vector<str>)
+        {
+            self.traces = traces
+        }
+
+        def deinit()
+        {
+            self.traces.push_back(debug.stack_trace())
+            # 清理中的新错误不能覆盖正在传播的随机数错误。
+            print(1 / 0)
+        }
+}
+
+def fail_with_destructor(traces: vector<str>)
+{
+    auto witness = destructor_witness(traces)
+    print(random.random_int(5, 2))
+}
+
+def check_random()
+{
+    random.seed(12345)
+    auto first_int = random.random_int(-100, 100)
+    auto first_float = random.random_float()
+    random.seed(12345)
+    test.assert_equal(first_int, random.random_int(-100, 100))
+    test.assert_equal(first_float, random.random_float())
+    test.assert_true(first_float >= 0.0 && first_float < 1.0)
+    test.assert_equal(-9223372036854775808,
+        random.random_int(-9223372036854775808, -9223372036854775808))
+    test.assert_equal(9223372036854775807,
+        random.random_int(9223372036854775807, 9223372036854775807))
+    auto caught = false
+    try
+    {
+        print(random.random_int(4, 3))
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+        test.assert_true(string.contains(e.message, "下界"))
+    }
+    test.assert_true(caught)
+    test.assert_equal(7, random.random_int(7, 7))
+    test.assert_equal(3.0, math.sqrt(9.0))
+}
+
+def main() -> int
+{
+    # 活动栈按 main 到最内层排列，快照在这些函数返回后仍有效。
+    auto saved = recursive_trace(3)
+    auto frames = string.split_vector(saved, "\n")
+    test.assert_equal(5, frames.size())
+    test.assert_true(string.starts_with(frames[0], "main ("))
+    test.assert_true(string.starts_with(frames[4], "recursive_trace ("))
+    test.assert_equal(1, string.split_vector(debug.stack_trace(), "\n").size())
+
+    test.assert_throws_code(failing_callback, "operation_failed")
+    test.assert_equal(1, string.split_vector(debug.stack_trace(), "\n").size())
+    try
+    {
+        print(recursive_failure(3))
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_equal(5, string.split_vector(errors.stack_trace(), "\n").size())
+        test.assert_true(string.contains(errors.stack_trace(), "recursive_failure ("))
+    }
+
+    auto traces = vector<str>()
+    auto caught = false
+    try
+    {
+        fail_with_destructor(traces)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+        test.assert_true(string.contains(e.message, "下界"))
+        test.assert_true(string.contains(errors.stack_trace(), "fail_with_destructor ("))
+        test.assert_true(!string.contains(errors.stack_trace(), "deinit ("))
+    }
+    test.assert_true(caught)
+    test.assert_equal(1, traces.size())
+    test.assert_true(string.contains(traces[0], "deinit ("))
+    test.assert_equal(1, string.split_vector(debug.stack_trace(), "\n").size())
+    check_random()
+    # 预编译 TX 桥接函数、构造入口和方法也必须遵守相同上下文 ABI。
+    auto options = requests.default_options()
+    auto client = requests.session()
+    test.assert_equal(options.timeout_ms, client.timeout_ms)
+    auto response = requests.response()
+    response.status_code = 200
+    response.raise_for_status()
+    response.status_code = 503
+    caught = false
+    try
+    {
+        response.raise_for_status()
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+        test.assert_true(string.contains(errors.stack_trace(), "bridge_raise_for_status"))
+    }
+    test.assert_true(caught)
+    print("RUNTIME_CONTEXT_OK")
+    return 0
+}

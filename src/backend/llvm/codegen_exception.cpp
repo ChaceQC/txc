@@ -46,7 +46,7 @@ void llvm_code_generator::emit_error_exit()
     else
     {
         emit_error_cleanup(0);
-        body_ << "  call void @txrt_stack_pop()\n";
+        emit_stack_pop();
         const auto type = llvm_type(return_type_, {});
         // 错误通过状态传播，调用方在读取占位返回值之前跳转。
         body_ << "  ret " << type;
@@ -67,6 +67,7 @@ void llvm_code_generator::emit_error_check(const std::string& status)
     body_ << "  " << failed << " = icmp ne i32 " << status << ", 0\n"
           << "  br i1 " << failed << ", label %" << error << ", label %" << success << '\n';
     start_block(error);
+    emit_error_location();
     emit_error_exit();
     start_block(success);
 }
@@ -74,7 +75,7 @@ void llvm_code_generator::emit_error_check(const std::string& status)
 void llvm_code_generator::emit_pending_error_check()
 {
     const auto status = temporary();
-    body_ << "  " << status << " = call i32 @txrt_error_status()\n";
+    body_ << "  " << status << " = load i32, ptr %tx_error_kind\n";
     emit_error_check(status);
 }
 
@@ -104,7 +105,7 @@ void llvm_code_generator::emit_try(const try_statement& guarded)
         {
             const auto kind = temporary();
             const auto matches = temporary();
-            body_ << "  " << kind << " = call i32 @txrt_error_status()\n";
+            body_ << "  " << kind << " = load i32, ptr %tx_error_kind\n";
             write_instruction(matches + " = icmp eq i32 " + kind + ", " +
                               std::to_string(static_cast<int>(handler.kind)));
             write_instruction("br i1 " + matches + ", label %" + selected + ", label %" + next);

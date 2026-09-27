@@ -52,43 +52,16 @@ const char* numeric_symbol(std::string_view name, bool integer)
     }
     if (name == "random.random_int")
     {
-        return "txrt_random_int_i64";
+        return "txrt_random_int_context";
     }
     if (name == "random.random_float")
     {
-        return "txrt_random_float_f64";
+        return "txrt_random_float_context";
     }
     return nullptr;
 }
 
 } // namespace
-
-std::string llvm_code_generator::random_context()
-{
-    if (random_context_slot_.empty())
-    {
-        random_context_slot_ = "%slot" + std::to_string(next_slot_++);
-        allocations_ << "  " << random_context_slot_ << " = alloca ptr\n"
-                     << "  store ptr null, ptr " << random_context_slot_ << '\n';
-    }
-    const auto cached = temporary();
-    write_instruction(cached + " = load ptr, ptr " + random_context_slot_);
-    const auto missing = temporary();
-    write_instruction(missing + " = icmp eq ptr " + cached + ", null");
-    const auto acquire_label = label();
-    const auto ready_label = label();
-    write_instruction("br i1 " + missing + ", label %" + acquire_label +
-                      ", label %" + ready_label);
-    start_block(acquire_label);
-    const auto acquired = temporary();
-    write_instruction(acquired + " = call ptr @txrt_random_context()");
-    write_instruction("store ptr " + acquired + ", ptr " + random_context_slot_);
-    write_instruction("br label %" + ready_label);
-    start_block(ready_label);
-    const auto result = temporary();
-    write_instruction(result + " = load ptr, ptr " + random_context_slot_);
-    return result;
-}
 
 llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     const expression& item, const function_decl& target,
@@ -155,6 +128,46 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         symbol += target.parameters.front().type == value_type::binary_stream_type
             ? "_binary" : "_text";
     }
+    if (target.external_name == "json.read" || target.external_name == "json.reader" ||
+        target.external_name == "json.write" || target.external_name == "json.writer" ||
+        target.external_name == "csv.reader" || target.external_name == "csv.writer" ||
+        target.external_name == "xml.reader" || target.external_name == "xml.read" ||
+        target.external_name == "xml.write" || target.external_name == "xml.writer")
+    {
+        symbol += target.parameters.front().type == value_type::binary_stream_type
+            ? "_binary" : "_text";
+    }
+    if (target.external_name == "json.close")
+    {
+        symbol += target.parameters.front().type == value_type::json_reader_type
+            ? "_reader" : "_writer";
+    }
+    if (target.external_name == "cbor.close")
+    {
+        symbol += target.parameters.front().type == value_type::cbor_reader_type
+            ? "_reader" : "_writer";
+    }
+    if (target.external_name == "csv.close")
+    {
+        symbol += target.parameters.front().type == value_type::csv_reader_type
+            ? "_reader" : "_writer";
+    }
+    if (target.external_name == "xml.close" ||
+        target.external_name.starts_with("xml.attribute_"))
+    {
+        symbol += target.parameters.front().type == value_type::xml_reader_type
+            ? "_reader" : "_node";
+        if (target.external_name == "xml.close" &&
+            target.parameters.front().type == value_type::xml_writer_type)
+        {
+            symbol = "txrt_xml_close_writer";
+        }
+    }
+    if (target.external_name == "xml.write" &&
+        target.parameters.front().type == value_type::text_stream_type)
+    {
+        symbol = "txrt_xml_write_text_stream";
+    }
     const bool dictionary_key_call = target.external_name == "dictionary.get" ||
         target.external_name == "dictionary.contains" ||
         target.external_name == "dictionary.remove";
@@ -217,7 +230,17 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         parameters += ", ptr " + global_bytes(item.type.name) +
                       ", ptr " + global_bytes(status_type.name);
     }
-    if (target.external_name == "process.make_options" ||
+    if (target.external_name == "json.default_limits" ||
+        target.external_name == "json.next" ||
+        target.external_name == "cbor.default_limits" ||
+        target.external_name == "cbor.next" ||
+        target.external_name == "csv.default_dialect" ||
+        target.external_name == "csv.next_row" ||
+        target.external_name == "xml.default_limits" ||
+        target.external_name == "xml.next" ||
+        target.external_name == "xml.first_child" ||
+        target.external_name == "xml.next_sibling" ||
+        target.external_name == "process.make_options" ||
         target.external_name == "process.make_limits" ||
         target.external_name == "process.read_pipe" ||
         target.external_name == "process.write_pipe" ||
@@ -260,6 +283,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     {
         parameters += (parameters.empty() ? "" : ", ") +
                       std::string("ptr ") + global_bytes(item.type.name);
+    }
+    if (target.external_name == "xml.next")
+    {
+        parameters += ", ptr " + global_bytes(item.type.parameters.front().name);
     }
     if (target.external_name == "regex.search" ||
         target.external_name == "regex.match" ||
@@ -315,23 +342,11 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         target.external_name == "random.random_int" ||
         target.external_name == "random.random_float")
     {
-        const auto context = random_context();
-        parameters = "ptr " + context + (parameters.empty() ? "" : ", " + parameters);
+        parameters = "ptr %tx_context" + (parameters.empty() ? "" : ", " + parameters);
     }
-    if (target.external_name == "random.random_int" ||
-        target.external_name == "random.random_float")
+    if (target.external_name.starts_with("debug."))
     {
-        const auto result = temporary();
-        const auto* direct = target.external_name == "random.random_int"
-            ? "txrt_random_int_context" : "txrt_random_float_context";
-        write_instruction(result + " = call " +
-                          llvm_type(item.type, item.position) + " @" + direct +
-                          "(" + parameters + ")");
-        for (const auto& argument : arguments)
-        {
-            release(argument);
-        }
-        return {item.type, result};
+        emit_stack_location();
     }
     const bool returns_value = item.type != value_type::void_type;
     std::string address;

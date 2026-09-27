@@ -19,7 +19,12 @@ bool is_builtin_name(const std::string& name)
            name == "cancel_source" || name == "cancel_token" ||
            name == "encoding_decoder" || name == "encoding_encoder" ||
            name == "regex_pattern" || name == "fs_watcher" ||
-           name == "process_child" || name == "process_pipe";
+           name == "process_child" || name == "process_pipe" ||
+           name == "json_reader" || name == "json_writer" ||
+           name == "cbor_reader" || name == "cbor_writer" ||
+           name == "csv_reader" || name == "csv_writer" ||
+           name == "xml_reader" || name == "xml_writer" ||
+           name == "xml_document" || name == "xml_node";
 }
 
 } // namespace
@@ -207,6 +212,16 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         type == value_type::fs_watcher_type ||
         type == value_type::process_child_type ||
         type == value_type::process_pipe_type ||
+        type == value_type::json_reader_type ||
+        type == value_type::json_writer_type ||
+        type == value_type::cbor_reader_type ||
+        type == value_type::cbor_writer_type ||
+        type == value_type::csv_reader_type ||
+        type == value_type::csv_writer_type ||
+        type == value_type::xml_reader_type ||
+        type == value_type::xml_writer_type ||
+        type == value_type::xml_document_type ||
+        type == value_type::xml_node_type ||
         type == value_type::array_type || type == value_type::dict_type ||
         type == value_type::any_type || type == value_type::none_type ||
         structs_.contains(type.name) || classes_.contains(type.name))
@@ -236,6 +251,7 @@ void semantic_analyzer::register_structs(program& source)
                 throw compile_error(field.position, "重复字段：" + field.name);
             }
         }
+        validate_serde_definition(definition);
         // 只允许字段引用已经完成声明的结构体，避免生成递归值类型。
         structs_.emplace(definition.name, &definition);
     }
@@ -299,6 +315,7 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
     functions_.clear();
     algorithm_intrinsics_.clear();
     random_intrinsics_.clear();
+    serde_intrinsics_.clear();
     random_generator_type_ = value_type{};
     for (const auto& function : source.functions)
     {
@@ -327,7 +344,13 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
             (function.external_name == "array.push_back" ||
              function.external_name == "array.insert" ||
              function.external_name == "json.stringify" ||
-             function.external_name == "json.stringify_pretty");
+             function.external_name == "json.stringify_pretty" ||
+             function.external_name == "json.write" ||
+             function.external_name == "json.write_value" ||
+             function.external_name == "json.validate" ||
+             function.external_name == "cbor.encode" ||
+             function.external_name == "cbor.write" ||
+             function.external_name == "cbor.write_value");
         for (const auto& parameter : function.parameters)
         {
             if (!parameter.type.is_inferred_function())
@@ -352,6 +375,11 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
         {
             random_intrinsics_[function.name] =
                 function.external_name.substr(7);
+        }
+        if (function.external_name.starts_with("serde."))
+        {
+            serde_intrinsics_[function.name] =
+                function.external_name.substr(6);
         }
         if (function.external_name.starts_with("algorithm.") &&
             function.external_name != "algorithm.sort" &&

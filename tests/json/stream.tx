@@ -1,0 +1,95 @@
+import "json.txh" as json
+import "file_stream.txh" as streams
+import "file.txh" as file
+import "error.txh" as errors
+import "test.txh" as test
+import "string.txh" as string
+
+def validate_bad(schema: dict) -> void
+{
+    json.validate({"name": "错", "count": -1}, schema)
+}
+
+def main() -> int
+{
+    auto limits = json.default_limits()
+    auto output = streams.open_binary("tx_build/json_stream_check.json", "write")
+    auto writer = json.writer(output, limits)
+    auto alias = writer
+    json.write_value(alias, {"name": "甲𝄞", "count": 3})
+    json.write_value(writer, none)
+    json.finish(writer)
+    json.finish(alias)
+    bool failed = false
+    try
+    {
+        json.write_value(alias, 5)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "invalid_state"
+    }
+    test.assert_true(failed, "finish 后拒绝追加")
+    json.close(writer)
+    json.close(alias)
+    streams.close(output)
+    test.assert_equal("[{\"count\":3,\"name\":\"甲𝄞\"},null]", file.read_text("tx_build/json_stream_check.json", "utf-8"))
+
+    auto input = streams.open_binary("tx_build/json_stream_check.json", "read")
+    auto reader = json.reader(input, limits)
+    array handles = [reader]
+    any boxed = handles[0]
+    auto restored = boxed as json_reader
+    auto first = json.next(restored)
+    test.assert_true(first.is_some())
+    dict schema = {"type": "object", "required": ["name", "count"], "additionalProperties": false, "properties": {"name": {"type": "string", "minLength": 2, "maxLength": 2}, "count": {"type": "integer", "minimum": 0, "maximum": 9}}}
+    json.validate(first.value(), schema)
+    auto second = json.next(reader)
+    test.assert_true(second.is_some() && is_none(second.value()), "null 不等于 EOF")
+    test.assert_true(json.next(reader).is_none())
+    test.assert_true(json.next(restored).is_none())
+    failed = false
+    try
+    {
+        deep_copy(reader)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = string.contains(e.message, "deep_copy")
+    }
+    test.assert_true(failed, "不能复制游标状态")
+    json.close(reader)
+    failed = false
+    try
+    {
+        json.next(restored)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = e.code == "invalid_state"
+    }
+    test.assert_true(failed, "关闭使游标别名失效")
+    streams.close(input)
+    test.assert_throws_code(bind(validate_bad, schema), "schema_mismatch")
+
+    auto text_output = streams.open_text("tx_build/json_stream_utf16.json", "write", "utf-16")
+    json.write(text_output, {"text": "中文𝄞", "n": 2.0}, limits)
+    streams.close(text_output)
+    auto text_input = streams.open_text("tx_build/json_stream_utf16.json", "read", "utf-16")
+    test.assert_equal("{\"n\":2.0,\"text\":\"中文𝄞\"}", json.stringify(json.read(text_input, limits)))
+    streams.close(text_input)
+    auto array_output = streams.open_text("tx_build/json_stream_text.json", "write", "utf-8")
+    auto text_writer = json.writer(array_output, limits)
+    json.write_value(text_writer, true)
+    json.finish(text_writer)
+    json.close(text_writer)
+    streams.close(array_output)
+    auto array_input = streams.open_text("tx_build/json_stream_text.json", "read", "utf-8")
+    auto text_reader = json.reader(array_input, limits)
+    test.assert_true(json.next(text_reader).value() as bool)
+    test.assert_true(json.next(text_reader).is_none())
+    json.close(text_reader)
+    streams.close(array_input)
+    print("JSON_STREAM_TX_OK")
+    return 0
+}

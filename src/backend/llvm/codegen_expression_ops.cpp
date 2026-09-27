@@ -1,5 +1,8 @@
 #include "backend/llvm/codegen.hpp"
 
+#include <charconv>
+#include <cstdint>
+
 namespace tx
 {
 
@@ -7,6 +10,22 @@ llvm_code_generator::ir_value llvm_code_generator::checked_binary(
     const std::string& name, const ir_value& left, const ir_value& right,
     const value_type& result_type, source_pos position)
 {
+    if (name == "txrt_mod_i64" && result_type == value_type::int_type)
+    {
+        std::int64_t divisor = 0;
+        const auto* end = right.text.data() + right.text.size();
+        const auto [parsed, error] =
+            std::from_chars(right.text.data(), end, divisor);
+        if (error == std::errc{} && parsed == end &&
+            divisor != 0 && divisor != -1)
+        {
+            // 已知安全除数可直接取余；零和 -1 仍走运行时原有错误语义。
+            const auto result = temporary();
+            write_instruction(result + " = srem i64 " + left.text +
+                              ", " + right.text);
+            return {result_type, result};
+        }
+    }
     const char* intrinsic = nullptr;
     if (result_type == value_type::int_type)
     {
@@ -136,7 +155,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_operator_call(
             receiver.text + ", i64 " +
             std::to_string(*binding.virtual_slot) + ")");
     }
-    std::string arguments = "ptr " + receiver.text;
+    std::string arguments = "ptr %tx_context, ptr " + receiver.text;
     if (argument)
     {
         arguments += ", " + llvm_type(argument->type, position) +
@@ -147,6 +166,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_operator_call(
     {
         forget_owned_value(*argument);
     }
+    emit_stack_location();
     write_instruction(result + " = call " + llvm_type(result_type, position) +
                       " " + callee + "(" + arguments + ")");
     const auto owned_result = own_direct_value({result_type, result});

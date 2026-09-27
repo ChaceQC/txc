@@ -1,0 +1,40 @@
+import "xml.txh" as xml
+import "file_stream.txh" as streams
+import "test.txh" as test
+
+def main() -> int
+{
+    auto limits = xml.default_limits()
+    auto output = streams.open_binary("tx_build/xml_stream_check.xml", "write")
+    auto writer = xml.writer(output, limits)
+    xml.start_element(writer, "catalog", "urn:catalog", "")
+    xml.write_attribute(writer, "lang", "http://www.w3.org/XML/1998/namespace", "xml", "zh")
+    xml.start_element(writer, "item", "urn:catalog", "")
+    xml.write_attribute(writer, "id", "", "", "one")
+    xml.write_text(writer, "甲 & 乙")
+    xml.end_element(writer)
+    xml.end_element(writer)
+    xml.finish(writer)
+    xml.close(writer)
+    streams.close(output)
+
+    auto input = streams.open_binary("tx_build/xml_stream_check.xml", "read")
+    auto reader = xml.reader(input, limits)
+    auto root_event = xml.next(reader).value()
+    test.assert_equal("start_element", root_event.kind)
+    test.assert_equal("catalog", root_event.local_name)
+    test.assert_equal("urn:catalog", root_event.namespace_uri)
+    test.assert_equal(1, xml.attribute_count(reader))
+    test.assert_equal("lang", xml.attribute_local_name(reader, 0))
+    auto item_event = xml.next(reader).value()
+    test.assert_equal("item", item_event.local_name)
+    test.assert_equal("one", xml.attribute_value(reader, 0))
+    test.assert_equal("甲 & 乙", xml.next(reader).value().text)
+    test.assert_equal("end_element", xml.next(reader).value().kind)
+    test.assert_equal("end_element", xml.next(reader).value().kind)
+    test.assert_true(xml.next(reader).is_none())
+    xml.close(reader)
+    streams.close(input)
+    print("XML_STREAM_EXAMPLE_OK")
+    return 0
+}
