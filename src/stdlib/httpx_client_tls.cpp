@@ -113,6 +113,11 @@ std::shared_ptr<const settings> create(const bytes_vector& anchors,
     const secret::handle& password)
 {
     const auto& roots = anchors.data().values;
+    if (!roots.empty())
+    {
+        network::fail("security_error",
+            "HTTP 自定义信任锚暂不可用；为避免验证前发送请求，连接已拒绝");
+    }
     if ((!include_system && roots.empty()) || roots.size() > 64)
     {
         network::fail("invalid_argument", "HTTP 信任锚配置无效");

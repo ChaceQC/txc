@@ -28,7 +28,7 @@ httpx.close_session(session)
 
 `require_http2=true` 只接受 HTTPS，WinHTTP 必须协商 `h2` 才交付响应；明文 h2c 仍走原有 `send_http2*`。`false` 允许 WinHTTP 在 HTTPS 上协商 HTTP/2 或 HTTP/1.1。所有新请求禁止自动重定向，不会跨源转发凭据；`Host`、`Content-Length`、`Transfer-Encoding` 和连接管理头由运行时管理。会话的代理、压缩和连接数在创建时固定。分块接口是同步的，单次请求的连接、发送、读取超时为同一个 `timeout_ms`，总截止时间和取消由后续网络工作项统一补齐。WinHTTP 自带 Cookie 状态已禁用；客户端需要显式提供 `Cookie` 头，`requests` 使用自己的 jar。
 
-11.8 增加 `open_secure_session(proxy_url, max_connections, decompress, anchors, include_system, client_package, client_password, allow_http2)`，供 `requests` 在池创建时固定 TLS 信任锚、PKCS#12 客户端身份和协议选择。`anchors` 是 DER 证书向量，`client_password` 为 `secret_bytes`；未配置锚和身份时仍可用于普通 HTTP。自定义锚只放宽 WinHTTP 的未知根预检，收到响应头前再用仓库的 X.509 链引擎严格校验证书链、用途、有效期和主机名。Windows WinHTTP 访问客户端私钥需要用户密钥提供者，因此身份导入会创建临时用户密钥容器，池释放时删除；进程异常终止可能留下容器。`requests` 使用该入口时默认关闭自动解压及 HTTP/2，保留旧默认行为；显式 `http2=true` 才启用并要求 ALPN `h2`。
+11.8 增加 `open_secure_session(proxy_url, max_connections, decompress, anchors, include_system, client_package, client_password, allow_http2)`，供 `requests` 在池创建时固定 TLS 信任锚、PKCS#12 客户端身份和协议选择。`anchors` 是 DER 证书向量，`client_password` 为 `secret_bytes`；未配置锚和身份时仍可用于普通 HTTP。**当前安全封堵：** 只要 `anchors` 非空，创建会话就以 `security_error` 拒绝；不退回系统信任，也不会创建连接或发送请求。这样可阻止现有实现先发送请求、再验证自定义 CA 的泄露路径。仅配置客户端身份且 `anchors` 为空时仍使用 WinHTTP 系统信任。恢复自定义 CA 支持前，必须先让同一连接在 TLS 握手期间完成严格证书链验证。Windows WinHTTP 访问客户端私钥需要用户密钥提供者，因此身份导入会创建临时用户密钥容器，池释放时删除；进程异常终止可能留下容器。`requests` 使用该入口时默认关闭自动解压及 HTTP/2，保留旧默认行为；显式 `http2=true` 才启用并要求 ALPN `h2`。
 
 ## 验证边界
 

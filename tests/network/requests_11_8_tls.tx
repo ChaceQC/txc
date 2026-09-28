@@ -9,61 +9,72 @@ def main() -> int
     str root = args[1]
     str unrelated = args[2]
     str package = args[3]
-    str wrong_host_url = args[4]
+    str system_url = args[4]
 
     auto client = requests.session()
-    auto first = client.request("GET", url, verify=root,
-                                cert=[package, "test-only-password"])
-    auto second = client.get(url, verify=root,
-                             cert=[package, "test-only-password"])
-    if (first.status_code != 200 || first.text() != "mutual-tls-ok" ||
-        second.status_code != 200 || second.text() != "mutual-tls-ok")
+    auto system_response = client.get(system_url, timeout=10)
+    if system_response.status_code < 200 || system_response.status_code >= 400
     {
         return 1
     }
+
+    bool custom_root_rejected = false
+    try
+    {
+        client.get(url, verify=root, cert=[package, "test-only-password"])
+    }
+    exception errors.io_error as failure
+    {
+        custom_root_rejected = failure.code == "security_error"
+    }
+    if !custom_root_rejected
+    {
+        return 2
+    }
+
+    // 同一会话更换 CA 后必须销毁旧池，并在请求发送前拒绝新配置。
+    bool rebuilt_pool_rejected = false
+    try
+    {
+        client.get(url, verify=unrelated,
+                   cert=[package, "test-only-password"])
+    }
+    exception errors.io_error as failure
+    {
+        rebuilt_pool_rejected = failure.code == "security_error"
+    }
+    if !rebuilt_pool_rejected
+    {
+        return 3
+    }
     client.close()
 
-    bool unknown_root = false
+    bool direct_custom_root_rejected = false
+    try
+    {
+        requests.get(url, verify=root, cert=[package, "test-only-password"])
+    }
+    exception errors.io_error as failure
+    {
+        direct_custom_root_rejected = failure.code == "security_error"
+    }
+    if !direct_custom_root_rejected
+    {
+        return 4
+    }
+
+    bool system_trust_rejects_untrusted_server = false
     try
     {
         requests.get(url, cert=[package, "test-only-password"])
     }
     exception errors.io_error as failure
     {
-        unknown_root = failure.code == "security_error"
+        system_trust_rejects_untrusted_server = failure.code == "security_error"
     }
-    if !unknown_root
+    if !system_trust_rejects_untrusted_server
     {
-        return 2
-    }
-
-    bool wrong_root = false
-    try
-    {
-        requests.get(url, verify=unrelated,
-                     cert=[package, "test-only-password"])
-    }
-    exception errors.io_error as failure
-    {
-        wrong_root = failure.code == "security_error"
-    }
-    if !wrong_root
-    {
-        return 3
-    }
-
-    bool missing_client = false
-    try
-    {
-        requests.get(url, verify=root)
-    }
-    exception errors.io_error as failure
-    {
-        missing_client = failure.code == "security_error"
-    }
-    if !missing_client
-    {
-        return 4
+        return 5
     }
 
     bool disabled_rejected = false
@@ -76,20 +87,6 @@ def main() -> int
         disabled_rejected = failure.code == "unsupported_option"
     }
     if !disabled_rejected
-    {
-        return 5
-    }
-    bool wrong_host = false
-    try
-    {
-        requests.get(wrong_host_url, verify=root,
-                     cert=[package, "test-only-password"])
-    }
-    exception errors.io_error as failure
-    {
-        wrong_host = failure.code == "security_error"
-    }
-    if !wrong_host
     {
         return 6
     }

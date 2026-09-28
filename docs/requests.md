@@ -8,7 +8,7 @@
 
 `stream=true` 在收到响应头后返回，`response.content` 初始为空；`response.next_chunk(max_bytes)` 每次读取 1～16384 字节，返回 `{data: bytes, eof: bool}`，空正文以 `eof=true` 表示。`response.read_all()` 在尚未逐块读取时把剩余正文读入 `content`，受 `max_response_bytes` 限制；`text()`、`json()` 和 `json_object()` 会先调用它。逐块读取后再调用整体读取或文本/JSON 方法报 `invalid_state`。`response.close()` 可重复调用，提前关闭会丢弃剩余正文。非流式调用自动读完并关闭请求句柄；默认正文上限保持 8 MiB。
 
-命名参数 `proxies` 接受字典或 `map<str, str>`，只允许 `http`、`https` 键；值为 `http://host:port`、`direct` 或空串（系统代理）。按当前目标 URL 协议选用代理，重定向后重新选择。`verify=true` 使用系统信任，`verify` 为 UTF-8 PEM CA 文件路径时只信任该文件中的锚；`verify=false` 明确报 `unsupported_option`。`cert` 接受 PKCS#12 文件路径，或 `[路径, 密码]` 两元素数组。WinHTTP 需要访问用户密钥提供者：导入证书时创建当前用户的临时密钥容器，连接池释放时删除；进程异常终止可能留下该容器。密码不进入诊断。自定义 CA 和客户端证书仅用于 HTTPS；TLS 校验证书链、用途、有效期和主机名，失败前不交付响应正文。代理认证暂不提供，带凭据的代理 URL 明确拒绝。
+命名参数 `proxies` 接受字典或 `map<str, str>`，只允许 `http`、`https` 键；值为 `http://host:port`、`direct` 或空串（系统代理）。按当前目标 URL 协议选用代理，重定向后重新选择。`verify=true` 使用系统信任；当前安全封堵下，`verify` 为 UTF-8 PEM CA 文件路径时以 `security_error` 拒绝请求，不退回系统信任，且不会发送请求。`verify=false` 明确报 `unsupported_option`。`cert` 接受 PKCS#12 文件路径，或 `[路径, 密码]` 两元素数组；单独配置客户端证书且未指定自定义 CA 时仍走系统信任。WinHTTP 需要访问用户密钥提供者：导入证书时创建当前用户的临时密钥容器，连接池释放时删除；进程异常终止可能留下该容器。密码不进入诊断。自定义 CA 和客户端证书仅用于 HTTPS；TLS 校验证书链、用途、有效期和主机名，失败前不交付响应正文。代理认证暂不提供，带凭据的代理 URL 明确拒绝。
 
 `max_retries` 是 0～3 的显式整数，默认为 0；只在 GET/HEAD/OPTIONS/PUT/DELETE 且内存正文可重播时，对连接关闭、超时或网络操作失败重试。不会根据 HTTP 状态码重试，不会重试证书错误、参数错误、正文已开始交付或文件流上传；每次重试都重新创建请求句柄，重试次数不含首次尝试。`retry_backoff_ms` 为 0～1000，控制两次尝试之间的等待。旧 `hooks` 仍以 `unsupported_option` 拒绝，不接受后静默忽略。
 
@@ -31,7 +31,7 @@ HTTP/1.1 和显式 HTTP/2 均使用 `httpx`。状态码 4xx/5xx 会返回响应�
 | 文件下载、上传和大正文 | `download/upload` 接入 `httpx` 的 `binary_stream` | 部分实现，限制见下文 |
 | `stream=True` 的惰性响应对象与 `iter_content` | `stream=true` 返回惰性响应；反复调用 `next_chunk` 直到 EOF | 实现逐块读取；不提供生成器对象 |
 | 连接池、`HTTPAdapter`、自定义重试策略 | 会话持有底层池；`max_retries` 限定安全重试 | 实现池与有界重试；不提供 `HTTPAdapter` |
-| 显式代理、自定义 CA、客户端证书、Digest/NTLM、OAuth | 按协议选代理、PEM CA、PKCS#12 客户端身份 | 实现前三项；其余认证方案暂不提供 |
+| 显式代理、自定义 CA、客户端证书、Digest/NTLM、OAuth | 按协议选代理、PEM CA、PKCS#12 客户端身份 | 实现代理与客户端身份；自定义 CA 当前因验证时序风险临时拒绝；其余认证方案暂不提供 |
 | `files` multipart | `dict` 中的字节、文本或文件元组，内存正文限 8 MiB | 实现常用形式 |
 | `Request/PreparedRequest`、hooks 和完整 CookieJar | 需要进一步确定 TX 对象/回调契约 | 暂不提供 |
 
@@ -190,7 +190,7 @@ def options(url: str, options: request_options) -> response
 | `allow_redirects`、`http2` | `bool` | 跳转和协议选择 |
 | `auth` | `[用户名, 密码]` 的两元素 `array` | Basic 认证；Digest 等认证方案另行实现 |
 | `stream` | `bool` | `true` 在响应头后返回，调用 `next_chunk/read_all/close` 管理正文 |
-| `verify` | `true` 或 PEM CA 文件路径 | 默认系统信任，文件路径只信任指定锚；`false` 报 `unsupported_option` |
+| `verify` | `true` 或 PEM CA 文件路径 | `true` 使用系统信任；PEM 文件路径当前以 `security_error` 在发送前拒绝；`false` 报 `unsupported_option` |
 | `proxies` | 仅含 `http`/`https` 键的字典或 `map<str, str>` | 按 URL 协议选显式代理、直连或系统代理 |
 | `cert` | PKCS#12 路径或 `[路径, 密码]` | 设置 HTTPS 客户端身份 |
 | `max_response_bytes`、`max_retries`、`retry_backoff_ms` | `int` | 正文总量和安全重试上限；分别默认为 8 MiB、0、0 毫秒 |

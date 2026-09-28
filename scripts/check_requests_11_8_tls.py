@@ -1,4 +1,4 @@
-"""以临时双向 TLS 服务验证 Requests 自定义 CA 与客户端 PKCS#12。"""
+"""验证顺序 0 的 Requests 自定义 CA 封堵和系统信任正常路径。"""
 
 from __future__ import annotations
 
@@ -89,8 +89,10 @@ def fixtures(directory: Path) -> None:
 
 class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
+    requests_seen = 0
 
     def do_GET(self) -> None:
+        type(self).requests_seen += 1
         body = b"mutual-tls-ok"
         self.send_response(200)
         self.send_header("Content-Length", str(len(body)))
@@ -125,18 +127,21 @@ def main() -> None:
                 f"https://127.0.0.1:{server.server_port}/secure",
                 str(directory / "root.pem"), str(directory / "other.pem"),
                 str(directory / "client.p12"),
-                f"https://localhost:{server.server_port}/secure"],
+                "https://example.com/"],
                 cwd=ROOT, env=environment,
                 capture_output=True, timeout=30)
             if result.returncode:
                 output = (result.stdout + result.stderr).decode("utf-8", "replace")
                 raise AssertionError(
                     f"Requests TLS 用例退出码 {result.returncode}: {output}")
+            if Handler.requests_seen != 0:
+                raise AssertionError(
+                    f"自定义 CA 被拒绝前仍有 {Handler.requests_seen} 个 HTTP 请求到达服务端")
         finally:
             server.shutdown()
             server.server_close()
             worker.join()
-    print("REQUESTS_11_8_TLS_OK")
+    print("REQUESTS_TLS_SEQ0_OK")
 
 
 if __name__ == "__main__":
