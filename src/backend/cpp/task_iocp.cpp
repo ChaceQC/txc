@@ -107,24 +107,64 @@ public:
     {
         if (!CreateIoCompletionPort(operation->file, port_, 0, 0))
         {
-            operation->complete(0, GetLastError());
+            const auto error = GetLastError();
+            {
+                std::lock_guard lock(mutex_);
+                operation->state = task_io_operation::submission_state::completing;
+            }
+            complete_operation(operation, 0, error);
             return;
         }
         {
             std::lock_guard lock(mutex_);
             operations_.emplace(&operation->overlapped, operation);
-        }
-        const auto started = operation->begin();
-        if (started != ERROR_SUCCESS && started != ERROR_IO_PENDING)
-        {
-            {
-                std::lock_guard lock(mutex_);
-                operations_.erase(&operation->overlapped);
-            }
-            operation->complete(0, started);
-            return;
+            operation->state = task_io_operation::submission_state::submitting;
         }
         wake();
+        const auto started = operation->begin();
+
+        bool deliver_completion = false;
+        DWORD completion_bytes = 0;
+        DWORD completion_error = ERROR_SUCCESS;
+        {
+            std::lock_guard lock(mutex_);
+            const auto found = operations_.find(&operation->overlapped);
+            if (operation->completion_received.load())
+            {
+                if (found != operations_.end())
+                {
+                    operations_.erase(found);
+                }
+                operation->state = task_io_operation::submission_state::completing;
+                completion_bytes = operation->completion_bytes;
+                completion_error = operation->completion_error;
+                deliver_completion = true;
+            }
+            else if (started == ERROR_SUCCESS || started == ERROR_IO_PENDING)
+            {
+                operation->state = task_io_operation::submission_state::submitted;
+            }
+            else
+            {
+                if (found != operations_.end())
+                {
+                    operations_.erase(found);
+                }
+                operation->state = task_io_operation::submission_state::completing;
+                completion_error = started;
+                deliver_completion = true;
+            }
+        }
+
+        if (deliver_completion)
+        {
+            complete_operation(operation, completion_bytes, completion_error);
+        }
+        else
+        {
+            // 提交期间可能已经收到取消请求；唤醒循环让它在提交后补发取消。
+            wake();
+        }
     }
 
     void wake() noexcept
@@ -133,6 +173,88 @@ public:
     }
 
 private:
+    void complete_operation(const std::shared_ptr<task_io_operation>& operation,
+                            DWORD bytes, DWORD error) noexcept
+    {
+        operation->complete(bytes, error);
+        std::lock_guard lock(mutex_);
+        operation->state = task_io_operation::submission_state::completed;
+    }
+
+    void request_pending_cancellations() noexcept
+    {
+        std::vector<std::shared_ptr<task_io_operation>> candidates;
+        {
+            std::lock_guard lock(mutex_);
+            for (const auto& [overlapped, operation] : operations_)
+            {
+                (void)overlapped;
+                const auto state = operation->state;
+                if ((state == task_io_operation::submission_state::submitting ||
+                     state == task_io_operation::submission_state::submitted) &&
+                    !operation->completion_received.load() &&
+                    (!operation->cancel_requested.load() ||
+                     (state == task_io_operation::submission_state::submitted &&
+                      !operation->cancel_dispatched)))
+                {
+                    candidates.push_back(operation);
+                }
+            }
+        }
+
+        for (const auto& operation : candidates)
+        {
+            bool requested = false;
+            {
+                std::lock_guard lock(mutex_);
+                requested = operation->cancel_requested.load();
+            }
+            if (!requested && (stopping_ || operation->should_cancel()))
+            {
+                std::lock_guard lock(mutex_);
+                const auto state = operation->state;
+                if (state == task_io_operation::submission_state::submitting ||
+                    state == task_io_operation::submission_state::submitted)
+                {
+                    operation->cancel_requested.store(true);
+                }
+            }
+
+            bool dispatch_cancel = false;
+            {
+                std::lock_guard lock(mutex_);
+                if (operation->state ==
+                        task_io_operation::submission_state::submitted &&
+                    operation->cancel_requested.load() &&
+                    !operation->cancel_dispatched)
+                {
+                    operation->cancel_dispatched = true;
+                    dispatch_cancel = true;
+                }
+            }
+            if (!dispatch_cancel)
+            {
+                continue;
+            }
+
+            if (!CancelIoEx(operation->file, &operation->overlapped))
+            {
+                const auto error = GetLastError();
+                if (error != ERROR_NOT_FOUND)
+                {
+                    std::lock_guard lock(mutex_);
+                    if (operation->state ==
+                        task_io_operation::submission_state::submitted)
+                    {
+                        // 仍由内核使用的缓冲不能提前释放；稍后再尝试发出取消。
+                        operation->cancel_dispatched = false;
+                    }
+                }
+                // ERROR_NOT_FOUND 时以随后到达的完成包确定操作结果。
+            }
+        }
+    }
+
     void run() noexcept
     {
         while (true)
@@ -169,17 +291,11 @@ private:
                 if (!operations_.empty())
                 {
                     timeout = std::min<DWORD>(timeout, 10);
-                    for (const auto& [overlapped, operation] : operations_)
-                    {
-                        if (!operation->cancel_requested &&
-                            (stopping_ || operation->should_cancel()))
-                        {
-                            operation->cancel_requested = true;
-                            CancelIoEx(operation->file, overlapped);
-                        }
-                    }
                 }
             }
+
+            request_pending_cancellations();
+
             if (ready)
             {
                 const auto cancelled = stopping_ ||
@@ -199,18 +315,35 @@ private:
             if (overlapped)
             {
                 std::shared_ptr<task_io_operation> operation;
+                bool deliver_completion = false;
                 {
                     std::lock_guard lock(mutex_);
                     if (const auto found = operations_.find(overlapped);
                         found != operations_.end())
                     {
-                        operation = std::move(found->second);
-                        operations_.erase(found);
+                        const auto state = found->second->state;
+                        if (state ==
+                            task_io_operation::submission_state::submitting)
+                        {
+                            // 同步成功的 I/O 完成包可能早于 begin() 返回。
+                            found->second->completion_received.store(true);
+                            found->second->completion_bytes = bytes;
+                            found->second->completion_error = error;
+                        }
+                        else if (state ==
+                            task_io_operation::submission_state::submitted)
+                        {
+                            operation = std::move(found->second);
+                            operations_.erase(found);
+                            operation->state =
+                                task_io_operation::submission_state::completing;
+                            deliver_completion = true;
+                        }
                     }
                 }
-                if (operation)
+                if (deliver_completion)
                 {
-                    operation->complete(bytes, error);
+                    complete_operation(operation, bytes, error);
                 }
             }
         }

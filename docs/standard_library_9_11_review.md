@@ -18,7 +18,7 @@
 | R01 | P1 | 11 | 自定义 CA 验证晚于 HTTP 请求发送 | 已复现 | 已修复 |
 | R02 | P1 | 9、10 | 密码学共享随机状态缺少并发保护 | 静态确认 | 已修复 |
 | R03 | P1 | 11 | 失败 HTTP/2 会话持续阻断后续正常连接 | 已复现 | 已修复 |
-| R04 | P1 | 10 | IOCP 启动与取消之间存在遗漏取消的窗口 | 静态确认 | 待修复 |
+| R04 | P1 | 10 | IOCP 启动与取消之间存在遗漏取消的窗口 | 静态确认 | 已修复 |
 | R05 | P1 | 11 | HTTP/3 未完成请求形成强引用环 | 静态确认 | 待修复 |
 | R06 | P1 | 11 | HTTP/2 在锁外修改共享流表 | 静态确认 | 已修复 |
 | R07 | P2 | 11 | HTTP/3 已完成流的句柄延迟到连接销毁才释放 | 静态确认 | 待修复 |
@@ -335,6 +335,14 @@ Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 构建通过�
 3. **定向验收。**
    1. 用同步屏障让取消固定落在“检查令牌之后、`ReadFile`/`WriteFile` 提交之前”，确认操作不会无限挂起，且只有一次任务结果。
    2. 再覆盖已挂起 I/O 的取消、提交立即失败和正常完成，检查句柄关闭与部分写入结果仍符合原有契约。
+
+**顺序 5 执行记录（2026-09-29）：** `src/backend/cpp/task_iocp.hpp` 为 IOCP 操作增加准备、提交中、已提交、完成中和已完成状态；`src/backend/cpp/task_iocp.cpp` 在同一互斥锁下同步状态与 `operations_` 登记和移除。取消请求与向内核派发取消分别记录，提交中的操作只保留待取消标记；`begin()` 返回成功或挂起后唤醒事件循环，再对已提交操作调用 `CancelIoEx()`。`CancelIoEx()` 返回 `ERROR_NOT_FOUND` 时保留操作，等待其完成包；其他 API 错误会重新尝试取消，不提前释放内核仍可能使用的缓冲。若 IOCP 在 `begin()` 返回前收到完成包，则先保存字节数和错误，再由提交路径交付一次结果；立即失败和完成包两条路径都会移出登记表并关闭文件句柄。
+
+Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 构建通过。`python -X utf8 scripts/check_task_iocp.py` 通过：原生屏障用例把令牌取消固定在预检之后、读取提交之前，并等到事件循环观察到取消请求后才放行提交；另覆盖已挂起读取的任务作用域取消、截止时间取消、正常读取完成、提交立即失败、预提交取消及事件循环析构时取消挂起读取。同步完成时序用受控操作在 IOCP 已收取完成包后让 `begin()` 返回 `ERROR_SUCCESS`，检查提交路径使用已缓存的完成结果且只交付一次。验收同时确认操作句柄关闭；已有 `tests/stdlib/async_file_behavior.tx` 与 `tests/stdlib/async_file_cancel_pending.tx` 通过，覆盖实际异步文件读写、空操作、打开失败和取消结果。
+
+新增 [部分写入结果注入](../tests/stdlib/async_file_partial_write.cpp)，直接向生产 `write_operation::complete()` 注入 12 字节请求仅完成 5 字节的成功、取消和磁盘满结果，分别确认 `written == 5`、`cancelled` 与 `error_code` 映射及句柄关闭；`python -X utf8 scripts/check_task_iocp.py` 中 `ASYNC_FILE_PARTIAL_WRITE_OK` 通过。这验证了完成结果处理，不模拟底层设备真实的短写调度。
+
+全量检查通过：`txc test .\tests` 发现并通过 1 个测试组；运行全部 30 个 `scripts/check_*.py` 脚本均通过，包括本节 IOCP/部分写入注入脚本。未运行长时间压力测试。
 
 ### 4.9 顺序 6：R05 断开 HTTP/3 未完成请求的引用环
 

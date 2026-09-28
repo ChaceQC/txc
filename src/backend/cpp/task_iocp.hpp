@@ -2,6 +2,7 @@
 
 #include "stdlib/task.hpp"
 
+#include <atomic>
 #include <memory>
 
 #ifdef _WIN32
@@ -16,6 +17,15 @@ namespace tx_generated
 class task_io_operation
 {
 public:
+    enum class submission_state
+    {
+        preparing,
+        submitting,
+        submitted,
+        completing,
+        completed
+    };
+
     task_io_operation() = default;
     virtual ~task_io_operation();
     task_io_operation(const task_io_operation&) = delete;
@@ -31,7 +41,13 @@ public:
     std::shared_ptr<task_scope_state> scope;
     std::shared_ptr<task_state> child;
     std::shared_ptr<cancellation_state> token;
-    bool cancel_requested = false;
+    // completion_loop::mutex_ 串行保护状态转换与 operations_ 登记和移除。
+    submission_state state = submission_state::preparing;
+    std::atomic<bool> cancel_requested = false;
+    bool cancel_dispatched = false;
+    std::atomic<bool> completion_received = false;
+    DWORD completion_bytes = 0;
+    DWORD completion_error = ERROR_SUCCESS;
 };
 
 void submit_io_operation(std::shared_ptr<task_io_operation> operation);
