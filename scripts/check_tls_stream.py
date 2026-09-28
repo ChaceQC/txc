@@ -65,14 +65,20 @@ def main():
         fixtures(directory)
         server_program = directory / "server.exe"
         client_program = directory / "client.exe"
+        concurrent_client_program = directory / "random_tls_concurrency.exe"
         compile_case(ROOT / "tests/network/tls_stream_server.tx",
                      server_program, env)
         compile_case(ROOT / "tests/network/tls_stream_client.tx",
                      client_program, env)
+        compile_case(ROOT / "tests/crypto/random_tls_concurrency.tx",
+                     concurrent_client_program, env)
         for mode in ("good", "bad_host", "bad_trust", "no_client",
                      "alpn_mismatch"):
             run_pair(directory, server_program, client_program, mode, env)
             print(f"TLS_STREAM_{mode.upper()}_OK")
+        run_pair(directory, server_program, concurrent_client_program,
+                 "good", env)
+        print("TLS_RANDOM_CONCURRENCY_OK")
 
 
 if __name__ == "__main__":

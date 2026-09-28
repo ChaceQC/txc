@@ -16,7 +16,7 @@
 | 编号 | 优先级 | 所属部分 | 问题 | 证据 | 修复状态 |
 | --- | --- | --- | --- | --- | --- |
 | R01 | P1 | 11 | 自定义 CA 验证晚于 HTTP 请求发送 | 已复现 | 待修复 |
-| R02 | P1 | 9、10 | 密码学共享随机状态缺少并发保护 | 静态确认 | 待修复 |
+| R02 | P1 | 9、10 | 密码学共享随机状态缺少并发保护 | 静态确认 | 已修复 |
 | R03 | P1 | 11 | 失败 HTTP/2 会话持续阻断后续正常连接 | 已复现 | 待修复 |
 | R04 | P1 | 10 | IOCP 启动与取消之间存在遗漏取消的窗口 | 静态确认 | 待修复 |
 | R05 | P1 | 11 | HTTP/3 未完成请求形成强引用环 | 静态确认 | 待修复 |
@@ -253,6 +253,12 @@ Windows x64 `scripts/build.ps1 -Incremental` 构建通过；`python scripts/chec
 3. **定向验收。**
    1. 并发调用随机字节、密钥生成和代表性 TLS 握手，检查成功、错误映射与进程稳定性；这些结果用于确认接入与共享状态保护，不声称实测随机数碰撞或证明密码学强度。
    2. 以实际编译配置和库级线程支持作为主要证据；单纯给 `fill_random()` 加项目级锁不满足本项完成条件。
+
+**顺序 1 执行记录（2026-09-28）：** `cmake/mbedtls_user_config.h` 为 MinGW 固定启用 `MBEDTLS_THREADING_C` 与 `MBEDTLS_THREADING_PTHREAD`。`CMakeLists.txt` 将该文件设为 Mbed TLS 的 `MBEDTLS_USER_CONFIG_FILE`，由依赖的公开目标配置传递给 `mbedcrypto`、`mbedx509`、`mbedtls` 和 `txstdlib`；`mbedcrypto` 同时声明 `Threads::Threads` 链接依赖。生成程序沿用驱动中的 `-lpthread`，发行目录包含 `libwinpthread-1.dll`。
+
+`pwsh -NoProfile -File scripts/build.ps1` 从干净的 `build/` 目录完整配置和构建成功，更新 `tx/txc.exe` 与 `tx/libtxstdlib.a`，并在确认产物后清理临时目录。生成的编译命令确认 `psa_crypto.c`、`threading.c`、`x509_crt.c`、`ssl_tls.c` 和 `http2_transport.cpp` 都使用同一个配置头；`libmbedcrypto.a` 中可见 `mbedtls_mutex_*` 包装实现及对 `pthread_mutex_*` 的外部引用。
+
+`python -X utf8 scripts/check_tls_stream.py` 的正常握手、错误主机名、错误信任根、缺少客户端证书和 ALPN 不匹配场景全部通过；新增的 `tests/crypto/random_tls_concurrency.tx` 在 8 个线程各自生成 1 MiB 随机字节并生成密钥时，由同一进程完成 TLS 握手和数据交换。`python -X utf8 scripts/check_crypto_acceptance.py` 通过，包括随机源失败映射与资源清理定向用例。未声称检测随机数碰撞，也未运行全量测试。
 
 ### 4.4 顺序 2a：R01 完整修复自定义 CA 的验证时序
 

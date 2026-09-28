@@ -1,0 +1,104 @@
+import "bytes.txh" as byte_values
+import "crypto.txh" as crypto
+import "encoding.txh" as encoding
+import "file.txh" as file
+import "parse.txh" as parse
+import "secret.txh" as secret
+import "socket.txh" as net
+import "system.txh" as system
+import "thread.txh" as thread
+import "tls.txh" as tls
+import "x509.txh" as x509
+
+def exercise_random_state() -> bool
+{
+    bytes random = crypto.random_bytes(1048576)
+    bytes key = crypto.generate_key()
+    return len(random) == 1048576 && len(key) == 32
+}
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str directory = args[0]
+    int port = parse.parse_int(args[1])
+
+    join_handle<bool> first = thread.spawn(exercise_random_state)
+    join_handle<bool> second = thread.spawn(exercise_random_state)
+    join_handle<bool> third = thread.spawn(exercise_random_state)
+    join_handle<bool> fourth = thread.spawn(exercise_random_state)
+    join_handle<bool> fifth = thread.spawn(exercise_random_state)
+    join_handle<bool> sixth = thread.spawn(exercise_random_state)
+    join_handle<bool> seventh = thread.spawn(exercise_random_state)
+    join_handle<bool> eighth = thread.spawn(exercise_random_state)
+
+    bytes root = x509.parse_der(file.read_bytes(directory + "/root.der"))
+    tls.trust roots = tls.custom_trust(vector<bytes>([root]), false)
+    tls.client_config config = tls.client("service.example", roots)
+    secret_bytes password = secret.from_bytes(
+        encoding.encode("test-only-password", "utf-8"))
+    tls.identity identity = tls.import_identity(
+        file.read_bytes(directory + "/client.p12"), password)
+    secret.close(password)
+    config = tls.with_client_identity(config, identity)
+
+    net.tcp_stream plain = net.connect_tcp("127.0.0.1", port, 5000)
+    tls.secure_stream peer = tls.connect(plain, config,
+        vector<str>(["tx-test"]), 5000)
+    tls.close_identity(identity)
+    if tls.negotiated_alpn(peer) != "tx-test"
+    {
+        return 1
+    }
+    if tls.write(peer, byte_values.from_hex("00ff80"), 5000) != 3
+    {
+        return 2
+    }
+    tls.read_result response = tls.read(peer, 8, 5000)
+    if response.eof || byte_values.to_hex(response.data) != "01020304"
+    {
+        return 3
+    }
+    tls.read_result eof = tls.read(peer, 8, 5000)
+    if !eof.eof
+    {
+        return 4
+    }
+    tls.close(peer, 5000)
+
+    if !thread.join(first)
+    {
+        return 5
+    }
+    if !thread.join(second)
+    {
+        return 5
+    }
+    if !thread.join(third)
+    {
+        return 5
+    }
+    if !thread.join(fourth)
+    {
+        return 5
+    }
+    if !thread.join(fifth)
+    {
+        return 5
+    }
+    if !thread.join(sixth)
+    {
+        return 5
+    }
+    if !thread.join(seventh)
+    {
+        return 5
+    }
+    if !thread.join(eighth)
+    {
+        return 5
+    }
+
+    print("CRYPTO_TLS_RANDOM_CONCURRENCY_OK")
+    return 0
+}

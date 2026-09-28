@@ -34,6 +34,12 @@ set(ENABLE_SHARED_LIB OFF CACHE BOOL "" FORCE)
 set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
 set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 set(MBEDTLS_FATAL_WARNINGS OFF CACHE BOOL "" FORCE)
+if(MINGW)
+    # 让 Mbed TLS 库和包含其头文件的调用方读取同一份线程配置。
+    set(MBEDTLS_USER_CONFIG_FILE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/mbedtls_user_config.h"
+        CACHE FILEPATH "TX Mbed TLS user configuration" FORCE)
+endif()
 foreach(package IN ITEMS OpenSSL Libngtcp2 Libnghttp3 Systemd Jansson
         Libevent LibXml2 Jemalloc)
     set(CMAKE_DISABLE_FIND_PACKAGE_${package} TRUE)
@@ -108,6 +114,11 @@ FetchContent_MakeAvailable(nghttp2 mbedtls nghttp3 msquic_binary
     icu_binary pcre2_binary libxml2
     stdcpp_runtime gcc_runtime winpthread_runtime argon2_reference
     libsodium_binary)
+if(MINGW)
+    find_package(Threads REQUIRED)
+    # mbedtls / mbedx509 通过 mbedcrypto 继承此链接依赖。
+    target_link_libraries(mbedcrypto PUBLIC Threads::Threads)
+endif()
 include(ExternalProject)
 set(_tx_nghttp3_archive
     "${nghttp3_BINARY_DIR}/external/lib/libnghttp3.a")
