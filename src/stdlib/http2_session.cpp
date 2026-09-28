@@ -1,4 +1,5 @@
 #include "stdlib/http2_session.hpp"
+#include "stdlib/error.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -65,8 +66,38 @@ void server_session::check_callback_error()
 {
     if (callback_error_)
     {
-        std::rethrow_exception(callback_error_);
+        auto error = std::exchange(callback_error_, std::exception_ptr{});
+        terminate_locked();
+        std::rethrow_exception(error);
     }
+}
+
+void server_session::terminate_locked() noexcept
+{
+    closed_ = true;
+    io_.close();
+    streams_.clear();
+    completed_.clear();
+    pending_destination_.reset();
+    pending_assigned_ = false;
+    callback_error_ = {};
+}
+
+void server_session::close() noexcept
+{
+    try
+    {
+        std::lock_guard lock(io_mutex_);
+        terminate_locked();
+    }
+    catch (...)
+    {
+    }
+}
+
+bool server_session::closed() const noexcept
+{
+    return closed_.load();
 }
 
 int server_session::on_begin_headers(nghttp2_session*,
@@ -311,46 +342,88 @@ void server_session::frame_received(const nghttp2_frame* frame)
 
 void server_session::flush_output()
 {
-    while (true)
+    if (closed_)
     {
-        const std::uint8_t* bytes = nullptr;
-        const auto length = nghttp2_session_mem_send2(session_, &bytes);
-        check_callback_error();
-        if (length < 0)
+        network::fail("connection_closed", "HTTP/2 会话已关闭");
+    }
+    try
+    {
+        while (true)
         {
-            network::fail("protocol_error", "发送 HTTP/2 帧失败");
+            const std::uint8_t* bytes = nullptr;
+            const auto length = nghttp2_session_mem_send2(session_, &bytes);
+            check_callback_error();
+            if (length < 0)
+            {
+                network::fail("protocol_error", "发送 HTTP/2 帧失败");
+            }
+            if (length == 0)
+            {
+                return;
+            }
+            io_.write_all({reinterpret_cast<const char*>(bytes),
+                           static_cast<std::size_t>(length)});
         }
-        if (length == 0)
-        {
-            return;
-        }
-        io_.write_all({reinterpret_cast<const char*>(bytes),
-                       static_cast<std::size_t>(length)});
+    }
+    catch (...)
+    {
+        terminate_locked();
+        throw;
     }
 }
 
 bool server_session::read_input()
 {
-    const auto bytes = io_.read_some(16 * 1024);
+    if (closed_)
+    {
+        network::fail("connection_closed", "HTTP/2 会话已关闭");
+    }
+    std::string bytes;
+    try
+    {
+        bytes = io_.read_some(16 * 1024);
+    }
+    catch (const runtime_failure& error)
+    {
+        if (error.error().code != "timeout")
+        {
+            terminate_locked();
+        }
+        throw;
+    }
+    catch (...)
+    {
+        terminate_locked();
+        throw;
+    }
     if (bytes.empty())
     {
+        terminate_locked();
         return false;
     }
-    std::size_t offset = 0;
-    while (offset < bytes.size())
+    try
     {
-        const auto consumed = nghttp2_session_mem_recv2(session_,
-            reinterpret_cast<const std::uint8_t*>(bytes.data() + offset),
-            bytes.size() - offset);
-        check_callback_error();
-        if (consumed <= 0)
+        std::size_t offset = 0;
+        while (offset < bytes.size())
         {
-            network::fail("protocol_error", "接收 HTTP/2 帧失败");
+            const auto consumed = nghttp2_session_mem_recv2(session_,
+                reinterpret_cast<const std::uint8_t*>(bytes.data() + offset),
+                bytes.size() - offset);
+            check_callback_error();
+            if (consumed <= 0)
+            {
+                network::fail("protocol_error", "接收 HTTP/2 帧失败");
+            }
+            offset += static_cast<std::size_t>(consumed);
         }
-        offset += static_cast<std::size_t>(consumed);
+        flush_output();
+        return true;
     }
-    flush_output();
-    return true;
+    catch (...)
+    {
+        terminate_locked();
+        throw;
+    }
 }
 
 std::shared_ptr<request_state> server_session::accept(
@@ -365,8 +438,16 @@ std::shared_ptr<request_state> server_session::accept(
     pending_binary_ = binary;
     pending_assigned_ = false;
     flush_output();
-    while (completed_.empty())
+    while (true)
     {
+        if (closed_)
+        {
+            network::fail("connection_closed", "HTTP/2 会话已关闭");
+        }
+        if (!completed_.empty())
+        {
+            break;
+        }
         if (!read_input())
         {
             return {};
@@ -378,22 +459,55 @@ std::shared_ptr<request_state> server_session::accept(
     const auto stream_id = completed_.front();
     completed_.pop_front();
     auto state = streams_.at(stream_id);
-    if (state->request.body_length > static_cast<std::int64_t>(max_body_bytes))
+    try
     {
-        network::fail("size_limit", "HTTP/2 请求正文超过接收上限");
+        if (state->request.body_length >
+            static_cast<std::int64_t>(max_body_bytes))
+        {
+            network::fail("size_limit", "HTTP/2 请求正文超过接收上限");
+        }
+        if (destination && !state->destination)
+        {
+            destination->file.write(state->request.body);
+            state->request.body.clear();
+            state->destination = destination;
+        }
+        if (!binary && !destination)
+        {
+            network::validate_utf8(state->request.body);
+        }
     }
-    if (destination && !state->destination)
+    catch (...)
     {
-        destination->file.write(state->request.body);
-        state->request.body.clear();
-        state->destination = destination;
-    }
-    if (!binary && !destination)
-    {
-        network::validate_utf8(state->request.body);
+        reject_stream_locked(stream_id);
+        throw;
     }
     pending_destination_.reset();
     return state;
+}
+
+void server_session::reject_stream_locked(std::int32_t stream_id) noexcept
+{
+    if (closed_ || !session_)
+    {
+        return;
+    }
+    const auto status = nghttp2_submit_rst_stream(session_, NGHTTP2_FLAG_NONE,
+        stream_id, NGHTTP2_PROTOCOL_ERROR);
+    streams_.erase(stream_id);
+    if (status != 0)
+    {
+        terminate_locked();
+        return;
+    }
+    try
+    {
+        flush_output();
+    }
+    catch (...)
+    {
+        terminate_locked();
+    }
 }
 
 } // namespace tx_generated::http2

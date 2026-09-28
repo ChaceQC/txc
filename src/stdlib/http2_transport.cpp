@@ -176,7 +176,7 @@ transport::~transport() noexcept
         mbedtls_ssl_free(&ssl_);
         return;
     }
-    if (tls_)
+    if (tls_ && socket_.valid())
     {
         int status = 0;
         do
@@ -212,6 +212,22 @@ transport::~transport() noexcept
         }
     }
     mbedtls_ssl_free(&ssl_);
+}
+
+void transport::close() noexcept
+{
+    if (secure_)
+    {
+        try
+        {
+            secure_->close(1);
+        }
+        catch (...)
+        {
+        }
+        secure_.reset();
+    }
+    socket_.reset();
 }
 
 void transport::set_receive_timeout(std::int64_t timeout_ms)

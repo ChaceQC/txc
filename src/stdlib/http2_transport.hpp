@@ -50,6 +50,7 @@ public:
     transport(const transport&) = delete;
     transport& operator=(const transport&) = delete;
 
+    void close() noexcept;
     [[nodiscard]] std::string read_some(std::size_t max_bytes);
     void write_all(std::string_view bytes);
     void set_receive_timeout(std::int64_t timeout_ms);

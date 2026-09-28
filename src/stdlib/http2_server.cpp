@@ -86,6 +86,41 @@ std::int64_t register_listener(std::shared_ptr<listener_state> state)
     return id;
 }
 
+void remove_session_connections(
+    const std::shared_ptr<server_session>& session) noexcept
+{
+    auto& registry = servers();
+    std::lock_guard lock(registry.mutex);
+    std::erase_if(registry.connections, [&](const auto& entry)
+    {
+        return entry.second.session == session;
+    });
+}
+
+void retire_session(listener_state& listener,
+                    std::vector<std::shared_ptr<server_session>>::iterator& item)
+{
+    auto session = *item;
+    session->close();
+    item = listener.sessions.erase(item);
+    remove_session_connections(session);
+}
+
+void retire_closed_sessions(listener_state& listener)
+{
+    for (auto item = listener.sessions.begin(); item != listener.sessions.end();)
+    {
+        if ((*item)->closed())
+        {
+            retire_session(listener, item);
+        }
+        else
+        {
+            ++item;
+        }
+    }
+}
+
 } // namespace
 
 bool is_http2_id(std::int64_t id) noexcept
@@ -124,10 +159,16 @@ std::int64_t accept(std::int64_t listener, const binary_stream& destination,
     {
         if (state->closed)
         {
+            retire_closed_sessions(*state);
             network::fail("connection_closed", "HTTP/2 监听器已关闭");
         }
         for (auto item = state->sessions.begin(); item != state->sessions.end();)
         {
+            if ((*item)->closed())
+            {
+                retire_session(*state, item);
+                continue;
+            }
             std::shared_ptr<request_state> stream;
             try
             {
@@ -136,16 +177,28 @@ std::int64_t accept(std::int64_t listener, const binary_stream& destination,
             }
             catch (const runtime_failure& error)
             {
-                if (error.error().code != "timeout")
+                if (error.error().code == "timeout" && !(*item)->closed())
                 {
-                    throw;
+                    ++item;
+                    continue;
                 }
-                ++item;
-                continue;
+                if ((*item)->closed())
+                {
+                    retire_session(*state, item);
+                }
+                throw;
+            }
+            catch (...)
+            {
+                if ((*item)->closed())
+                {
+                    retire_session(*state, item);
+                }
+                throw;
             }
             if (!stream)
             {
-                item = state->sessions.erase(item);
+                retire_session(*state, item);
                 continue;
             }
             auto& registry = servers();
@@ -208,13 +261,23 @@ void respond(std::int64_t id, const http_response_data& value,
 
 void close_listener(std::int64_t id) noexcept
 {
+    std::shared_ptr<listener_state> state;
     auto& registry = servers();
-    std::lock_guard lock(registry.mutex);
-    const auto found = registry.listeners.find(id);
-    if (found != registry.listeners.end())
     {
-        found->second->closed = true;
+        std::lock_guard lock(registry.mutex);
+        const auto found = registry.listeners.find(id);
+        if (found == registry.listeners.end())
+        {
+            return;
+        }
+        state = found->second;
+        state->closed = true;
         registry.listeners.erase(found);
+    }
+    std::unique_lock accept_lock(state->accept_mutex, std::try_to_lock);
+    if (accept_lock.owns_lock())
+    {
+        retire_closed_sessions(*state);
     }
 }
 

@@ -1,0 +1,39 @@
+import "httpx.txh" as httpx
+import "error.txh" as errors
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen_h2c("127.0.0.1", 19751)
+    int rejected = 0
+    bool failed = false
+    while rejected < 17 && !failed
+    {
+        try
+        {
+            httpx.request request = httpx.accept(server, 5000)
+            httpx.close(request.connection)
+            failed = true
+        }
+        exception errors.io_error as failure
+        {
+            if failure.code == "size_limit"
+            {
+                rejected += 1
+            }
+            else
+            {
+                failed = true
+            }
+        }
+    }
+    if failed || rejected != 17
+    {
+        httpx.close(server)
+        return 1
+    }
+    httpx.request request = httpx.accept(server, 5000)
+    httpx.respond(request.connection,
+        httpx.response(200, map<str, str>(), vector<str>(), "healthy"))
+    httpx.close(server)
+    return 0
+}

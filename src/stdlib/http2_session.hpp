@@ -5,6 +5,7 @@
 
 #include <nghttp2/nghttp2.h>
 
+#include <atomic>
 #include <cstdint>
 #include <deque>
 #include <exception>
@@ -55,6 +56,8 @@ public:
                  const binary_stream& source, std::int64_t body_length,
                  bool binary);
     void close_stream(const std::shared_ptr<request_state>& stream) noexcept;
+    void close() noexcept;
+    [[nodiscard]] bool closed() const noexcept;
 
 private:
     static int on_begin_headers(nghttp2_session*, const nghttp2_frame*, void*);
@@ -80,6 +83,9 @@ private:
     [[nodiscard]] bool read_input();
     void check_callback_error();
     void record_error() noexcept;
+    // 持有 io_mutex_ 时调用；nghttp2 回调失败后不能安全复用当前会话。
+    void terminate_locked() noexcept;
+    void reject_stream_locked(std::int32_t stream_id) noexcept;
     void validate_request(request_state& stream);
     [[nodiscard]] std::vector<std::pair<std::string, std::string>>
         response_headers(const http_response_data& value,
@@ -98,6 +104,7 @@ private:
     std::size_t pending_limit_ = network::max_body_bytes;
     bool pending_binary_ = false;
     bool pending_assigned_ = false;
+    std::atomic<bool> closed_ = false;
     std::exception_ptr callback_error_;
 };
 

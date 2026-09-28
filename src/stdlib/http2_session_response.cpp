@@ -108,7 +108,7 @@ void server_session::respond(const std::shared_ptr<request_state>& stream,
                              std::int64_t body_length, bool binary)
 {
     std::unique_lock io_lock(io_mutex_);
-    if (!stream || !stream->complete || stream->response_done)
+    if (closed_ || !stream || !stream->complete || stream->response_done)
     {
         network::fail("connection_closed", "HTTP/2 请求流不可回复");
     }
@@ -195,6 +195,10 @@ void server_session::close_stream(
     try
     {
         std::lock_guard io_lock(io_mutex_);
+        if (closed_)
+        {
+            return;
+        }
         if (!stream->response_done)
         {
             const auto status = nghttp2_submit_rst_stream(session_,
