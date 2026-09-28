@@ -10,12 +10,12 @@
 | 文本与编码 | `string.txh`、`format.txh`、`bytes.txh`、`encoding.txh`；`src/stdlib/string.cpp`、`format.cpp`、`bytes.cpp`、`encoding.cpp`。见[字节与流](bytes_file_stream.md) | Unicode 规范化、完整大小写、字素、正则、UTF-32、增量转换与 URL 安全 Base64 | 现有编码/字节示例与 `tests/bytes_file_stream/`；跨块残缺、Unicode 数据版本、正则限额及多语言位置单位未专项验证 |
 | 文件与系统 | `file.txh`、`file_stream.txh`、`fs.txh`、`path.txh`、`system.txh`、`env.txh`；`src/stdlib/file*.cpp`、`filesystem*.cpp`、`path.cpp`、`system.cpp`、`env.cpp`。见[流](bytes_file_stream.md)、[系统](system_env.md) | `process`、管道、原子替换、文件监视、权限/符号链接/元信息与能力查询 | 已有 `scripts/check_system_env.py` 的既往定向记录；短读短写、符号链接竞争、断电/跨卷和子进程清理仍待专项证据 |
 | 时间与数学 | `time.txh`、`random.txh`、`math.txh`；`src/stdlib/time.cpp`、`random.cpp`、`math.cpp` | 日期时区、独立随机数生成器、扩展数学、`statistics`、`decimal` | 现有 `examples/time_random.tx` 和标准库示例；夏令时歧义、随机算法版本、统计空样本与十进制舍入未验证 |
-| 网络 | `httpx.txh`、`websocket.txh`、`requests.txh`；`src/stdlib/httpx*.cpp`、`http2*.cpp`、`ws*.cpp`、`requests_*.tx`。见[网络](network.md)、[Requests](requests.md) | 公开 `dns/socket/tls`、异步 I/O、连接池、代理/证书配置、HTTP/3、服务端并发与完整流式会话 | 有 `tests/network/` 的既有本地场景；HTTP/2 并行流、非法帧、慢连接、重定向凭据和不可信输入限额尚无终态专项证据。`requests` 的部分选项仍以 `unsupported_option` 拒绝 |
+| 网络 | `httpx.txh`、`websocket.txh`、`requests.txh`、`dns.txh`、`socket.txh`、`tls.txh`；网络实现位于 `src/stdlib/`，C ABI 位于 `src/backend/cpp/`。见[网络](network.md)、[HTTP/3](http3.md)、[地址解析](dns.md)、[低层 Socket](socket.md)、[TLS 安全流](tls.md)、[Requests](requests.md) | `requests` 的连接复用/完整流式选项、WS 共享监听器与第 11.9 项终态恶意输入验收 | DNS、TCP/UDP、TLS、HTTP 会话/路由、HTTP/2 并行流及 HTTP/3 本机互操作有对应定向记录；慢连接、跨网迁移、重定向凭据和长时间资源上限仍待专项证据。`requests` 的部分选项仍以 `unsupported_option` 拒绝 |
 | 数据格式 | `json.txh`、`csv.txh`、`xml.txh`、`cbor.txh`、`serde.txh`、`parse.txh`；`src/stdlib/json_*.cpp`、`csv*.cpp`、`xml*.cpp`、`cbor*.cpp`、`serde*.cpp`、`parse.cpp`。见[JSON](json.md)、[CSV](csv.md)、[XML](xml.md)、[CBOR](cbor.md)、[serde](serde.md)、[解析](errors_and_parse.md) | 第 8.6 的跨格式专项验收 | 8.1～8.2 的 `scripts/check_data_formats.py json/csv`、8.3 的 `scripts/check_xml.py`、8.4 的 `tests/cbor/` 和 8.5 的 `tests/serde/` 覆盖对应接口与边界；跨平台终态验收仍待完成 |
 | 并发 | 无公开线程/任务/通道模块；现有同步网络和无捕获顶层函数值见[函数值](function_values.md) | `thread/task/channel`、同步原语、取消、`async/await`、IPC | 无 TX 用户级并发验收证据；数据竞争、取消竞态、GC/析构和句柄上限待第 10 节 |
 | 数据库 | 无公开数据库模块或对应 `src/stdlib` 实现 | 统一 `db.txh` 的 SQLite/PostgreSQL 驱动、池与迁移接口 | 无验收证据；参数绑定、事务回滚、NULL/无行、TLS、池耗尽与断连待第 12 节 |
 | 测试与诊断 | `test.txh`、`log.txh`、`debug.txh` 和 `txc test`；原有 `scripts/check_*.py` 与 `tests/` 是仓库自身验证工具。见[测试、日志与诊断](test_log_debug.md) | `profile.txh`、`txc profile`；参数化/性质测试、可配置隔离/并行/超时、轮转文件与并发日志 | 第 3 节已有断言位置、错误/编译错误统计、结构化遮蔽和 Release 栈的定向证据；原生崩溃注入、并发完整性与采样精度待第 13 节专项验证 |
-| 安全 | `crypto/secret/password/public_key/x509/tls.txh`；密码学、证书与 TLS 配置的 Windows 实现见各模块文档 | 11.3 的 TLS 握手与安全流、跨平台证书支持及撤销查询 | 9.1～9.7 的代码、定向验证与总验收证据见[密码学总验收](crypto.md#97-密码学总验收2026-09-28)；跨平台和第 13 节全库验收仍待后续小项 |
+| 安全 | `crypto/secret/password/public_key/x509/tls.txh`；密码学、证书与 TLS 安全流的 Windows 实现见各模块文档 | 跨平台证书支持及撤销查询 | 9.1～9.7 的证据见[密码学总验收](crypto.md#97-密码学总验收2026-09-28)，11.3 的握手证据见[TLS 安全流](tls.md#113-定向验证2026-09-28)；跨平台和第 13 节全库验收仍待后续小项 |
 
 上表中的测试脚本和示例只是证据入口，本次盘点没有重新运行它们。每个后续小项应在完成记录中分别列出接口、实现、构建、正常与失败路径、资源清理、平台限制；不能用上表“已有”代替终态矩阵验收。
 
@@ -45,12 +45,12 @@
 | 来源 | 已用且保留的 `kind/code` | 新接口预留的 `kind/code` |
 | --- | --- | --- |
 | `parse`、`json`、`bytes` | `parse_error/empty_input`、`invalid_base`、`invalid_syntax`、`out_of_range`、`non_finite`、`invalid_escape`、`invalid_utf8`、`missing_field`、`type_mismatch`、`depth_limit`、`invalid_hex`、`invalid_base64` | `parse_error/invalid_encoding`、`size_limit`、`duplicate_key`、`schema_mismatch`；CSV/XML/CBOR/regex 须在模块文档补充输入位置与限额 |
-| 文件流与现有网络 | `io_error/not_found`、`permission_denied`、`invalid_path`、`invalid_mode`、`closed_stream`、`invalid_encoding`、`size_limit`、`timeout`、`connection_closed`、`protocol_error`、`invalid_header`、`invalid_argument`、`invalid_utf8`、`unsupported_option`、`operation_failed` | `io_error/closed_handle`、`short_read`、`short_write`；新 socket/TLS/文件操作沿用可适用的旧码 |
+| 文件流与网络 | `io_error/not_found`、`permission_denied`、`invalid_path`、`invalid_mode`、`closed_stream`、`invalid_encoding`、`size_limit`、`timeout`、`connection_closed`、`protocol_error`、`invalid_header`、`invalid_argument`、`invalid_utf8`、`unsupported_option`、`operation_failed`；DNS 的 `name_not_found`、`no_records`、`unsupported_platform` 见[地址解析](dns.md)；socket 的 `closed_handle`、`short_write` 见[低层 Socket](socket.md) | `io_error/short_read` 预留；后续文件操作沿用可适用的旧码 |
 | 通用运行时、JSON 写入、现有 `crypto`、测试与日志 | `runtime_error/allocation_failed`、`unknown_error`、`operation_failed`、`invalid_argument`、`size_limit`、`invalid_indent`、`cyclic_value`、`unsupported_value`、`invalid_key`、`random_failed`、`authentication_failed`、`invalid_format`、`assertion_failed`、`invalid_tolerance`、`invalid_name`、`invalid_level`、`invalid_field` | `runtime_error/invalid_state`；现有 `crypto` 错误不悄悄改类，新安全 API 才使用 `security_error` |
 | 子进程 | `process.txh` 的接口与实施证据见[子进程与管道](process.md) | `process_error/spawn_failed`、`wait_failed`、`terminated`、`output_limit`、`invalid_state`、`timeout`、`invalid_argument`、`unsupported_operation`、`terminate_failed`、`pipe_failed`；等待超时及有界捕获的可预期停止使用显式状态并保留子进程句柄 |
 | 数据库 | 尚无公开入口 | `database_error/connection_failed`、`query_failed`、`constraint_violation`、`busy`、`pool_exhausted`、`invalid_state` |
 | `secret_bytes`、`password` | `security_error/invalid_state`、`size_limit`、`random_failed`、`invalid_argument`、`invalid_format`、`operation_failed`；秘密缓冲状态和 Argon2id PHC 参数见[秘密字节](secret_bytes.md)、[密码存储](password.md) | 后续密钥操作复用适用的安全错误码 |
-| 公钥/证书与后续 TLS 接口 | `public_key` 与 `x509` 的接口、失败码及验证状态见[公钥密码学](public_key.md)、[证书读取与验证](x509.md) | TLS 接入须保持默认验证；`security_error/invalid_certificate`、`invalid_pkcs12`、`invalid_password_or_data`、`no_private_key`、`unsupported_key`、`unsupported_platform`、`size_limit`、`operation_failed` 用于解析或操作失败，证书身份失败由 `verification.status` 区分 |
+| 公钥、证书与 TLS | `public_key`、`x509`、`tls` 的接口、失败码及验证状态见[公钥密码学](public_key.md)、[证书读取与验证](x509.md)、[TLS 安全流](tls.md) | `security_error/invalid_certificate`、`invalid_pkcs12`、`invalid_password_or_data`、`no_private_key`、`unsupported_key`、`unsupported_platform`、`size_limit`、`operation_failed` 用于解析或操作失败；安全流的 `handshake_failed`、`alpn_mismatch`、`truncated_close` 与证书身份失败码已登记 |
 | 取消与截止时间 | 尚无公开入口 | `cancelled_error/cancelled`、`deadline_exceeded`；已发生的外部效果由操作结果另行说明 |
 | 时间与计算扩展 | 6.1～6.6 已使用 `runtime_error/invalid_argument`、`out_of_range`、`timezone_failed`、`non_finite`、`empty_sample`、`insufficient_sample`、`division_by_zero`、`size_limit`、`invalid_state`；`parse_error/invalid_syntax`、`out_of_range`、`invalid_zone`、`nonexistent_time`、`ambiguous_time`；`cancelled_error/cancelled`、`deadline_exceeded` | 后续新增错误码须先在对应模块文档固定语义 |
 | JSON/CSV 增量扩展 | JSON schema 的 `parse_error/invalid_schema`、`schema_mismatch`；CSV 的 `parse_error/unexpected_bom`、`missing_header`、`invalid_header`、`row_width`，通用格式错误和限额沿用 `invalid_syntax/invalid_utf8/size_limit/depth_limit`；writer 数据错误使用同名 `runtime_error` 码，游标失效为 `runtime_error/invalid_state` | 精确定义分别见 [JSON](json.md#增量读写与-schema) 与 [CSV](csv.md)；底层流的 `io_error` 原样传播 |
@@ -60,7 +60,7 @@
 
 同一 `code` 可出现于不同 `kind`，所以只按完整二元组判断。新增代码先登记到本表与模块文档，不重复赋予不同含义；旧的 `operation_failed` 保持兼容，新接口优先使用能区分失败原因的代码。缺键、EOF、无匹配、查询无行是正常分支，使用 `option<T>` 或显式状态；可能失败的严格接口抛上述错误，`try_*`/`result<T>` 使用完全相同的二元组。现有具体 `error.*_result` 保留到无损转换桥就绪。取消与超时分开，取消不能吞掉已经完成的外部效果。
 
-新代码的判定边界也固定：`process_error/spawn_failed` 表示未交付子进程，`wait_failed` 表示回收失败，`terminated` 表示非正常结束，`output_limit` 表示捕获上限耗尽，`timeout` 不隐式杀进程。`database_error/connection_failed` 是建连失败，`query_failed` 是 SQL 执行失败，`constraint_violation` 是约束冲突，`busy` 是可重试的锁/繁忙状态，`pool_exhausted` 是池无法在约定期限内提供连接。`security_error/invalid_key` 是密钥格式或长度不合法，`authentication_failed` 是认证标签不匹配；`invalid_certificate` 表示证书格式无法解析，`x509.verify` 的过期、主机名不符、用途错误和信任链缺失使用可区分的 `verification.status`。后续严格 TLS 接口可将对应状态映射为 `certificate_expired`、`hostname_mismatch`、`untrusted_issuer` 等安全错误码。`random_failed` 表示密码学随机源失效。`cancelled_error/cancelled` 来自显式取消，`deadline_exceeded` 来自截止时间到达。各模块仍须在其接口文档写明 `invalid_state`、短读短写和部分效果的具体状态迁移。
+新代码的判定边界也固定：`process_error/spawn_failed` 表示未交付子进程，`wait_failed` 表示回收失败，`terminated` 表示非正常结束，`output_limit` 表示捕获上限耗尽，`timeout` 不隐式杀进程。`database_error/connection_failed` 是建连失败，`query_failed` 是 SQL 执行失败，`constraint_violation` 是约束冲突，`busy` 是可重试的锁/繁忙状态，`pool_exhausted` 是池无法在约定期限内提供连接。`security_error/invalid_key` 是密钥格式或长度不合法，`authentication_failed` 是认证标签不匹配；`invalid_certificate` 表示证书格式无法解析，`x509.verify` 的过期、主机名不符、用途错误和信任链缺失使用可区分的 `verification.status`。TLS 安全流将 `expired`、`hostname_mismatch`、`unknown_issuer` 等状态作为同名安全错误码交付，ALPN 不匹配及非正常截断分别使用 `alpn_mismatch`、`truncated_close`。`random_failed` 表示密码学随机源失效。`cancelled_error/cancelled` 来自显式取消，`deadline_exceeded` 来自截止时间到达。各模块仍须在其接口文档写明 `invalid_state`、短读短写和部分效果的具体状态迁移。
 
 ## 4. 资源句柄状态表
 
@@ -86,12 +86,14 @@
 | 已引入的第三方依赖 | 版本与下载 SHA-256 | 许可证与发行方式 |
 | --- | --- | --- |
 | nghttp2 | `1.68.0`；`5511d3128850e01b5b26ec92bf39df15381c767a63441438b25ad6235def902c` | MIT；源码由 CMake `FetchContent` 校验后静态归档，`tx/NGHTTP2-LICENSE` 随包 |
+| nghttp3 | `1.18.0`；`aad782c23d3f01bd4bb52c8bac7a553b631ef8115fd1612703df6183449fef19` | MIT；源码由 CMake 校验、独立构建后静态归档，`tx/NGHTTP3-LICENSE` 随包 |
+| MsQuic Schannel | NuGet Windows x64 包 `2.6.1`；`cf09771561c16dc823454c212fbf3bc1307c0a77b9d98326f1faa256685e2a3f` | MIT；`msquic.dll` 与 `tx/MSQUIC-LICENSE` 随包，`package.compat` 校验 DLL |
 | Mbed TLS | `3.6.5`；`4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8` | Apache-2.0 或 GPL-2.0-or-later，发行采用 Apache-2.0；静态归档，`tx/MBEDTLS-LICENSE` 随包 |
 | Argon2 参考实现 | `20190702`；Git 提交 `62358ba2123abd17fccf2a108a301d4b52c01a7c` | CC0-1.0 或 Apache-2.0，发行采用 Apache-2.0；静态归档，`tx/ARGON2-LICENSE` 随包 |
 | libxml2 | `2.13.8`；`277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a` | MIT；源码由 CMake `FetchContent` 校验后静态归档，`tx/LIBXML2-LICENSE` 随包 |
 | libsodium | MSYS2 MinGW x64 包 `1.0.22-3`；`e8d8bc169fa122eccfc3e4252615937a62fa0bd6ca21ed4912bac48d6ed2f870` | ISC；包由 CMake `FetchContent` 校验后将静态库归档，`tx/LIBSODIUM-LICENSE` 随包 |
 
-CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。Argon2 已随 9.2 引入，libsodium 随 9.4 引入；SQLite、libpq、MsQuic 等仍未引入。各模块若新增第三方依赖，须在构建配置中固定准确版本及源码归档 SHA-256 或 Git 提交哈希、许可证选择和交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
+CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。Argon2 随 9.2、libsodium 随 9.4、MsQuic/nghttp3 随 11.6 引入；SQLite、libpq 仍未引入。各模块若新增第三方依赖，须在构建配置中固定准确版本及源码归档 SHA-256 或 Git 提交哈希、许可证选择和交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
 
 ### 第 1 节完成记录（2026-09-26）
 

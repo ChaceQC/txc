@@ -94,6 +94,22 @@ bool semantic_analyzer::is_send_type(const value_type& type) const
         if (const auto found = structs_.find(candidate.name);
             found != structs_.end())
         {
+            const auto& file = found->second->position.file;
+            const auto separator = file.find_last_of("/\\");
+            const auto filename = file.substr(separator == std::string::npos
+                ? 0 : separator + 1);
+            if (filename == "socket.txh" &&
+                (candidate.name.ends_with("_tcp_listener") ||
+                 candidate.name.ends_with("_tcp_stream") ||
+                 candidate.name.ends_with("_udp_socket")))
+            {
+                return false;
+            }
+            if (filename == "tls.txh" &&
+                candidate.name.ends_with("_secure_stream"))
+            {
+                return false;
+            }
             if (!visiting.insert(candidate.name).second)
             {
                 return true;
@@ -117,6 +133,26 @@ bool semantic_analyzer::is_send_type(const value_type& type) const
 
 bool semantic_analyzer::is_sync_type(const value_type& type) const
 {
+    if (const auto found = structs_.find(type.name);
+        found != structs_.end())
+    {
+        const auto& file = found->second->position.file;
+        const auto separator = file.find_last_of("/\\");
+        const auto filename = file.substr(separator == std::string::npos
+            ? 0 : separator + 1);
+        if (filename == "httpx.txh" &&
+            (type.name.ends_with("_listener") ||
+             type.name.ends_with("_client_session")))
+        {
+            return true;
+        }
+        if (filename == "websocket.txh" &&
+            type.name.ends_with("_connection"))
+        {
+            // WS 收发句柄可唯一移动到工作线程，但不能复制后并发操作。
+            return false;
+        }
+    }
     if (type == value_type::int_type || type == value_type::float_type ||
         type == value_type::bool_type || type == value_type::str_type ||
         type == value_type::bytes_type || type == value_type::none_type ||
@@ -197,6 +233,20 @@ bool semantic_analyzer::is_fresh_owned_expression(const expression& item) const
     if (call->name == "deep_copy")
     {
         return true;
+    }
+    if (call->overload_index)
+    {
+        const auto found = functions_.find(call->name);
+        if (found != functions_.end())
+        {
+            const auto& name = found->second.at(*call->overload_index).external_name;
+            if (name == "websocket.connect" || name == "websocket.accept" ||
+                name == "websocket.upgrade")
+            {
+                // 这些入口在运行时登记全新的连接句柄，可唯一移交给异步任务。
+                return true;
+            }
+        }
     }
     if (!call->is_constructor && !call->container_type)
     {

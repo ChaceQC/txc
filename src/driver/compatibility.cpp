@@ -214,7 +214,7 @@ void verify_tool_package(const fs::path& tool_dir)
     for (const auto* name : {"libgcc_s_seh-1.dll", "libstdc++-6.dll",
                              "libwinpthread-1.dll", "libstdc++-u.dll",
                              "libicuin78.dll", "libicuuc78.dll",
-                             "libicudt78.dll"})
+                             "libicudt78.dll", "msquic.dll"})
     {
         require_digest(tool_dir / name, manifest_field(manifest, name), name);
     }

@@ -1,0 +1,19 @@
+import "httpx.txh" as httpx
+import "file.txh" as file
+import "bytes.txh" as byte_values
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    bytes root = file.read_bytes(args[0] + "/root.der")
+    bytes payload = byte_values.from_hex("00ff80e4bda0")
+    httpx.binary_response response = httpx.send_http3_with_trust_bytes(
+        "POST", "https://127.0.0.1:19751/echo", map<str, str>(),
+        payload, vector<bytes>([root]), 10000)
+    if response.status != 201 || response.body != payload
+    {
+        return 1
+    }
+    return 0
+}

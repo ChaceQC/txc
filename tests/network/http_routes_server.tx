@@ -1,0 +1,19 @@
+import "httpx.txh" as httpx
+
+def item(request: httpx.request,
+         context: httpx.route_context) -> httpx.response
+{
+    return httpx.response(200, map<str, str>(), vector<str>(),
+        context.params["id"])
+}
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen("127.0.0.1", 19746)
+    vector<httpx.route_rule> routes = vector<httpx.route_rule>(
+        [httpx.route_rule("GET", "/items/{id}", item)])
+    httpx.serve_routes(server, routes, 10000)
+    httpx.serve_routes(server, routes, 10000)
+    httpx.close(server)
+    return 0
+}

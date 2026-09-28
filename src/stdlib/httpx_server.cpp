@@ -1,5 +1,7 @@
 #include "stdlib/httpx.hpp"
 #include "stdlib/http2_server.hpp"
+#include "stdlib/http3_server.hpp"
+#include "stdlib/httpx_server_listener.hpp"
 #include "stdlib/error.hpp"
 
 #include <algorithm>
@@ -15,8 +17,12 @@ namespace
 
 struct connection_state
 {
-    explicit connection_state(network::socket_handle socket)
-        : stream(std::move(socket)) {}
+    connection_state(network::socket_handle socket,
+                     httpx_listener::slot_token slot)
+        : slot(std::move(slot)), stream(std::move(socket))
+    {
+    }
+    httpx_listener::slot_token slot;
     network::tcp_stream stream;
     http_request_data request;
 };
@@ -25,7 +31,6 @@ struct server_registry
 {
     std::mutex mutex;
     std::int64_t next_id = 1;
-    std::unordered_map<std::int64_t, std::shared_ptr<network::socket_handle>> listeners;
     std::unordered_map<std::int64_t, std::shared_ptr<connection_state>> connections;
 };
 
@@ -33,18 +38,6 @@ server_registry& servers()
 {
     static server_registry result;
     return result;
-}
-
-std::shared_ptr<network::socket_handle> listener_at(std::int64_t id)
-{
-    auto& registry = servers();
-    std::lock_guard lock(registry.mutex);
-    const auto found = registry.listeners.find(id);
-    if (found == registry.listeners.end())
-    {
-        network::fail("connection_closed", "HTTP 监听器已关闭");
-    }
-    return found->second;
 }
 
 std::shared_ptr<connection_state> connection_at(std::int64_t id)
@@ -210,29 +203,37 @@ std::string serialize_response(const http_response_data& response, bool binary)
 
 std::int64_t httpx_listen(std::string_view host, std::int64_t port)
 {
-    auto socket = std::make_shared<network::socket_handle>(
-        network::listen_tcp(host, port));
-    auto& registry = servers();
-    std::lock_guard lock(registry.mutex);
-    const auto id = registry.next_id++;
-    registry.listeners.emplace(id, std::move(socket));
-    return id;
+    return httpx_listener::listen(host, port, 32);
+}
+
+std::int64_t httpx_listen_with_limit(std::string_view host, std::int64_t port,
+                                     std::int64_t max_connections)
+{
+    return httpx_listener::listen(host, port, max_connections);
 }
 
 std::int64_t httpx_accept(std::int64_t listener, std::int64_t timeout_ms,
                           bool binary)
 {
+    if (http3::is_http3_id(listener))
+    {
+        return http3::accept(listener, {}, network::max_body_bytes, binary,
+                             timeout_ms);
+    }
     if (http2::is_http2_id(listener))
     {
         return http2::accept(listener, {}, network::max_body_bytes, binary,
                              timeout_ms);
     }
-    auto socket = network::accept_tcp(listener_at(listener)->get(), timeout_ms);
-    auto state = std::make_shared<connection_state>(std::move(socket));
+    auto accepted = httpx_listener::accept(listener, timeout_ms);
+    auto state = std::make_shared<connection_state>(
+        std::move(accepted.socket), std::move(accepted.slot));
     state->stream.set_receive_timeout(timeout_ms);
+    state->stream.set_receive_deadline(timeout_ms);
     try
     {
         state->request = read_request(state->stream, binary);
+        state->stream.clear_receive_deadline();
     }
     catch (const runtime_failure& error)
     {
@@ -256,14 +257,21 @@ std::int64_t httpx_accept_stream(std::int64_t listener,
         network::fail("invalid_argument", "HTTP 请求目标流或长度上限无效");
     }
     destination->file.require_open();
+    if (http3::is_http3_id(listener))
+    {
+        return http3::accept(listener, destination,
+            static_cast<std::size_t>(max_request_bytes), true, timeout_ms);
+    }
     if (http2::is_http2_id(listener))
     {
         return http2::accept(listener, destination,
             static_cast<std::size_t>(max_request_bytes), true, timeout_ms);
     }
-    auto socket = network::accept_tcp(listener_at(listener)->get(), timeout_ms);
-    auto state = std::make_shared<connection_state>(std::move(socket));
+    auto accepted = httpx_listener::accept(listener, timeout_ms);
+    auto state = std::make_shared<connection_state>(
+        std::move(accepted.socket), std::move(accepted.slot));
     state->stream.set_receive_timeout(timeout_ms);
+    state->stream.set_receive_deadline(timeout_ms);
     try
     {
         auto [request, length] = read_request_head(state->stream,
@@ -276,6 +284,7 @@ std::int64_t httpx_accept_stream(std::int64_t listener,
             destination->file.write(block);
             length -= block.size();
         }
+        state->stream.clear_receive_deadline();
     }
     catch (const runtime_failure& error)
     {
@@ -291,6 +300,10 @@ std::int64_t httpx_accept_stream(std::int64_t listener,
 
 http_request_data httpx_request(std::int64_t id)
 {
+    if (http3::is_http3_id(id))
+    {
+        return http3::request(id);
+    }
     if (http2::is_http2_id(id))
     {
         return http2::request(id);
@@ -298,9 +311,39 @@ http_request_data httpx_request(std::int64_t id)
     return connection_at(id)->request;
 }
 
+httpx_upgraded_connection httpx_take_upgrade_connection(std::int64_t id)
+{
+    if (http2::is_http2_id(id) || http3::is_http3_id(id))
+    {
+        network::fail("invalid_argument", "WebSocket Upgrade 只接受 HTTP/1.1 连接");
+    }
+    auto& registry = servers();
+    std::shared_ptr<connection_state> state;
+    {
+        std::lock_guard lock(registry.mutex);
+        const auto found = registry.connections.find(id);
+        if (found == registry.connections.end())
+        {
+            network::fail("connection_closed", "HTTP 连接已关闭");
+        }
+        state = std::move(found->second);
+        registry.connections.erase(found);
+    }
+    // 从 HTTP 登记表移除后由 WebSocket 独占连接，保留监听器容量令牌。
+    return {std::make_unique<network::tcp_stream>(std::move(state->stream)),
+        std::make_shared<httpx_listener::slot_token>(std::move(state->slot)),
+        std::move(state->request)};
+}
+
 void httpx_respond(std::int64_t id, const http_response_data& value,
                    bool binary)
 {
+    if (http3::is_http3_id(id))
+    {
+        http3::respond(id, value, {},
+            static_cast<std::int64_t>(value.body.size()), binary);
+        return;
+    }
     if (http2::is_http2_id(id))
     {
         if (value.body.size() > network::max_body_bytes)
@@ -330,6 +373,11 @@ void httpx_respond_stream(std::int64_t id, const http_response_data& value,
                           const binary_stream& source,
                           std::int64_t body_length)
 {
+    if (http3::is_http3_id(id))
+    {
+        http3::respond(id, value, source, body_length, true);
+        return;
+    }
     if (http2::is_http2_id(id))
     {
         http2::respond(id, value, source, body_length, true);
@@ -373,18 +421,26 @@ void httpx_respond_stream(std::int64_t id, const http_response_data& value,
 
 void httpx_close_listener(std::int64_t id) noexcept
 {
+    if (http3::is_http3_id(id))
+    {
+        http3::close_listener(id);
+        return;
+    }
     if (http2::is_http2_id(id))
     {
         http2::close_listener(id);
         return;
     }
-    auto& registry = servers();
-    std::lock_guard lock(registry.mutex);
-    registry.listeners.erase(id);
+    httpx_listener::close(id);
 }
 
 void httpx_close_connection(std::int64_t id) noexcept
 {
+    if (http3::is_http3_id(id))
+    {
+        http3::close_connection(id);
+        return;
+    }
     if (http2::is_http2_id(id))
     {
         http2::close_connection(id);

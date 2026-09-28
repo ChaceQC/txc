@@ -1,3 +1,5 @@
+import "httpx.txh" as httpx
+
 struct request_options
 {
     params: map<str, str>
@@ -12,6 +14,21 @@ struct request_options
     basic_auth: bool
     auth_user: str
     auth_password: str
+    stream: bool
+    proxy_http: str
+    proxy_https: str
+    ca_file: str
+    client_pfx_file: str
+    client_pfx_password: str
+    max_response_bytes: int
+    max_retries: int
+    retry_backoff_ms: int
+}
+
+struct body_chunk
+{
+    data: bytes
+    eof: bool
 }
 
 class response
@@ -26,7 +43,15 @@ class response
         history: array
         elapsed_ms: int
         ok: bool
+        streamed: bool
+        stream_open: bool
+        stream_started: bool
+        stream_finished: bool
+        pending: httpx.client_request
 
+        def next_chunk(max_bytes: int) -> body_chunk
+        def read_all() -> bytes
+        def close() -> void
         def text() -> str
         def text(encoding: str) -> str
         def json() -> any
@@ -46,15 +71,19 @@ class session
         basic_auth: bool
         auth_user: str
         auth_password: str
+        transport: httpx.client_session
+        transport_key: str
+        closed: bool
 
         def init() -> void
+        def close() -> void
         def request(method: str, url: str,
                     params: dict = none, data: any = none,
                     headers: dict = none, cookies: dict = none,
                     files: any = none, auth: array = none,
                     timeout: any = none, allow_redirects: bool = none,
                     proxies: any = none, hooks: any = none,
-                    stream: bool = none, verify: bool = none,
+                    stream: bool = none, verify: any = none,
                     cert: any = none, json: any = none,
                     **kwargs: dict) -> response
         def request(method: str, url: str, options: request_options) -> response

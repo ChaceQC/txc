@@ -16,14 +16,14 @@
 | 字符串与编码 | UTF-8 `str`、基础子串处理、格式化、`bytes`、UTF-8/UTF-16/GBK/GB18030 转换 | Unicode 规范化、完整大小写映射和字素簇、正则表达式、增量编码器 |
 | 文件与系统 | `file/file_stream/fs/path/system/env`；文本和二进制流、常用路径与环境操作 | 子进程、管道、原子替换、权限/符号链接/元信息、文件监视、系统能力查询 |
 | 时间与数学 | 时间戳、单调计时、休眠、伪随机数和基础数学 | 日历/时区、可控随机数实例、统计、高级数学、十进制定点数 |
-| 网络 | `httpx`、`websocket` 和 `requests` 的同步 HTTP/WS 能力，含 HTTP/2 与文件流 | TCP/UDP/DNS/TLS 低层公开接口、异步 I/O、连接池、代理/自定义信任、完善流式会话与服务端并发 |
+| 网络 | `httpx`、`websocket` 和 `requests` 的 HTTP/WS 能力，含 HTTP/2/3、文件流、客户端会话、服务端路由/并发、WSS 与明文共享监听器 Upgrade；TCP/UDP/DNS/TLS 低层接口；`requests` 的池、分块、代理、CA、客户端证书、Cookie 和有界重试 | 跨网迁移与第 13 节终态验收；第 11.9 项 Windows x64 本机专项见[网络边界验收](network_11_9.md) |
 | 数据格式 | 严格 JSON 解析、序列化、字段读取、增量数组与受限 schema；CSV 流式读写、表头与 dialect；XML reader、树、writer 与安全默认值；CBOR 确定性编解码与根数组流；`serde` 固定 schema 的 JSON/CBOR 结构体映射和显式版本迁移 | 第 8.6/13 节跨格式、大数据和跨平台专项验收 |
 | 并发 | 当前仅有无捕获的顶层函数值；网络服务循环同步执行 | 线程、任务、取消、同步原语、通道、异步文件/网络 I/O、进程间通信 |
 | 数据库 | 无公开数据库模块 | SQLite 与 PostgreSQL 连接、参数绑定、游标、事务、连接池和迁移接口 |
 | 测试与调试 | `test/log/debug` 与 `txc test` 已有第 3 节基础接口；仓库另有针对编译器/标准库的脚本和样例 | 参数化/性质测试、并行与超时、可替换日志 sink/轮转、性能分析及终态验收 |
 | 安全 | `crypto` 已有安全随机数、SHA-2、HMAC、HKDF/PBKDF2、AES-256-GCM；`secret_bytes` 与 `password` 已提供受控秘密缓冲和 Argon2id；HTTP 客户端验证 TLS | 非对称签名/密钥交换、X.509 与证书存储、大文件认证加密及第 9.7 节综合验收 |
 
-当前 `vector<T>` 已支持基础值、用户结构体和嵌套容器；4.1 新增的 `deque<T>` 已支持同类具体元素与双端操作。`map/set` 的哈希键支持满足编译期契约的结构体；4.2 将 `map` 值扩展为具体复合类型并提供 `entries()` 快照，新增 `ordered_map/ordered_set` 的比较器、范围查询与有序遍历。4.3 将 `heap/queue` 扩展为具体复合载荷、批量构建和稳定优先级条目。4.4～4.5 新增静态泛型算法接口，4.6 的集合交叉边界已定向验证。`requests` 的 `stream=true`、显式代理、自定义 CA/客户端证书和底层连接池尚未实现。网络的 HTTP/2 并行流等边界也尚无专项验证。具体工作项与依赖顺序见[标准库终态实施顺序](standard_library_plan.md)。
+当前 `vector<T>` 已支持基础值、用户结构体和嵌套容器；4.1 新增的 `deque<T>` 已支持同类具体元素与双端操作。`map/set` 的哈希键支持满足编译期契约的结构体；4.2 将 `map` 值扩展为具体复合类型并提供 `entries()` 快照，新增 `ordered_map/ordered_set` 的比较器、范围查询与有序遍历。4.3 将 `heap/queue` 扩展为具体复合载荷、批量构建和稳定优先级条目。4.4～4.5 新增静态泛型算法接口，4.6 的集合交叉边界已定向验证。`requests` 的 `stream=true`、显式代理、自定义 CA/客户端证书和底层连接池已在 Windows x64 做定向验证；HTTP/2 并行流与 HTTP/3 本机互操作也有定向证据。第 11.9 项的 Windows x64 本机专项已完成，跨网迁移仍待进行。具体工作项与依赖顺序见[标准库终态实施顺序](standard_library_plan.md)。
 
 ## 2. 全库统一契约
 

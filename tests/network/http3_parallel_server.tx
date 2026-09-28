@@ -1,0 +1,43 @@
+import "httpx.txh" as httpx
+import "file.txh" as file
+import "secret.txh" as secret
+import "encoding.txh" as encoding
+import "system.txh" as system
+import "thread.txh" as thread
+import "time.txh" as clock
+
+def item(request: httpx.request,
+         context: httpx.route_context) -> httpx.response
+{
+    clock.sleep_millis(500)
+    return httpx.response(200, map<str, str>(), vector<str>(),
+        context.params["id"])
+}
+
+def worker(server: httpx.listener) -> int
+{
+    vector<httpx.route_rule> routes = vector<httpx.route_rule>(
+        [httpx.route_rule("GET", "/items/{id}", item)])
+    httpx.serve_routes(server, routes, 10000)
+    return 0
+}
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    secret_bytes password = secret.from_bytes(
+        encoding.encode("test-only-password", "utf-8"))
+    httpx.listener server = httpx.listen_h3("127.0.0.1", 19754,
+        file.read_bytes(args[0] + "/server.p12"), password)
+    secret.close(password)
+    join_handle<int> first = thread.spawn(bind(worker, server))
+    join_handle<int> second = thread.spawn(bind(worker, server))
+    int one = thread.join(first)
+    int two = thread.join(second)
+    httpx.close(server)
+    if one != 0 || two != 0
+    {
+        return 1
+    }
+    return 0
+}

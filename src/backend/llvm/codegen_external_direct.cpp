@@ -97,6 +97,21 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         symbol += target.parameters.front().type.name.ends_with("_listener")
             ? "_listener" : "_connection";
     }
+    if (target.external_name == "socket.close")
+    {
+        if (target.parameters.front().type.name.ends_with("_tcp_listener"))
+        {
+            symbol += "_tcp_listener";
+        }
+        else if (target.parameters.front().type.name.ends_with("_tcp_stream"))
+        {
+            symbol += "_tcp_stream";
+        }
+        else
+        {
+            symbol += "_udp_socket";
+        }
+    }
     if (target.external_name.starts_with("algorithm."))
     {
         // 重载已由语义分析确定，元素类型直接选定 ABI，不把选择推迟到运行时。
@@ -254,6 +269,20 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         target.external_name == "process.read_pipe" ||
         target.external_name == "process.write_pipe" ||
         target.external_name == "x509.verify" ||
+        target.external_name == "dns.resolve" ||
+        target.external_name == "dns.resolve_with_cancel" ||
+        target.external_name == "socket.listen_tcp" ||
+        target.external_name == "socket.connect_tcp" ||
+        target.external_name == "socket.accept_tcp" ||
+        target.external_name == "socket.connect_async" ||
+        target.external_name == "socket.accept_async" ||
+        target.external_name == "socket.read" ||
+        target.external_name == "socket.read_async" ||
+        target.external_name == "socket.write_async" ||
+        target.external_name == "socket.bind_udp" ||
+        target.external_name == "socket.receive_from" ||
+        target.external_name == "socket.send_to_async" ||
+        target.external_name == "socket.receive_from_async" ||
         target.external_name == "tls.system_trust" ||
         target.external_name == "tls.custom_trust" ||
         target.external_name == "tls.import_identity" ||
@@ -262,6 +291,9 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         target.external_name == "tls.server" ||
         target.external_name == "tls.verify_server" ||
         target.external_name == "tls.verify_client" ||
+        target.external_name == "tls.connect" ||
+        target.external_name == "tls.accept" ||
+        target.external_name == "tls.read" ||
         target.external_name == "process.wait" ||
         target.external_name == "process.wait_with_cancel" ||
         target.external_name == "process.try_wait" ||
@@ -306,6 +338,18 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     {
         parameters += ", ptr " + global_bytes(item.type.parameters.front().name);
     }
+    if (target.external_name == "dns.resolve" ||
+        target.external_name == "dns.resolve_with_cancel")
+    {
+        parameters += ", ptr " + global_bytes(item.type.parameters.front().name);
+    }
+    if (target.external_name == "socket.connect_async" ||
+        target.external_name == "socket.accept_async" ||
+        target.external_name == "socket.read_async" ||
+        target.external_name == "socket.receive_from_async")
+    {
+        parameters += ", ptr " + global_bytes(item.type.parameters.front().name);
+    }
     if (target.external_name == "regex.search" ||
         target.external_name == "regex.match" ||
         target.external_name == "regex.full_match")
@@ -324,19 +368,42 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         target.external_name == "httpx.send_http2_bytes" ||
         target.external_name == "httpx.get_http2_bytes" ||
         target.external_name == "httpx.post_http2_bytes" ||
+        target.external_name == "httpx.send_http3" ||
+        target.external_name == "httpx.get_http3" ||
+        target.external_name == "httpx.post_http3" ||
+        target.external_name == "httpx.send_http3_bytes" ||
+        target.external_name == "httpx.get_http3_bytes" ||
+        target.external_name == "httpx.post_http3_bytes" ||
+        target.external_name == "httpx.send_http3_with_trust" ||
+        target.external_name == "httpx.send_http3_with_trust_bytes" ||
+        target.external_name == "httpx.send_http3_controlled" ||
+        target.external_name == "httpx.send_http3_controlled_bytes" ||
+        target.external_name == "httpx.send_negotiated" ||
+        target.external_name == "httpx.send_negotiated_bytes" ||
         target.external_name == "httpx.send_stream" ||
         target.external_name == "httpx.get_stream" ||
         target.external_name == "httpx.send_http2_stream" ||
         target.external_name == "httpx.get_http2_stream" ||
+        target.external_name == "httpx.open_session" ||
+        target.external_name == "httpx.open_secure_session" ||
+        target.external_name == "httpx.begin_request" ||
+        target.external_name == "httpx.finish_request" ||
+        target.external_name == "httpx.read_response_chunk" ||
+        target.external_name == "httpx.match_route" ||
         target.external_name == "httpx.listen" ||
+        target.external_name == "httpx.listen_with_limit" ||
         target.external_name == "httpx.listen_h2c" ||
         target.external_name == "httpx.listen_h2_tls" ||
+        target.external_name == "httpx.listen_h3" ||
         target.external_name == "websocket.connect" ||
         target.external_name == "websocket.listen" ||
+        target.external_name == "websocket.listen_tls" ||
         target.external_name == "websocket.accept" ||
+        target.external_name == "websocket.upgrade" ||
         target.external_name == "websocket.receive" ||
         target.external_name == "websocket.receive_binary" ||
-        target.external_name == "websocket.receive_binary_stream")
+        target.external_name == "websocket.receive_binary_stream" ||
+        target.external_name == "websocket.get_close_status")
     {
         parameters += ", ptr " + global_bytes(item.type.name);
     }
@@ -349,9 +416,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
                       ", ptr " + global_bytes(connection_type.name);
     }
     if (target.external_name == "httpx.serve_once" ||
-        target.external_name == "httpx.serve_once_bytes")
+        target.external_name == "httpx.serve_once_bytes" ||
+        target.external_name == "httpx.serve_routes" ||
+        target.external_name == "httpx.serve_routes_bytes")
     {
-        const auto& request_type = target.parameters[1].type.parameters.front();
+        const auto& request_type = target.external_name.starts_with("httpx.serve_routes")
+            ? structs_.at(target.parameters[1].type.parameters.front().name)
+                ->fields[2].type.parameters.front()
+            : target.parameters[1].type.parameters.front();
         const auto& connection_type = structs_.at(request_type.name)->fields.front().type;
         parameters += ", ptr " + global_bytes(request_type.name) +
                       ", ptr " + global_bytes(connection_type.name);

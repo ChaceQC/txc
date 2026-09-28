@@ -1,0 +1,47 @@
+import "requests.txh" as requests
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str origin = args[0]
+    str secure_origin = args[1]
+    str root_ca = args[2]
+    dict headers = {"Authorization": "Bearer local-test", "Cookie": "manual=local-test"}
+    dict direct = {"http": "direct", "https": "direct"}
+
+    if (requests.get(secure_origin + "/downgrade", headers=headers,
+                     verify=root_ca).text() != "auth=0;cookie=0")
+    {
+        return 5
+    }
+
+    if requests.get(origin + "/same", headers=headers,
+                    proxies=direct).text() != "auth=1;cookie=1"
+    {
+        return 1
+    }
+    if requests.get(origin + "/cross", headers=headers,
+                    proxies=direct).text() != "auth=0;cookie=0"
+    {
+        return 2
+    }
+    if requests.get(origin + "/cross", auth=["user", "local-test"],
+                    cookies={"manual": "local-test"},
+                    proxies=direct).text() != "auth=0;cookie=0"
+    {
+        return 3
+    }
+    requests.request_options settings = requests.default_options()
+    settings.headers["authorization"] = "Bearer local-test"
+    settings.headers["cookie"] = "manual=local-test"
+    settings.ca_file = root_ca
+    settings.proxy_http = "direct"
+    settings.proxy_https = "direct"
+    if (requests.get(secure_origin + "/downgrade", settings).text() !=
+        "auth=0;cookie=0")
+    {
+        return 4
+    }
+    return 0
+}

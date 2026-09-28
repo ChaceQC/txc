@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <thread>
 
 namespace tx_generated::http2
 {
@@ -23,6 +24,8 @@ server_session::server_session(network::socket_handle socket,
                                                                 on_data_chunk);
     nghttp2_session_callbacks_set_on_frame_recv_callback(callbacks,
                                                            on_frame_recv);
+    nghttp2_session_callbacks_set_on_invalid_frame_recv_callback(callbacks,
+                                                                   on_invalid_frame);
     nghttp2_session_callbacks_set_on_stream_close_callback(callbacks,
                                                              on_stream_close);
     const auto status = nghttp2_session_server_new(&session_, callbacks, this);
@@ -32,7 +35,7 @@ server_session::server_session(network::socket_handle socket,
         network::fail("operation_failed", "创建 HTTP/2 会话失败");
     }
     const nghttp2_settings_entry settings[] = {
-        {NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 1}
+        {NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 16}
     };
     if (nghttp2_submit_settings(session_, NGHTTP2_FLAG_NONE, settings, 1) != 0)
     {
@@ -137,6 +140,21 @@ int server_session::on_frame_recv(nghttp2_session*,
     }
 }
 
+int server_session::on_invalid_frame(nghttp2_session*,
+                                     const nghttp2_frame*, int, void* data)
+{
+    auto* self = static_cast<server_session*>(data);
+    try
+    {
+        network::fail("protocol_error", "接收到非法 HTTP/2 帧");
+    }
+    catch (...)
+    {
+        self->record_error();
+    }
+    return NGHTTP2_ERR_CALLBACK_FAILURE;
+}
+
 int server_session::on_stream_close(nghttp2_session*, std::int32_t stream_id,
                                     std::uint32_t, void* data)
 {
@@ -155,6 +173,10 @@ void server_session::begin_headers(const nghttp2_frame* frame)
         frame->headers.cat != NGHTTP2_HCAT_REQUEST)
     {
         network::fail("protocol_error", "HTTP/2 请求头类型无效");
+    }
+    if (streams_.size() >= 16)
+    {
+        network::fail("size_limit", "HTTP/2 同一连接超过 16 条并发流");
     }
     auto state = std::make_shared<request_state>();
     state->stream_id = frame->hd.stream_id;
@@ -217,6 +239,12 @@ void server_session::header(const nghttp2_frame* frame,
             item->second += name == "cookie" ? "; " : ", ";
             item->second += value;
         }
+        if (name == "content-length")
+        {
+            // 在接收正文前拒绝超限声明，避免耗尽流窗口后才发现错误。
+            (void)network::content_length(stream.request.headers,
+                                          stream.max_body_bytes);
+        }
     }
 }
 
@@ -262,10 +290,6 @@ void server_session::validate_request(request_state& stream)
         {
             network::fail("protocol_error", "HTTP/2 Content-Length 与正文长度不符");
         }
-    }
-    if (!stream.binary && !stream.destination)
-    {
-        network::validate_utf8(stream.request.body);
     }
 }
 
@@ -333,6 +357,8 @@ std::shared_ptr<request_state> server_session::accept(
     const binary_stream& destination, std::size_t max_body_bytes,
     bool binary, std::int64_t timeout_ms)
 {
+    std::lock_guard accept_lock(accept_mutex_);
+    std::unique_lock io_lock(io_mutex_);
     io_.set_receive_timeout(timeout_ms);
     pending_destination_ = destination;
     pending_limit_ = max_body_bytes;
@@ -345,6 +371,9 @@ std::shared_ptr<request_state> server_session::accept(
         {
             return {};
         }
+        io_lock.unlock();
+        std::this_thread::yield();
+        io_lock.lock();
     }
     const auto stream_id = completed_.front();
     completed_.pop_front();
@@ -358,6 +387,10 @@ std::shared_ptr<request_state> server_session::accept(
         destination->file.write(state->request.body);
         state->request.body.clear();
         state->destination = destination;
+    }
+    if (!binary && !destination)
+    {
+        network::validate_utf8(state->request.body);
     }
     pending_destination_.reset();
     return state;

@@ -98,7 +98,7 @@ foreach ($name in @(
     'libstdc++.dll.a', 'libmingw32.a', 'libgcc_s.a', 'libgcc.a',
     'libmoldname.a', 'libmingwex.a', 'libmsvcrt.a', 'libkernel32.a',
     'libpthread.a', 'libadvapi32.a', 'libbcrypt.a', 'libcrypt32.a', 'libncrypt.a',
-    'libwinhttp.a', 'libws2_32.a',
+    'libwinhttp.a', 'libws2_32.a', 'libdnsapi.a',
     'libshell32.a', 'libuser32.a',
     'libiconv.a'))
 {
@@ -122,6 +122,8 @@ Copy-Item -LiteralPath (Join-Path $build_dir '_deps/gcc_runtime-src/mingw64/bin/
     -Destination (Join-Path $tool_dir 'libgcc_s_seh-1.dll') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/stdcpp_runtime-src/mingw64/bin/libstdc++-6.dll') `
     -Destination (Join-Path $tool_dir 'libstdc++-u.dll') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/msquic_binary-src/build/native/bin/x64/msquic.dll') `
+    -Destination (Join-Path $tool_dir 'msquic.dll') -Force
 
 $compiler_path = Join-Path $tool_dir 'txc.exe'
 $library_path = Join-Path $tool_dir 'libtxstdlib.a'
@@ -149,6 +151,7 @@ foreach ($module in @('httpx_bridge', 'websocket_bridge', 'requests_bridge'))
 }
 $dependency_archives = @(
     (Join-Path $build_dir '_deps/nghttp2-build/lib/libnghttp2.a'),
+    (Join-Path $build_dir '_deps/nghttp3-build/external/lib/libnghttp3.a'),
     (Join-Path $build_dir '_deps/mbedtls-build/library/libmbedtls.a'),
     (Join-Path $build_dir '_deps/mbedtls-build/library/libmbedx509.a'),
     (Join-Path $build_dir '_deps/mbedtls-build/library/libmbedcrypto.a'),
@@ -186,6 +189,10 @@ if ($LASTEXITCODE -ne 0 -or
 Copy-Item -LiteralPath $merged_library -Destination $library_path -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/nghttp2-src/COPYING') `
     -Destination (Join-Path $tool_dir 'NGHTTP2-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/nghttp3-src/COPYING') `
+    -Destination (Join-Path $tool_dir 'NGHTTP3-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/msquic_binary-src/LICENSE') `
+    -Destination (Join-Path $tool_dir 'MSQUIC-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/mbedtls-src/LICENSE') `
     -Destination (Join-Path $tool_dir 'MBEDTLS-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/argon2_reference-src/LICENSE') `
@@ -286,7 +293,8 @@ $library_hash = (Get-FileHash -LiteralPath $library_path -Algorithm SHA256).Hash
 $compatibility_manifest = "tx-package-v2`nabi $abi_fingerprint`ntxc $compiler_hash`nstdlib $library_hash`n"
 foreach ($name in @('libgcc_s_seh-1.dll', 'libstdc++-6.dll',
                     'libwinpthread-1.dll', 'libstdc++-u.dll',
-                    'libicuin78.dll', 'libicuuc78.dll', 'libicudt78.dll'))
+                    'libicuin78.dll', 'libicuuc78.dll', 'libicudt78.dll',
+                    'msquic.dll'))
 {
     $digest = (Get-FileHash -LiteralPath (Join-Path $tool_dir $name) -Algorithm SHA256).Hash.ToLowerInvariant()
     $compatibility_manifest += "$name $digest`n"

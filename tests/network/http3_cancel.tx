@@ -1,0 +1,32 @@
+import "httpx.txh" as httpx
+import "cancel.txh" as cancel
+import "thread.txh" as thread
+import "time.txh" as clock
+import "error.txh" as errors
+
+def request(token: cancel_token) -> int
+{
+    try
+    {
+        httpx.send_http3_controlled("GET", "https://127.0.0.1:19752/",
+            map<str, str>(), "", vector<bytes>(), 5000, token)
+        return 1
+    }
+    exception errors.cancelled_error as failure
+    {
+        if failure.code != "cancelled"
+        {
+            return 2
+        }
+    }
+    return 0
+}
+
+def main() -> int
+{
+    cancel_source owner = cancel.source()
+    join_handle<int> worker = thread.spawn(bind(request, cancel.token(owner)))
+    clock.sleep_millis(100)
+    cancel.cancel(owner)
+    return thread.join(worker)
+}

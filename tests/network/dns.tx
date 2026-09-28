@@ -1,0 +1,57 @@
+import "cancel.txh" as cancel
+import "dns.txh" as dns
+import "error.txh" as errors
+
+def main() -> int
+{
+    vector<dns.address> ipv4 = dns.resolve("127.0.0.1", 100)
+    if (ipv4.size() != 1 || ipv4[0].ip != "127.0.0.1" ||
+        ipv4[0].family != "ipv4" || ipv4[0].ttl_seconds != 0)
+    {
+        return 1
+    }
+
+    vector<dns.address> ipv6 = dns.resolve("::1", 100)
+    if (ipv6.size() != 1 || ipv6[0].family != "ipv6" ||
+        ipv6[0].ttl_seconds != 0)
+    {
+        return 2
+    }
+
+    vector<dns.address> local = dns.resolve("localhost", 100)
+    if (local.size() != 2 || local[0].family != "ipv4" ||
+        local[1].family != "ipv6")
+    {
+        return 3
+    }
+
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    cancel.cancel(source)
+    try
+    {
+        dns.resolve_with_cancel("example.com", 1000, token)
+        return 4
+    }
+    exception errors.cancelled_error as failure
+    {
+        if failure.code != "cancelled"
+        {
+            return 5
+        }
+    }
+
+    try
+    {
+        dns.resolve("invalid:80", 100)
+        return 6
+    }
+    exception errors.io_error as failure
+    {
+        if failure.code != "invalid_argument"
+        {
+            return 7
+        }
+    }
+    return 0
+}

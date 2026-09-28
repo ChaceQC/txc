@@ -1,0 +1,40 @@
+import "bytes.txh" as byte_values
+import "error.txh" as errors
+import "socket.txh" as net
+import "tls.txh" as tls
+
+def main() -> int
+{
+    net.tcp_listener listener = net.listen_tcp("127.0.0.1", 0, 2)
+    net.tcp_stream client = net.connect_tcp("127.0.0.1",
+        net.listener_port(listener), 1000)
+    tls.client_config config = tls.client("service.example",
+        tls.system_trust())
+    bool rejected = false
+    try
+    {
+        tls.connect(client, config, vector<str>([""]), 1000)
+    }
+    exception errors.security_error as failure
+    {
+        rejected = failure.code == "invalid_argument"
+    }
+    if !rejected
+    {
+        return 1
+    }
+    net.tcp_stream server = net.accept_tcp(listener, 1000)
+    if net.write(client, byte_values.from_hex("aa"), 1000) != 1
+    {
+        return 2
+    }
+    net.read_result value = net.read(server, 1, 1000)
+    if byte_values.to_hex(value.data) != "aa"
+    {
+        return 3
+    }
+    net.close(client)
+    net.close(server)
+    net.close(listener)
+    return 0
+}

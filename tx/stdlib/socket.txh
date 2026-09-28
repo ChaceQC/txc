@@ -1,0 +1,59 @@
+struct tcp_listener
+{
+    id: int
+}
+
+struct tcp_stream
+{
+    id: int
+}
+
+struct udp_socket
+{
+    id: int
+}
+
+struct read_result
+{
+    data: bytes
+    eof: bool
+}
+
+struct datagram
+{
+    data: bytes
+    host: str
+    port: int
+    truncated: bool
+}
+
+def listen_tcp(ip: str, port: int, backlog: int) -> tcp_listener
+def listener_port(server: tcp_listener) -> int
+def connect_tcp(ip: str, port: int, timeout_ms: int) -> tcp_stream
+def accept_tcp(server: tcp_listener, timeout_ms: int) -> tcp_stream
+def connect_async(ip: str, port: int, timeout_ms: int,
+                  token: cancel_token) -> task<tcp_stream>
+def accept_async(server: tcp_listener, timeout_ms: int,
+                 token: cancel_token) -> task<tcp_stream>
+def read(peer: tcp_stream, max_bytes: int, timeout_ms: int) -> read_result
+def write(peer: tcp_stream, data: bytes, timeout_ms: int) -> int
+def read_async(peer: tcp_stream, max_bytes: int, timeout_ms: int,
+               token: cancel_token) -> task<read_result>
+def write_async(peer: tcp_stream, data: bytes, timeout_ms: int,
+                token: cancel_token) -> task<int>
+def shutdown_read(peer: tcp_stream) -> void
+def shutdown_write(peer: tcp_stream) -> void
+
+def bind_udp(ip: str, port: int) -> udp_socket
+def udp_port(endpoint: udp_socket) -> int
+def send_to(endpoint: udp_socket, ip: str, port: int,
+            data: bytes, timeout_ms: int) -> int
+def receive_from(endpoint: udp_socket, max_bytes: int,
+                 timeout_ms: int) -> datagram
+def send_to_async(endpoint: udp_socket, ip: str, port: int,
+                  data: bytes, timeout_ms: int, token: cancel_token) -> task<int>
+def receive_from_async(endpoint: udp_socket, max_bytes: int,
+                       timeout_ms: int, token: cancel_token) -> task<datagram>
+def close(server: tcp_listener) -> void
+def close(peer: tcp_stream) -> void
+def close(endpoint: udp_socket) -> void

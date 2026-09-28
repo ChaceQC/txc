@@ -1,0 +1,34 @@
+import "httpx.txh" as httpx
+import "thread.txh" as thread
+import "time.txh" as clock
+
+def item(request: httpx.request,
+         context: httpx.route_context) -> httpx.response
+{
+    clock.sleep_millis(500)
+    return httpx.response(200, map<str, str>(), vector<str>(),
+        context.params["id"])
+}
+
+def worker(server: httpx.listener) -> int
+{
+    vector<httpx.route_rule> routes = vector<httpx.route_rule>(
+        [httpx.route_rule("GET", "/items/{id}", item)])
+    httpx.serve_routes(server, routes, 10000)
+    return 0
+}
+
+def main() -> int
+{
+    httpx.listener created = httpx.listen_h2c("127.0.0.1", 19748)
+    join_handle<int> first = thread.spawn(bind(worker, created))
+    join_handle<int> second = thread.spawn(bind(worker, created))
+    int first_status = thread.join(first)
+    int second_status = thread.join(second)
+    httpx.close(created)
+    if first_status != 0 || second_status != 0
+    {
+        return 1
+    }
+    return 0
+}

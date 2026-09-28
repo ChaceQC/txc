@@ -1,0 +1,345 @@
+import "requests.txh" as api
+import "requests_cookie.tx" as cookie_jar
+import "requests_url.tx" as urls
+import "bytes.txh" as byte_values
+import "crypto.txh" as crypto
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file_stream.txh" as files
+import "httpx.txh" as httpx
+import "secret.txh" as secrets
+import "string.txh" as strings
+import "time.txh" as time
+import "x509.txh" as x509
+
+def proxy_for(options: api.request_options, url: str) -> str
+{
+    if strings.starts_with(strings.lower(url), "https://")
+    {
+        return options.proxy_https
+    }
+    if strings.starts_with(strings.lower(url), "http://")
+    {
+        return options.proxy_http
+    }
+    errors.fail_io("invalid_url", "requests 只接受 HTTP 或 HTTPS URL")
+    return ""
+}
+
+def transport_key(options: api.request_options, url: str) -> str
+{
+    str password_id = ""
+    if options.client_pfx_file != ""
+    {
+        password_id = byte_values.to_hex(crypto.sha256(
+            encoding.encode(options.client_pfx_password, "utf-8")))
+    }
+    return (proxy_for(options, url) + "\n" + options.ca_file + "\n" +
+            options.client_pfx_file + "\n" + password_id +
+            "\n" + options.http2 as str)
+}
+
+def read_file(path: str) -> bytes
+{
+    binary_stream source = files.open_binary(path, "read")
+    try
+    {
+        bytes result = files.read_all_bytes(source)
+        files.close(source)
+        return result
+    }
+    exception errors.io_error as failure
+    {
+        files.close(source)
+        errors.fail_io(failure.code, failure.message)
+    }
+    return byte_values.empty()
+}
+
+def open_transport(options: api.request_options, url: str) -> httpx.client_session
+{
+    str proxy = proxy_for(options, url)
+    if ((options.ca_file != "" || options.client_pfx_file != "") &&
+        !strings.starts_with(strings.lower(url), "https://"))
+    {
+        errors.fail_io("invalid_argument", "自定义 CA 和客户端证书只用于 HTTPS")
+    }
+    vector<bytes> anchors = vector<bytes>()
+    bool system_roots = options.ca_file == ""
+    if !system_roots
+    {
+        bytes pem = read_file(options.ca_file)
+        anchors = x509.parse_pem(encoding.decode(pem, "utf-8"))
+    }
+    bytes package = byte_values.empty()
+    if options.client_pfx_file != ""
+    {
+        package = read_file(options.client_pfx_file)
+    }
+    secret_bytes password = secrets.from_bytes(
+        encoding.encode(options.client_pfx_password, "utf-8"))
+    try
+    {
+        httpx.client_session result = httpx.open_secure_session(
+            proxy, 4, false, anchors, system_roots, package, password,
+            options.http2)
+        secrets.close(password)
+        return result
+    }
+    exception errors.io_error as failure
+    {
+        secrets.close(password)
+        errors.fail_io(failure.code, failure.message)
+    }
+    exception errors.security_error as failure
+    {
+        secrets.close(password)
+        errors.fail_io("security_error", failure.message)
+    }
+    return httpx.client_session(0)
+}
+
+def ensure_transport(client: api.session, options: api.request_options,
+                     url: str) -> httpx.client_session
+{
+    if client.closed
+    {
+        errors.fail_io("connection_closed", "requests 会话已关闭")
+    }
+    str key = transport_key(options, url)
+    if client.transport.id != 0 && client.transport_key != key
+    {
+        httpx.close_session(client.transport)
+        client.transport = httpx.client_session(0)
+    }
+    if client.transport.id == 0
+    {
+        client.transport = open_transport(options, url)
+        client.transport_key = key
+    }
+    return client.transport
+}
+
+def close_session(client: api.session) -> void
+{
+    if client.transport.id != 0
+    {
+        httpx.close_session(client.transport)
+        client.transport = httpx.client_session(0)
+    }
+    client.closed = true
+}
+
+def make_response(head: httpx.response_head, url: str, started: int) -> api.response
+{
+    api.response result = api.response()
+    result.status_code = head.status
+    result.url = url
+    result.headers = head.headers
+    result.set_cookie = head.set_cookie
+    result.cookies = cookie_jar.response_cookies(head.set_cookie, url)
+    result.content = byte_values.empty()
+    result.history = []
+    result.elapsed_ms = time.monotonic_millis() - started
+    result.ok = head.status < 400
+    result.streamed = false
+    result.stream_open = false
+    result.stream_started = false
+    result.stream_finished = true
+    result.pending = httpx.client_request(0)
+    return result
+}
+
+def combine_chunks(chunks: vector<bytes>) -> bytes
+{
+    if chunks.empty()
+    {
+        return byte_values.empty()
+    }
+    while chunks.size() > 1
+    {
+        vector<bytes> next = vector<bytes>()
+        int index = 0
+        while index < chunks.size()
+        {
+            if index + 1 < chunks.size()
+            {
+                next.push_back(byte_values.concat(chunks[index], chunks[index + 1]))
+            }
+            else
+            {
+                next.push_back(chunks[index])
+            }
+            index += 2
+        }
+        chunks = next
+    }
+    return chunks[0]
+}
+
+def read_all(value: api.response) -> bytes
+{
+    if !value.streamed || value.stream_finished
+    {
+        return value.content
+    }
+    if !value.stream_open || value.stream_started
+    {
+        errors.fail_io("invalid_state", "流式响应已关闭或已逐块读取")
+    }
+    vector<bytes> chunks = vector<bytes>()
+    bool eof = false
+    try
+    {
+        while !eof
+        {
+            httpx.response_chunk part = httpx.read_response_chunk(value.pending, 16384)
+            eof = part.eof
+            if !eof
+            {
+                chunks.push_back(part.data)
+            }
+        }
+    }
+    exception errors.io_error as failure
+    {
+        close_response(value)
+        errors.fail_io(failure.code, failure.message)
+    }
+    httpx.close_request(value.pending)
+    value.pending = httpx.client_request(0)
+    value.stream_open = false
+    value.stream_finished = true
+    value.content = combine_chunks(chunks)
+    return value.content
+}
+
+def next_chunk(value: api.response, max_bytes: int) -> api.body_chunk
+{
+    if !value.streamed || !value.stream_open
+    {
+        if value.streamed && value.stream_finished
+        {
+            return api.body_chunk(byte_values.empty(), true)
+        }
+        errors.fail_io("invalid_state", "响应没有可读取的流")
+    }
+    value.stream_started = true
+    httpx.response_chunk part = httpx.response_chunk(byte_values.empty(), false)
+    try
+    {
+        part = httpx.read_response_chunk(value.pending, max_bytes)
+    }
+    exception errors.io_error as failure
+    {
+        close_response(value)
+        errors.fail_io(failure.code, failure.message)
+    }
+    if part.eof
+    {
+        httpx.close_request(value.pending)
+        value.pending = httpx.client_request(0)
+        value.stream_open = false
+        value.stream_finished = true
+    }
+    return api.body_chunk(part.data, part.eof)
+}
+
+def close_response(value: api.response) -> void
+{
+    if value.stream_open
+    {
+        httpx.close_request(value.pending)
+        value.pending = httpx.client_request(0)
+        value.stream_open = false
+    }
+}
+
+def send_once(client: api.session, method: str, url: str,
+              headers: map<str, str>, body: bytes,
+              options: api.request_options) -> api.response
+{
+    int started = time.monotonic_millis()
+    httpx.client_session pool = ensure_transport(client, options, url)
+    httpx.client_request peer = httpx.begin_request(pool, method, url,
+        headers, len(body), options.max_response_bytes,
+        options.timeout_ms, options.http2)
+    try
+    {
+        if len(body) > 0
+        {
+            httpx.write_request(peer, body)
+        }
+        httpx.response_head head = httpx.finish_request(peer)
+        api.response result = make_response(head, url, started)
+        result.pending = peer
+        result.streamed = true
+        result.stream_open = true
+        result.stream_finished = false
+        if !options.stream
+        {
+            read_all(result)
+            result.streamed = false
+        }
+        result.elapsed_ms = time.monotonic_millis() - started
+        return result
+    }
+    exception errors.io_error as failure
+    {
+        httpx.close_request(peer)
+        errors.fail_io(failure.code, failure.message)
+    }
+    return api.response()
+}
+
+def upload_to_file(client: api.session, method: str, url: str,
+                   headers: map<str, str>, source: binary_stream,
+                   length: int, destination: binary_stream,
+                   max_response_bytes: int,
+                   options: api.request_options) -> api.response
+{
+    int started = time.monotonic_millis()
+    httpx.client_session pool = ensure_transport(client, options, url)
+    httpx.client_request peer = httpx.begin_request(pool, method, url,
+        headers, length, max_response_bytes, options.timeout_ms, options.http2)
+    try
+    {
+        int remaining = length
+        while remaining > 0
+        {
+            int wanted = remaining
+            if wanted > 16384
+            {
+                wanted = 16384
+            }
+            files.byte_chunk part = files.read_bytes(source, wanted)
+            if part.eof || len(part.data) == 0
+            {
+                errors.fail_io("operation_failed", "上传源流提前结束")
+            }
+            httpx.write_request(peer, part.data)
+            remaining -= len(part.data)
+        }
+        httpx.response_head head = httpx.finish_request(peer)
+        api.response result = make_response(head, url, started)
+        bool eof = false
+        while !eof
+        {
+            httpx.response_chunk part = httpx.read_response_chunk(peer, 16384)
+            eof = part.eof
+            if !eof
+            {
+                files.write_bytes(destination, part.data)
+            }
+        }
+        httpx.close_request(peer)
+        result.elapsed_ms = time.monotonic_millis() - started
+        return result
+    }
+    exception errors.io_error as failure
+    {
+        httpx.close_request(peer)
+        errors.fail_io(failure.code, failure.message)
+    }
+    return api.response()
+}

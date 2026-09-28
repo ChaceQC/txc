@@ -1,0 +1,23 @@
+import "httpx.txh" as httpx
+import "error.txh" as errors
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen_h2c("127.0.0.1", 19750)
+    bool rejected = false
+    try
+    {
+        httpx.request request = httpx.accept(server, 5000)
+        httpx.close(request.connection)
+    }
+    exception errors.io_error as failure
+    {
+        rejected = failure.code == "protocol_error" || failure.code == "size_limit"
+    }
+    httpx.close(server)
+    if !rejected
+    {
+        return 1
+    }
+    return 0
+}

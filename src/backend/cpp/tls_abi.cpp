@@ -1,4 +1,5 @@
 #include "backend/cpp/runtime_abi_internal.hpp"
+#include "backend/cpp/tls_abi_helpers.hpp"
 #include "backend/cpp/value_format.hpp"
 #include "stdlib/tls.hpp"
 #include "stdlib/x509.hpp"
@@ -319,3 +320,24 @@ extern "C" int txrt_tls_verify_client(const void* config, const void* leaf,
             "client_auth");
     }, tx::error_kind::security);
 }
+
+namespace tx_generated::tls_abi
+{
+
+tls::client_options checked_client(const void* config)
+{
+    const auto selected = read_client(value<dynamic_struct>(config));
+    return {selected.hostname,
+        {selected.roots.system_roots, selected.roots.anchors.copy()},
+        selected.identity};
+}
+
+tls::server_options checked_server(const void* config)
+{
+    const auto selected = read_server(value<dynamic_struct>(config));
+    return {selected.identity,
+        {selected.roots.system_roots, selected.roots.anchors.copy()},
+        selected.require_client_identity};
+}
+
+} // namespace tx_generated::tls_abi

@@ -1,6 +1,7 @@
 #include "stdlib/network_common.hpp"
 
 #include "stdlib/error.hpp"
+#include "stdlib/tls_stream.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -245,12 +246,139 @@ void tcp_stream::set_receive_timeout(std::int64_t timeout_ms)
     {
         fail("invalid_argument", "超时参数超出允许范围");
     }
+    receive_timeout_ms_ = timeout_ms;
+    if (secure_)
+    {
+        return;
+    }
     const DWORD value = static_cast<DWORD>(timeout_ms);
     if (setsockopt(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
                    reinterpret_cast<const char*>(&value), sizeof(value)) != 0)
     {
         socket_failure("设置读取超时");
     }
+}
+
+void tcp_stream::set_receive_deadline(std::int64_t timeout_ms)
+{
+    if (timeout_ms < 0 || timeout_ms > std::numeric_limits<DWORD>::max())
+    {
+        fail("invalid_argument", "超时参数超出允许范围");
+    }
+    if (timeout_ms == 0)
+    {
+        receive_deadline_.reset();
+        return;
+    }
+    receive_deadline_ = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(timeout_ms);
+}
+
+void tcp_stream::clear_receive_deadline()
+{
+    receive_deadline_.reset();
+    set_receive_timeout(receive_timeout_ms_);
+}
+
+bool tcp_stream::valid() const noexcept
+{
+    return secure_ ? !secure_->closed() : socket_.valid();
+}
+
+void tcp_stream::close() noexcept
+{
+    if (secure_)
+    {
+        try
+        {
+            secure_->close(1000);
+        }
+        catch (...)
+        {
+        }
+        secure_.reset();
+    }
+    socket_.reset();
+}
+
+std::string tcp_stream::read_some(std::size_t limit)
+{
+    std::int64_t timeout_ms = receive_timeout_ms_;
+    if (receive_deadline_)
+    {
+        const auto remaining = *receive_deadline_ - std::chrono::steady_clock::now();
+        if (remaining <= std::chrono::steady_clock::duration::zero())
+        {
+            fail("timeout", "读取 HTTP 请求的总时限已到");
+        }
+        timeout_ms = std::max<std::int64_t>(1,
+            std::chrono::duration_cast<std::chrono::milliseconds>(remaining).count());
+        if (receive_timeout_ms_ != 0)
+        {
+            timeout_ms = std::min(timeout_ms, receive_timeout_ms_);
+        }
+        if (!secure_)
+        {
+            const DWORD value = static_cast<DWORD>(timeout_ms);
+            if (setsockopt(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
+                           reinterpret_cast<const char*>(&value), sizeof(value)) != 0)
+            {
+                socket_failure("设置读取超时");
+            }
+        }
+    }
+    if (secure_)
+    {
+        while (true)
+        {
+            try
+            {
+                auto value = secure_->read(static_cast<std::int64_t>(limit),
+                    timeout_ms == 0 ? 30000 : timeout_ms);
+                if (value.eof)
+                {
+                    return {};
+                }
+                if (value.data.empty())
+                {
+                    continue;
+                }
+                return {reinterpret_cast<const char*>(value.data.data()),
+                    value.data.size()};
+            }
+            catch (const runtime_failure& error)
+            {
+                if (receive_timeout_ms_ != 0 || error.error().code != "timeout")
+                {
+                    throw;
+                }
+            }
+        }
+    }
+    std::string result(limit, '\0');
+    const int count = recv(socket_.get(), result.data(),
+        static_cast<int>(limit), 0);
+    if (count < 0)
+    {
+        socket_failure("读取数据");
+    }
+    result.resize(static_cast<std::size_t>(count));
+    return result;
+}
+
+std::size_t tcp_stream::send_some(std::string_view data)
+{
+    if (secure_)
+    {
+        return static_cast<std::size_t>(secure_->write(data, 30000));
+    }
+    const int sent = send(socket_.get(), data.data(),
+        static_cast<int>(data.size()), 0);
+    if (sent < 0)
+    {
+        socket_failure("发送数据");
+    }
+    return static_cast<std::size_t>(sent);
 }
 
 std::string tcp_stream::read_head()
@@ -272,17 +400,12 @@ std::string tcp_stream::read_head()
         {
             fail("size_limit", "HTTP 头超过 64 KiB");
         }
-        char buffer[4096];
-        const int size = recv(socket_.get(), buffer, sizeof(buffer), 0);
-        if (size == 0)
+        auto block = read_some(4096);
+        if (block.empty())
         {
             fail("connection_closed", "读取 HTTP 头时连接已关闭");
         }
-        if (size < 0)
-        {
-            socket_failure("读取 HTTP 头");
-        }
-        pending_.append(buffer, size);
+        pending_ += block;
     }
 }
 
@@ -295,18 +418,13 @@ std::string tcp_stream::read_exact(std::size_t length)
     pending_.erase(0, available);
     while (result.size() < length)
     {
-        char buffer[8192];
-        const auto amount = std::min(length - result.size(), sizeof(buffer));
-        const int size = recv(socket_.get(), buffer, static_cast<int>(amount), 0);
-        if (size == 0)
+        const auto amount = std::min<std::size_t>(length - result.size(), 8192);
+        auto block = read_some(amount);
+        if (block.empty())
         {
             fail("connection_closed", "读取数据时连接已关闭");
         }
-        if (size < 0)
-        {
-            socket_failure("读取数据");
-        }
-        result.append(buffer, size);
+        result += block;
     }
     return result;
 }
@@ -317,12 +435,12 @@ void tcp_stream::send_all(std::string_view data)
     {
         const auto amount = std::min(data.size(),
             static_cast<std::size_t>(std::numeric_limits<int>::max()));
-        const int sent = send(socket_.get(), data.data(), static_cast<int>(amount), 0);
-        if (sent <= 0)
+        const auto sent = send_some(data.substr(0, amount));
+        if (sent == 0)
         {
-            socket_failure("发送数据");
+            fail("connection_closed", "发送数据时连接已关闭");
         }
-        data.remove_prefix(static_cast<std::size_t>(sent));
+        data.remove_prefix(sent);
     }
 }
 

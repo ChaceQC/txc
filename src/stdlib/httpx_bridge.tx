@@ -1,4 +1,5 @@
 import "httpx.txh" as httpx
+import "bytes.txh" as byte_values
 
 # 此函数在构建时编入 libtxstdlib.a；处理函数签名由 TX 编译器检查。
 def bridge_serve_once(server: httpx.listener,
@@ -15,4 +16,52 @@ def bridge_serve_once_bytes(server: httpx.listener,
 {
     httpx.binary_request incoming = httpx.accept_bytes(server, timeout_ms)
     httpx.respond_bytes(incoming.connection, handler(incoming))
+}
+
+def bridge_serve_routes(server: httpx.listener,
+                        routes: vector<httpx.route_rule>,
+                        timeout_ms: int) -> void
+{
+    httpx.request incoming = httpx.accept(server, timeout_ms)
+    int index = 0
+    while index < len(routes)
+    {
+        httpx.route_rule rule = routes[index]
+        httpx.route_match matched = httpx.match_route(rule.method,
+            rule.pattern, incoming.method, incoming.target)
+        if matched.matched
+        {
+            httpx.route_context context = httpx.route_context(matched.params)
+            fn(httpx.request, httpx.route_context) -> httpx.response handler = rule.handler
+            httpx.respond(incoming.connection, handler(incoming, context))
+            return
+        }
+        index = index + 1
+    }
+    httpx.respond(incoming.connection,
+        httpx.response(404, map<str, str>(), vector<str>(), ""))
+}
+
+def bridge_serve_routes_bytes(server: httpx.listener,
+                              routes: vector<httpx.binary_route_rule>,
+                              timeout_ms: int) -> void
+{
+    httpx.binary_request incoming = httpx.accept_bytes(server, timeout_ms)
+    int index = 0
+    while index < len(routes)
+    {
+        httpx.binary_route_rule rule = routes[index]
+        httpx.route_match matched = httpx.match_route(rule.method,
+            rule.pattern, incoming.method, incoming.target)
+        if matched.matched
+        {
+            httpx.route_context context = httpx.route_context(matched.params)
+            fn(httpx.binary_request, httpx.route_context) -> httpx.binary_response handler = rule.handler
+            httpx.respond_bytes(incoming.connection, handler(incoming, context))
+            return
+        }
+        index = index + 1
+    }
+    httpx.respond_bytes(incoming.connection,
+        httpx.binary_response(404, map<str, str>(), vector<str>(), byte_values.empty()))
 }

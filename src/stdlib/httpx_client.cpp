@@ -1,5 +1,6 @@
 #include "stdlib/httpx.hpp"
 #include "stdlib/http2_client.hpp"
+#include "stdlib/httpx_winhttp.hpp"
 
 #include "stdlib/encoding.hpp"
 
@@ -24,61 +25,6 @@ response_registry& responses()
 {
     static response_registry result;
     return result;
-}
-
-std::wstring request_headers(const network::header_map& headers)
-{
-    std::wstring result;
-    for (const auto& [name, value] : headers)
-    {
-        network::validate_header(name, value);
-        if (name == "host" || name == "content-length" ||
-            name == "transfer-encoding" || name == "connection" ||
-            name == "proxy-connection" || name == "keep-alive" ||
-            name == "upgrade")
-        {
-            network::fail("invalid_header", "调用方不能覆盖 HTTP 连接管理字段");
-        }
-        result += detail::utf8_to_wide(name + ": " + value + "\r\n");
-        if (result.size() * sizeof(wchar_t) > network::max_head_bytes)
-        {
-            network::fail("size_limit", "HTTP 请求头超过 64 KiB");
-        }
-    }
-    return result;
-}
-
-network::parsed_head read_response_head(HINTERNET request)
-{
-    DWORD bytes = 0;
-    if (WinHttpQueryHeaders(request, WINHTTP_QUERY_RAW_HEADERS_CRLF,
-                            WINHTTP_HEADER_NAME_BY_INDEX, nullptr, &bytes,
-                            WINHTTP_NO_HEADER_INDEX) ||
-        GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-    {
-        network::http_failure("读取 HTTP 响应头长度");
-    }
-    if (bytes > network::max_head_bytes * sizeof(wchar_t))
-    {
-        network::fail("size_limit", "HTTP 响应头超过 64 KiB");
-    }
-    std::wstring wide(bytes / sizeof(wchar_t), L'\0');
-    if (!WinHttpQueryHeaders(request, WINHTTP_QUERY_RAW_HEADERS_CRLF,
-                             WINHTTP_HEADER_NAME_BY_INDEX, wide.data(), &bytes,
-                             WINHTTP_NO_HEADER_INDEX))
-    {
-        network::http_failure("读取 HTTP 响应头");
-    }
-    while (!wide.empty() && wide.back() == L'\0')
-    {
-        wide.pop_back();
-    }
-    const auto text = detail::wide_to_utf8(wide);
-    if (text.size() > network::max_head_bytes)
-    {
-        network::fail("size_limit", "HTTP 响应头超过 64 KiB");
-    }
-    return network::parse_head(text);
 }
 
 struct client_handles
@@ -156,18 +102,6 @@ client_handles open_request(std::string_view method, std::string_view url,
     return result;
 }
 
-void require_http2_protocol(HINTERNET request)
-{
-    DWORD used = 0;
-    DWORD size = sizeof(used);
-    if (!WinHttpQueryOption(request, WINHTTP_OPTION_HTTP_PROTOCOL_USED,
-                            &used, &size) ||
-        (used & WINHTTP_PROTOCOL_FLAG_HTTP2) == 0)
-    {
-        network::fail("protocol_error", "HTTPS 服务端未协商 HTTP/2");
-    }
-}
-
 std::int64_t register_response(http_response_data value)
 {
     auto& registry = responses();
@@ -177,28 +111,9 @@ std::int64_t register_response(http_response_data value)
     return id;
 }
 
-http_response_data response_metadata(HINTERNET request)
-{
-    http_response_data result;
-    DWORD status = 0;
-    DWORD size = sizeof(status);
-    if (!WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE |
-                             WINHTTP_QUERY_FLAG_NUMBER,
-                             WINHTTP_HEADER_NAME_BY_INDEX, &status, &size,
-                             WINHTTP_NO_HEADER_INDEX))
-    {
-        network::http_failure("读取 HTTP 状态码");
-    }
-    result.status = status;
-    auto head = read_response_head(request);
-    result.headers = std::move(head.headers);
-    result.cookies = std::move(head.cookies);
-    return result;
-}
-
 http_response_data receive_response(HINTERNET request, bool binary)
 {
-    auto result = response_metadata(request);
+    auto result = httpx_winhttp::response_metadata(request);
     if (result.headers.contains("content-length"))
     {
         (void)network::content_length(result.headers);
@@ -246,12 +161,14 @@ std::int64_t httpx_client_send(std::string_view method, std::string_view url,
     }
     if (http2 && !network::parse_url(url, false).secure)
     {
-        return register_response(http2::client_send(method, url, headers, body,
+        auto response = http2::client_send(method, url, headers, body,
             {}, static_cast<std::int64_t>(body.size()), {},
-            network::max_body_bytes, timeout_ms, binary));
+            network::max_body_bytes, timeout_ms, binary);
+        response.protocol = "h2";
+        return register_response(std::move(response));
     }
     auto handles = open_request(method, url, headers, timeout_ms, http2);
-    const auto header_text = request_headers(headers);
+    const auto header_text = httpx_winhttp::request_headers(headers);
     if (!WinHttpSendRequest(handles.request.get(), header_text.c_str(),
                             static_cast<DWORD>(header_text.size()),
                             body.empty() ? WINHTTP_NO_REQUEST_DATA
@@ -264,7 +181,7 @@ std::int64_t httpx_client_send(std::string_view method, std::string_view url,
     }
     if (http2)
     {
-        require_http2_protocol(handles.request.get());
+        httpx_winhttp::require_http2_protocol(handles.request.get());
     }
     return register_response(receive_response(handles.request.get(), binary));
 }
@@ -299,7 +216,7 @@ http_response_data httpx_client_stream(std::string_view method,
             source_length, destination, max_response_bytes, timeout_ms, true);
     }
     auto handles = open_request(method, url, headers, timeout_ms, http2);
-    const auto header_text = request_headers(headers);
+    const auto header_text = httpx_winhttp::request_headers(headers);
     if (!WinHttpSendRequest(handles.request.get(), header_text.c_str(),
                             static_cast<DWORD>(header_text.size()),
                             WINHTTP_NO_REQUEST_DATA, 0,
@@ -342,9 +259,9 @@ http_response_data httpx_client_stream(std::string_view method,
     }
     if (http2)
     {
-        require_http2_protocol(handles.request.get());
+        httpx_winhttp::require_http2_protocol(handles.request.get());
     }
-    auto result = response_metadata(handles.request.get());
+    auto result = httpx_winhttp::response_metadata(handles.request.get());
     if (result.headers.contains("content-length"))
     {
         (void)network::content_length(result.headers,

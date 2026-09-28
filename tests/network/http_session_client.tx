@@ -1,0 +1,66 @@
+import "httpx.txh" as httpx
+import "bytes.txh" as byte_values
+import "error.txh" as errors
+
+def main() -> int
+{
+    httpx.client_session session = httpx.open_session("direct", 2, true)
+    httpx.client_request empty = httpx.begin_request(session, "GET",
+        "http://127.0.0.1:19743/empty", map<str, str>(), 0, 8, 5000, false)
+    httpx.response_head first = httpx.finish_request(empty)
+    httpx.response_chunk first_chunk = httpx.read_response_chunk(empty, 2)
+    if first.status != 200 || !first_chunk.eof || len(first_chunk.data) != 0
+    {
+        return 1
+    }
+    httpx.close_request(empty)
+
+    bytes payload = byte_values.from_hex("00ff80e4bda0")
+    httpx.client_request upload = httpx.begin_request(session, "POST",
+        "http://127.0.0.1:19743/echo", map<str, str>(), 6, 6, 5000, false)
+    int first_written = httpx.write_request(upload,
+        byte_values.slice(payload, 0, 3))
+    int second_written = httpx.write_request(upload,
+        byte_values.slice(payload, 3, 6))
+    if first_written != 3 || second_written != 3
+    {
+        return 2
+    }
+    httpx.response_head second = httpx.finish_request(upload)
+    if second.status != 200
+    {
+        return 3
+    }
+    bytes received = byte_values.empty()
+    bool eof = false
+    while !eof
+    {
+        httpx.response_chunk part = httpx.read_response_chunk(upload, 2)
+        eof = part.eof
+        if !eof
+        {
+            received = byte_values.concat(received, part.data)
+        }
+    }
+    if received != payload
+    {
+        return 4
+    }
+    httpx.close_request(upload)
+    httpx.close_session(session)
+    bool closed = false
+    try
+    {
+        httpx.begin_request(session, "GET", "http://127.0.0.1:19743/",
+            map<str, str>(), 0, 8, 5000, false)
+    }
+    exception errors.io_error as failure
+    {
+        closed = failure.code == "connection_closed"
+    }
+    if !closed
+    {
+        return 5
+    }
+    return 0
+}

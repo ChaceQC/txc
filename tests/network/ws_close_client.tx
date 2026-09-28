@@ -1,0 +1,21 @@
+import "system.txh" as system
+import "websocket.txh" as ws
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str url = "ws://127.0.0.1:" + args[0] + "/"
+    ws.connection peer = ws.connect(url, 5000)
+    ws.message closed = ws.receive(peer, 5000)
+    if closed.open
+    {
+        return 1
+    }
+    ws.close_status status = ws.get_close_status(peer)
+    if !status.received || status.code != 1001 || status.reason != "server"
+    {
+        return 2
+    }
+    ws.close(peer)
+    return 0
+}

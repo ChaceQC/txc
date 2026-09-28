@@ -1,7 +1,10 @@
 #include "stdlib/http2_session.hpp"
+#include "stdlib/error.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cstring>
+#include <thread>
 
 namespace tx_generated::http2
 {
@@ -104,6 +107,7 @@ void server_session::respond(const std::shared_ptr<request_state>& stream,
                              const binary_stream& source,
                              std::int64_t body_length, bool binary)
 {
+    std::unique_lock io_lock(io_mutex_);
     if (!stream || !stream->complete || stream->response_done)
     {
         network::fail("connection_closed", "HTTP/2 请求流不可回复");
@@ -142,6 +146,8 @@ void server_session::respond(const std::shared_ptr<request_state>& stream,
     {
         network::fail("operation_failed", "提交 HTTP/2 响应失败");
     }
+    const auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::seconds(30);
     while (!stream->response_done)
     {
         flush_output();
@@ -153,10 +159,28 @@ void server_session::respond(const std::shared_ptr<request_state>& stream,
         {
             network::fail("connection_closed", "HTTP/2 响应流提前关闭");
         }
-        if (!read_input())
+        if (std::chrono::steady_clock::now() >= deadline)
         {
-            network::fail("connection_closed", "HTTP/2 响应发送时连接已关闭");
+            network::fail("timeout", "HTTP/2 响应等待流控超时");
         }
+        io_.set_receive_timeout(50);
+        try
+        {
+            if (!read_input())
+            {
+                network::fail("connection_closed", "HTTP/2 响应发送时连接已关闭");
+            }
+        }
+        catch (const runtime_failure& error)
+        {
+            if (error.error().code != "timeout")
+            {
+                throw;
+            }
+        }
+        io_lock.unlock();
+        std::this_thread::yield();
+        io_lock.lock();
     }
     streams_.erase(stream->stream_id);
 }
@@ -170,6 +194,7 @@ void server_session::close_stream(
     }
     try
     {
+        std::lock_guard io_lock(io_mutex_);
         if (!stream->response_done)
         {
             nghttp2_submit_rst_stream(session_, NGHTTP2_FLAG_NONE,

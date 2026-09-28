@@ -30,6 +30,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(ENABLE_LIB_ONLY ON CACHE BOOL "" FORCE)
+set(ENABLE_SHARED_LIB OFF CACHE BOOL "" FORCE)
 set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
 set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 set(MBEDTLS_FATAL_WARNINGS OFF CACHE BOOL "" FORCE)
@@ -44,6 +45,16 @@ FetchContent_Declare(nghttp2
 FetchContent_Declare(mbedtls
     URL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.5/mbedtls-3.6.5.tar.bz2
     URL_HASH SHA256=4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(nghttp3
+    URL https://github.com/ngtcp2/nghttp3/releases/download/v1.18.0/nghttp3-1.18.0.tar.xz
+    URL_HASH SHA256=aad782c23d3f01bd4bb52c8bac7a553b631ef8115fd1612703df6183449fef19
+    SOURCE_SUBDIR _tx_no_cmake_project
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(msquic_binary
+    URL https://api.nuget.org/v3-flatcontainer/microsoft.native.quic.msquic.schannel/2.6.1/microsoft.native.quic.msquic.schannel.2.6.1.nupkg
+    URL_HASH SHA256=cf09771561c16dc823454c212fbf3bc1307c0a77b9d98326f1faa256685e2a3f
+    SOURCE_SUBDIR _tx_no_cmake_project
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_Declare(argon2_reference
     GIT_REPOSITORY https://github.com/P-H-C/phc-winner-argon2.git
@@ -93,9 +104,32 @@ FetchContent_Declare(winpthread_runtime
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 set(_tx_warn_deprecated ${CMAKE_WARN_DEPRECATED})
 set(CMAKE_WARN_DEPRECATED OFF)
-FetchContent_MakeAvailable(nghttp2 mbedtls icu_binary pcre2_binary libxml2
+FetchContent_MakeAvailable(nghttp2 mbedtls nghttp3 msquic_binary
+    icu_binary pcre2_binary libxml2
     stdcpp_runtime gcc_runtime winpthread_runtime argon2_reference
     libsodium_binary)
+include(ExternalProject)
+set(_tx_nghttp3_archive
+    "${nghttp3_BINARY_DIR}/external/lib/libnghttp3.a")
+ExternalProject_Add(tx_nghttp3_external
+    SOURCE_DIR "${nghttp3_SOURCE_DIR}"
+    BINARY_DIR "${nghttp3_BINARY_DIR}/external"
+    CMAKE_GENERATOR Ninja
+    CMAKE_ARGS
+        "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
+        "-DCMAKE_BUILD_TYPE=Release"
+        "-DENABLE_LIB_ONLY=ON"
+        "-DENABLE_SHARED_LIB=OFF"
+        "-DENABLE_STATIC_LIB=ON"
+        "-DBUILD_TESTING=OFF"
+    BUILD_BYPRODUCTS "${_tx_nghttp3_archive}"
+    INSTALL_COMMAND "")
+add_library(nghttp3_static STATIC IMPORTED GLOBAL)
+set_target_properties(nghttp3_static PROPERTIES
+    IMPORTED_LOCATION "${_tx_nghttp3_archive}"
+    INTERFACE_INCLUDE_DIRECTORIES "${nghttp3_SOURCE_DIR}/lib/includes"
+    INTERFACE_COMPILE_DEFINITIONS NGHTTP3_STATICLIB)
+add_dependencies(nghttp3_static tx_nghttp3_external)
 add_library(libsodium_static STATIC IMPORTED GLOBAL)
 set_target_properties(libsodium_static PROPERTIES IMPORTED_LOCATION
     "${libsodium_binary_SOURCE_DIR}/mingw64/lib/libsodium.a")
@@ -294,8 +328,14 @@ add_library(txstdlib STATIC
     src/backend/cpp/xml_tree_abi.cpp
     src/backend/cpp/xml_writer_abi.cpp
     src/backend/cpp/network_abi.cpp
+    src/backend/cpp/dns_abi.cpp
+    src/backend/cpp/socket_abi.cpp
+    src/backend/cpp/socket_async_abi.cpp
     src/backend/cpp/network_stream_abi.cpp
     src/backend/cpp/network_http2_abi.cpp
+    src/backend/cpp/network_session_abi.cpp
+    src/backend/cpp/network_router_abi.cpp
+    src/backend/cpp/network_http3_abi.cpp
     src/backend/cpp/ws_abi.cpp
     src/backend/cpp/file_result_abi.cpp
     src/backend/cpp/bytes_abi.cpp
@@ -306,6 +346,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/public_key_abi.cpp
     src/backend/cpp/x509_abi.cpp
     src/backend/cpp/tls_abi.cpp
+    src/backend/cpp/tls_stream_abi.cpp
     src/backend/cpp/encoding_memory_abi.cpp
     src/backend/cpp/encoding_incremental_abi.cpp
     src/backend/cpp/unicode_abi.cpp
@@ -437,6 +478,9 @@ add_library(txstdlib STATIC
     src/stdlib/x509_pkcs8.cpp
     src/stdlib/x509_verify.cpp
     src/stdlib/tls_identity.cpp
+    src/stdlib/tls_stream_handshake.cpp
+    src/stdlib/tls_stream_io.cpp
+    src/stdlib/tls_stream_registry.cpp
     src/stdlib/libsodium_compat.cpp
     src/stdlib/file_stream.cpp
     src/stdlib/file_stream_lock.cpp
@@ -480,9 +524,28 @@ add_library(txstdlib STATIC
     src/stdlib/random_generator.cpp
     src/stdlib/random_sampling.cpp
     src/stdlib/network_common.cpp
+    src/stdlib/dns.cpp
+    src/stdlib/socket_core.cpp
+    src/stdlib/socket_tcp.cpp
+    src/stdlib/socket_udp.cpp
     src/stdlib/network_listener.cpp
     src/stdlib/network_url.cpp
     src/stdlib/httpx_client.cpp
+    src/stdlib/httpx_winhttp.cpp
+    src/stdlib/httpx_client_session.cpp
+    src/stdlib/httpx_client_tls.cpp
+    src/stdlib/httpx_negotiation.cpp
+    src/stdlib/httpx_router.cpp
+    src/stdlib/httpx_server_listener.cpp
+    src/stdlib/http3_quic.cpp
+    src/stdlib/http3_client.cpp
+    src/stdlib/http3_client_events.cpp
+    src/stdlib/http3_client_headers.cpp
+    src/stdlib/http3_server_listener.cpp
+    src/stdlib/http3_server_connection.cpp
+    src/stdlib/http3_server_events.cpp
+    src/stdlib/http3_server_headers.cpp
+    src/stdlib/http3_server.cpp
     src/stdlib/httpx_server.cpp
     src/stdlib/http2_transport.cpp
     src/stdlib/http2_session.cpp
@@ -506,12 +569,15 @@ target_include_directories(txstdlib PRIVATE
     "${pcre2_binary_SOURCE_DIR}/mingw64/include"
     "${libsodium_binary_SOURCE_DIR}/mingw64/include")
 target_compile_definitions(txstdlib PRIVATE PCRE2_STATIC)
-target_link_libraries(txstdlib PRIVATE nghttp2_static mbedtls mbedx509 mbedcrypto
+target_include_directories(txstdlib PRIVATE
+    "${msquic_binary_SOURCE_DIR}/build/native/include")
+target_link_libraries(txstdlib PRIVATE nghttp2_static nghttp3_static
+    mbedtls mbedx509 mbedcrypto
     argon2_reference_static LibXml2::LibXml2 libsodium_static)
 add_dependencies(txc txstdlib)
 if(WIN32)
     target_link_libraries(txc PRIVATE shell32 bcrypt)
-    target_link_libraries(txstdlib PRIVATE winhttp ws2_32 advapi32 bcrypt crypt32 ncrypt)
+    target_link_libraries(txstdlib PRIVATE winhttp ws2_32 dnsapi advapi32 bcrypt crypt32 ncrypt)
 endif()
 set(TX_TOOL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/tx")
 set_target_properties(txstdlib PROPERTIES

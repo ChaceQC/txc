@@ -1,0 +1,44 @@
+import "error.txh" as errors
+import "httpx.txh" as httpx
+import "system.txh" as system
+
+def rejected(session: httpx.client_session, url: str, limit: int) -> bool
+{
+    httpx.client_request call = httpx.begin_request(session, "GET", url,
+        map<str, str>(), 0, limit, 5000, false)
+    bool limited = false
+    try
+    {
+        httpx.finish_request(call)
+        bool eof = false
+        while !eof
+        {
+            httpx.response_chunk part = httpx.read_response_chunk(call, 16384)
+            eof = part.eof
+        }
+    }
+    exception errors.io_error as failure
+    {
+        limited = failure.code == "size_limit"
+    }
+    httpx.close_request(call)
+    return limited
+}
+
+def main() -> int
+{
+    str origin = system.args()[0]
+    httpx.client_session session = httpx.open_session("direct", 2, true)
+    bool ratio = rejected(session, origin + "/bomb", 4 * 1024 * 1024)
+    bool body = rejected(session, origin + "/bomb", 512)
+    httpx.close_session(session)
+    if !ratio
+    {
+        return 1
+    }
+    if !body
+    {
+        return 2
+    }
+    return 0
+}

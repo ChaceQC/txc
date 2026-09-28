@@ -1,0 +1,19 @@
+import "httpx.txh" as httpx
+import "error.txh" as errors
+
+def main() -> int
+{
+    try
+    {
+        httpx.get_http3("https://127.0.0.1:19751/hello", 5000)
+        return 1
+    }
+    exception errors.io_error as failure
+    {
+        if failure.code != "security_error"
+        {
+            return 2
+        }
+    }
+    return 0
+}

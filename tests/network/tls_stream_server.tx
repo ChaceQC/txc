@@ -1,0 +1,89 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file.txh" as file
+import "parse.txh" as parse
+import "secret.txh" as secret
+import "socket.txh" as net
+import "system.txh" as system
+import "tls.txh" as tls
+import "x509.txh" as x509
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str directory = args[0]
+    int port = parse.parse_int(args[1])
+    str mode = args[2]
+    bytes root = x509.parse_der(file.read_bytes(directory + "/root.der"))
+    tls.trust roots = tls.custom_trust(vector<bytes>([root]), false)
+    secret_bytes password = secret.from_bytes(
+        encoding.encode("test-only-password", "utf-8"))
+    tls.identity identity = tls.import_identity(
+        file.read_bytes(directory + "/server.p12"), password)
+    secret.close(password)
+    tls.server_config config = tls.server(identity, roots, true)
+
+    net.tcp_listener listener = net.listen_tcp("127.0.0.1", port, 2)
+    net.tcp_stream plain = net.accept_tcp(listener, 5000)
+    vector<str> protocols = vector<str>(["tx-test"])
+    if mode == "alpn_mismatch"
+    {
+        protocols = vector<str>(["server-only"])
+    }
+    if mode == "no_client" || mode == "alpn_mismatch"
+    {
+        try
+        {
+            tls.accept(plain, config, protocols, 5000)
+            return 5
+        }
+        exception errors.security_error as failure
+        {
+            tls.close_identity(identity)
+            net.close(listener)
+            if ((mode == "no_client" && failure.code == "certificate_required") ||
+                (mode == "alpn_mismatch" && failure.code == "alpn_mismatch"))
+            {
+                return 0
+            }
+            return 6
+        }
+    }
+    tls.secure_stream peer = tls.accept(plain, config, protocols, 5000)
+    tls.close_identity(identity)
+    if tls.negotiated_alpn(peer) != "tx-test"
+    {
+        return 1
+    }
+    if mode == "bad_host" || mode == "bad_trust"
+    {
+        try
+        {
+            tls.read(peer, 8, 5000)
+        }
+        exception errors.security_error as failure
+        {
+            if failure.code != "truncated_close"
+            {
+                return 2
+            }
+        }
+        net.close(listener)
+        return 0
+    }
+
+    tls.read_result request = tls.read(peer, 8, 5000)
+    if request.eof || byte_values.to_hex(request.data) != "00ff80"
+    {
+        return 3
+    }
+    if tls.write(peer, byte_values.from_hex("01020304"), 5000) != 4
+    {
+        return 4
+    }
+    tls.close(peer, 5000)
+    tls.close(peer, 5000)
+    net.close(listener)
+    return 0
+}

@@ -1,0 +1,18 @@
+import "httpx.txh" as httpx
+
+def main() -> int
+{
+    httpx.negotiated_response response = httpx.send_negotiated("GET",
+        "https://www.cloudflare.com/", map<str, str>(), "", 5000,
+        "h3_then_system")
+    if response.status != 200 || len(response.body) == 0
+    {
+        return 1
+    }
+    if response.protocol != "h3" && response.protocol != "h2" && response.protocol != "http/1.1"
+    {
+        return 2
+    }
+    print(response.protocol)
+    return 0
+}

@@ -1,0 +1,105 @@
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file.txh" as file
+import "parse.txh" as parse
+import "secret.txh" as secret
+import "socket.txh" as net
+import "system.txh" as system
+import "tls.txh" as tls
+import "x509.txh" as x509
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str directory = args[0]
+    int port = parse.parse_int(args[1])
+    str mode = args[2]
+    str root_name = "root.der"
+    if mode == "bad_trust"
+    {
+        root_name = "other_root.der"
+    }
+    bytes root = x509.parse_der(file.read_bytes(directory + "/" + root_name))
+    tls.trust roots = tls.custom_trust(vector<bytes>([root]), false)
+    str hostname = "service.example"
+    if mode == "bad_host"
+    {
+        hostname = "wrong.example"
+    }
+    tls.client_config config = tls.client(hostname, roots)
+    secret_bytes password = secret.from_bytes(
+        encoding.encode("test-only-password", "utf-8"))
+    tls.identity identity = tls.import_identity(
+        file.read_bytes(directory + "/client.p12"), password)
+    secret.close(password)
+    if mode != "no_client"
+    {
+        config = tls.with_client_identity(config, identity)
+    }
+
+    net.tcp_stream plain = net.connect_tcp("127.0.0.1", port, 5000)
+    if (mode == "bad_host" || mode == "bad_trust" ||
+        mode == "alpn_mismatch")
+    {
+        try
+        {
+            tls.connect(plain, config, vector<str>(["tx-test"]), 5000)
+            return 1
+        }
+        exception errors.security_error as failure
+        {
+            tls.close_identity(identity)
+            if ((mode == "bad_host" && failure.code == "hostname_mismatch") ||
+                (mode == "bad_trust" && failure.code == "unknown_issuer") ||
+                (mode == "alpn_mismatch" &&
+                 (failure.code == "alpn_mismatch" ||
+                  failure.code == "handshake_failed")))
+            {
+                return 0
+            }
+            return 2
+        }
+    }
+
+    tls.secure_stream peer = tls.connect(plain, config,
+        vector<str>(["tx-test"]), 5000)
+    tls.close_identity(identity)
+    if mode == "no_client"
+    {
+        return 0
+    }
+    bool consumed = false
+    try
+    {
+        net.write(plain, byte_values.empty(), 100)
+    }
+    exception errors.io_error as failure
+    {
+        consumed = failure.code == "connection_closed"
+    }
+    if !consumed
+    {
+        return 7
+    }
+    if tls.negotiated_alpn(peer) != "tx-test"
+    {
+        return 3
+    }
+    if tls.write(peer, byte_values.from_hex("00ff80"), 5000) != 3
+    {
+        return 4
+    }
+    tls.read_result response = tls.read(peer, 8, 5000)
+    if response.eof || byte_values.to_hex(response.data) != "01020304"
+    {
+        return 5
+    }
+    tls.read_result eof = tls.read(peer, 8, 5000)
+    if !eof.eof
+    {
+        return 6
+    }
+    tls.close(peer, 5000)
+    return 0
+}

@@ -1,0 +1,97 @@
+import "error.txh" as errors
+import "requests.txh" as requests
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str url = args[0]
+    str root = args[1]
+    str unrelated = args[2]
+    str package = args[3]
+    str wrong_host_url = args[4]
+
+    auto client = requests.session()
+    auto first = client.request("GET", url, verify=root,
+                                cert=[package, "test-only-password"])
+    auto second = client.get(url, verify=root,
+                             cert=[package, "test-only-password"])
+    if (first.status_code != 200 || first.text() != "mutual-tls-ok" ||
+        second.status_code != 200 || second.text() != "mutual-tls-ok")
+    {
+        return 1
+    }
+    client.close()
+
+    bool unknown_root = false
+    try
+    {
+        requests.get(url, cert=[package, "test-only-password"])
+    }
+    exception errors.io_error as failure
+    {
+        unknown_root = failure.code == "security_error"
+    }
+    if !unknown_root
+    {
+        return 2
+    }
+
+    bool wrong_root = false
+    try
+    {
+        requests.get(url, verify=unrelated,
+                     cert=[package, "test-only-password"])
+    }
+    exception errors.io_error as failure
+    {
+        wrong_root = failure.code == "security_error"
+    }
+    if !wrong_root
+    {
+        return 3
+    }
+
+    bool missing_client = false
+    try
+    {
+        requests.get(url, verify=root)
+    }
+    exception errors.io_error as failure
+    {
+        missing_client = failure.code == "security_error"
+    }
+    if !missing_client
+    {
+        return 4
+    }
+
+    bool disabled_rejected = false
+    try
+    {
+        requests.get(url, verify=false)
+    }
+    exception errors.io_error as failure
+    {
+        disabled_rejected = failure.code == "unsupported_option"
+    }
+    if !disabled_rejected
+    {
+        return 5
+    }
+    bool wrong_host = false
+    try
+    {
+        requests.get(wrong_host_url, verify=root,
+                     cert=[package, "test-only-password"])
+    }
+    exception errors.io_error as failure
+    {
+        wrong_host = failure.code == "security_error"
+    }
+    if !wrong_host
+    {
+        return 6
+    }
+    return 0
+}

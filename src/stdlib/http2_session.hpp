@@ -9,6 +9,7 @@
 #include <deque>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -25,7 +26,7 @@ struct request_state
     binary_stream destination;
     std::size_t max_body_bytes = network::max_body_bytes;
     std::size_t header_bytes = 0;
-    bool binary = false;
+    bool binary = true;
     bool complete = false;
     bool response_done = false;
     std::string scheme;
@@ -63,6 +64,8 @@ private:
     static int on_data_chunk(nghttp2_session*, std::uint8_t, std::int32_t,
                              const std::uint8_t*, std::size_t, void*);
     static int on_frame_recv(nghttp2_session*, const nghttp2_frame*, void*);
+    static int on_invalid_frame(nghttp2_session*, const nghttp2_frame*,
+                                int, void*);
     static int on_stream_close(nghttp2_session*, std::int32_t,
                                std::uint32_t, void*);
     static nghttp2_ssize read_response_data(nghttp2_session*, std::int32_t,
@@ -83,6 +86,8 @@ private:
                          std::int64_t body_length);
 
     transport io_;
+    std::mutex io_mutex_;
+    std::mutex accept_mutex_;
     bool secure_ = false;
     nghttp2_session* session_ = nullptr;
     std::unordered_map<std::int32_t, std::shared_ptr<request_state>> streams_;

@@ -1,0 +1,60 @@
+import "bytes.txh" as byte_values
+import "cancel.txh" as cancel
+import "error.txh" as errors
+import "socket.txh" as net
+import "task.txh" as task
+import "time.txh" as clock
+
+def run(scope: task_scope) -> int
+{
+    net.tcp_listener listener = net.listen_tcp("127.0.0.1", 0, 2)
+    net.tcp_stream client = net.connect_tcp("127.0.0.1",
+        net.listener_port(listener), 1000)
+    net.tcp_stream server = net.accept_tcp(listener, 1000)
+    cancel_source owner = cancel.source()
+    task<net.read_result> pending = net.read_async(client, 8, 3000,
+        cancel.token(owner))
+    clock.sleep_millis(100)
+    cancel.cancel(owner)
+    bool stopped = false
+    try
+    {
+        task.wait(pending)
+    }
+    exception errors.cancelled_error as failure
+    {
+        stopped = failure.code == "cancelled"
+    }
+    if !stopped
+    {
+        return 1
+    }
+    net.write(server, byte_values.from_hex("00ff80"), 1000)
+    net.read_result after = net.read(client, 8, 1000)
+    if after.eof || byte_values.to_hex(after.data) != "00ff80"
+    {
+        return 2
+    }
+    net.close(client)
+    bool closed = false
+    try
+    {
+        net.read(client, 1, 100)
+    }
+    exception errors.io_error as failure
+    {
+        closed = failure.code == "connection_closed"
+    }
+    net.close(server)
+    net.close(listener)
+    if !closed
+    {
+        return 3
+    }
+    return 0
+}
+
+def main() -> int
+{
+    return task.scope(run, 4, 5000)
+}

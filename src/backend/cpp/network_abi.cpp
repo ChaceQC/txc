@@ -16,8 +16,14 @@
 #include <utility>
 #include <vector>
 
-extern "C" void tx_callback_m0_bridge_serve_once_0(void*, void*, std::int64_t);
-extern "C" void tx_callback_m0_bridge_serve_once_bytes_0(void*, void*, std::int64_t);
+extern "C" void tx_callback_m0_bridge_serve_once_0(void*, void*, void*,
+                                                     std::int64_t);
+extern "C" void tx_callback_m0_bridge_serve_once_bytes_0(void*, void*, void*,
+                                                           std::int64_t);
+extern "C" void tx_callback_m0_bridge_serve_routes_0(void*, void*, void*,
+                                                       std::int64_t);
+extern "C" void tx_callback_m0_bridge_serve_routes_bytes_0(void*, void*, void*,
+                                                             std::int64_t);
 namespace tx_generated::network_abi
 {
 
@@ -277,6 +283,18 @@ extern "C" int txrt_httpx_listen(const void* host, std::int64_t port,
     }, tx::error_kind::io);
 }
 
+extern "C" int txrt_httpx_listen_with_limit(const void* host,
+    std::int64_t port, std::int64_t max_connections,
+    const char* type_name, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        const auto id = tx_generated::httpx_listen_with_limit(text_at(host),
+            port, max_connections);
+        *result = make_handle<std::any>(make_resource(type_name, "listener", id));
+    }, tx::error_kind::io);
+}
+
 extern "C" int txrt_httpx_accept(const void* server, std::int64_t timeout,
     const char* request_type, const char* connection_type,
     void** result) noexcept
@@ -344,7 +362,9 @@ extern "C" int txrt_httpx_serve_once(const void* server, void* handler,
     {
         active_http_request = 0;
         auto* owned = make_handle<std::any>(*static_cast<const std::any*>(server));
-        tx_callback_m0_bridge_serve_once_0(owned, handler, timeout);
+        auto* owned_handler = make_handle<std::any>(
+            *static_cast<const std::any*>(handler));
+        tx_callback_m0_bridge_serve_once_0(nullptr, owned, owned_handler, timeout);
         if (txrt_error_status() != 0 && active_http_request != 0)
         {
             tx_generated::httpx_close_connection(active_http_request);
@@ -360,7 +380,48 @@ extern "C" int txrt_httpx_serve_once_bytes(const void* server, void* handler,
     {
         active_http_request = 0;
         auto* owned = make_handle<std::any>(*static_cast<const std::any*>(server));
-        tx_callback_m0_bridge_serve_once_bytes_0(owned, handler, timeout);
+        auto* owned_handler = make_handle<std::any>(
+            *static_cast<const std::any*>(handler));
+        tx_callback_m0_bridge_serve_once_bytes_0(nullptr, owned,
+                                                   owned_handler, timeout);
+        if (txrt_error_status() != 0 && active_http_request != 0)
+        {
+            tx_generated::httpx_close_connection(active_http_request);
+        }
+        active_http_request = 0;
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_httpx_serve_routes(const void* server, void* routes,
+    std::int64_t timeout, const char*, const char*) noexcept
+{
+    return invoke_checked([&]
+    {
+        active_http_request = 0;
+        auto* owned = make_handle<std::any>(*static_cast<const std::any*>(server));
+        auto* owned_routes = make_handle<std::any>(
+            *static_cast<const std::any*>(routes));
+        tx_callback_m0_bridge_serve_routes_0(nullptr, owned, owned_routes,
+                                              timeout);
+        if (txrt_error_status() != 0 && active_http_request != 0)
+        {
+            tx_generated::httpx_close_connection(active_http_request);
+        }
+        active_http_request = 0;
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_httpx_serve_routes_bytes(const void* server, void* routes,
+    std::int64_t timeout, const char*, const char*) noexcept
+{
+    return invoke_checked([&]
+    {
+        active_http_request = 0;
+        auto* owned = make_handle<std::any>(*static_cast<const std::any*>(server));
+        auto* owned_routes = make_handle<std::any>(
+            *static_cast<const std::any*>(routes));
+        tx_callback_m0_bridge_serve_routes_bytes_0(nullptr, owned,
+                                                    owned_routes, timeout);
         if (txrt_error_status() != 0 && active_http_request != 0)
         {
             tx_generated::httpx_close_connection(active_http_request);

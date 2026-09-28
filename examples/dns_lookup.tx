@@ -1,0 +1,11 @@
+import "dns.txh" as dns
+
+def main() -> int
+{
+    vector<dns.address> addresses = dns.resolve("example.com", 5000)
+    for address in addresses
+    {
+        print(address.family, address.ip, address.ttl_seconds)
+    }
+    return 0
+}

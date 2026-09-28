@@ -1,0 +1,29 @@
+import "task.txh" as task
+import "websocket.txh" as ws
+
+async def echo_once(peer: ws.connection) -> int
+{
+    ws.message incoming = ws.receive(peer, 5000)
+    if !incoming.open || incoming.text != "async"
+    {
+        return 1
+    }
+    ws.send_text(peer, "async-ok")
+    ws.close_with_reason(peer, 1000, "done")
+    return 0
+}
+
+def run(scope: task_scope) -> int
+{
+    ws.listener server = ws.listen("127.0.0.1", 19761)
+    ws.connection peer = ws.accept(server, 5000)
+    task<int> work = echo_once(move(peer))
+    int result = task.wait(work)
+    ws.close(server)
+    return result
+}
+
+def main() -> int
+{
+    return task.scope(run, 2, 10000)
+}

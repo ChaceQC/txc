@@ -16,6 +16,10 @@
 | `mutex<T>`、`rw_lock<T>`、`atomic<T>`、`condition`、`semaphore`、`once`、`cancel_token`、`channel<T>` | 仅在各自实现允许的 T 范围内 | 是；公开操作受内部同步保护 |
 | 锁卫士、迭代器、`array/dict/any`、未检查捕获的函数闭包 | 否 | 否 |
 | 文件、网络、进程及其他不透明句柄 | 默认否，除非模块逐类证明并声明 | 默认否 |
+| `httpx.listener`、`httpx.client_session` | 是；共享底层登记状态 | 是；监听接入及会话池由运行时同步，关闭后所有别名失效 |
+| `websocket.connection` | 是；新建连接可唯一移动到任务工作线程 | 否；同一连接的收发状态不允许并发别名操作 |
+
+`httpx.connection` 和 `httpx.client_request` 仍按可变请求资源处理，不声明 `Sync`。共享监听器的多个 TX 线程各自在自己的运行时上下文中执行处理函数；C++ 网络线程只处理 I/O，不直接调用 TX 回调。HTTP/1.1 监听端按连接数限额及接受锁协调，HTTP/2 会话按流锁和流限额协调；接口与验证见[网络模块](network.md)。
 
 编译期断言 `assert_send(value)` 与 `assert_sync(value)` 正常求值实参后返回 `void`；不满足规则时在实参位置报告中文诊断。`assert_send` 对可变复合值还要求当前作用域可证明该值唯一拥有且未逃逸；它只检查、不消费该值。`assert_sync` 不把普通可变容器或可写结构体视为安全共享。
 

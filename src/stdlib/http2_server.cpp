@@ -1,10 +1,16 @@
 #include "stdlib/http2_server.hpp"
 
 #include "stdlib/http2_session.hpp"
+#include "stdlib/error.hpp"
 
+#include <atomic>
+#include <chrono>
+#include <limits>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <unordered_map>
+#include <vector>
 
 namespace tx_generated::http2
 {
@@ -22,7 +28,9 @@ struct listener_state
     }
     network::socket_handle socket;
     std::shared_ptr<tls_config> credentials;
-    std::shared_ptr<server_session> active;
+    std::mutex accept_mutex;
+    std::vector<std::shared_ptr<server_session>> sessions;
+    std::atomic<bool> closed = false;
 };
 
 struct connection_state
@@ -82,7 +90,7 @@ std::int64_t register_listener(std::shared_ptr<listener_state> state)
 
 bool is_http2_id(std::int64_t id) noexcept
 {
-    return id >= id_prefix;
+    return id >= id_prefix && id < (std::int64_t{1} << 61);
 }
 
 std::int64_t listen_h2c(std::string_view host, std::int64_t port)
@@ -104,28 +112,73 @@ std::int64_t accept(std::int64_t listener, const binary_stream& destination,
                     std::size_t max_request_bytes, bool binary,
                     std::int64_t timeout_ms)
 {
+    if (timeout_ms < 0 || timeout_ms > std::numeric_limits<int>::max())
+    {
+        network::fail("invalid_argument", "HTTP/2 等待超时参数无效");
+    }
     auto state = listener_at(listener);
+    std::lock_guard accept_lock(state->accept_mutex);
+    const auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(timeout_ms);
     while (true)
     {
-        if (!state->active)
+        if (state->closed)
         {
-            auto socket = network::accept_tcp(state->socket.get(), timeout_ms);
-            state->active = std::make_shared<server_session>(
-                std::move(socket), state->credentials, timeout_ms);
+            network::fail("connection_closed", "HTTP/2 监听器已关闭");
         }
-        auto stream = state->active->accept(destination, max_request_bytes,
-                                            binary, timeout_ms);
-        if (!stream)
+        for (auto item = state->sessions.begin(); item != state->sessions.end();)
         {
-            state->active.reset();
-            continue;
+            std::shared_ptr<request_state> stream;
+            try
+            {
+                stream = (*item)->accept(destination, max_request_bytes,
+                                         binary, 1);
+            }
+            catch (const runtime_failure& error)
+            {
+                if (error.error().code != "timeout")
+                {
+                    throw;
+                }
+                ++item;
+                continue;
+            }
+            if (!stream)
+            {
+                item = state->sessions.erase(item);
+                continue;
+            }
+            auto& registry = servers();
+            std::lock_guard lock(registry.mutex);
+            const auto id = registry.next_id++;
+            registry.connections.emplace(id, connection_state{*item,
+                                                                std::move(stream)});
+            return id;
         }
-        auto& registry = servers();
-        std::lock_guard lock(registry.mutex);
-        const auto id = registry.next_id++;
-        registry.connections.emplace(id, connection_state{state->active,
-                                                            std::move(stream)});
-        return id;
+        if (state->sessions.size() < 16)
+        {
+            fd_set ready;
+            FD_ZERO(&ready);
+            FD_SET(state->socket.get(), &ready);
+            timeval wait{0, 0};
+            const int selected = select(0, &ready, nullptr, nullptr, &wait);
+            if (selected < 0)
+            {
+                network::socket_failure("等待 HTTP/2 连接");
+            }
+            if (selected > 0)
+            {
+                auto socket = network::accept_tcp(state->socket.get(), 1);
+                state->sessions.push_back(std::make_shared<server_session>(
+                    std::move(socket), state->credentials, 5000));
+                continue;
+            }
+        }
+        if (timeout_ms != 0 && std::chrono::steady_clock::now() >= deadline)
+        {
+            network::fail("timeout", "等待 HTTP/2 请求超时");
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
@@ -157,7 +210,12 @@ void close_listener(std::int64_t id) noexcept
 {
     auto& registry = servers();
     std::lock_guard lock(registry.mutex);
-    registry.listeners.erase(id);
+    const auto found = registry.listeners.find(id);
+    if (found != registry.listeners.end())
+    {
+        found->second->closed = true;
+        registry.listeners.erase(found);
+    }
 }
 
 void close_connection(std::int64_t id) noexcept

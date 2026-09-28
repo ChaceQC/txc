@@ -1,0 +1,16 @@
+import "httpx.txh" as httpx
+
+def main() -> int
+{
+    httpx.response first = httpx.get("http://127.0.0.1:19746/items/42", 5000)
+    if first.status != 200 || first.body != "42"
+    {
+        return 1
+    }
+    httpx.response second = httpx.get("http://127.0.0.1:19746/missing", 5000)
+    if second.status != 404
+    {
+        return 2
+    }
+    return 0
+}

@@ -1,0 +1,10 @@
+struct address
+{
+    ip: str
+    family: str
+    ttl_seconds: int
+}
+
+def resolve(host: str, timeout_ms: int) -> vector<address>
+def resolve_with_cancel(host: str, timeout_ms: int,
+                        token: cancel_token) -> vector<address>

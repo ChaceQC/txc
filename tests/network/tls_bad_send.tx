@@ -1,0 +1,8 @@
+import "tls.txh" as tls
+
+def main() -> int
+{
+    tls.secure_stream peer = tls.secure_stream(0)
+    assert_send(peer)
+    return 0
+}

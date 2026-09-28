@@ -59,6 +59,72 @@ struct stream_response
     body_length: int
 }
 
+struct client_session
+{
+    id: int
+}
+
+struct client_request
+{
+    id: int
+}
+
+struct response_head
+{
+    status: int
+    headers: map<str, str>
+    set_cookie: vector<str>
+}
+
+struct response_chunk
+{
+    data: bytes
+    eof: bool
+}
+
+struct negotiated_response
+{
+    protocol: str
+    status: int
+    headers: map<str, str>
+    set_cookie: vector<str>
+    body: str
+}
+
+struct negotiated_binary_response
+{
+    protocol: str
+    status: int
+    headers: map<str, str>
+    set_cookie: vector<str>
+    body: bytes
+}
+
+struct route_match
+{
+    matched: bool
+    params: map<str, str>
+}
+
+struct route_context
+{
+    params: map<str, str>
+}
+
+struct route_rule
+{
+    method: str
+    pattern: str
+    handler: fn(request, route_context) -> response
+}
+
+struct binary_route_rule
+{
+    method: str
+    pattern: str
+    handler: fn(binary_request, route_context) -> binary_response
+}
+
 def send(method: str, url: str, headers: map<str, str>, body: str, timeout_ms: int) -> response
 def get(url: str, timeout_ms: int) -> response
 def post(url: str, body: str, timeout_ms: int) -> response
@@ -71,13 +137,36 @@ def post_http2(url: str, body: str, timeout_ms: int) -> response
 def send_http2_bytes(method: str, url: str, headers: map<str, str>, body: bytes, timeout_ms: int) -> binary_response
 def get_http2_bytes(url: str, timeout_ms: int) -> binary_response
 def post_http2_bytes(url: str, body: bytes, timeout_ms: int) -> binary_response
+def send_http3(method: str, url: str, headers: map<str, str>, body: str, timeout_ms: int) -> response
+def get_http3(url: str, timeout_ms: int) -> response
+def post_http3(url: str, body: str, timeout_ms: int) -> response
+def send_http3_bytes(method: str, url: str, headers: map<str, str>, body: bytes, timeout_ms: int) -> binary_response
+def get_http3_bytes(url: str, timeout_ms: int) -> binary_response
+def post_http3_bytes(url: str, body: bytes, timeout_ms: int) -> binary_response
+def send_http3_with_trust(method: str, url: str, headers: map<str, str>, body: str, anchors: vector<bytes>, timeout_ms: int) -> response
+def send_http3_with_trust_bytes(method: str, url: str, headers: map<str, str>, body: bytes, anchors: vector<bytes>, timeout_ms: int) -> binary_response
+def send_http3_controlled(method: str, url: str, headers: map<str, str>, body: str, anchors: vector<bytes>, timeout_ms: int, token: cancel_token) -> response
+def send_http3_controlled_bytes(method: str, url: str, headers: map<str, str>, body: bytes, anchors: vector<bytes>, timeout_ms: int, token: cancel_token) -> binary_response
+def send_negotiated(method: str, url: str, headers: map<str, str>, body: str, timeout_ms: int, policy: str) -> negotiated_response
+def send_negotiated_bytes(method: str, url: str, headers: map<str, str>, body: bytes, timeout_ms: int, policy: str) -> negotiated_binary_response
 def send_stream(method: str, url: str, headers: map<str, str>, source: binary_stream, source_length: int, destination: binary_stream, max_response_bytes: int, timeout_ms: int) -> stream_response
 def get_stream(url: str, destination: binary_stream, max_response_bytes: int, timeout_ms: int) -> stream_response
 def send_http2_stream(method: str, url: str, headers: map<str, str>, source: binary_stream, source_length: int, destination: binary_stream, max_response_bytes: int, timeout_ms: int) -> stream_response
 def get_http2_stream(url: str, destination: binary_stream, max_response_bytes: int, timeout_ms: int) -> stream_response
+def open_session(proxy_url: str, max_connections: int, decompress: bool) -> client_session
+def open_secure_session(proxy_url: str, max_connections: int, decompress: bool, anchors: vector<bytes>, include_system: bool, client_package: bytes, client_password: secret_bytes, allow_http2: bool) -> client_session
+def begin_request(session: client_session, method: str, url: str, headers: map<str, str>, body_length: int, max_response_bytes: int, timeout_ms: int, require_http2: bool) -> client_request
+def write_request(peer: client_request, data: bytes) -> int
+def finish_request(peer: client_request) -> response_head
+def read_response_chunk(peer: client_request, max_bytes: int) -> response_chunk
+def close_session(session: client_session) -> void
+def close_request(peer: client_request) -> void
+def match_route(route_method: str, pattern: str, request_method: str, target: str) -> route_match
 def listen(host: str, port: int) -> listener
+def listen_with_limit(host: str, port: int, max_connections: int) -> listener
 def listen_h2c(host: str, port: int) -> listener
 def listen_h2_tls(host: str, port: int, cert_pem: str, key_pem: str) -> listener
+def listen_h3(host: str, port: int, package: bytes, password: secret_bytes) -> listener
 def accept(server: listener, timeout_ms: int) -> request
 def accept_bytes(server: listener, timeout_ms: int) -> binary_request
 def accept_stream(server: listener, destination: binary_stream, max_request_bytes: int, timeout_ms: int) -> stream_request
@@ -86,5 +175,7 @@ def respond_bytes(peer: connection, value: binary_response) -> void
 def respond_stream(peer: connection, status: int, headers: map<str, str>, set_cookie: vector<str>, source: binary_stream, body_length: int) -> void
 def serve_once(server: listener, handler: fn(request) -> response, timeout_ms: int) -> void
 def serve_once_bytes(server: listener, handler: fn(binary_request) -> binary_response, timeout_ms: int) -> void
+def serve_routes(server: listener, routes: vector<route_rule>, timeout_ms: int) -> void
+def serve_routes_bytes(server: listener, routes: vector<binary_route_rule>, timeout_ms: int) -> void
 def close(server: listener) -> void
 def close(peer: connection) -> void

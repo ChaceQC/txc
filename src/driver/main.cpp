@@ -320,7 +320,7 @@ int compile_llvm_native(const std::string& generated_source,
         L"-lstdc++", L"-lmingw32", L"-lgcc_s", L"-lgcc",
         L"-lmoldname", L"-lmingwex", L"-lmsvcrt", L"-lkernel32",
         L"-lpthread", L"-ladvapi32", L"-lbcrypt", L"-lcrypt32", L"-lncrypt",
-        L"-lwinhttp", L"-lws2_32",
+        L"-lwinhttp", L"-lws2_32", L"-ldnsapi",
         L"-lshell32", L"-luser32",
         L"-lkernel32", L"-liconv", L"-lmingw32", L"-lgcc_s",
         L"-lgcc", L"-lmoldname", L"-lmingwex", L"-lmsvcrt",
@@ -337,7 +337,8 @@ int compile_llvm_native(const std::string& generated_source,
     for (const auto* name : {"libgcc_s_seh-1.dll", "libstdc++-6.dll",
                              "libwinpthread-1.dll", "libstdc++-u.dll",
                              "libicuin78.dll",
-                             "libicuuc78.dll", "libicudt78.dll"})
+                             "libicuuc78.dll", "libicudt78.dll",
+                             "msquic.dll"})
     {
         place_runtime_dependency(tool_dir / name, output_dir);
     }

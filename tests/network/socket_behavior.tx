@@ -1,0 +1,137 @@
+import "bytes.txh" as byte_values
+import "cancel.txh" as cancel
+import "error.txh" as errors
+import "socket.txh" as net
+import "task.txh" as task
+
+def run(scope: task_scope) -> int
+{
+    net.tcp_listener listener = net.listen_tcp("127.0.0.1", 0, 4)
+    int port = net.listener_port(listener)
+    net.tcp_stream client = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream server = net.accept_tcp(listener, 1000)
+
+    bytes payload = byte_values.from_hex("00ff80")
+    if net.write(client, payload, 1000) != 3
+    {
+        return 1
+    }
+    net.read_result first = net.read(server, 8, 1000)
+    if first.eof || byte_values.to_hex(first.data) != "00ff80"
+    {
+        return 2
+    }
+    net.shutdown_write(client)
+    net.read_result eof = net.read(server, 8, 1000)
+    if !eof.eof || len(eof.data) != 0
+    {
+        return 3
+    }
+    net.read_result repeated_eof = net.read(server, 8, 1000)
+    if !repeated_eof.eof
+    {
+        return 13
+    }
+    int replied = net.write(server, byte_values.from_hex("aabb"), 1000)
+    net.read_result reply = net.read(client, 8, 1000)
+    if replied != 2 || byte_values.to_hex(reply.data) != "aabb"
+    {
+        return 4
+    }
+
+    cancel_source connection_source = cancel.source()
+    cancel_token connection_token = cancel.token(connection_source)
+    net.tcp_listener async_listener = net.listen_tcp("127.0.0.1", 0, 2)
+    task<net.tcp_stream> accepting = net.accept_async(async_listener, 1000,
+        connection_token)
+    task<net.tcp_stream> connecting = net.connect_async("127.0.0.1",
+        net.listener_port(async_listener), 1000, connection_token)
+    net.tcp_stream async_server = task.wait(accepting)
+    net.tcp_stream async_client = task.wait(connecting)
+    net.close(async_server)
+    net.close(async_client)
+    net.close(async_listener)
+
+    net.udp_socket receiver = net.bind_udp("127.0.0.1", 0)
+    net.udp_socket sender = net.bind_udp("127.0.0.1", 0)
+    if net.send_to(sender, "127.0.0.1", net.udp_port(receiver), payload, 1000) != 3
+    {
+        return 5
+    }
+    net.datagram packet = net.receive_from(receiver, 2, 1000)
+    if (!packet.truncated || byte_values.to_hex(packet.data) != "00ff" ||
+        packet.port != net.udp_port(sender))
+    {
+        return 6
+    }
+    net.send_to(sender, "127.0.0.1", net.udp_port(receiver),
+        byte_values.empty(), 1000)
+    net.datagram empty = net.receive_from(receiver, 0, 1000)
+    if empty.truncated || len(empty.data) != 0
+    {
+        return 7
+    }
+
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    task<net.read_result> reading = net.read_async(client, 8, 1000, token)
+    task<int> writing = net.write_async(server, payload, 1000, token)
+    int wrote = task.wait(writing)
+    net.read_result received = task.wait(reading)
+    if wrote != 3 || byte_values.to_hex(received.data) != "00ff80"
+    {
+        return 8
+    }
+    task<net.datagram> receiving = net.receive_from_async(receiver, 8, 1000, token)
+    task<int> sending = net.send_to_async(sender, "127.0.0.1",
+        net.udp_port(receiver), payload, 1000, token)
+    int sent = task.wait(sending)
+    net.datagram received_packet = task.wait(receiving)
+    if sent != 3 || byte_values.to_hex(received_packet.data) != "00ff80"
+    {
+        return 9
+    }
+
+    cancel_source cancelled = cancel.source()
+    cancel.cancel(cancelled)
+    task<net.read_result> stopped = net.read_async(client, 8, 1000,
+        cancel.token(cancelled))
+    bool observed = false
+    try
+    {
+        task.wait(stopped)
+    }
+    exception errors.cancelled_error as failure
+    {
+        observed = failure.code == "cancelled"
+    }
+    if !observed
+    {
+        return 10
+    }
+
+    net.close(client)
+    net.close(client)
+    try
+    {
+        net.read(client, 1, 100)
+        return 11
+    }
+    exception errors.io_error as failure
+    {
+        if failure.code != "connection_closed"
+        {
+            return 12
+        }
+    }
+    net.close(server)
+    net.close(listener)
+    net.close(receiver)
+    net.close(sender)
+    return 0
+}
+
+def main() -> int
+{
+    return task.scope(run, 8, 5000)
+}

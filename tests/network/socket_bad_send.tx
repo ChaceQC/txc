@@ -1,0 +1,11 @@
+import "socket.txh" as net
+
+def main() -> int
+{
+    if false
+    {
+        net.tcp_listener listener = net.listen_tcp("127.0.0.1", 0, 1)
+        assert_send(listener)
+    }
+    return 0
+}

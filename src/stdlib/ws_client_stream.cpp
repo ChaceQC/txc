@@ -20,6 +20,8 @@ struct stream_event
     bool complete = false;
     bool closed = false;
     std::exception_ptr error;
+    std::int64_t close_code = 1005;
+    std::string close_reason;
 };
 
 struct stream_pipe
@@ -80,7 +82,17 @@ void read_client_chunks(std::shared_ptr<ws_connection_state> state,
             }
             if (type == WINHTTP_WEB_SOCKET_CLOSE_BUFFER_TYPE)
             {
-                publish(pipe, {{}, false, true, {}});
+                USHORT status = 1005;
+                char reason[123]{};
+                DWORD used = 0;
+                if (WinHttpWebSocketQueryCloseStatus(state->websocket.get(),
+                    &status, reason, sizeof(reason), &used) != NO_ERROR)
+                {
+                    network::fail("protocol_error", "无法读取 WebSocket 关闭状态");
+                }
+                network::validate_utf8({reason, used});
+                publish(pipe, {{}, false, true, {}, status,
+                    std::string(reason, used)});
                 return;
             }
             if (type != WINHTTP_WEB_SOCKET_BINARY_MESSAGE_BUFFER_TYPE &&
@@ -90,7 +102,8 @@ void read_client_chunks(std::shared_ptr<ws_connection_state> state,
             }
             const bool complete =
                 type == WINHTTP_WEB_SOCKET_BINARY_MESSAGE_BUFFER_TYPE;
-            publish(pipe, {std::string(buffer, received), complete, false, {}});
+            publish(pipe, {std::string(buffer, received), complete, false,
+                {}, 1005, {}});
             if (complete)
             {
                 return;
@@ -99,7 +112,7 @@ void read_client_chunks(std::shared_ptr<ws_connection_state> state,
     }
     catch (...)
     {
-        publish(pipe, {{}, false, false, std::current_exception()});
+        publish(pipe, {{}, false, false, std::current_exception(), 1005, {}});
     }
 }
 
@@ -182,7 +195,8 @@ ws_stream_message_data ws_client_receive_stream(
         }
         if (event.closed)
         {
-            return {false, 0};
+            return {false, 0, event.close_code,
+                std::move(event.close_reason)};
         }
         if (event.data.size() >
             static_cast<std::uint64_t>(max_message_bytes - total))
@@ -193,7 +207,7 @@ ws_stream_message_data ws_client_receive_stream(
         total += static_cast<std::int64_t>(event.data.size());
         if (event.complete)
         {
-            return {true, total};
+            return {true, total, 1005, {}};
         }
     }
 }

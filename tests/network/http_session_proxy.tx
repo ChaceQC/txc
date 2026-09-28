@@ -1,0 +1,54 @@
+import "httpx.txh" as httpx
+import "bytes.txh" as byte_values
+import "error.txh" as errors
+
+def main() -> int
+{
+    httpx.client_session session = httpx.open_session(
+        "http://127.0.0.1:19745", 2, true)
+    httpx.client_request first = httpx.begin_request(session, "GET",
+        "http://example.invalid/compressed", map<str, str>(),
+        0, 32, 5000, false)
+    httpx.response_head head = httpx.finish_request(first)
+    if head.status != 200
+    {
+        return 1
+    }
+    bytes received = byte_values.empty()
+    bool eof = false
+    while !eof
+    {
+        httpx.response_chunk part = httpx.read_response_chunk(first, 4)
+        eof = part.eof
+        if !eof
+        {
+            received = byte_values.concat(received, part.data)
+        }
+    }
+    if byte_values.to_hex(received) != "00ff80010203"
+    {
+        return 2
+    }
+    httpx.close_request(first)
+
+    httpx.client_request second = httpx.begin_request(session, "GET",
+        "http://example.invalid/compressed", map<str, str>(),
+        0, 4, 5000, false)
+    httpx.finish_request(second)
+    bool limited = false
+    try
+    {
+        httpx.read_response_chunk(second, 16)
+    }
+    exception errors.io_error as failure
+    {
+        limited = failure.code == "size_limit"
+    }
+    httpx.close_request(second)
+    httpx.close_session(session)
+    if !limited
+    {
+        return 3
+    }
+    return 0
+}

@@ -39,8 +39,9 @@ std::int64_t import_identity(const byte_value& package,
             "客户端或服务端身份缺少证书"});
     }
 
-    auto state = std::make_shared<identity_state>(
-        std::move(certificates), std::move(private_key));
+    auto state = std::make_shared<identity_state>();
+    state->certificates = std::move(certificates);
+    state->private_key = std::move(private_key);
     auto& records = registry();
     std::lock_guard lock(records.mutex);
     if (records.next_id == std::numeric_limits<std::int64_t>::max())
@@ -78,6 +79,7 @@ void close_identity(std::int64_t id) noexcept
     const auto found = records.values.find(id);
     if (found != records.values.end())
     {
+        std::lock_guard identity_lock(found->second->mutex);
         secret::close(found->second->private_key);
         records.values.erase(found);
     }

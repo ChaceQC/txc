@@ -1,0 +1,30 @@
+import "error.txh" as errors
+import "httpx.txh" as httpx
+import "parse.txh" as parse
+import "system.txh" as system
+
+def main() -> int
+{
+    int port = parse.parse_int(system.args()[0])
+    httpx.listener server = httpx.listen("127.0.0.1", port)
+    bool timed_out = false
+    try
+    {
+        httpx.request slow = httpx.accept(server, 650)
+        httpx.close(slow.connection)
+    }
+    exception errors.io_error as failure
+    {
+        timed_out = failure.code == "timeout"
+    }
+    if !timed_out
+    {
+        httpx.close(server)
+        return 1
+    }
+    httpx.request healthy = httpx.accept(server, 2000)
+    httpx.respond(healthy.connection, httpx.response(200,
+        map<str, str>(), vector<str>(), "ok"))
+    httpx.close(server)
+    return 0
+}

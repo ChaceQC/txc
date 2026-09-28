@@ -2,10 +2,12 @@ import "requests.txh" as api
 import "requests_cookie.tx" as cookie_jar
 import "requests_kwargs.tx" as named
 import "requests_url.tx" as urls
+import "requests_transport.tx" as transport
 import "array.txh" as arrays
 import "bytes.txh" as byte_values
 import "encoding.txh" as encoding
 import "error.txh" as errors
+import "file_stream.txh" as streams
 import "httpx.txh" as httpx
 import "json.txh" as json_values
 import "string.txh" as strings
@@ -15,7 +17,8 @@ def bridge_default_options() -> api.request_options
 {
     return api.request_options(map<str, str>(), map<str, str>(),
                                map<str, str>(), byte_values.empty(), "none",
-                               30000, true, 10, false, false, "", "")
+                               30000, true, 10, false, false, "", "",
+                               false, "", "", "", "", "", 8388608, 0, 0)
 }
 
 def bridge_with_text(options: api.request_options, body: str) -> api.request_options
@@ -70,6 +73,14 @@ def bridge_session_init(client: api.session) -> void
     client.basic_auth = false
     client.auth_user = ""
     client.auth_password = ""
+    client.transport = httpx.client_session(0)
+    client.transport_key = ""
+    client.closed = false
+}
+
+def bridge_session_close(client: api.session) -> void
+{
+    transport.close_session(client)
 }
 
 def session_options(client: api.session) -> api.request_options
@@ -166,37 +177,6 @@ def request_headers(options: api.request_options, url: str, jar: array,
     return result
 }
 
-def make_response(incoming: httpx.binary_response, url: str,
-                  started: int) -> api.response
-{
-    api.response result = api.response()
-    result.status_code = incoming.status
-    result.url = url
-    result.headers = incoming.headers
-    result.set_cookie = incoming.set_cookie
-    result.cookies = cookie_jar.response_cookies(incoming.set_cookie, url)
-    result.content = incoming.body
-    result.history = []
-    result.elapsed_ms = time.monotonic_millis() - started
-    result.ok = incoming.status < 400
-    return result
-}
-
-def send_once(method: str, url: str, headers: map<str, str>,
-              body: bytes, options: api.request_options) -> api.response
-{
-    int started = time.monotonic_millis()
-    if options.http2
-    {
-        httpx.binary_response incoming = httpx.send_http2_bytes(
-            method, url, headers, body, options.timeout_ms)
-        return make_response(incoming, url, started)
-    }
-    httpx.binary_response incoming = httpx.send_bytes(
-        method, url, headers, body, options.timeout_ms)
-    return make_response(incoming, url, started)
-}
-
 def redirect_status(status: int) -> bool
 {
     return (status == 301 || status == 302 || status == 303 ||
@@ -235,12 +215,58 @@ def strip_entity_headers(source: api.request_options) -> api.request_options
     return result
 }
 
+def retryable_method(method: str) -> bool
+{
+    return (method == "GET" || method == "HEAD" || method == "OPTIONS" ||
+            method == "PUT" || method == "DELETE")
+}
+
+def retryable_error(code: str) -> bool
+{
+    return (code == "timeout" || code == "connection_closed" ||
+            code == "operation_failed")
+}
+
+def send_with_retry(client: api.session, method: str, url: str,
+                    headers: map<str, str>, options: api.request_options) -> api.response
+{
+    int attempt = 0
+    while true
+    {
+        try
+        {
+            return transport.send_once(client, method, url, headers,
+                                       options.body, options)
+        }
+        exception errors.io_error as failure
+        {
+            if (attempt >= options.max_retries ||
+                !retryable_method(method) || !retryable_error(failure.code))
+            {
+                errors.fail_io(failure.code, failure.message)
+            }
+            attempt++
+            if options.retry_backoff_ms > 0
+            {
+                time.sleep_millis(options.retry_backoff_ms * attempt)
+            }
+        }
+    }
+    return api.response()
+}
+
 def execute(method: str, url: str, options: api.request_options,
             client: api.session, save_cookies: bool) -> api.response
 {
     if options.max_redirects < 0
     {
         errors.fail_io("invalid_argument", "max_redirects 不能为负数")
+    }
+    if (options.max_retries < 0 || options.max_retries > 3 ||
+        options.retry_backoff_ms < 0 || options.retry_backoff_ms > 1000 ||
+        options.max_response_bytes < 0)
+    {
+        errors.fail_io("invalid_argument", "重试次数、等待时间或正文上限无效")
     }
     if (options.body_type != "none" && options.body_type != "raw" &&
         options.body_type != "form" && options.body_type != "json")
@@ -262,8 +288,8 @@ def execute(method: str, url: str, options: api.request_options,
         map<str, str> headers = request_headers(current_options, current_url,
                                                  client.cookies, allow_auth,
                                                  allow_explicit_cookies)
-        api.response result = send_once(current_method, current_url, headers,
-                                        current_options.body, current_options)
+        api.response result = send_with_retry(client, current_method,
+            current_url, headers, current_options)
         if save_cookies
         {
             cookie_jar.store_response(client.cookies, result.set_cookie,
@@ -276,6 +302,7 @@ def execute(method: str, url: str, options: api.request_options,
             result.history = history
             return result
         }
+        transport.close_response(result)
         if redirects >= current_options.max_redirects
         {
             errors.fail_io("too_many_redirects", "HTTP 重定向次数超过上限")
@@ -294,6 +321,14 @@ def execute(method: str, url: str, options: api.request_options,
             allow_auth = false
             allow_explicit_cookies = false
         }
+        if (strings.starts_with(strings.lower(current_url), "https://") &&
+            strings.starts_with(strings.lower(next_url), "http://"))
+        {
+            # TLS 信任和客户端身份只用于 HTTPS；降级后不携带它们。
+            current_options.ca_file = ""
+            current_options.client_pfx_file = ""
+            current_options.client_pfx_password = ""
+        }
         str next_method = redirected_method(current_method, result.status_code)
         if next_method != current_method
         {
@@ -311,7 +346,18 @@ def run_request_named(method: str, url: str, kwargs: dict) -> api.response
 {
     api.request_options settings = named.apply(bridge_default_options(), kwargs)
     api.session temporary = api.session()
-    return execute(method, url, settings, temporary, false)
+    try
+    {
+        api.response result = execute(method, url, settings, temporary, false)
+        transport.close_session(temporary)
+        return result
+    }
+    exception errors.io_error as failure
+    {
+        transport.close_session(temporary)
+        errors.fail_io(failure.code, failure.message)
+    }
+    return api.response()
 }
 
 def bridge_request(method: str, url: str, **kwargs: dict) -> api.response
@@ -323,7 +369,18 @@ def bridge_request(method: str, url: str,
                    options: api.request_options) -> api.response
 {
     api.session temporary = api.session()
-    return execute(method, url, options, temporary, false)
+    try
+    {
+        api.response result = execute(method, url, options, temporary, false)
+        transport.close_session(temporary)
+        return result
+    }
+    exception errors.io_error as failure
+    {
+        transport.close_session(temporary)
+        errors.fail_io(failure.code, failure.message)
+    }
+    return api.response()
 }
 
 def bridge_get(url: str, params: dict = none,
@@ -422,7 +479,7 @@ def bridge_session_request(client: api.session, method: str, url: str,
                            timeout: any = none,
                            allow_redirects: bool = none,
                            proxies: any = none, hooks: any = none,
-                           stream: bool = none, verify: bool = none,
+                            stream: bool = none, verify: any = none,
                            cert: any = none, json: any = none,
                            **kwargs: dict) -> api.response
 {
@@ -534,12 +591,27 @@ def bridge_session_options(client: api.session, url: str,
 
 def bridge_text(value: api.response) -> str
 {
-    return encoding.decode(value.content, "utf-8")
+    return encoding.decode(transport.read_all(value), "utf-8")
 }
 
 def bridge_text(value: api.response, charset: str) -> str
 {
-    return encoding.decode(value.content, charset)
+    return encoding.decode(transport.read_all(value), charset)
+}
+
+def bridge_next_chunk(value: api.response, max_bytes: int) -> api.body_chunk
+{
+    return transport.next_chunk(value, max_bytes)
+}
+
+def bridge_read_all(value: api.response) -> bytes
+{
+    return transport.read_all(value)
+}
+
+def bridge_close(value: api.response) -> void
+{
+    transport.close_response(value)
 }
 
 def bridge_json(value: api.response) -> any
@@ -561,22 +633,6 @@ def bridge_raise_for_status(value: api.response) -> void
     }
 }
 
-def stream_response(value: httpx.stream_response, url: str,
-                    elapsed_ms: int) -> api.response
-{
-    api.response result = api.response()
-    result.status_code = value.status
-    result.url = url
-    result.headers = value.headers
-    result.set_cookie = value.set_cookie
-    result.cookies = cookie_jar.response_cookies(value.set_cookie, url)
-    result.content = byte_values.empty()
-    result.history = []
-    result.elapsed_ms = elapsed_ms
-    result.ok = value.status < 400
-    return result
-}
-
 def bridge_download(url: str, destination: binary_stream,
                     max_bytes: int) -> api.response
 {
@@ -586,23 +642,39 @@ def bridge_download(url: str, destination: binary_stream,
 def bridge_download(url: str, destination: binary_stream, max_bytes: int,
                     options: api.request_options) -> api.response
 {
-    if (!options.headers.empty() || !options.cookies.empty() ||
-        options.basic_auth || options.body_type != "none")
+    if max_bytes < 0 || options.body_type != "none"
     {
-        errors.fail_io("unsupported_option", "流式下载暂不支持自定义头、认证或正文")
+        errors.fail_io("invalid_argument", "流式下载上限或请求正文无效")
     }
-    str address = urls.strip_fragment(urls.append_params(url, options.params))
-    int started = time.monotonic_millis()
-    if options.http2
+    api.request_options settings = deep_copy(options)
+    settings.stream = true
+    settings.allow_redirects = false
+    settings.max_response_bytes = max_bytes
+    api.session temporary = api.session()
+    api.response result = api.response()
+    try
     {
-        httpx.stream_response received = httpx.get_http2_stream(
-            address, destination, max_bytes, options.timeout_ms)
-        return stream_response(received, address,
-                               time.monotonic_millis() - started)
+        result = execute("GET", url, settings, temporary, false)
+        bool eof = false
+        while !eof
+        {
+            api.body_chunk part = transport.next_chunk(result, 16384)
+            eof = part.eof
+            if !eof
+            {
+                streams.write_bytes(destination, part.data)
+            }
+        }
+        transport.close_session(temporary)
+        return result
     }
-    httpx.stream_response received = httpx.get_stream(
-        address, destination, max_bytes, options.timeout_ms)
-    return stream_response(received, address, time.monotonic_millis() - started)
+    exception errors.io_error as failure
+    {
+        transport.close_response(result)
+        transport.close_session(temporary)
+        errors.fail_io(failure.code, failure.message)
+    }
+    return api.response()
 }
 
 def bridge_upload(method: str, url: str, source: binary_stream, length: int,
@@ -613,19 +685,25 @@ def bridge_upload(method: str, url: str, source: binary_stream, length: int,
     {
         errors.fail_io("invalid_argument", "流式上传不能同时指定内存正文")
     }
+    if options.max_retries != 0 || options.stream
+    {
+        errors.fail_io("unsupported_option", "流式上传不能自动重试或返回惰性响应")
+    }
     str address = urls.strip_fragment(urls.append_params(url, options.params))
     map<str, str> headers = request_headers(options, address, [], true, true)
-    int started = time.monotonic_millis()
-    if options.http2
+    api.session temporary = api.session()
+    try
     {
-        httpx.stream_response received = httpx.send_http2_stream(
-            method, address, headers, source, length, destination,
-            max_response_bytes, options.timeout_ms)
-        return stream_response(received, address,
-                               time.monotonic_millis() - started)
+        api.response result = transport.upload_to_file(temporary, method,
+            address, headers, source, length, destination,
+            max_response_bytes, options)
+        transport.close_session(temporary)
+        return result
     }
-    httpx.stream_response received = httpx.send_stream(
-        method, address, headers, source, length, destination,
-        max_response_bytes, options.timeout_ms)
-    return stream_response(received, address, time.monotonic_millis() - started)
+    exception errors.io_error as failure
+    {
+        transport.close_session(temporary)
+        errors.fail_io(failure.code, failure.message)
+    }
+    return api.response()
 }

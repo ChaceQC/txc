@@ -114,7 +114,18 @@ ws_message_data read_client_message(HINTERNET websocket, bool binary)
         }
         if (type == WINHTTP_WEB_SOCKET_CLOSE_BUFFER_TYPE)
         {
-            return {false, {}};
+            USHORT status = 1005;
+            char reason[123]{};
+            DWORD used = 0;
+            const auto queried = WinHttpWebSocketQueryCloseStatus(websocket,
+                &status, reason, sizeof(reason), &used);
+            if (queried != NO_ERROR)
+            {
+                network::fail("protocol_error", "无法读取 WebSocket 关闭状态");
+            }
+            std::string text(reason, used);
+            network::validate_utf8(text);
+            return {false, {}, status, std::move(text)};
         }
         const auto complete = binary
             ? WINHTTP_WEB_SOCKET_BINARY_MESSAGE_BUFFER_TYPE
@@ -137,7 +148,7 @@ ws_message_data read_client_message(HINTERNET websocket, bool binary)
             {
                 network::validate_utf8(text);
             }
-            return {true, std::move(text)};
+            return {true, std::move(text), 1005, {}};
         }
     }
 }
@@ -150,7 +161,12 @@ ws_message_data ws_client_receive(std::shared_ptr<ws_connection_state> state,
     const auto websocket = state->websocket.get();
     if (timeout_ms == 0)
     {
-        return read_client_message(websocket, binary);
+        auto value = read_client_message(websocket, binary);
+        if (!value.open)
+        {
+            state->close_status = {true, value.close_code, value.close_reason};
+        }
+        return value;
     }
     if (timeout_ms > std::numeric_limits<int>::max())
     {
@@ -177,15 +193,22 @@ ws_message_data ws_client_receive(std::shared_ptr<ws_connection_state> state,
         state->open = false;
         network::fail("timeout", "读取 WebSocket 消息超时");
     }
-    return ready.get();
+    auto value = ready.get();
+    if (!value.open)
+    {
+        state->close_status = {true, value.close_code, value.close_reason};
+    }
+    return value;
 }
 
-void ws_client_close(ws_connection_state& state) noexcept
+void ws_client_close(ws_connection_state& state, std::uint16_t code,
+                     std::string_view reason) noexcept
 {
     if (state.open && state.websocket.get())
     {
-        WinHttpWebSocketClose(state.websocket.get(),
-            WINHTTP_WEB_SOCKET_SUCCESS_CLOSE_STATUS, nullptr, 0);
+        WinHttpWebSocketClose(state.websocket.get(), code,
+            reason.empty() ? nullptr : const_cast<char*>(reason.data()),
+            static_cast<DWORD>(reason.size()));
     }
     state.websocket.reset();
     state.open = false;

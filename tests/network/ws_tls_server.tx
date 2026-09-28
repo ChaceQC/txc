@@ -1,0 +1,35 @@
+import "encoding.txh" as encoding
+import "file.txh" as file
+import "parse.txh" as parse
+import "secret.txh" as secret
+import "system.txh" as system
+import "tls.txh" as tls
+import "websocket.txh" as ws
+import "x509.txh" as x509
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str directory = args[0]
+    int port = parse.parse_int(args[1])
+    bytes root = x509.parse_der(file.read_bytes(directory + "/root.der"))
+    tls.trust roots = tls.custom_trust(vector<bytes>([root]), false)
+    secret_bytes password = secret.from_bytes(
+        encoding.encode("test-only-password", "utf-8"))
+    tls.identity identity = tls.import_identity(
+        file.read_bytes(directory + "/server.p12"), password)
+    secret.close(password)
+    tls.server_config config = tls.server(identity, roots, false)
+    ws.listener server = ws.listen_tls("127.0.0.1", port, config)
+    ws.connection peer = ws.accept(server, 5000)
+    tls.close_identity(identity)
+    ws.message message = ws.receive(peer, 5000)
+    if !message.open || message.text != "secure"
+    {
+        return 1
+    }
+    ws.send_text(peer, "secure-ok")
+    ws.close_with_reason(peer, 1000, "done")
+    ws.close(server)
+    return 0
+}

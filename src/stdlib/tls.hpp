@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace tx_generated::tls
@@ -12,6 +13,7 @@ namespace tx_generated::tls
 
 struct identity_state
 {
+    mutable std::mutex mutex;
     std::vector<byte_value> certificates;
     secret::handle private_key;
 };

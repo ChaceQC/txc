@@ -2,6 +2,7 @@
 
 #include "backend/cpp/value_format.hpp"
 #include "stdlib/bytes.hpp"
+#include "stdlib/httpx.hpp"
 #include "stdlib/network_common.hpp"
 #include "stdlib/typed_map.hpp"
 #include "stdlib/vector.hpp"
@@ -25,6 +26,8 @@ void* client_response(std::string_view method, std::string_view url,
                       std::string_view body, std::int64_t timeout,
                       const char* type_name, bool binary = false,
                       bool http2 = false);
+dynamic_struct make_response(const char* type_name,
+                             http_response_data value, bool binary);
 std::int64_t resource_id(const void* value);
 dynamic_struct make_resource(const char* type_name,
                              const char* display_name, std::int64_t id);

@@ -5,6 +5,7 @@ import "error.txh" as errors
 import "json.txh" as json_values
 import "requests_multipart.tx" as multipart
 import "requests_url.tx" as urls
+import "string.txh" as strings
 
 def dict_map(plain: dict) -> map<str, str>
 {
@@ -87,6 +88,46 @@ def set_timeout(options: api.request_options, value: any) -> void
     }
 }
 
+def set_proxies(options: api.request_options, value: any) -> void
+{
+    map<str, str> selected = string_map(value)
+    for key in selected
+    {
+        if key == "http"
+        {
+            options.proxy_http = selected[key]
+        }
+        else if key == "https"
+        {
+            options.proxy_https = selected[key]
+        }
+        else
+        {
+            errors.fail_io("invalid_argument", "proxies 只接受 http 和 https 键")
+        }
+    }
+}
+
+def set_cert(options: api.request_options, value: any) -> void
+{
+    try
+    {
+        options.client_pfx_file = value as str
+        options.client_pfx_password = ""
+        return
+    }
+    exception errors.runtime_error as ignored
+    {
+    }
+    array pair = value
+    if len(pair) != 2
+    {
+        errors.fail_io("invalid_argument", "cert 需要 PKCS#12 路径或 [路径, 密码]")
+    }
+    options.client_pfx_file = pair[0] as str
+    options.client_pfx_password = pair[1] as str
+}
+
 def apply_one(options: api.request_options, name: str, value: any) -> void
 {
     if name == "headers"
@@ -136,25 +177,54 @@ def apply_one(options: api.request_options, name: str, value: any) -> void
     }
     else if name == "stream"
     {
-        bool enabled = value as bool
-        if enabled
-        {
-            errors.fail_io("unsupported_option", "stream=True 需要惰性响应接口")
-        }
+        options.stream = value as bool
     }
     else if name == "verify"
     {
-        bool enabled = value as bool
-        if !enabled
+        # any 的宽松转换会把 bool 变成路径文本；先按 JSON 标量类别区分。
+        str encoded = json_values.stringify(value)
+        if encoded == "true"
+        {
+            options.ca_file = ""
+        }
+        else if encoded == "false"
         {
             errors.fail_io("unsupported_option", "不支持关闭 TLS 证书校验")
+        }
+        else if strings.starts_with(encoded, "\"")
+        {
+            options.ca_file = value as str
+        }
+        else
+        {
+            errors.fail_io("invalid_argument", "verify 只接受布尔值或 CA 文件路径")
         }
     }
     else if name == "files"
     {
         return
     }
-    else if (name == "proxies" || name == "hooks" || name == "cert")
+    else if name == "proxies"
+    {
+        set_proxies(options, value)
+    }
+    else if name == "cert"
+    {
+        set_cert(options, value)
+    }
+    else if name == "max_response_bytes"
+    {
+        options.max_response_bytes = value as int
+    }
+    else if name == "max_retries"
+    {
+        options.max_retries = value as int
+    }
+    else if name == "retry_backoff_ms"
+    {
+        options.retry_backoff_ms = value as int
+    }
+    else if name == "hooks"
     {
         errors.fail_io("unsupported_option", "暂不支持 Python Requests 参数：" + name)
     }

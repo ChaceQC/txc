@@ -8,9 +8,9 @@
 
 `ipc.txh` 使用本机命名管道或子进程管道传送有版本、会话号和长度上限的规范 CBOR 消息。EOF、半包、超时续读、重连与超限规则见[本机 IPC](ipc.md)。
 
-`httpx` 与 `websocket` 提供 HTTP/1.1、HTTP/2、WS/WSS 客户端和对应服务端的同步文本、二进制与文件流接口。HTTP/2 支持 HTTPS ALPN、明文 h2c prior knowledge，以及使用 PEM 证书的 TLS 服务端；二进制正文和消息直接使用 `bytes` 或 `binary_stream`。完整签名、边界及定向验证状态见[网络模块说明](network.md)。公开接口分别为 [httpx.txh](../tx/stdlib/httpx.txh) 和 [websocket.txh](../tx/stdlib/websocket.txh)。
+`httpx` 与 `websocket` 提供 HTTP/1.1、HTTP/2、HTTP/3、WS/WSS 客户端和对应服务端的文本、二进制与文件流接口。HTTP/2 支持 HTTPS ALPN、明文 h2c prior knowledge，以及使用 PEM 证书的 TLS 服务端；WebSocket 支持 WSS 服务端和与明文 HTTP/1.1 共享监听器的 Upgrade。WebSocket 连接可唯一移入有界任务执行异步收发。二进制正文和消息直接使用 `bytes` 或 `binary_stream`。完整签名、边界及定向验证状态见[网络模块说明](network.md)。公开接口分别为 [httpx.txh](../tx/stdlib/httpx.txh) 和 [websocket.txh](../tx/stdlib/websocket.txh)。
 
-`requests` 在 `httpx` 上提供接近 Python Requests 的同步客户端、命名参数、`session` 与 `response` 类、JSON、表单、Cookie 和重定向。公开接口为 [requests.txh](../tx/stdlib/requests.txh)，`.tx` 实现构建进同一个标准库静态库。具体签名、Python API 对照及限制见[requests 模块说明](requests.md)。
+`requests` 在 `httpx` 上提供接近 Python Requests 的同步客户端、命名参数、可复用 `session`、惰性 `response` 分块、代理、PEM CA、PKCS#12 客户端证书、有界重试、JSON、表单、Cookie 和重定向。公开接口为 [requests.txh](../tx/stdlib/requests.txh)，`.tx` 实现构建进同一个标准库静态库。具体签名、Python API 对照及限制见[requests 模块说明](requests.md)。
 
 `bytes`、`encoding` 和 `file_stream` 的接口及语义见[字节值与文件流](bytes_file_stream.md)；代码已构建，少量定向场景已通过。
 

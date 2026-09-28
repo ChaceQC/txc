@@ -1,5 +1,6 @@
 #include "backend/cpp/network_abi_helpers.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
+#include "backend/cpp/tls_abi_helpers.hpp"
 #include "stdlib/ws.hpp"
 
 #include <any>
@@ -33,12 +34,33 @@ extern "C" int txrt_ws_listen(const void* host, std::int64_t port,
     }, tx::error_kind::io);
 }
 
+extern "C" int txrt_ws_listen_tls(const void* host, std::int64_t port,
+    const void* config, const char* type_name, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        const auto id = tx_generated::ws_listen_tls(text_at(host), port,
+            tx_generated::tls_abi::checked_server(config));
+        *result = make_handle<std::any>(make_resource(type_name, "listener", id));
+    }, tx::error_kind::io);
+}
+
 extern "C" int txrt_ws_accept(const void* server, std::int64_t timeout,
     const char* type_name, void** result) noexcept
 {
     return invoke_checked([&]
     {
         const auto id = tx_generated::ws_accept(resource_id(server), timeout);
+        *result = make_handle<std::any>(make_resource(type_name, "connection", id));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_ws_upgrade(const void* peer,
+    const char* type_name, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        const auto id = tx_generated::ws_upgrade_http(resource_id(peer));
         *result = make_handle<std::any>(make_resource(type_name, "connection", id));
     }, tx::error_kind::io);
 }
@@ -114,6 +136,47 @@ extern "C" int txrt_ws_receive_binary_stream(const void* peer,
         fields[1] = {"length", value.length};
         *result = make_handle<std::any>(tx_generated::dynamic_struct(
             {type_name, "stream_message", std::move(fields)}));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_ws_get_close_status(const void* peer,
+    const char* type_name, void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        auto value = tx_generated::ws_close_status(resource_id(peer));
+        tx_generated::struct_fields fields(3);
+        fields[0] = {"received", value.received};
+        fields[1] = {"code", value.code};
+        fields[2] = {"reason", std::move(value.reason)};
+        *result = make_handle<std::any>(tx_generated::dynamic_struct(
+            {type_name, "close_status", std::move(fields)}));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_ws_ping(const void* peer, const void* data) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::ws_send_ping(resource_id(peer), bytes_at(data));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_ws_pong(const void* peer, const void* data) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::ws_send_pong(resource_id(peer), bytes_at(data));
+    }, tx::error_kind::io);
+}
+
+extern "C" int txrt_ws_close_with_reason(const void* peer,
+    std::int64_t code, const void* reason) noexcept
+{
+    return invoke_checked([&]
+    {
+        tx_generated::ws_close_with_reason(resource_id(peer), code,
+            text_at(reason));
     }, tx::error_kind::io);
 }
 

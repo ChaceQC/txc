@@ -1,3 +1,5 @@
+import "socket.txh" as socket
+
 struct identity
 {
     id: int
@@ -30,6 +32,17 @@ struct verification
     chain: vector<bytes>
 }
 
+struct secure_stream
+{
+    id: int
+}
+
+struct read_result
+{
+    data: bytes
+    eof: bool
+}
+
 def system_trust() -> trust
 def custom_trust(anchors: vector<bytes>, include_system: bool) -> trust
 def import_identity(package: bytes, password: secret_bytes) -> identity
@@ -42,3 +55,12 @@ def verify_server(config: client_config, leaf: bytes,
                   intermediates: vector<bytes>) -> verification
 def verify_client(config: server_config, leaf: bytes,
                   intermediates: vector<bytes>) -> verification
+def connect(peer: socket.tcp_stream, config: client_config,
+            alpn: vector<str>, timeout_ms: int) -> secure_stream
+def accept(peer: socket.tcp_stream, config: server_config,
+           alpn: vector<str>, timeout_ms: int) -> secure_stream
+def read(peer: secure_stream, max_bytes: int,
+         timeout_ms: int) -> read_result
+def write(peer: secure_stream, data: bytes, timeout_ms: int) -> int
+def negotiated_alpn(peer: secure_stream) -> str
+def close(peer: secure_stream, timeout_ms: int) -> void

@@ -1,0 +1,14 @@
+import "httpx.txh" as httpx
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen("127.0.0.1", 19743)
+    httpx.binary_request first = httpx.accept_bytes(server, 10000)
+    httpx.respond_bytes(first.connection,
+        httpx.binary_response(200, map<str, str>(), vector<str>(), first.body))
+    httpx.binary_request second = httpx.accept_bytes(server, 10000)
+    httpx.respond_bytes(second.connection,
+        httpx.binary_response(200, map<str, str>(), vector<str>(), second.body))
+    httpx.close(server)
+    return 0
+}

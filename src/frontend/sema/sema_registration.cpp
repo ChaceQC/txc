@@ -177,7 +177,17 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
     if (type.is_task())
     {
         const auto& result = type.parameters.front();
-        if (result != value_type::void_type && !is_send_type(result))
+        bool socket_transfer = false;
+        if (const auto found = structs_.find(result.name);
+            found != structs_.end() && result.name.ends_with("_tcp_stream"))
+        {
+            const auto& file = found->second->position.file;
+            const auto separator = file.find_last_of("/\\");
+            socket_transfer = file.substr(separator == std::string::npos
+                ? 0 : separator + 1) == "socket.txh";
+        }
+        if (result != value_type::void_type && !is_send_type(result) &&
+            !socket_transfer)
         {
             throw compile_error(position,
                 "task<T> 的结果需要 Send 类型");

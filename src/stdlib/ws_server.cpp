@@ -56,9 +56,8 @@ bool valid_key(std::string_view key)
     });
 }
 
-void handshake(network::tcp_stream& stream)
+void handshake(network::tcp_stream& stream, network::parsed_head head)
 {
-    auto head = network::parse_head(stream.read_head());
     if (!head.cookies.empty())
     {
         network::fail("protocol_error", "WebSocket 握手请求不能包含 Set-Cookie");
@@ -86,6 +85,11 @@ void handshake(network::tcp_stream& stream)
     {
         network::fail("protocol_error", "WebSocket 握手头无效");
     }
+    if (headers.contains("content-length") &&
+        network::content_length(headers, 0) != 0)
+    {
+        network::fail("protocol_error", "WebSocket Upgrade 不能携带请求正文");
+    }
     const auto accept = network::base64(network::sha1(key->second +
         std::string(websocket_guid)));
     stream.send_all("HTTP/1.1 101 Switching Protocols\r\n"
@@ -107,7 +111,7 @@ void protocol_close(network::tcp_stream& stream, std::uint16_t status) noexcept
     stream.close();
 }
 
-void validate_close_payload(std::string_view payload)
+ws_close_status_data validate_close_payload(std::string_view payload)
 {
     if (payload.size() == 1)
     {
@@ -118,12 +122,15 @@ void validate_close_payload(std::string_view payload)
         const auto code = (static_cast<unsigned char>(payload[0]) << 8) |
                            static_cast<unsigned char>(payload[1]);
         if (code < 1000 || code == 1004 || code == 1005 ||
-            code == 1006 || code == 1015 || code >= 5000)
+            code == 1006 || code == 1015 ||
+            (code >= 1016 && code < 3000) || code >= 5000)
         {
             network::fail("protocol_error", "WebSocket close 状态码无效");
         }
         network::validate_utf8(payload.substr(2));
+        return {true, code, std::string(payload.substr(2))};
     }
+    return {true, 1005, {}};
 }
 
 ws_message_data receive_message(network::tcp_stream& stream, bool binary)
@@ -136,10 +143,12 @@ ws_message_data receive_message(network::tcp_stream& stream, bool binary)
         switch (frame.opcode)
         {
         case 0x8:
-            validate_close_payload(frame.payload);
+        {
+            auto closed = validate_close_payload(frame.payload);
             network::send_ws_frame(stream, 0x8, frame.payload);
             stream.close();
-            return {false, {}};
+            return {false, {}, closed.code, std::move(closed.reason)};
+        }
         case 0x9:
             network::send_ws_frame(stream, 0xA, frame.payload);
             continue;
@@ -177,7 +186,7 @@ ws_message_data receive_message(network::tcp_stream& stream, bool binary)
             {
                 network::validate_utf8(text);
             }
-            return {true, std::move(text)};
+            return {true, std::move(text), 1005, {}};
         }
     }
 }
@@ -199,10 +208,10 @@ ws_stream_message_data receive_stream_message(
                                                            frame.length);
             if (frame.opcode == 0x8)
             {
-                validate_close_payload(payload);
+                auto closed = validate_close_payload(payload);
                 network::send_ws_frame(stream, 0x8, payload);
                 stream.close();
-                return {false, 0};
+                return {false, 0, closed.code, std::move(closed.reason)};
             }
             if (frame.opcode == 0x9)
             {
@@ -235,7 +244,7 @@ ws_stream_message_data receive_stream_message(
         fragmented = !frame.final;
         if (frame.final)
         {
-            return {true, total};
+            return {true, total, 1005, {}};
         }
     }
 }
@@ -245,12 +254,20 @@ ws_stream_message_data receive_stream_message(
 std::shared_ptr<ws_connection_state> ws_server_accept(network::socket_handle socket,
                                                        std::int64_t timeout_ms)
 {
+    return ws_server_accept(std::make_unique<network::tcp_stream>(
+        std::move(socket)), timeout_ms);
+}
+
+std::shared_ptr<ws_connection_state> ws_server_accept(
+    std::unique_ptr<network::tcp_stream> stream, std::int64_t timeout_ms)
+{
     auto state = std::make_shared<ws_connection_state>();
-    state->stream = std::make_unique<network::tcp_stream>(std::move(socket));
+    state->stream = std::move(stream);
     state->stream->set_receive_timeout(timeout_ms);
     try
     {
-        handshake(*state->stream);
+        handshake(*state->stream,
+            network::parse_head(state->stream->read_head()));
     }
     catch (const runtime_failure& error)
     {
@@ -269,6 +286,25 @@ std::shared_ptr<ws_connection_state> ws_server_accept(network::socket_handle soc
         throw;
     }
     state->server = true;
+    return state;
+}
+
+std::shared_ptr<ws_connection_state> ws_server_upgrade(
+    httpx_upgraded_connection accepted)
+{
+    auto state = std::make_shared<ws_connection_state>();
+    state->stream = std::move(accepted.stream);
+    state->listener_slot = std::move(accepted.listener_slot);
+    state->server = true;
+    if (accepted.request.body_length != 0)
+    {
+        network::fail("protocol_error", "WebSocket Upgrade 不能携带请求正文");
+    }
+    network::parsed_head head;
+    head.first_line = accepted.request.method + " " +
+        accepted.request.target + " HTTP/1.1";
+    head.headers = std::move(accepted.request.headers);
+    handshake(*state->stream, std::move(head));
     return state;
 }
 
@@ -313,7 +349,12 @@ ws_message_data ws_server_receive(ws_connection_state& state,
     state.stream->set_receive_timeout(timeout_ms);
     try
     {
-        return receive_message(*state.stream, binary);
+        auto value = receive_message(*state.stream, binary);
+        if (!value.open)
+        {
+            state.close_status = {true, value.close_code, value.close_reason};
+        }
+        return value;
     }
     catch (const runtime_failure& error)
     {
@@ -337,8 +378,13 @@ ws_stream_message_data ws_server_receive_stream(
     state.stream->set_receive_timeout(timeout_ms);
     try
     {
-        return receive_stream_message(*state.stream, destination,
-                                      max_message_bytes);
+        auto value = receive_stream_message(*state.stream, destination,
+                                            max_message_bytes);
+        if (!value.open)
+        {
+            state.close_status = {true, value.close_code, value.close_reason};
+        }
+        return value;
     }
     catch (const runtime_failure& error)
     {
@@ -355,13 +401,16 @@ ws_stream_message_data ws_server_receive_stream(
     }
 }
 
-void ws_server_close(ws_connection_state& state) noexcept
+void ws_server_close(ws_connection_state& state, std::uint16_t code,
+                     std::string_view reason) noexcept
 {
-    if (state.open && state.stream && state.stream->socket() != INVALID_SOCKET)
+    if (state.open && state.stream && state.stream->valid())
     {
         try
         {
-            const std::string status{"\x03\xe8", 2};
+            std::string status{static_cast<char>(code >> 8),
+                               static_cast<char>(code & 0xff)};
+            status += reason;
             network::send_ws_frame(*state.stream, 0x8, status);
             state.stream->set_receive_timeout(1000);
             while (network::read_ws_frame(*state.stream).opcode != 0x8)

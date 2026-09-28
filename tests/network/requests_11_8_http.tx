@@ -1,0 +1,193 @@
+import "error.txh" as errors
+import "encoding.txh" as encoding
+import "file_stream.txh" as streams
+import "requests.txh" as requests
+import "string.txh" as strings
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str root = args[0]
+    str proxy = args[1]
+    str download_path = args[2]
+    str source_path = args[3]
+    str response_path = args[4]
+    auto client = requests.session()
+    dict direct = {"http": "direct"}
+    str first_port = client.get(root + "/id", proxies=direct).text()
+    str second_port = client.get(root + "/id", proxies=direct).text()
+    if first_port != second_port
+    {
+        return 1
+    }
+
+    auto lazy = client.get(root + "/stream", stream=true,
+                           max_response_bytes=65536, proxies=direct)
+    if len(lazy.content) != 0 || !lazy.stream_open
+    {
+        return 2
+    }
+    requests.body_chunk initial = lazy.next_chunk(3)
+    if initial.eof || len(initial.data) != 3
+    {
+        return 3
+    }
+    bool partial_rejected = false
+    try
+    {
+        lazy.read_all()
+    }
+    exception errors.io_error as failure
+    {
+        partial_rejected = failure.code == "invalid_state"
+    }
+    if !partial_rejected
+    {
+        return 4
+    }
+    int count = 3
+    bool eof = false
+    while !eof
+    {
+        requests.body_chunk part = lazy.next_chunk(8192)
+        eof = part.eof
+        count += len(part.data)
+    }
+    lazy.close()
+    if count != 50000
+    {
+        return 5
+    }
+    auto complete = client.get(root + "/stream", stream=true,
+                               max_response_bytes=65536, proxies=direct)
+    if len(complete.read_all()) != 50000
+    {
+        return 6
+    }
+    complete.close()
+
+    client.get(root + "/set", proxies=direct)
+    str selected = client.get(root + "/echo", proxies=direct).text()
+    if (!strings.contains(selected, "sid=base") ||
+        strings.contains(selected, "old=bad") ||
+        strings.contains(selected, "__Secure-bad") ||
+        strings.contains(selected, "path_only=") ||
+        strings.contains(selected, "foreign=") ||
+        !strings.contains(selected, "priority=yes") ||
+        !strings.contains(selected, "future=ok"))
+    {
+        return 7
+    }
+    str private_path = client.get(root + "/private/echo",
+                                  proxies=direct).text()
+    if !strings.contains(private_path, "path_only=v")
+    {
+        return 16
+    }
+    str overridden = client.get(root + "/echo", proxies=direct,
+                                cookies={"sid": "over"}).text()
+    if !strings.contains(overridden, "sid=over")
+    {
+        return 8
+    }
+    client.get(root + "/delete", proxies=direct)
+    str after_delete = client.get(root + "/echo", proxies=direct).text()
+    if strings.contains(after_delete, "sid=")
+    {
+        return 9
+    }
+
+    auto retried = client.get(root + "/retry", proxies=direct,
+                              max_retries=1, retry_backoff_ms=1)
+    if retried.text() != "retried"
+    {
+        return 10
+    }
+    auto status = client.get(root + "/status", proxies=direct,
+                             max_retries=2)
+    if status.status_code != 503
+    {
+        return 11
+    }
+    bool post_failed = false
+    try
+    {
+        client.post(root + "/post_fail", data="body", proxies=direct,
+                    max_retries=2)
+    }
+    exception errors.io_error as ignored
+    {
+        post_failed = true
+    }
+    if !post_failed
+    {
+        return 12
+    }
+
+    str through = requests.get("http://example.invalid/through",
+        proxies={"http": proxy}).text()
+    if through != "proxy-ok"
+    {
+        return 13
+    }
+
+    auto settings = requests.default_options()
+    settings.proxy_http = "direct"
+    binary_stream download_target = streams.open_binary(download_path, "write")
+    auto downloaded = requests.download(root + "/stream", download_target,
+                                        65536, settings)
+    streams.close(download_target)
+    binary_stream download_check = streams.open_binary(download_path, "read")
+    int downloaded_length = len(streams.read_all_bytes(download_check))
+    streams.close(download_check)
+    if downloaded.status_code != 200 || downloaded_length != 50000
+    {
+        return 17
+    }
+    binary_stream upload_target = streams.open_binary(source_path, "write")
+    streams.write_bytes(upload_target, encoding.encode("upload-body", "utf-8"))
+    streams.close(upload_target)
+    binary_stream upload_source = streams.open_binary(source_path, "read")
+    binary_stream response_target = streams.open_binary(response_path, "write")
+    auto uploaded = requests.upload("POST", root + "/upload", upload_source,
+        11, response_target, 128, settings)
+    streams.close(upload_source)
+    streams.close(response_target)
+    binary_stream response_check = streams.open_binary(response_path, "read")
+    str upload_reply = encoding.decode(streams.read_all_bytes(response_check),
+                                       "utf-8")
+    streams.close(response_check)
+    if uploaded.status_code != 200 || upload_reply != "upload-ok"
+    {
+        return 18
+    }
+    bool hook_rejected = false
+    try
+    {
+        requests.get(root + "/id", hooks={})
+    }
+    exception errors.io_error as failure
+    {
+        hook_rejected = failure.code == "unsupported_option"
+    }
+    if !hook_rejected
+    {
+        return 14
+    }
+    client.close()
+    bool closed_rejected = false
+    try
+    {
+        client.get(root + "/id", proxies=direct)
+    }
+    exception errors.io_error as failure
+    {
+        closed_rejected = failure.code == "connection_closed"
+    }
+    if !closed_rejected
+    {
+        return 15
+    }
+    return 0
+}

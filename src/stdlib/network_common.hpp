@@ -8,10 +8,18 @@
 #include <winhttp.h>
 
 #include <cstdint>
+#include <chrono>
 #include <map>
+#include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
+
+namespace tx_generated::tls
+{
+class secure_connection;
+}
 
 namespace tx_generated::network
 {
@@ -97,25 +105,35 @@ public:
     explicit tcp_stream(socket_handle socket) : socket_(std::move(socket))
     {
     }
+    explicit tcp_stream(std::shared_ptr<tls::secure_connection> secure)
+        : secure_(std::move(secure))
+    {
+    }
     [[nodiscard]] SOCKET socket() const noexcept
     {
         return socket_.get();
     }
+    [[nodiscard]] bool valid() const noexcept;
     void set_receive_timeout(std::int64_t timeout_ms);
+    void set_receive_deadline(std::int64_t timeout_ms);
+    void clear_receive_deadline();
     [[nodiscard]] std::string read_head();
     [[nodiscard]] std::string read_exact(std::size_t length);
     void send_all(std::string_view data);
-    void close() noexcept
-    {
-        socket_.reset();
-    }
+    void close() noexcept;
 private:
+    [[nodiscard]] std::string read_some(std::size_t limit);
+    std::size_t send_some(std::string_view data);
     socket_handle socket_;
+    std::shared_ptr<tls::secure_connection> secure_;
+    std::int64_t receive_timeout_ms_ = 0;
+    std::optional<std::chrono::steady_clock::time_point> receive_deadline_;
     std::string pending_;
 };
 
 socket_handle listen_tcp(std::string_view host, std::int64_t port);
 socket_handle accept_tcp(SOCKET listener, std::int64_t timeout_ms);
+void initialize_winsock();
 [[noreturn]] void socket_failure(std::string_view action);
 [[noreturn]] void http_failure(std::string_view action);
 

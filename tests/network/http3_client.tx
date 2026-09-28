@@ -1,0 +1,17 @@
+import "httpx.txh" as httpx
+import "file.txh" as file
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    bytes root = file.read_bytes(args[0] + "/root.der")
+    httpx.response response = httpx.send_http3_with_trust("GET",
+        "https://127.0.0.1:19751/hello", map<str, str>(), "",
+        vector<bytes>([root]), 10000)
+    if response.status != 200 || response.body != "/hello"
+    {
+        return 1
+    }
+    return 0
+}

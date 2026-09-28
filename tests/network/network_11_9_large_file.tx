@@ -1,0 +1,49 @@
+import "bytes.txh" as byte_values
+import "file_stream.txh" as streams
+import "fs.txh" as fs
+import "requests.txh" as requests
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str origin = args[0]
+    str source_path = args[1]
+    str target_path = args[2]
+    str reply_path = args[3]
+    int length = 12 * 1024 * 1024
+    auto options = requests.default_options()
+    options.proxy_http = "direct"
+    options.timeout_ms = 15000
+
+    binary_stream target = streams.open_binary(target_path, "write")
+    auto downloaded = requests.download(origin + "/large", target,
+        length + 1, options)
+    streams.close(target)
+    if downloaded.status_code != 200 || fs.file_size(target_path) != length
+    {
+        return 1
+    }
+    binary_stream check = streams.open_binary(target_path, "read")
+    bytes first = streams.read_bytes(check, 3).data
+    streams.seek(check, length - 3, "start")
+    bytes last = streams.read_bytes(check, 3).data
+    streams.close(check)
+    if (byte_values.to_hex(first) != "00ff80" ||
+        byte_values.to_hex(last) != "00ff80")
+    {
+        return 2
+    }
+
+    binary_stream source = streams.open_binary(source_path, "read")
+    binary_stream reply = streams.open_binary(reply_path, "write")
+    auto uploaded = requests.upload("POST", origin + "/large", source,
+        length, reply, 64, options)
+    streams.close(source)
+    streams.close(reply)
+    if uploaded.status_code != 200 || fs.file_size(reply_path) != 2
+    {
+        return 3
+    }
+    return 0
+}

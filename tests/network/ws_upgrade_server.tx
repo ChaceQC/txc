@@ -1,0 +1,47 @@
+import "bytes.txh" as byte_values
+import "httpx.txh" as httpx
+import "parse.txh" as parse
+import "system.txh" as system
+import "websocket.txh" as ws
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    int port = parse.parse_int(args[0])
+    httpx.listener server = httpx.listen("127.0.0.1", port)
+    httpx.request ordinary = httpx.accept(server, 5000)
+    if ordinary.target != "/health"
+    {
+        return 1
+    }
+    httpx.respond(ordinary.connection, httpx.response(200,
+        map<str, str>(), vector<str>(), "healthy"))
+
+    httpx.request upgraded = httpx.accept(server, 5000)
+    if upgraded.target != "/ws"
+    {
+        return 2
+    }
+    ws.connection peer = ws.upgrade(upgraded.connection)
+    ws.ping(peer, byte_values.from_hex("0102"))
+    ws.pong(peer, byte_values.empty())
+    ws.message empty = ws.receive(peer, 5000)
+    if !empty.open || empty.text != ""
+    {
+        return 3
+    }
+    ws.send_text(peer, "ok")
+    ws.message closed = ws.receive(peer, 5000)
+    if closed.open
+    {
+        return 4
+    }
+    ws.close_status status = ws.get_close_status(peer)
+    if !status.received || status.code != 1001 || status.reason != "bye"
+    {
+        return 5
+    }
+    ws.close(peer)
+    httpx.close(server)
+    return 0
+}

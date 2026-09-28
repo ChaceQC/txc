@@ -33,6 +33,11 @@ void require_winsock()
 
 } // namespace
 
+void initialize_winsock()
+{
+    require_winsock();
+}
+
 socket_handle listen_tcp(std::string_view host, std::int64_t port)
 {
     require_winsock();
