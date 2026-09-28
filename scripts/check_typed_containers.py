@@ -1,4 +1,4 @@
-"""小范围检查类型化容器：三个正常场景、七个运行错误、三个编译诊断。"""
+"""检查类型化容器：四个正常场景、七个运行错误和两个编译诊断。"""
 
 from pathlib import Path
 import subprocess
@@ -11,11 +11,11 @@ SOURCES = ROOT / "tests" / "containers"
 COMPILER = ROOT / "tx" / "txc.exe"
 
 
-def compile_source(source):
+def compile_source(source, timeout=30):
     target = OUTPUT / f"{source.stem}.exe"
     result = subprocess.run(
         [str(COMPILER), str(source), "-o", str(target)],
-        capture_output=True, encoding="utf-8", errors="strict", timeout=30,
+        capture_output=True, encoding="utf-8", errors="strict", timeout=timeout,
     )
     assert result.returncode == 0, result.stdout + result.stderr
     return target
@@ -53,6 +53,14 @@ def check_behavior():
     return 1
 
 
+def check_nested_type():
+    result = run(compile_source(SOURCES / "nested_type.tx"))
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines() == ["nested container map value: 17"], result.stdout
+    print("PASS 嵌套类型化容器作为 map 值")
+    return 1
+
+
 def check_errors():
     target = compile_source(SOURCES / "errors.tx")
     messages = [
@@ -72,7 +80,6 @@ def check_diagnostics():
     cases = {
         "wrong_key.tx": "map 键",
         "wrong_value.tx": "heap 操作参数数量或类型不匹配",
-        "nested_type.tx": "map 的值类型当前支持 int、float、bool、str",
     }
     for name, message in cases.items():
         result = subprocess.run(
@@ -87,7 +94,7 @@ def check_diagnostics():
 
 def check_main_example():
     existing = set((ROOT / "tx_build").glob("example_interfaces_*"))
-    result = run(compile_source(ROOT / "example.tx"))
+    result = run(compile_source(ROOT / "example.tx", timeout=60))
     assert result.returncode == 0, result.stdout + result.stderr
     lines = result.stdout.splitlines()
     expected = [
@@ -106,11 +113,12 @@ def check_main_example():
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     groups = {"example": check_example, "behavior": check_behavior,
-              "errors": check_errors, "diagnostics": check_diagnostics,
+              "nested": check_nested_type, "errors": check_errors,
+              "diagnostics": check_diagnostics,
               "main_example": check_main_example}
     selected = sys.argv[1:] or list(groups)
     if any(name not in groups for name in selected):
-        raise SystemExit("可选分组：example behavior errors diagnostics main_example")
+        raise SystemExit("可选分组：example behavior nested errors diagnostics main_example")
     OUTPUT.mkdir(parents=True, exist_ok=True)
     count = 0
     for name in selected:

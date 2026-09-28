@@ -93,9 +93,53 @@ def http2_streams():
         return time.perf_counter() - started
 
 
+def http2_close_stream():
+    connection = h2.connection.H2Connection(config=h2.config.H2Configuration(
+        client_side=True, header_encoding="utf-8"))
+    with socket.create_connection(("127.0.0.1", 19749), timeout=5) as peer:
+        peer.settimeout(5)
+        connection.initiate_connection()
+        peer.sendall(connection.data_to_send())
+        for stream_id, path in ((1, "/close"), (3, "/healthy")):
+            connection.send_headers(stream_id, [
+                (":method", "GET"), (":scheme", "http"),
+                (":authority", "127.0.0.1:19749"), (":path", path)],
+                end_stream=True)
+        started = time.perf_counter()
+        peer.sendall(connection.data_to_send())
+        ended = set()
+        resets = {}
+        statuses = {}
+        bodies = {3: bytearray()}
+        while ended != {3} or set(resets) != {1}:
+            data = peer.recv(65536)
+            if not data:
+                raise AssertionError("HTTP/2 关闭路径导致会话提前结束")
+            for event in connection.receive_data(data):
+                if isinstance(event, h2.events.ResponseReceived):
+                    statuses[event.stream_id] = dict(event.headers)[":status"]
+                elif isinstance(event, h2.events.DataReceived):
+                    bodies[event.stream_id].extend(event.data)
+                    connection.acknowledge_received_data(
+                        event.flow_controlled_length, event.stream_id)
+                elif isinstance(event, h2.events.StreamEnded):
+                    ended.add(event.stream_id)
+                elif isinstance(event, h2.events.StreamReset):
+                    resets[event.stream_id] = event.error_code
+            pending = connection.data_to_send()
+            if pending:
+                peer.sendall(pending)
+        if statuses.get(3) != "200" or bytes(bodies[3]) != b"healthy":
+            raise AssertionError((statuses, bodies))
+        if resets[1] != 8:
+            raise AssertionError(f"关闭流的 RST 错误码不正确: {resets}")
+        return time.perf_counter() - started
+
+
 def main():
     run_server("http_routes_parallel", http1_requests)
     run_server("http2_parallel_server", http2_streams)
+    run_server("http2_close_parallel_server", http2_close_stream)
 
 
 if __name__ == "__main__":

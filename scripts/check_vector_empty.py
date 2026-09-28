@@ -46,7 +46,7 @@ def main():
     ])
     check_program(ROOT / "examples" / "typed_vectors.tx", [
         "7", "alpha/beta/gamma", "alpha", "0", "7", "9", "false",
-        "true true false", "true true true",
+        "true true false", "true true true", "8", "8 12", "5", "4", "1",
     ])
     check_diagnostic("vector_empty_argument.tx", ["vector 操作参数数量或类型不匹配：empty"])
     check_diagnostic("vector_empty_result.tx", ["int", "bool"])

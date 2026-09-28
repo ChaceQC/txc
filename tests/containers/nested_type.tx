@@ -1,5 +1,10 @@
 def main() -> int
 {
-    auto values = map<str, queue<int>>()
+    map<str, queue<int>> values = map<str, queue<int>>()
+    queue<int> numbers = queue<int>()
+    numbers.push(17)
+    values["numbers"] = numbers
+    queue<int> restored = values["numbers"]
+    print("nested container map value:", restored.front())
     return 0
 }

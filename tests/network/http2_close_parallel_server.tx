@@ -1,0 +1,32 @@
+import "httpx.txh" as httpx
+import "thread.txh" as thread
+import "time.txh" as clock
+
+def worker(server: httpx.listener) -> int
+{
+    httpx.request request = httpx.accept(server, 10000)
+    clock.sleep_millis(100)
+    if request.target == "/close"
+    {
+        httpx.close(request.connection)
+        return 0
+    }
+    httpx.respond(request.connection, httpx.response(200,
+        map<str, str>(), vector<str>(), "healthy"))
+    return 0
+}
+
+def main() -> int
+{
+    httpx.listener server = httpx.listen_h2c("127.0.0.1", 19749)
+    join_handle<int> first = thread.spawn(bind(worker, server))
+    join_handle<int> second = thread.spawn(bind(worker, server))
+    int first_status = thread.join(first)
+    int second_status = thread.join(second)
+    httpx.close(server)
+    if first_status != 0 || second_status != 0
+    {
+        return 1
+    }
+    return 0
+}

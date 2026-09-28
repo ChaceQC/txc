@@ -86,6 +86,8 @@ private:
                          std::int64_t body_length);
 
     transport io_;
+    // 对外可用后，nghttp2 会话操作与 streams_ 访问由同一把锁串行化；
+    // nghttp2 同步回调沿用调用方持有的锁，不得再次加锁。
     std::mutex io_mutex_;
     std::mutex accept_mutex_;
     bool secure_ = false;

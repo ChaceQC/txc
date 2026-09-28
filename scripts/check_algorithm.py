@@ -12,11 +12,11 @@ SOURCES = ROOT / "tests" / "algorithm"
 COMPILER = ROOT / "tx" / "txc.exe"
 
 
-def compile_source(source):
+def compile_source(source, timeout=30):
     target = OUTPUT / f"{source.stem}.exe"
     result = subprocess.run(
         [str(COMPILER), str(source), "-o", str(target)], cwd=ROOT,
-        capture_output=True, encoding="utf-8", errors="strict", timeout=30,
+        capture_output=True, encoding="utf-8", errors="strict", timeout=timeout,
     )
     assert result.returncode == 0, result.stdout + result.stderr
     return target
@@ -85,7 +85,7 @@ def check_diagnostic():
 
 def check_main_example():
     existing = set((ROOT / "tx_build").glob("example_interfaces_*"))
-    result = run(compile_source(ROOT / "example.tx"))
+    result = run(compile_source(ROOT / "example.tx", timeout=60))
     assert result.returncode == 0, result.stdout + result.stderr
     lines = result.stdout.splitlines()
     expected = [

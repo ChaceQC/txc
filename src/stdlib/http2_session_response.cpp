@@ -197,15 +197,24 @@ void server_session::close_stream(
         std::lock_guard io_lock(io_mutex_);
         if (!stream->response_done)
         {
-            nghttp2_submit_rst_stream(session_, NGHTTP2_FLAG_NONE,
-                stream->stream_id, NGHTTP2_CANCEL);
-            flush_output();
+            const auto status = nghttp2_submit_rst_stream(session_,
+                NGHTTP2_FLAG_NONE, stream->stream_id, NGHTTP2_CANCEL);
+            if (status == 0)
+            {
+                try
+                {
+                    flush_output();
+                }
+                catch (...)
+                {
+                }
+            }
         }
+        streams_.erase(stream->stream_id);
     }
     catch (...)
     {
     }
-    streams_.erase(stream->stream_id);
 }
 
 } // namespace tx_generated::http2
