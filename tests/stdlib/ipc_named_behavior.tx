@@ -1,0 +1,43 @@
+import "ipc.txh" as ipc
+import "thread.txh" as thread
+import "cancel.txh" as cancel
+
+def client(token: cancel_token) -> int
+{
+    ipc_stream stream = ipc.connect("tx_ipc_case", 1024, 1000, token)
+    ipc.send_result sent = ipc.send(stream, 7, 42, 1000, token)
+    ipc.close(stream)
+    if sent.state != "sent" || sent.written <= 20
+    {
+        return 1
+    }
+    return 0
+}
+
+def main() -> int
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    ipc_listener server = ipc.listen("tx_ipc_case", 1024)
+    join_handle<int> worker = thread.spawn(bind(client, token))
+    ipc_stream stream = ipc.accept(server, 1000, token)
+    ipc.message received = ipc.recv(stream, 1000, token)
+    if received.state != "data" || received.version != 7 || received.value as int != 42
+    {
+        return 2
+    }
+    ipc.message end = ipc.recv(stream, 1000, token)
+    if end.state != "eof"
+    {
+        return 3
+    }
+    if thread.join(worker) != 0
+    {
+        return 4
+    }
+    if ipc.close(stream) || !ipc.close_listener(server)
+    {
+        return 5
+    }
+    return 0
+}

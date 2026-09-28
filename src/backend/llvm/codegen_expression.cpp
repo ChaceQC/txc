@@ -344,6 +344,10 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* operation = std::get_if<unary_operation>(&item.data))
     {
+        if (operation->operation == token_kind::keyword_await)
+        {
+            return emit_task_wait(item, expression_value(*operation->operand));
+        }
         if (operation->binding)
         {
             bool borrowed = false;

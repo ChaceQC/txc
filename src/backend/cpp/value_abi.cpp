@@ -1,4 +1,6 @@
 #include "backend/cpp/value_abi.hpp"
+#include "backend/cpp/concurrency_value.hpp"
+#include "stdlib/task.hpp"
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
 #include "stdlib/iterator.hpp"
@@ -15,6 +17,7 @@
 #include "stdlib/regex.hpp"
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
+#include "stdlib/ipc.hpp"
 #include "stdlib/json_stream.hpp"
 #include "stdlib/cbor.hpp"
 #include "stdlib/csv.hpp"
@@ -279,6 +282,12 @@ extern "C" int txrt_value_require_type(const void* value,
                 typeid(tx_generated::cancel_source)) ||
             (type == "cancel_token" && item.type() ==
                 typeid(tx_generated::cancel_token)) ||
+            tx_generated::concurrency_matches(item, type) ||
+            (type == "task_scope" && item.type() ==
+                typeid(tx_generated::task_scope_handle)) ||
+            (item.type() == typeid(tx_generated::task_handle) &&
+             type == std::any_cast<const tx_generated::task_handle&>(item)
+                 .type_name) ||
             (type == "encoding_decoder" && item.type() ==
                 typeid(tx_generated::encoding_decoder)) ||
             (type == "encoding_encoder" && item.type() ==
@@ -291,6 +300,10 @@ extern "C" int txrt_value_require_type(const void* value,
                 typeid(tx_generated::process_child)) ||
             (type == "process_pipe" && item.type() ==
                 typeid(tx_generated::process_pipe)) ||
+            (type == "ipc_listener" && item.type() ==
+                typeid(tx_generated::ipc_listener)) ||
+            (type == "ipc_stream" && item.type() ==
+                typeid(tx_generated::ipc_stream)) ||
             (type == "json_reader" && item.type() == typeid(tx_generated::json_reader)) ||
             (type == "json_writer" && item.type() == typeid(tx_generated::json_writer)) ||
             (type == "cbor_reader" && item.type() == typeid(tx_generated::cbor_reader)) ||

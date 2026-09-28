@@ -4,6 +4,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace tx
@@ -13,6 +14,8 @@ struct symbol_info
 {
     value_type type;
     bool read_only = false;
+    std::uint64_t ownership_id = 0;
+    bool moved = false;
 };
 
 struct function_signature
@@ -23,6 +26,7 @@ struct function_signature
     bool external = false;
     source_pos position = {};
     std::string external_name = {};
+    bool is_async = false;
 };
 
 class semantic_analyzer
@@ -47,6 +51,14 @@ private:
     void register_functions(const program& source, bool require_main);
     [[nodiscard]] value_type check_algorithm_intrinsic(
         expression& item, call_expression& call, std::string_view name);
+    [[nodiscard]] value_type check_thread_intrinsic(
+        expression& item, call_expression& call, std::string_view name);
+    [[nodiscard]] value_type check_task_intrinsic(
+        expression& item, call_expression& call, std::string_view name);
+    [[nodiscard]] value_type check_sync_intrinsic(
+        expression& item, call_expression& call, std::string_view name);
+    [[nodiscard]] value_type check_channel_intrinsic(
+        expression& item, call_expression& call, std::string_view name);
     [[nodiscard]] value_type check_random_intrinsic(
         expression& item, call_expression& call, std::string_view name);
     [[nodiscard]] value_type check_serde_intrinsic(
@@ -54,6 +66,16 @@ private:
     void validate_serde_definition(const struct_decl& definition) const;
     void validate_serde_type(const value_type& type, source_pos position) const;
     void validate_type(const value_type& type, source_pos position) const;
+    [[nodiscard]] bool is_send_type(const value_type& type) const;
+    [[nodiscard]] bool is_sync_type(const value_type& type) const;
+    [[nodiscard]] bool requires_unique_move(const value_type& type) const;
+    [[nodiscard]] bool is_lock_guard_type(const value_type& type) const;
+    [[nodiscard]] bool thread_callback_is_send(
+        const expression& item, bool allow_unique_move = true) const;
+    [[nodiscard]] bool is_fresh_owned_expression(const expression& item) const;
+    void mark_expression_escaped(const expression& item);
+    [[nodiscard]] bool is_uniquely_owned(const expression& item) const;
+    [[nodiscard]] bool is_move_expression(const expression& item) const;
     void validate_key_contract(const value_type& type,
                                source_pos position) const;
     void validate_ordered_key_shape(const value_type& type,
@@ -136,9 +158,17 @@ private:
     std::unordered_map<std::string, class_decl*> classes_;
     std::unordered_map<std::string, std::vector<function_signature>> functions_;
     std::unordered_map<std::string, std::string> algorithm_intrinsics_;
+    std::unordered_map<std::string, std::string> thread_intrinsics_;
+    std::unordered_map<std::string, std::string> task_intrinsics_;
+    std::unordered_map<std::string, std::string> sync_intrinsics_;
+    std::unordered_map<std::string, std::string> channel_intrinsics_;
     std::unordered_map<std::string, std::string> random_intrinsics_;
     std::unordered_map<std::string, std::string> serde_intrinsics_;
     value_type random_generator_type_;
+    bool current_async_ = false;
+    std::uint64_t next_ownership_id_ = 1;
+    std::unordered_set<std::uint64_t> escaped_ownership_;
+    std::size_t restricted_move_depth_ = 0;
     std::vector<std::unordered_map<std::string, symbol_info>> scopes_;
     value_type current_return_type_ = value_type::unknown_type;
     const class_decl* current_class_ = nullptr;

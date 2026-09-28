@@ -7,6 +7,7 @@ namespace tx
 
 void semantic_analyzer::check_try(try_statement& guarded)
 {
+    ++restricted_move_depth_;
     push_scope();
     check_statements(guarded.body);
     pop_scope();
@@ -35,6 +36,7 @@ void semantic_analyzer::check_try(try_statement& guarded)
         check_statements(handler.body);
         pop_scope();
     }
+    --restricted_move_depth_;
 }
 
 } // namespace tx

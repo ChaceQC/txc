@@ -174,6 +174,7 @@ struct expression
 
     source_pos position;
     value_type type = value_type::unknown_type;
+    std::uint64_t ownership_id = 0;
     expression_data data;
 };
 
@@ -349,6 +350,7 @@ struct function_decl
     std::size_t overload_index = 0;
     std::optional<token_kind> operator_kind;
     std::vector<std::string> type_parameters;
+    bool is_async = false;
 };
 
 struct struct_decl

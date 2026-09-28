@@ -227,15 +227,55 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
     const auto actual = check_expression(argument);
     if (call.name == "assert_send" || call.name == "assert_sync")
     {
-        if (actual != value_type::int_type &&
-            actual != value_type::float_type &&
-            actual != value_type::bool_type)
+        const bool supported = call.name == "assert_send"
+            ? is_send_type(actual) : is_sync_type(actual);
+        if (!supported)
         {
             throw compile_error(argument.position,
                 call.name + " 不能证明此类型可跨线程传递或共享：" +
                 std::string(type_name(actual)));
         }
+        if (call.name == "assert_send" && requires_unique_move(actual) &&
+            !is_uniquely_owned(argument))
+        {
+            throw compile_error(argument.position,
+                "assert_send 需要唯一所有权；此值存在别名或已经逃逸");
+        }
         return value_type::void_type;
+    }
+    if (call.name == "move")
+    {
+        const auto* name = std::get_if<name_reference>(&argument.data);
+        auto* symbol = name ? find_symbol(name->name) : nullptr;
+        if (symbol == nullptr || name->function_value)
+        {
+            throw compile_error(argument.position,
+                "move 只接受当前作用域中的简单变量名");
+        }
+        if (!is_send_type(actual))
+        {
+            throw compile_error(argument.position,
+                "move 不能跨线程传递此类型：" +
+                std::string(type_name(actual)));
+        }
+        if (!requires_unique_move(actual))
+        {
+            throw compile_error(argument.position,
+                "move 只用于可变复合 Send 值");
+        }
+        if (restricted_move_depth_ != 0)
+        {
+            throw compile_error(argument.position,
+                "条件、循环或异常分支中暂不允许 move");
+        }
+        if (!is_uniquely_owned(argument))
+        {
+            throw compile_error(argument.position,
+                "move 需要唯一所有权；此值存在别名或已经逃逸");
+        }
+        symbol->moved = true;
+        item.ownership_id = symbol->ownership_id;
+        return actual;
     }
     if (call.name == "deep_copy")
     {
@@ -243,6 +283,14 @@ value_type semantic_analyzer::check_builtin(expression& item, call_expression& c
         {
             throw compile_error(argument.position,
                 "secret_bytes 不能使用 deep_copy");
+        }
+        if (actual.is_join_handle() || actual.is_task() ||
+            actual.name == "task_scope" || actual.is_sync_value() ||
+            actual.is_channel() || actual.name == "condition" ||
+            actual.name == "semaphore" || actual.name == "once")
+        {
+            throw compile_error(argument.position,
+                "并发资源句柄不能使用 deep_copy");
         }
         if (actual == value_type::void_type)
         {
@@ -282,6 +330,29 @@ std::vector<value_type> semantic_analyzer::check_call_arguments(call_expression&
     for (auto& argument : call.arguments)
     {
         types.push_back(check_expression(*argument.value));
+        const auto sync_operation = sync_intrinsics_.find(call.name);
+        const bool scoped_guard_operation = sync_operation !=
+                sync_intrinsics_.end() &&
+            (sync_operation->second == "guard_get" ||
+             sync_operation->second == "guard_set" ||
+             sync_operation->second == "guard_close" ||
+             sync_operation->second == "read_get" ||
+             sync_operation->second == "read_close" ||
+             sync_operation->second == "write_get" ||
+             sync_operation->second == "write_set" ||
+             sync_operation->second == "write_close" ||
+             sync_operation->second == "wait");
+        if (is_lock_guard_type(types.back()) && !scoped_guard_operation)
+        {
+            throw compile_error(argument.position,
+                "锁卫士不能作为普通调用实参逃逸当前作用域");
+        }
+        if (requires_unique_move(types.back()) &&
+            !is_move_expression(*argument.value) &&
+            !is_fresh_owned_expression(*argument.value))
+        {
+            mark_expression_escaped(*argument.value);
+        }
         if (argument.kind == argument_kind::spread_array &&
             types.back() != value_type::array_type &&
             types.back() != value_type::any_type)
@@ -344,9 +415,20 @@ value_type semantic_analyzer::check_bind(expression& item, call_expression& call
     }
     for (std::size_t index = 0; index < captured; ++index)
     {
-        const auto actual = check_expression(*call.arguments[index + 1].value);
+        auto& capture = *call.arguments[index + 1].value;
+        const auto actual = check_expression(capture);
         require_type(actual, function.parameters[index],
             call.arguments[index + 1].position, "bind 捕获参数");
+        if (is_lock_guard_type(actual))
+        {
+            throw compile_error(capture.position, "锁卫士不能被闭包捕获");
+        }
+        if (requires_unique_move(actual) &&
+            !is_move_expression(capture) &&
+            !is_fresh_owned_expression(capture))
+        {
+            mark_expression_escaped(capture);
+        }
     }
     std::vector<value_type> remaining(
         function.parameters.begin() + captured,
@@ -432,11 +514,24 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
         }
         for (std::size_t index = 0; index < call.arguments.size(); ++index)
         {
+            auto& argument = *call.arguments[index].value;
+            const auto actual = check_expression(argument);
             if (call.arguments[index].kind != argument_kind::positional ||
-                check_expression(*call.arguments[index].value) != signature[index])
+                actual != signature[index])
             {
                 throw compile_error(call.arguments[index].position,
                                     "函数值调用需要位置实参与精确类型：" + display_name);
+            }
+            if (is_lock_guard_type(actual))
+            {
+                throw compile_error(argument.position,
+                    "锁卫士不能作为普通调用实参逃逸当前作用域");
+            }
+            if (requires_unique_move(actual) &&
+                !is_move_expression(argument) &&
+                !is_fresh_owned_expression(argument))
+            {
+                mark_expression_escaped(argument);
             }
         }
         call.indirect = true;
@@ -446,7 +541,8 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
         call.name == "to_float" || call.name == "input" ||
         call.name == "input_or_none" ||
         call.name == "is_none" || call.name == "deep_copy" ||
-        call.name == "assert_send" || call.name == "assert_sync")
+        call.name == "assert_send" || call.name == "assert_sync" ||
+        call.name == "move")
     {
         return check_builtin(item, call);
     }
@@ -472,15 +568,36 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     {
         return check_serde_intrinsic(item, call, intrinsic->second);
     }
-    if (call.explicit_type)
+    if (call.explicit_type &&
+        !channel_intrinsics_.contains(call.name))
     {
         throw compile_error(item.position,
-            "显式调用类型实参目前只支持 serde.deserialize_json/cbor");
+            "显式调用类型实参目前只支持 serde.deserialize_json/cbor 和 channel.bounded");
     }
     if (const auto intrinsic = algorithm_intrinsics_.find(call.name);
         intrinsic != algorithm_intrinsics_.end())
     {
         return check_algorithm_intrinsic(item, call, intrinsic->second);
+    }
+    if (const auto intrinsic = thread_intrinsics_.find(call.name);
+        intrinsic != thread_intrinsics_.end())
+    {
+        return check_thread_intrinsic(item, call, intrinsic->second);
+    }
+    if (const auto intrinsic = task_intrinsics_.find(call.name);
+        intrinsic != task_intrinsics_.end())
+    {
+        return check_task_intrinsic(item, call, intrinsic->second);
+    }
+    if (const auto intrinsic = sync_intrinsics_.find(call.name);
+        intrinsic != sync_intrinsics_.end())
+    {
+        return check_sync_intrinsic(item, call, intrinsic->second);
+    }
+    if (const auto intrinsic = channel_intrinsics_.find(call.name);
+        intrinsic != channel_intrinsics_.end())
+    {
+        return check_channel_intrinsic(item, call, intrinsic->second);
     }
     if (const auto intrinsic = random_intrinsics_.find(call.name);
         intrinsic != random_intrinsics_.end())
@@ -500,7 +617,34 @@ value_type semantic_analyzer::check_call(expression& item, call_expression& call
     if (candidates.size() == 1)
     {
         call.overload_index = candidates.front();
-        return found->second[candidates.front()].result;
+        const auto& selected = found->second[candidates.front()];
+        if (selected.is_async)
+        {
+            if (call.arguments.size() != selected.parameters.size())
+            {
+                throw compile_error(item.position,
+                    "async def 调用需要完整的位置实参");
+            }
+            for (std::size_t index = 0; index < call.arguments.size(); ++index)
+            {
+                if (call.arguments[index].kind != argument_kind::positional ||
+                    actual_types[index] != selected.parameters[index].type)
+                {
+                    throw compile_error(call.arguments[index].position,
+                        "async def 调用需要精确类型的位置实参");
+                }
+                const auto& argument = *call.arguments[index].value;
+                if (requires_unique_move(argument.type) &&
+                    (!is_uniquely_owned(argument) ||
+                     (!is_move_expression(argument) &&
+                      !is_fresh_owned_expression(argument))))
+                {
+                    throw compile_error(argument.position,
+                        "async def 可变 Send 实参需要唯一 move 或新构造值");
+                }
+            }
+        }
+        return selected.result;
     }
     if (candidates.size() > 1)
     {

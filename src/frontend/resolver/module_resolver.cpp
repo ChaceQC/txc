@@ -23,9 +23,12 @@ bool is_builtin_type(const std::string& name)
            name == "bytes" || name == "secret_bytes" ||
            name == "binary_stream" || name == "text_stream" ||
            name == "cancel_source" || name == "cancel_token" ||
+           name == "condition" || name == "semaphore" || name == "once" ||
+           name == "task_scope" ||
            name == "encoding_decoder" || name == "encoding_encoder" ||
            name == "regex_pattern" || name == "fs_watcher" ||
            name == "process_child" || name == "process_pipe" ||
+           name == "ipc_listener" || name == "ipc_stream" ||
            name == "json_reader" || name == "json_writer" ||
            name == "cbor_reader" || name == "cbor_writer" ||
            name == "csv_reader" || name == "csv_writer" ||
@@ -227,6 +230,8 @@ value_type module_resolver::resolve_type(
             resolve_type(module_key, type.parameters.back(), position));
     }
     if (type.is_vector() || type.is_typed_container() || type.is_sum_type() ||
+        type.is_join_handle() || type.is_task() || type.is_sync_value() ||
+        type.is_channel() || type.is_selected() ||
         type.is_iterator() || type.is_entry() || type.is_priority_entry())
     {
         std::vector<value_type> arguments;
@@ -326,10 +331,14 @@ void module_resolver::resolve(program& source)
             if (!function.external ||
                 (!function.external_name.starts_with("algorithm.") &&
                  !function.external_name.starts_with("random.") &&
-                 !function.external_name.starts_with("serde.")))
+                 !function.external_name.starts_with("serde.") &&
+                 !function.external_name.starts_with("thread.") &&
+                 !function.external_name.starts_with("sync.") &&
+                 !function.external_name.starts_with("channel.") &&
+                 !function.external_name.starts_with("task.")))
             {
                 throw compile_error(function.position,
-                    "当前仅标准库 algorithm/random/serde 接口支持泛型函数声明");
+                    "当前仅标准库 algorithm/random/serde/thread/sync/channel/task 接口支持泛型函数声明");
             }
             const std::unordered_set<std::string> variables(
                 function.type_parameters.begin(), function.type_parameters.end());

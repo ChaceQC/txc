@@ -1,0 +1,9 @@
+def main() -> int
+{
+    vector<int> values = vector<int>(1, 5)
+    if true
+    {
+        vector<int> moved = move(values)
+    }
+    return 0
+}

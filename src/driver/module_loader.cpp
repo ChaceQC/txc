@@ -81,7 +81,8 @@ void module_loader::validate_pair(const program& header,
             throw compile_error(declaration.position,
                                 "接口重载缺少实现：" + declaration.name);
         }
-        if (found->return_type != declaration.return_type)
+        if (found->return_type != declaration.return_type ||
+            found->is_async != declaration.is_async)
         {
             throw compile_error(found->position, "接口签名不匹配：" + found->name);
         }

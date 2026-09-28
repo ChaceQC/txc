@@ -1,0 +1,5 @@
+def spawn<T>(work: fn()->T) -> join_handle<T>
+def join<T>(handle: join_handle<T>) -> T
+def detach<T>(handle: join_handle<T>) -> void
+def id<T>(handle: join_handle<T>) -> int
+def take_detached_error() -> str

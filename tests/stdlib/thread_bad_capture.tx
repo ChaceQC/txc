@@ -1,0 +1,13 @@
+import "thread.txh" as thread
+
+def first(values: vector<int>) -> int
+{
+    return values[0]
+}
+
+def main() -> int
+{
+    vector<int> values = vector<int>(1, 5)
+    join_handle<int> worker = thread.spawn(bind(first, values))
+    return thread.join(worker)
+}

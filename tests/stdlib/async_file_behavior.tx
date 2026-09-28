@@ -1,0 +1,85 @@
+import "task.txh" as task
+import "async_file.txh" as async_file
+import "bytes.txh" as bytes
+import "cancel.txh" as cancel
+import "fs.txh" as fs
+
+def run(scope: task_scope) -> int
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    fs.remove("tx_build/async_file_missing.bin")
+    fs.remove("tx_build/async_file_created_case.bin")
+    vector<int> values = vector<int>(3, 0)
+    values[0] = 65
+    values[1] = 66
+    values[2] = 67
+    bytes payload = bytes.from_vector(values)
+
+    task<async_file.write_result> writing = async_file.write_at(
+        "tx_build/async_file_case.bin", 0, payload, token)
+    async_file.write_result written = task.wait(writing)
+    if written.error_code != "" || written.cancelled || written.written != 3
+    {
+        return 1
+    }
+    task<async_file.read_result> reading = async_file.read_at(
+        "tx_build/async_file_case.bin", 1, 8, token)
+    async_file.read_result received = task.wait(reading)
+    if received.error_code != "" || received.cancelled || !received.eof
+    {
+        return 2
+    }
+    vector<int> actual = bytes.to_vector(received.data)
+    if len(actual) != 2 || actual[0] != 66 || actual[1] != 67
+    {
+        return 3
+    }
+    task<async_file.write_result> empty_write = async_file.write_at(
+        "tx_build/async_file_case.bin", 3, bytes.empty(), token)
+    async_file.write_result empty_written = task.wait(empty_write)
+    if empty_written.error_code != "" || empty_written.cancelled || empty_written.written != 0
+    {
+        return 7
+    }
+    task<async_file.read_result> empty_read = async_file.read_at(
+        "tx_build/async_file_case.bin", 0, 0, token)
+    async_file.read_result empty_received = task.wait(empty_read)
+    if empty_received.error_code != "" || empty_received.eof || len(empty_received.data) != 0
+    {
+        return 8
+    }
+
+    task<async_file.read_result> missing = async_file.read_at(
+        "tx_build/async_file_missing.bin", 0, 8, token)
+    async_file.read_result failed = task.wait(missing)
+    if failed.error_code != "file_open_failed" || failed.eof
+    {
+        return 4
+    }
+
+    cancel_source cancelled_source = cancel.source()
+    cancel.cancel(cancelled_source)
+    task<async_file.write_result> cancelled = async_file.write_at(
+        "tx_build/async_file_case.bin", 10, payload,
+        cancel.token(cancelled_source))
+    async_file.write_result outcome = task.wait(cancelled)
+    if !outcome.cancelled || outcome.written != 0 || outcome.created
+    {
+        return 5
+    }
+    task<async_file.write_result> created = async_file.write_at(
+        "tx_build/async_file_created_case.bin", 0, payload,
+        cancel.token(cancelled_source))
+    async_file.write_result created_outcome = task.wait(created)
+    if !created_outcome.cancelled || !created_outcome.created || created_outcome.written != 0 || !fs.exists("tx_build/async_file_created_case.bin")
+    {
+        return 6
+    }
+    return 0
+}
+
+def main() -> int
+{
+    return task.scope(run, 5, 1000)
+}

@@ -13,21 +13,18 @@ handle_record<std::string>* text_record(const void* value) noexcept
 
 } // namespace
 
-std::string* retain_text_handle(const void* value) noexcept
+std::string* copy_text_handle(const void* value)
 {
-    auto* record = text_record(value);
-    if (record->references++ == 0)
-    {
-        register_handle(record, handle_kind::text);
-    }
-    return record;
+    return make_handle<std::string>(*static_cast<const std::string*>(value));
 }
 
 void retain_text_reference(const void* value) noexcept
 {
     if (value)
     {
-        ++text_record(value)->internal_references;
+        auto* record = text_record(value);
+        std::lock_guard lock(record->reference_mutex);
+        ++record->internal_references;
     }
 }
 
@@ -38,7 +35,13 @@ void release_text_reference(const void* value) noexcept
         return;
     }
     auto* record = text_record(value);
-    if (--record->internal_references == 0 && record->references == 0)
+    bool destroy = false;
+    {
+        std::lock_guard lock(record->reference_mutex);
+        --record->internal_references;
+        destroy = record->internal_references == 0 && record->references == 0;
+    }
+    if (destroy)
     {
         delete record;
     }

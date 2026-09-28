@@ -61,7 +61,12 @@ struct_decl parser::parse_struct()
 
 function_decl parser::parse_function(bool declaration_only, bool member)
 {
+    const bool is_async = match(token_kind::keyword_async);
     const auto position = consume(token_kind::keyword_def, "需要 def").position;
+    if (is_async && member)
+    {
+        throw compile_error(position, "async def 当前只允许顶层函数");
+    }
     auto name = consume(token_kind::identifier, "需要函数名").text;
     std::optional<token_kind> operator_kind;
     std::string source_name = name;
@@ -190,12 +195,15 @@ function_decl parser::parse_function(bool declaration_only, bool member)
                 source_name, {}, {}, member_access::public_access, false, false,
                 false, {}, 0, operator_kind, {}};
         result.type_parameters = std::move(type_parameters);
+        result.is_async = is_async;
         return result;
     }
     auto body = parse_block();
-    return {name, std::move(parameters), return_type, std::move(body),
+    function_decl result{name, std::move(parameters), return_type, std::move(body),
             position, false, source_name, {}, {}, member_access::public_access,
             false, false, false, {}, 0, operator_kind, {}};
+    result.is_async = is_async;
+    return result;
 }
 
 } // namespace tx

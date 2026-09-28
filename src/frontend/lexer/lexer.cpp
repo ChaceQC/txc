@@ -25,6 +25,8 @@ std::optional<token_kind> keyword_kind(std::string_view text)
 {
     static const std::unordered_map<std::string_view, token_kind> keywords = {
         {"def", token_kind::keyword_def},
+        {"async", token_kind::keyword_async},
+        {"await", token_kind::keyword_await},
         {"fn", token_kind::keyword_fn},
         {"auto", token_kind::keyword_auto},
         {"for", token_kind::keyword_for},

@@ -1,0 +1,122 @@
+import "thread.txh" as thread
+import "sync.txh" as sync
+import "cancel.txh" as cancel
+
+def increment(owner: mutex<int>) -> void
+{
+    for index in 0..=99
+    {
+        mutex_guard<int> guard = sync.lock(owner)
+        sync.guard_set(guard, sync.guard_get(guard) + 1)
+        sync.guard_close(guard)
+    }
+}
+
+def count_once(counter: atomic<int>) -> void
+{
+    sync.atomic_fetch_add(counter, 1, 4)
+}
+
+def run_once_worker(flag: once, counter: atomic<int>) -> void
+{
+    sync.run_once(flag, bind(count_once, counter))
+}
+
+def wait_for_flag(owner: mutex<int>, signal: condition, token: cancel_token) -> int
+{
+    mutex_guard<int> guard = sync.lock(owner)
+    while sync.guard_get(guard) == 0
+    {
+        sync.wait(signal, guard, -1, token)
+    }
+    int result = sync.guard_get(guard)
+    sync.guard_close(guard)
+    return result
+}
+
+def main() -> int
+{
+    mutex<int> shared = sync.new_mutex(0)
+    assert_send(shared)
+    assert_sync(shared)
+    join_handle<void> a = thread.spawn(bind(increment, shared))
+    join_handle<void> b = thread.spawn(bind(increment, shared))
+    thread.join(a)
+    thread.join(b)
+    mutex_guard<int> guard = sync.lock(shared)
+    if sync.guard_get(guard) != 200
+    {
+        return 1
+    }
+    sync.guard_close(guard)
+    array boxed_shared = [shared]
+    mutex<int> restored = boxed_shared[0] as mutex<int>
+    mutex_guard<int> restored_guard = sync.lock(restored)
+    if sync.guard_get(restored_guard) != 200
+    {
+        return 10
+    }
+    sync.guard_close(restored_guard)
+
+    rw_lock<int> reader_writer = sync.new_rw_lock(5)
+    rw_read_guard<int> read_guard = sync.read_lock(reader_writer)
+    if sync.read_get(read_guard) != 5
+    {
+        return 2
+    }
+    sync.read_close(read_guard)
+    rw_write_guard<int> write_guard = sync.write_lock(reader_writer)
+    sync.write_set(write_guard, 7)
+    sync.write_close(write_guard)
+
+    atomic<int> counter = sync.new_atomic(0)
+    once flag = sync.new_once()
+    join_handle<void> c = thread.spawn(bind(run_once_worker, flag, counter))
+    join_handle<void> d = thread.spawn(bind(run_once_worker, flag, counter))
+    thread.join(c)
+    thread.join(d)
+    if sync.atomic_load(counter, 4) != 1
+    {
+        return 3
+    }
+    if !sync.atomic_compare_exchange(counter, 1, 4, 4)
+    {
+        return 4
+    }
+    if sync.atomic_exchange(counter, 8, 4) != 4
+    {
+        return 5
+    }
+
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    semaphore permits = sync.new_semaphore(1, 2)
+    if !sync.acquire(permits, 0, token)
+    {
+        return 6
+    }
+    if sync.acquire(permits, 0, token)
+    {
+        return 7
+    }
+    sync.release(permits, 1)
+    condition changed = sync.new_condition()
+    mutex_guard<int> second_guard = sync.lock(shared)
+    if sync.wait(changed, second_guard, 0, token)
+    {
+        return 8
+    }
+    sync.guard_close(second_guard)
+
+    mutex<int> flag_value = sync.new_mutex(0)
+    join_handle<int> waiter = thread.spawn(bind(wait_for_flag, flag_value, changed, token))
+    mutex_guard<int> flag_guard = sync.lock(flag_value)
+    sync.guard_set(flag_guard, 17)
+    sync.notify_one(changed)
+    sync.guard_close(flag_guard)
+    if thread.join(waiter) != 17
+    {
+        return 9
+    }
+    return 0
+}

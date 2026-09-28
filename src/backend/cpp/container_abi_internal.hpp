@@ -52,7 +52,7 @@ inline void container_result(std::size_t value, std::int64_t* result)
 
 inline void container_result(const text_reference& value, void** result)
 {
-    *result = retain_text_handle(value.handle());
+    *result = copy_text_handle(value.handle());
 }
 
 template<class element_type>

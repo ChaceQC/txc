@@ -82,6 +82,16 @@ value_type semantic_analyzer::check_literal(expression& item)
         for (auto& element : literal->elements)
         {
             const auto type = check_expression(*element);
+            if (is_lock_guard_type(type))
+            {
+                throw compile_error(element->position,
+                    "锁卫士不能存入数组");
+            }
+            if (requires_unique_move(type) && !is_move_expression(*element) &&
+                !is_fresh_owned_expression(*element))
+            {
+                mark_expression_escaped(*element);
+            }
             if (type == value_type::void_type)
             {
                 throw compile_error(element->position, "数组不能存放无返回值的调用");
@@ -98,6 +108,17 @@ value_type semantic_analyzer::check_literal(expression& item)
             throw compile_error(entry.key->position, "字典键必须是可哈希的值");
         }
         const auto value = check_expression(*entry.value);
+        if (is_lock_guard_type(value))
+        {
+            throw compile_error(entry.value->position,
+                "锁卫士不能存入字典");
+        }
+        if (requires_unique_move(value) &&
+            !is_move_expression(*entry.value) &&
+            !is_fresh_owned_expression(*entry.value))
+        {
+            mark_expression_escaped(*entry.value);
+        }
         if (value == value_type::void_type)
         {
             throw compile_error(item.position, "字典不能存放无返回值的调用");
@@ -121,6 +142,29 @@ value_type semantic_analyzer::check_unary(expression& item,
         }
     }
     const auto actual = check_expression(*operation.operand);
+    if (operation.operation == token_kind::keyword_await)
+    {
+        if (!current_async_ || !actual.is_task())
+        {
+            throw compile_error(item.position,
+                "await 只能在 async def 内等待 task<T>");
+        }
+        for (const auto& scope : scopes_)
+        {
+            for (const auto& [name, symbol] : scope)
+            {
+                (void)name;
+                if (symbol.type.is_sync_value() &&
+                    symbol.type.container_name().find("guard") !=
+                        std::string::npos)
+                {
+                    throw compile_error(item.position,
+                        "持有锁卫士的作用域不能执行 await");
+                }
+            }
+        }
+        return actual.parameters.front();
+    }
     if (operation.operation == token_kind::minus && is_numeric(actual))
     {
         return actual;
@@ -287,6 +331,19 @@ value_type semantic_analyzer::check_member(expression& item,
         }
         throw compile_error(item.position, "未知 entry 字段：" + access.field);
     }
+    if (object_type.is_selected())
+    {
+        if (access.field == "index")
+        {
+            return value_type::int_type;
+        }
+        if (access.field == "value")
+        {
+            return value_type::container_of("option",
+                {object_type.parameters.front()});
+        }
+        throw compile_error(item.position, "未知 selected 字段：" + access.field);
+    }
     if (const auto found_class = classes_.find(object_type.name);
         found_class != classes_.end())
     {
@@ -338,12 +395,17 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
         cast.target == value_type::text_stream_type ||
         cast.target == value_type::cancel_source_type ||
         cast.target == value_type::cancel_token_type ||
+        cast.target.name == "condition" ||
+        cast.target.name == "semaphore" ||
+        cast.target.name == "once" ||
         cast.target == value_type::encoding_decoder_type ||
         cast.target == value_type::encoding_encoder_type ||
         cast.target == value_type::regex_pattern_type ||
         cast.target == value_type::fs_watcher_type ||
         cast.target == value_type::process_child_type ||
         cast.target == value_type::process_pipe_type ||
+        cast.target == value_type::ipc_listener_type ||
+        cast.target == value_type::ipc_stream_type ||
         cast.target == value_type::json_reader_type ||
         cast.target == value_type::json_writer_type ||
         cast.target == value_type::cbor_reader_type ||
@@ -365,7 +427,8 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
     if (cast.target.is_function() || cast.target.is_vector() ||
         cast.target.is_iterator() ||
         cast.target.is_entry() || cast.target.is_priority_entry() ||
-        cast.target.is_typed_container() ||
+        cast.target.is_typed_container() || cast.target.is_sync_value() ||
+        cast.target.is_channel() || cast.target.is_selected() ||
         cast.target.is_sum_type() || structs_.contains(cast.target.name))
     {
         validate_type(cast.target, item.position);
@@ -417,6 +480,7 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
 
 value_type semantic_analyzer::check_expression(expression& item)
 {
+    item.ownership_id = 0;
     if (std::holds_alternative<integer_literal>(item.data) ||
         std::holds_alternative<floating_literal>(item.data) ||
         std::holds_alternative<string_literal>(item.data) ||
@@ -432,7 +496,13 @@ value_type semantic_analyzer::check_expression(expression& item)
         const auto* symbol = find_symbol(name->name);
         if (symbol != nullptr)
         {
+            if (symbol->moved)
+            {
+                throw compile_error(item.position,
+                    "变量已被 move，不能再次读取或修改：" + name->name);
+            }
             item.type = symbol->type;
+            item.ownership_id = symbol->ownership_id;
         }
         else if (name->ambiguous_function)
         {
@@ -449,6 +519,11 @@ value_type semantic_analyzer::check_expression(expression& item)
                                     "只能引用未重载的普通 TX 函数：" + name->name);
             }
             const auto& signature = found->second.front();
+            if (signature.is_async)
+            {
+                throw compile_error(item.position,
+                    "async def 当前只能直接调用，不能作为函数值传递");
+            }
             std::vector<value_type> arguments;
             for (const auto& parameter : signature.parameters)
             {
@@ -471,10 +546,18 @@ value_type semantic_analyzer::check_expression(expression& item)
     else if (auto* access = std::get_if<index_expression>(&item.data))
     {
         item.type = check_index(item, *access);
+        if (requires_unique_move(item.type))
+        {
+            mark_expression_escaped(*access->object);
+        }
     }
     else if (auto* access = std::get_if<member_expression>(&item.data))
     {
         item.type = check_member(item, *access);
+        if (requires_unique_move(item.type))
+        {
+            mark_expression_escaped(*access->object);
+        }
     }
     else if (auto* cast = std::get_if<cast_expression>(&item.data))
     {
@@ -499,6 +582,19 @@ value_type semantic_analyzer::check_expression(expression& item)
     else if (auto* call = std::get_if<call_expression>(&item.data))
     {
         item.type = check_call(item, *call);
+        const bool returns_container_alias = call->receiver &&
+            call->name == "to_array" &&
+            call->receiver->type.is_vector() &&
+            requires_unique_move(call->receiver->type.parameters.front());
+        const bool returns_iterator_alias = call->receiver &&
+            call->receiver->type.is_vector() &&
+            (call->name == "snapshot_iter" || call->name == "live_iter");
+        if ((requires_unique_move(item.type) || returns_container_alias ||
+             returns_iterator_alias) &&
+            call->receiver)
+        {
+            mark_expression_escaped(*call->receiver);
+        }
         annotate_call_properties(*call);
     }
     return item.type;

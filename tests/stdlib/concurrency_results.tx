@@ -1,0 +1,62 @@
+import "thread.txh" as thread
+import "task.txh" as task
+
+struct packet
+{
+    values: vector<int>
+}
+
+def make_text() -> str
+{
+    return "工作线程"
+}
+
+def make_packet() -> packet
+{
+    return packet(vector<int>(1, 42))
+}
+
+def make_task_packet() -> packet
+{
+    return packet(vector<int>(1, 69))
+}
+
+async def echo_packet(value: packet) -> packet
+{
+    await task.sleep(1)
+    return value
+}
+
+def run_tasks(scope: task_scope) -> packet
+{
+    task<packet> direct = task.spawn(scope, make_task_packet)
+    packet received = task.wait(direct)
+    if received.values[0] != 69
+    {
+        return packet(vector<int>(1, -1))
+    }
+    packet request = packet(vector<int>(1, 70))
+    task<packet> asynchronous = echo_packet(move(request))
+    return task.wait(asynchronous)
+}
+
+def main() -> int
+{
+    join_handle<str> text_worker = thread.spawn(make_text)
+    if thread.join(text_worker) != "工作线程"
+    {
+        return 1
+    }
+    join_handle<packet> packet_worker = thread.spawn(make_packet)
+    packet from_thread = thread.join(packet_worker)
+    if from_thread.values[0] != 42
+    {
+        return 2
+    }
+    packet from_scope = task.scope(run_tasks, 3, 1000)
+    if from_scope.values[0] != 70
+    {
+        return 3
+    }
+    return 0
+}

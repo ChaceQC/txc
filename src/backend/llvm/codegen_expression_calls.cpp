@@ -10,6 +10,10 @@ namespace
 bool supported_external_call(std::string_view name)
 {
     return name.starts_with("httpx.") || name.starts_with("websocket.") ||
+           name.starts_with("thread.") || name.starts_with("sync.") ||
+           name.starts_with("channel.") || name.starts_with("task.") ||
+           name.starts_with("async_file.") ||
+           name.starts_with("ipc.") ||
            name.starts_with("unicode.") ||
            name.starts_with("regex.") ||
            name.starts_with("crypto.") || name.starts_with("secret.") ||
@@ -115,7 +119,8 @@ bool is_builtin_call(std::string_view name)
     return name == "print" || name == "len" || name == "is_none" ||
            name == "to_float" || name == "input" ||
            name == "input_or_none" || name == "deep_copy" ||
-           name == "assert_send" || name == "assert_sync";
+           name == "assert_send" || name == "assert_sync" ||
+           name == "move";
 }
 
 bool simple_argument(const call_argument& argument)
@@ -279,6 +284,25 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
     const expression& item, const call_expression& call,
     const function_decl& target, const std::vector<ir_value>& arguments)
 {
+    if (target.external_name.starts_with("thread.") &&
+        target.external_name != "thread.take_detached_error")
+    {
+        return emit_thread_intrinsic(item, target, arguments);
+    }
+    if (target.external_name.starts_with("task.") &&
+        !target.type_parameters.empty())
+    {
+        return emit_task_intrinsic(item, target, arguments);
+    }
+    if (target.external_name.starts_with("sync.") &&
+        !target.type_parameters.empty())
+    {
+        return emit_sync_intrinsic(item, target, arguments);
+    }
+    if (target.external_name.starts_with("channel."))
+    {
+        return emit_channel_intrinsic(item, target, arguments);
+    }
     if (target.external_name.starts_with("serde."))
     {
         return emit_serde_intrinsic(item, target, arguments);
@@ -467,6 +491,25 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
     {
         return emit_callback_call(item, call);
     }
+    if (call.name == "move")
+    {
+        const auto& source = *call.arguments.front().value;
+        if (item.ownership_id == 0)
+        {
+            return expression_value(source);
+        }
+        const auto* name = std::get_if<name_reference>(&source.data);
+        if (name == nullptr)
+        {
+            throw compile_error(item.position,
+                "LLVM 后端的 move 目标必须是简单变量名");
+        }
+        const auto variable = find_variable(name->name, source.position);
+        const auto value = temporary();
+        write_instruction(value + " = load ptr, ptr " + variable.address);
+        write_instruction("store ptr null, ptr " + variable.address);
+        return {item.type, value};
+    }
     const auto plain_arguments = [&]
     {
         std::vector<ir_value> values;
@@ -654,6 +697,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
         throw compile_error(item.position, "LLVM 后端找不到函数调用目标");
     }
     const auto& target = *found->second[*call.overload_index];
+    if (target.is_async)
+    {
+        return emit_async_call(item, call, target);
+    }
     const bool needs_binding = call.arguments.size() != target.parameters.size() ||
         std::any_of(target.parameters.begin(),
         target.parameters.end(), [](const parameter& value)

@@ -84,6 +84,11 @@ void semantic_analyzer::register_class(
     std::unordered_set<std::string> own_fields;
     for (const auto& field : definition.fields)
     {
+        if (is_lock_guard_type(field.type))
+        {
+            throw compile_error(field.position,
+                "锁卫士不能作为类字段");
+        }
         if (field.type == value_type::secret_bytes_type)
         {
             throw compile_error(field.position,

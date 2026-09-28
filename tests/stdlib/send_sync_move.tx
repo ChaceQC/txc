@@ -1,0 +1,92 @@
+import "thread.txh" as thread
+import "task.txh" as task
+
+struct record
+{
+    numbers: vector<int>
+}
+
+def increment(values: vector<int>) -> int
+{
+    values[0] = values[0] + 1
+    return values[0]
+}
+
+def read_text(values: vector<str>) -> int
+{
+    return len(values[0])
+}
+
+def increment_record(values: vector<record>) -> int
+{
+    values[0].numbers[0] = values[0].numbers[0] + 1
+    return values[0].numbers[0]
+}
+
+def increment_nested(values: vector<vector<int>>) -> int
+{
+    values[0][0] = values[0][0] + 1
+    return values[0][0]
+}
+
+def collect_worker_cycle() -> int
+{
+    array cycle = [none]
+    cycle[0] = cycle
+    return 9
+}
+
+def move_into_task(scope: task_scope) -> int
+{
+    vector<int> values = vector<int>(1, 68)
+    task<int> work = task.spawn(scope, bind(increment, move(values)))
+    return task.wait(work)
+}
+
+def main() -> int
+{
+    vector<int> values = vector<int>(1, 41)
+    assert_send(values)
+    join_handle<int> worker = thread.spawn(bind(increment, move(values)))
+    if thread.join(worker) != 42
+    {
+        return 1
+    }
+
+    vector<str> texts = vector<str>(1, "跨线程")
+    join_handle<int> text_worker = thread.spawn(bind(read_text, move(texts)))
+    if thread.join(text_worker) != 3
+    {
+        return 2
+    }
+
+    join_handle<int> cycle_worker = thread.spawn(collect_worker_cycle)
+    if thread.join(cycle_worker) != 9
+    {
+        return 3
+    }
+    if task.scope(move_into_task, 2, 1000) != 69
+    {
+        return 4
+    }
+
+    vector<record> records = vector<record>(1,
+        record(vector<int>(1, 70)))
+    assert_send(records)
+    join_handle<int> record_worker = thread.spawn(
+        bind(increment_record, move(records)))
+    if thread.join(record_worker) != 71
+    {
+        return 5
+    }
+
+    vector<vector<int>> nested = vector<vector<int>>(
+        1, vector<int>(1, 80))
+    join_handle<int> nested_worker = thread.spawn(
+        bind(increment_nested, move(nested)))
+    if thread.join(nested_worker) != 81
+    {
+        return 6
+    }
+    return 0
+}

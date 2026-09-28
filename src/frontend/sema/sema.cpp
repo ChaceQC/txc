@@ -139,12 +139,48 @@ void semantic_analyzer::check_defaults(function_decl& function)
 
 void semantic_analyzer::check_function(function_decl& function)
 {
+    if (!function.external &&
+        (is_lock_guard_type(function.return_type) ||
+         std::any_of(function.parameters.begin(), function.parameters.end(),
+             [&](const parameter& value)
+             {
+                 return is_lock_guard_type(value.type);
+             })))
+    {
+        throw compile_error(function.position,
+            "用户函数不能在签名中保存或转交锁卫士");
+    }
     if (function.external)
     {
         return;
     }
     scopes_.clear();
+    escaped_ownership_.clear();
+    next_ownership_id_ = 1;
+    restricted_move_depth_ = 0;
     push_scope();
+    const auto previous_async = current_async_;
+    current_async_ = function.is_async;
+    if (function.is_async)
+    {
+        if (function.return_type != value_type::void_type &&
+            !is_send_type(function.return_type))
+        {
+            throw compile_error(function.position,
+                "async def 返回值需要 void 或 Send 类型");
+        }
+        for (const auto& parameter : function.parameters)
+        {
+            if (parameter.kind != parameter_kind::ordinary ||
+                !is_send_type(parameter.type) ||
+                parameter.type == value_type::void_type ||
+                parameter.default_value)
+            {
+                throw compile_error(parameter.position,
+                    "async def 参数需要无默认值的普通 Send 类型");
+            }
+        }
+    }
     current_return_type_ = function.return_type;
     const auto found_class = classes_.find(function.owner_class);
     current_class_ = found_class == classes_.end()
@@ -166,7 +202,13 @@ void semantic_analyzer::check_function(function_decl& function)
     {
         const auto type = parameter_is_nullable(parameter)
             ? value_type::any_type : parameter.type;
-        declare_symbol(parameter.name, {type, false}, parameter.position);
+        symbol_info info{type, false};
+        if (requires_unique_move(type))
+        {
+            info.ownership_id = next_ownership_id_++;
+            escaped_ownership_.insert(info.ownership_id);
+        }
+        declare_symbol(parameter.name, std::move(info), parameter.position);
     }
     check_statements(function.body);
     if (function.owner_class.empty())
@@ -206,6 +248,7 @@ void semantic_analyzer::check_function(function_decl& function)
                                                function.source_name);
     }
     pop_scope();
+    current_async_ = previous_async;
     current_class_ = nullptr;
 }
 
@@ -256,6 +299,11 @@ void semantic_analyzer::check_declaration(statement& item,
         declaration.declared_type = inferred;
     }
     const auto selected = declaration.declared_type.value_or(inferred);
+    if (is_lock_guard_type(inferred) && selected != inferred)
+    {
+        throw compile_error(declaration.initializer->position,
+            "锁卫士不能装入 any 或其他类型");
+    }
     if (selected.is_inferred_function())
     {
         throw compile_error(item.position, "无法推断 fn 变量的完整签名");
@@ -268,7 +316,35 @@ void semantic_analyzer::check_declaration(statement& item,
         insert_implicit_value_cast(declaration.initializer, inferred, selected)
         ? selected : inferred;
     require_type(actual, selected, declaration.initializer->position, "变量初值");
-    declare_symbol(declaration.name, {selected, false}, item.position);
+    if (is_lock_guard_type(selected))
+    {
+        const auto* call = std::get_if<call_expression>(
+            &declaration.initializer->data);
+        const auto sync_operation = call
+            ? sync_intrinsics_.find(call->name) : sync_intrinsics_.end();
+        if (!call || sync_operation == sync_intrinsics_.end() ||
+            (sync_operation->second != "lock" &&
+             sync_operation->second != "read_lock" &&
+             sync_operation->second != "write_lock"))
+        {
+            throw compile_error(declaration.initializer->position,
+                "锁卫士不能复制；只能由 sync.lock/read_lock/write_lock 初始化");
+        }
+    }
+    symbol_info info{selected, false};
+    if (requires_unique_move(selected))
+    {
+        info.ownership_id = declaration.initializer->ownership_id;
+        if (info.ownership_id == 0)
+        {
+            info.ownership_id = next_ownership_id_++;
+            if (!is_fresh_owned_expression(*declaration.initializer))
+            {
+                escaped_ownership_.insert(info.ownership_id);
+            }
+        }
+    }
+    declare_symbol(declaration.name, std::move(info), item.position);
 }
 
 value_type semantic_analyzer::check_lvalue(expression& target)
@@ -340,6 +416,23 @@ void semantic_analyzer::check_assignment(statement& item,
     {
         throw compile_error(assignment.value->position, "不能把无返回值的调用赋入变量");
     }
+    if (assignment.operation == token_kind::equal)
+    {
+        const auto* target = std::get_if<name_reference>(
+            &assignment.target->data);
+        const auto* move = std::get_if<call_expression>(
+            &assignment.value->data);
+        const auto* source = move && move->name == "move" &&
+            move->arguments.size() == 1
+            ? std::get_if<name_reference>(&move->arguments.front().value->data)
+            : nullptr;
+        if (target && source && target->name == source->name &&
+            requires_unique_move(value))
+        {
+            throw compile_error(assignment.value->position,
+                "不能把 move 的结果重新写回原变量");
+        }
+    }
     if (assignment.operation == token_kind::plus_equal)
     {
         if (structs_.contains(target_type.name) ||
@@ -387,6 +480,66 @@ void semantic_analyzer::check_assignment(statement& item,
         }
         require_type(value, target_type, assignment.value->position, "赋值");
     }
+    if (is_lock_guard_type(value))
+    {
+        if (target_type != value)
+        {
+            throw compile_error(assignment.value->position,
+                "锁卫士不能装入 any 或其他类型");
+        }
+        const auto* call = std::get_if<call_expression>(&assignment.value->data);
+        const auto sync_operation = call
+            ? sync_intrinsics_.find(call->name) : sync_intrinsics_.end();
+        if (!call || sync_operation == sync_intrinsics_.end() ||
+            (sync_operation->second != "lock" &&
+             sync_operation->second != "read_lock" &&
+             sync_operation->second != "write_lock"))
+        {
+            throw compile_error(assignment.value->position,
+                "锁卫士不能复制或通过普通赋值逃逸当前作用域");
+        }
+    }
+    if (const auto* name = std::get_if<name_reference>(&assignment.target->data))
+    {
+        auto* symbol = find_symbol(name->name);
+        if (symbol && requires_unique_move(target_type) &&
+            assignment.operation == token_kind::equal)
+        {
+            symbol->ownership_id = assignment.value->ownership_id;
+            if (symbol->ownership_id == 0)
+            {
+                symbol->ownership_id = next_ownership_id_++;
+                if (!is_fresh_owned_expression(*assignment.value))
+                {
+                    escaped_ownership_.insert(symbol->ownership_id);
+                }
+            }
+            symbol->moved = false;
+        }
+        else if (symbol && target_type == value_type::any_type &&
+                 requires_unique_move(value))
+        {
+            mark_expression_escaped(*assignment.value);
+        }
+    }
+    else if (requires_unique_move(value))
+    {
+        if (!is_move_expression(*assignment.value) &&
+            !is_fresh_owned_expression(*assignment.value))
+        {
+            mark_expression_escaped(*assignment.value);
+        }
+        const expression* root = assignment.target.get();
+        while (const auto* member = std::get_if<member_expression>(&root->data))
+        {
+            root = member->object.get();
+        }
+        while (const auto* index = std::get_if<index_expression>(&root->data))
+        {
+            root = index->object.get();
+        }
+        mark_expression_escaped(*root);
+    }
 }
 
 void semantic_analyzer::check_unpack(statement& item,
@@ -423,10 +576,12 @@ void semantic_analyzer::check_for(statement& item, for_loop& loop)
                  loop.first->position, "区间起点");
     require_type(check_expression(*loop.last), value_type::int_type,
                  loop.last->position, "区间终点");
+    ++restricted_move_depth_;
     push_scope();
     declare_symbol(loop.name, {value_type::int_type, true}, item.position);
     check_statements(loop.body);
     pop_scope();
+    --restricted_move_depth_;
 }
 
 void semantic_analyzer::check_for_each(statement& item, for_each& loop)
@@ -438,18 +593,31 @@ void semantic_analyzer::check_for_each(statement& item, for_each& loop)
     {
         throw compile_error(loop.values->position, "遍历对象需要数组、字典或类型化容器");
     }
+    ++restricted_move_depth_;
     push_scope();
-    declare_symbol(loop.name, {values_type.is_vector() || values_type.is_typed_container()
-                                                     ? values_type.parameters.front()
-                                                     : value_type::any_type, true}, item.position);
+    const auto element_type = values_type.is_vector() ||
+        values_type.is_typed_container()
+        ? values_type.parameters.front() : value_type::any_type;
+    symbol_info element{element_type, true};
+    if (requires_unique_move(element_type))
+    {
+        element.ownership_id = loop.values->ownership_id;
+        if (element.ownership_id == 0)
+        {
+            element.ownership_id = next_ownership_id_++;
+        }
+    }
+    declare_symbol(loop.name, std::move(element), item.position);
     check_statements(loop.body);
     pop_scope();
+    --restricted_move_depth_;
 }
 
 void semantic_analyzer::check_if(statement& item, if_statement& branch)
 {
     require_type(check_expression(*branch.condition), value_type::bool_type,
                  item.position, "if 条件");
+    ++restricted_move_depth_;
     push_scope();
     check_statements(branch.then_body);
     pop_scope();
@@ -459,15 +627,18 @@ void semantic_analyzer::check_if(statement& item, if_statement& branch)
         check_statements(branch.else_body);
         pop_scope();
     }
+    --restricted_move_depth_;
 }
 
 void semantic_analyzer::check_while(statement& item, while_statement& loop)
 {
     require_type(check_expression(*loop.condition), value_type::bool_type,
                  item.position, "while 条件");
+    ++restricted_move_depth_;
     push_scope();
     check_statements(loop.body);
     pop_scope();
+    --restricted_move_depth_;
 }
 
 void semantic_analyzer::check_statement(statement& item)
@@ -523,6 +694,11 @@ void semantic_analyzer::check_statement(statement& item)
             call->expected_result = current_return_type_;
         }
         auto actual = check_expression(*result->value);
+        if (is_lock_guard_type(actual))
+        {
+            throw compile_error(result->value->position,
+                "锁卫士不能从函数返回");
+        }
         if (insert_implicit_value_cast(result->value, actual,
                                         current_return_type_))
         {

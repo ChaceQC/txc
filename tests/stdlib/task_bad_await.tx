@@ -1,0 +1,8 @@
+import "task.txh" as task
+
+def main() -> int
+{
+    task<void> timer = task.sleep(1)
+    await timer
+    return 0
+}

@@ -8,6 +8,7 @@
 #include <any>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -32,6 +33,7 @@ struct handle_record : handle_link, value_type
 {
     std::size_t references = 1;
     std::size_t internal_references = 0;
+    std::mutex reference_mutex;
 
     template<class... arguments>
     explicit handle_record(arguments&&... values)
@@ -40,7 +42,7 @@ struct handle_record : handle_link, value_type
     }
 };
 
-std::string* retain_text_handle(const void* value) noexcept;
+std::string* copy_text_handle(const void* value);
 void retain_text_reference(const void* value) noexcept;
 void release_text_reference(const void* value) noexcept;
 
@@ -71,12 +73,17 @@ void destroy_handle(value_type* value) noexcept
     auto* record = static_cast<handle_record<value_type>*>(value);
     if constexpr (std::is_same_v<value_type, std::string>)
     {
-        if (--record->references != 0)
+        bool destroy = false;
         {
-            return;
+            std::lock_guard lock(record->reference_mutex);
+            if (record->references == 0 || --record->references != 0)
+            {
+                return;
+            }
+            unregister_handle(record);
+            destroy = record->internal_references == 0;
         }
-        unregister_handle(record);
-        if (record->internal_references == 0)
+        if (destroy)
         {
             delete record;
         }

@@ -1,0 +1,50 @@
+import "sync.txh" as sync
+import "cancel.txh" as cancel
+
+struct packet
+{
+    values: vector<int>
+}
+
+def main() -> int
+{
+    packet initial = packet(vector<int>(1, 42))
+    mutex<packet> owner = sync.new_mutex(move(initial))
+    mutex_guard<packet> guard = sync.lock(owner)
+    packet outside = sync.guard_get(guard)
+    outside.values[0] = 99
+    if sync.guard_get(guard).values[0] != 42
+    {
+        return 1
+    }
+    packet next = packet(vector<int>(1, 99))
+    sync.guard_set(guard, move(next))
+    sync.guard_close(guard)
+    mutex_guard<packet> second = sync.lock(owner)
+    if sync.guard_get(second).values[0] != 99
+    {
+        return 2
+    }
+    sync.guard_close(second)
+
+    rw_lock<str> shared = sync.new_rw_lock("before")
+    rw_read_guard<str> reader = sync.read_lock(shared)
+    if sync.read_get(reader) != "before"
+    {
+        return 3
+    }
+    sync.read_close(reader)
+    rw_write_guard<str> writer = sync.write_lock(shared)
+    sync.write_set(writer, "after")
+    sync.write_close(writer)
+
+    cancel_source source = cancel.source()
+    condition changed = sync.new_condition()
+    mutex_guard<packet> waiting = sync.lock(owner)
+    if sync.wait(changed, waiting, 0, cancel.token(source))
+    {
+        return 4
+    }
+    sync.guard_close(waiting)
+    return 0
+}

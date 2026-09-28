@@ -1,0 +1,2 @@
+async def twice(value: int) -> int
+async def ready() -> bool

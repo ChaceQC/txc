@@ -1,0 +1,20 @@
+import "task.txh" as task
+import "task_async_module/calculation.txh" as calculation
+
+def run(scope: task_scope) -> int
+{
+    task<bool> signal = calculation.ready()
+    if !task.wait(signal)
+    {
+        return -1
+    }
+    task<int> work = calculation.twice(21)
+    return task.wait(work)
+}
+
+def main() -> int
+{
+    int answer = task.scope(run, 4, 1000)
+    print(answer)
+    return answer - 42
+}

@@ -195,6 +195,10 @@ add_executable(txc
     src/frontend/sema/sema_sum.cpp
     src/frontend/sema/sema_container.cpp
     src/frontend/sema/sema_algorithm.cpp
+    src/frontend/sema/sema_thread.cpp
+    src/frontend/sema/sema_task.cpp
+    src/frontend/sema/sema_sync.cpp
+    src/frontend/sema/sema_channel.cpp
     src/frontend/sema/sema_random.cpp
     src/frontend/sema/sema_serde.cpp
     src/frontend/sema/sema_exception.cpp
@@ -219,6 +223,10 @@ add_executable(txc
     src/backend/llvm/codegen_vector_declarations.cpp
     src/backend/llvm/codegen_algorithm_declarations.cpp
     src/backend/llvm/codegen_algorithm.cpp
+    src/backend/llvm/codegen_thread.cpp
+    src/backend/llvm/codegen_task.cpp
+    src/backend/llvm/codegen_sync.cpp
+    src/backend/llvm/codegen_channel.cpp
     src/backend/llvm/codegen_serde.cpp
     src/backend/llvm/codegen_format.cpp
     src/backend/llvm/codegen_encoding.cpp
@@ -316,8 +324,22 @@ add_library(txstdlib STATIC
     src/backend/cpp/iterator_abi.cpp
     src/backend/cpp/closure_abi.cpp
     src/backend/cpp/cancel_abi.cpp
+    src/backend/cpp/thread_abi.cpp
+    src/backend/cpp/task_runtime.cpp
+    src/backend/cpp/task_iocp.cpp
+    src/backend/cpp/task_file_iocp.cpp
+    src/backend/cpp/task_executor.cpp
+    src/backend/cpp/task_abi.cpp
+    src/backend/cpp/sync_lock_abi.cpp
+    src/backend/cpp/sync_lock_generic_abi.cpp
+    src/backend/cpp/sync_primitive_abi.cpp
+    src/backend/cpp/sync_atomic_abi.cpp
+    src/backend/cpp/channel_abi.cpp
+    src/backend/cpp/concurrency_value.cpp
+    src/backend/cpp/concurrency_result.cpp
     src/backend/cpp/process_abi.cpp
     src/backend/cpp/process_io_abi.cpp
+    src/backend/cpp/ipc_abi.cpp
     src/backend/cpp/vector_text_abi.cpp
     src/backend/cpp/algorithm_abi.cpp
     src/backend/cpp/algorithm_extended_abi.cpp
@@ -439,6 +461,9 @@ add_library(txstdlib STATIC
     src/stdlib/process_spawn.cpp
     src/stdlib/process_pipe.cpp
     src/stdlib/process_run.cpp
+    src/stdlib/ipc_connection.cpp
+    src/stdlib/ipc_transport.cpp
+    src/stdlib/ipc_frame.cpp
     src/stdlib/filesystem_listing.cpp
     src/stdlib/filesystem_operations.cpp
     src/stdlib/path.cpp

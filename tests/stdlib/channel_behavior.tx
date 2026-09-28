@@ -1,0 +1,81 @@
+import "channel.txh" as channel
+import "thread.txh" as thread
+import "cancel.txh" as cancel
+import "error.txh" as errors
+
+def produce(output: channel<int>, token: cancel_token) -> void
+{
+    channel.send(output, 11, -1, token)
+    channel.send(output, 22, -1, token)
+    channel.close(output)
+}
+
+def main() -> int
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    channel<int> queue = channel.bounded<int>(1)
+    assert_send(queue)
+    assert_sync(queue)
+    join_handle<void> worker = thread.spawn(bind(produce, queue, token))
+    option<int> first = channel.recv(queue, -1, token)
+    option<int> second = channel.recv(queue, -1, token)
+    option<int> end = channel.recv(queue, -1, token)
+    thread.join(worker)
+    if !first.is_some() || first.value() != 11 || !second.is_some() || second.value() != 22 || !end.is_none()
+    {
+        return 1
+    }
+    if channel.close(queue)
+    {
+        return 2
+    }
+
+    channel<int> left = channel.bounded<int>(1)
+    channel<int> right = channel.bounded<int>(1)
+    array boxed_right = [right]
+    channel<int> restored = boxed_right[0] as channel<int>
+    assert_sync(restored)
+    if !channel.send(right, 9, 0, token)
+    {
+        return 3
+    }
+    if channel.send(right, 10, 0, token)
+    {
+        return 4
+    }
+    vector<channel<int>> cases = vector<channel<int>>(2, left)
+    cases[1] = right
+    selected<int> choice = channel.select(cases, 0, token)
+    if choice.index != 1 || !choice.value.is_some() || choice.value.value() != 9
+    {
+        return 5
+    }
+    selected<int> timed = channel.select(cases, 0, token)
+    if timed.index != -1
+    {
+        return 6
+    }
+    channel.close(left)
+    selected<int> eof = channel.select(cases, 0, token)
+    if eof.index != 0 || !eof.value.is_none()
+    {
+        return 7
+    }
+
+    cancel.cancel(source)
+    bool cancelled = false
+    try
+    {
+        channel.recv(right, -1, token)
+    }
+    exception errors.cancelled_error as e
+    {
+        cancelled = e.code == "cancelled"
+    }
+    if !cancelled
+    {
+        return 8
+    }
+    return 0
+}

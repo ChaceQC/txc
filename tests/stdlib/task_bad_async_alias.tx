@@ -1,0 +1,19 @@
+import "task.txh" as task
+
+async def echo(values: vector<int>) -> vector<int>
+{
+    return values
+}
+
+def run(scope: task_scope) -> int
+{
+    vector<int> values = vector<int>(1, 42)
+    vector<int> alias = values
+    task<vector<int>> work = echo(values)
+    return task.wait(work)[0] + alias[0]
+}
+
+def main() -> int
+{
+    return task.scope(run, 2, 1000)
+}

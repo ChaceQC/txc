@@ -1,0 +1,66 @@
+import "channel.txh" as channel
+import "thread.txh" as thread
+import "cancel.txh" as cancel
+import "error.txh" as errors
+
+def blocked(queue: channel<int>, token: cancel_token) -> int
+{
+    try
+    {
+        channel.send(queue, 2, -1, token)
+        return 1
+    }
+    exception errors.cancelled_error as failure
+    {
+        if failure.code == "cancelled"
+        {
+            return 2
+        }
+        return 4
+    }
+    exception errors.runtime_error as failure
+    {
+        if failure.code == "channel_closed"
+        {
+            return 3
+        }
+        return 5
+    }
+}
+
+def main() -> int
+{
+    for attempt in 0..=63
+    {
+        cancel_source source = cancel.source()
+        cancel_token token = cancel.token(source)
+        channel<int> queue = channel.bounded<int>(1)
+        channel.send(queue, 1, 0, token)
+        join_handle<int> sender = thread.spawn(bind(blocked, queue, token))
+        if attempt % 2 == 0
+        {
+            cancel.cancel(source)
+            channel.close(queue)
+        }
+        else
+        {
+            channel.close(queue)
+            cancel.cancel(source)
+        }
+        int outcome = thread.join(sender)
+        if outcome != 2 && outcome != 3
+        {
+            return 1
+        }
+        option<int> delivered = channel.recv(queue, 0, token)
+        if !delivered.is_some() || delivered.value() != 1
+        {
+            return 2
+        }
+        if !channel.recv(queue, 0, token).is_none()
+        {
+            return 3
+        }
+    }
+    return 0
+}

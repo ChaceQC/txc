@@ -51,7 +51,7 @@ void native_result(const value_type& value, void* result)
 {
     if constexpr (std::is_same_v<value_type, text_reference>)
     {
-        *static_cast<void**>(result) = retain_text_handle(value.handle());
+        *static_cast<void**>(result) = copy_text_handle(value.handle());
     }
     else if constexpr (std::is_same_v<value_type, std::any> ||
                        std::is_same_v<value_type, byte_value>)

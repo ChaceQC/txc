@@ -65,7 +65,8 @@ expr_ptr parser::parse_unary()
     {
         throw compile_error(current().position, "++ 和 -- 只支持后置写法");
     }
-    if (match(token_kind::minus) || match(token_kind::bang))
+    if (match(token_kind::minus) || match(token_kind::bang) ||
+        match(token_kind::keyword_await))
     {
         const auto operation = previous();
         return std::make_unique<expression>(
@@ -130,7 +131,8 @@ expr_ptr parser::parse_postfix()
         bool serde_type_call = false;
         if (check(token_kind::less) &&
             (callable_name == "deserialize_json" ||
-             callable_name == "deserialize_cbor"))
+             callable_name == "deserialize_cbor" ||
+             callable_name == "bounded"))
         {
             std::size_t cursor = index_;
             int depth = 0;
@@ -159,8 +161,8 @@ expr_ptr parser::parse_postfix()
         {
             (void)advance();
             explicit_type = parse_type();
-            (void)consume(token_kind::greater, "serde 类型实参缺少 >");
-            (void)consume(token_kind::left_paren, "serde 类型实参后需要左括号");
+            (void)consume(token_kind::greater, "类型实参缺少 >");
+            (void)consume(token_kind::left_paren, "类型实参后需要左括号");
             opening_call = true;
         }
         else

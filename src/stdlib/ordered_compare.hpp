@@ -131,8 +131,8 @@ private:
         else if constexpr (std::is_same_v<key_type, text_reference>)
         {
             using target = std::int64_t (*)(const void*, const void*, const void*);
-            auto* left_copy = detail::retain_text_handle(left.handle());
-            auto* right_copy = detail::retain_text_handle(right.handle());
+            auto* left_copy = detail::copy_text_handle(left.handle());
+            auto* right_copy = detail::copy_text_handle(right.handle());
             result = reinterpret_cast<target>(const_cast<void*>(state.target))(
                 &closure, left_copy, right_copy);
         }

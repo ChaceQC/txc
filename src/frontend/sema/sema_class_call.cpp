@@ -174,17 +174,41 @@ value_type semantic_analyzer::check_method_call(
     expression& item, call_expression& call)
 {
     const auto receiver_type = check_expression(*call.receiver);
+    const auto stores_element = call.name == "push_back" ||
+        call.name == "push_front" || call.name == "insert" ||
+        call.name == "resize" || call.name == "push";
+    const auto mark_receiver_if_alias_is_stored = [&]
+    {
+        if (!stores_element)
+        {
+            return;
+        }
+        for (const auto& argument : call.arguments)
+        {
+            const auto& value = *argument.value;
+            if (requires_unique_move(value.type) &&
+                !is_move_expression(value) &&
+                !is_fresh_owned_expression(value))
+            {
+                mark_expression_escaped(*call.receiver);
+            }
+        }
+    };
     if (receiver_type.is_sum_type())
     {
         return check_sum_call(item, call, receiver_type);
     }
     if (receiver_type.is_typed_container())
     {
-        return check_container_call(item, call, receiver_type);
+        const auto result = check_container_call(item, call, receiver_type);
+        mark_receiver_if_alias_is_stored();
+        return result;
     }
     if (receiver_type.is_vector())
     {
-        return check_vector_call(item, call, receiver_type);
+        const auto result = check_vector_call(item, call, receiver_type);
+        mark_receiver_if_alias_is_stored();
+        return result;
     }
     if (receiver_type.is_iterator())
     {
@@ -223,6 +247,7 @@ value_type semantic_analyzer::check_method_call(
     }
     call.name = class_method_symbol(method->owner_class, method->name);
     call.overload_index = method->overload_index;
+    mark_receiver_if_alias_is_stored();
     return method->return_type;
 }
 

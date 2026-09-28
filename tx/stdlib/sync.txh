@@ -1,0 +1,33 @@
+def new_mutex<T>(initial: T) -> mutex<T>
+def lock<T>(owner: mutex<T>) -> mutex_guard<T>
+def guard_get<T>(guard: mutex_guard<T>) -> T
+def guard_set<T>(guard: mutex_guard<T>, value: T) -> void
+def guard_close<T>(guard: mutex_guard<T>) -> void
+
+def new_rw_lock<T>(initial: T) -> rw_lock<T>
+def read_lock<T>(owner: rw_lock<T>) -> rw_read_guard<T>
+def write_lock<T>(owner: rw_lock<T>) -> rw_write_guard<T>
+def read_get<T>(guard: rw_read_guard<T>) -> T
+def write_get<T>(guard: rw_write_guard<T>) -> T
+def write_set<T>(guard: rw_write_guard<T>, value: T) -> void
+def read_close<T>(guard: rw_read_guard<T>) -> void
+def write_close<T>(guard: rw_write_guard<T>) -> void
+
+def new_condition() -> condition
+def wait<T>(signal: condition, guard: mutex_guard<T>, timeout_ms: int, token: cancel_token) -> bool
+def notify_one(signal: condition) -> void
+def notify_all(signal: condition) -> void
+
+def new_semaphore(initial: int, maximum: int) -> semaphore
+def acquire(value: semaphore, timeout_ms: int, token: cancel_token) -> bool
+def release(value: semaphore, permits: int) -> void
+
+def new_once() -> once
+def run_once(value: once, work: fn()->void) -> void
+
+def new_atomic<T>(initial: T) -> atomic<T>
+def atomic_load<T>(value: atomic<T>, order: int) -> T
+def atomic_store<T>(owner: atomic<T>, value: T, order: int) -> void
+def atomic_exchange<T>(owner: atomic<T>, value: T, order: int) -> T
+def atomic_compare_exchange<T>(owner: atomic<T>, expected: T, desired: T, order: int) -> bool
+def atomic_fetch_add<T>(owner: atomic<T>, delta: T, order: int) -> T

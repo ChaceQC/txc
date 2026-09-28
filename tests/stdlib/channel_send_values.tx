@@ -1,0 +1,46 @@
+import "channel.txh" as channel
+import "cancel.txh" as cancel
+
+struct packet
+{
+    values: vector<int>
+}
+
+def main() -> int
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+
+    channel<str> texts = channel.bounded<str>(1)
+    if !channel.send(texts, "消息", 0, token)
+    {
+        return 1
+    }
+    option<str> text = channel.recv(texts, 0, token)
+    if !text.is_some() || text.value() != "消息"
+    {
+        return 2
+    }
+
+    channel<packet> queue = channel.bounded<packet>(1)
+    assert_send(queue)
+    assert_sync(queue)
+    packet sent = packet(vector<int>(1, 42))
+    if !channel.send(queue, move(sent), 0, token)
+    {
+        return 3
+    }
+    vector<channel<packet>> choices = vector<channel<packet>>(1, queue)
+    selected<packet> received = channel.select(choices, 0, token)
+    if received.index != 0 || !received.value.is_some() || received.value.value().values[0] != 42
+    {
+        return 4
+    }
+    channel.close(queue)
+    option<packet> end = channel.recv(queue, 0, token)
+    if !end.is_none()
+    {
+        return 5
+    }
+    return 0
+}

@@ -94,17 +94,16 @@ Windows 平台验收。
 
 普通赋值共享同一个 `generator` 状态；`deep_copy` 复制当前状态并独立
 推进。实例生成器不访问旧的线程局部 `random.seed/random_int/random_float`
-状态。第 2.6 节 `Send/Sync` 尚未完成，生成器及其别名不得跨线程共享；
-需要并发模拟时各线程用不同种子独立创建实例，静态线程规则落地后再
-做跨线程验收。
+状态。生成器当前仍为非 Send/Sync 不透明句柄，不能跨线程传递或共享；
+需要并发模拟时各线程用不同种子独立创建实例。
 
 **实施记录：** `random.txh` 公开实例 API，`random_generator.cpp` 固定
 SplitMix64 的状态推进与分布，`random_sampling.cpp` 对具体向量元素
 生成直接 ABI；语义分析检查泛型实参，LLVM 不逐元素动态装箱。
 Windows x64 完整构建成功；`tests/random/generator.tx` 覆盖固定种子、
 复合元素、失败不推进、别名/深复制、分布边界及旧接口隔离；
-`generator_send.tx` 的 `assert_send` 在源码位置拒绝该类型。未运行全量、
-非 Windows 平台或线程集成验收。
+`generator_send.tx` 的 `assert_send` 在源码位置拒绝该类型。未运行全量或
+非 Windows 平台验收。
 
 ## 6.4 数学函数
 

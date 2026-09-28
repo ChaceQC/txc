@@ -78,6 +78,38 @@ struct value_type
         return is_option() || is_result();
     }
 
+    [[nodiscard]] bool is_join_handle() const noexcept
+    {
+        return name.starts_with("join_handle<") && parameters.size() == 1;
+    }
+
+    [[nodiscard]] bool is_task() const noexcept
+    {
+        return name.starts_with("task<") && parameters.size() == 1;
+    }
+
+    [[nodiscard]] bool is_sync_value() const noexcept
+    {
+        if (parameters.size() != 1)
+        {
+            return false;
+        }
+        const auto kind = container_name();
+        return kind == "mutex" || kind == "mutex_guard" ||
+               kind == "rw_lock" || kind == "rw_read_guard" ||
+               kind == "rw_write_guard" || kind == "atomic";
+    }
+
+    [[nodiscard]] bool is_channel() const noexcept
+    {
+        return name.starts_with("channel<") && parameters.size() == 1;
+    }
+
+    [[nodiscard]] bool is_selected() const noexcept
+    {
+        return name.starts_with("selected<") && parameters.size() == 1;
+    }
+
     [[nodiscard]] bool is_direct_vector() const noexcept
     {
         return is_vector() &&
@@ -126,7 +158,12 @@ struct value_type
                name == "ordered_map" || name == "ordered_set" ||
                name == "entry" || name == "priority_entry" ||
                name == "heap" || name == "queue" || name == "deque" ||
-               name == "option" || name == "result" || name == "iterator";
+               name == "option" || name == "result" || name == "iterator" ||
+               name == "join_handle" || name == "mutex" ||
+               name == "mutex_guard" || name == "rw_lock" ||
+               name == "rw_read_guard" || name == "rw_write_guard" ||
+               name == "atomic" || name == "channel" ||
+               name == "selected" || name == "task";
     }
 
     [[nodiscard]] static value_type container_of(
@@ -165,6 +202,8 @@ struct value_type
     static const value_type fs_watcher_type;
     static const value_type process_child_type;
     static const value_type process_pipe_type;
+    static const value_type ipc_listener_type;
+    static const value_type ipc_stream_type;
     static const value_type json_reader_type;
     static const value_type json_writer_type;
     static const value_type cbor_reader_type;
@@ -202,6 +241,8 @@ inline const value_type value_type::regex_pattern_type{"regex_pattern"};
 inline const value_type value_type::fs_watcher_type{"fs_watcher"};
 inline const value_type value_type::process_child_type{"process_child"};
 inline const value_type value_type::process_pipe_type{"process_pipe"};
+inline const value_type value_type::ipc_listener_type{"ipc_listener"};
+inline const value_type value_type::ipc_stream_type{"ipc_stream"};
 inline const value_type value_type::json_reader_type{"json_reader"};
 inline const value_type value_type::json_writer_type{"json_writer"};
 inline const value_type value_type::cbor_reader_type{"cbor_reader"};

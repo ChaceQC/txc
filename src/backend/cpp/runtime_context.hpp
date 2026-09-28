@@ -4,6 +4,7 @@
 #include "common/error_kind.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <random>
 #include <type_traits>
 #include <vector>
@@ -28,12 +29,15 @@ struct diagnostic_frame
     diagnostic_frame* parent = nullptr;
 };
 
+struct runtime_context;
+
 struct registered_gc_node
 {
     std::weak_ptr<void> object;
     gc_trace trace;
     gc_clear clear;
     gc_finalize finalize;
+    std::uint64_t owner = 0;
 };
 
 struct runtime_context
@@ -47,9 +51,9 @@ struct runtime_context
     std::vector<source_frame> last_error_stack;
     handle_link* newest_handle = nullptr;
     bool cleaning_handles = false;
-    std::vector<registered_gc_node> registered_nodes;
     std::size_t allocations_since_collection = 0;
     bool collecting = false;
+    std::uint64_t gc_owner_id = 0;
     std::mt19937_64 random_engine;
     bool random_initialized = false;
 };

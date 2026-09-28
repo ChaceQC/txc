@@ -1,0 +1,30 @@
+struct message
+{
+    state: str
+    version: int
+    session: int
+    value: any
+    received: int
+    error_code: str
+}
+
+struct send_result
+{
+    state: str
+    written: int
+    error_code: str
+}
+
+def listen(name: str, max_bytes: int) -> ipc_listener
+def accept(listener: ipc_listener, timeout_ms: int,
+           token: cancel_token) -> ipc_stream
+def connect(name: str, max_bytes: int, timeout_ms: int,
+            token: cancel_token) -> ipc_stream
+def from_process_pipes(reader: process_pipe, writer: process_pipe,
+                       max_bytes: int) -> ipc_stream
+def send(stream: ipc_stream, version: int, value: any,
+         timeout_ms: int, token: cancel_token) -> send_result
+def recv(stream: ipc_stream, timeout_ms: int,
+         token: cancel_token) -> message
+def close(stream: ipc_stream) -> bool
+def close_listener(listener: ipc_listener) -> bool

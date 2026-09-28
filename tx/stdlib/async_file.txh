@@ -1,0 +1,20 @@
+struct read_result
+{
+    data: bytes
+    eof: bool
+    cancelled: bool
+    error_code: str
+}
+
+struct write_result
+{
+    written: int
+    cancelled: bool
+    created: bool
+    error_code: str
+}
+
+def read_at(path: str, offset: int, max_bytes: int,
+            token: cancel_token) -> task<read_result>
+def write_at(path: str, offset: int, data: bytes,
+             token: cancel_token) -> task<write_result>

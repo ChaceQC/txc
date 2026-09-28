@@ -1,0 +1,95 @@
+import "ipc.txh" as ipc
+import "process.txh" as process
+import "cancel.txh" as cancel
+
+def helper(mode: str, name: str) -> process_child
+{
+    process.options config = process.make_options(
+        "tx_build/ipc_protocol_helper.exe", vector<str>([mode, name]))
+    config.stdin_mode = "null"
+    config.stdout_mode = "null"
+    config.stderr_mode = "null"
+    return process.spawn(config)
+}
+
+def main() -> int
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+
+    ipc_listener partial_server = ipc.listen("tx_ipc_partial", 32)
+    process_child partial_child = helper("partial", "tx_ipc_partial")
+    ipc_stream partial = ipc.accept(partial_server, 5000, token)
+    ipc.message missing = ipc.recv(partial, 5000, token)
+    if missing.state != "incomplete" || missing.received != 22
+    {
+        return 1
+    }
+    if process.wait(partial_child, 5000).exit_code != 0
+    {
+        return 2
+    }
+    ipc.close_listener(partial_server)
+    process.close(partial_child)
+
+    ipc_listener limited_server = ipc.listen("tx_ipc_oversize", 32)
+    process_child large_child = helper("oversize", "tx_ipc_oversize")
+    ipc_stream limited = ipc.accept(limited_server, 5000, token)
+    ipc.message too_large = ipc.recv(limited, 5000, token)
+    if too_large.state != "too_large" || too_large.error_code != "ipc_message_limit"
+    {
+        return 3
+    }
+    if process.wait(large_child, 5000).exit_code != 0
+    {
+        return 4
+    }
+    ipc.close_listener(limited_server)
+    process.close(large_child)
+
+    ipc_listener restart_server = ipc.listen("tx_ipc_restart", 32)
+    process_child restart_child = helper("restart", "tx_ipc_restart")
+    ipc_stream changed = ipc.accept(restart_server, 5000, token)
+    ipc.message first = ipc.recv(changed, 5000, token)
+    ipc.message second = ipc.recv(changed, 5000, token)
+    if first.state != "data" || first.session != 111 || first.value as int != 1
+    {
+        return 5
+    }
+    if second.state != "restarted" || second.session != 222 || second.value as int != 2
+    {
+        return 6
+    }
+    if ipc.recv(changed, 5000, token).state != "eof"
+    {
+        return 7
+    }
+    if process.wait(restart_child, 5000).exit_code != 0
+    {
+        return 8
+    }
+    ipc.close_listener(restart_server)
+    process.close(restart_child)
+
+    ipc_listener split_server = ipc.listen("tx_ipc_split", 32)
+    process_child split_child = helper("split", "tx_ipc_split")
+    ipc_stream split = ipc.accept(split_server, 5000, token)
+    ipc.message pending = ipc.recv(split, 10, token)
+    if pending.state != "timeout" || pending.received != 9
+    {
+        return 9
+    }
+    ipc.message resumed = ipc.recv(split, 5000, token)
+    if resumed.state != "data" || resumed.session != 333 || resumed.value as int != 3
+    {
+        return 10
+    }
+    if process.wait(split_child, 5000).exit_code != 0
+    {
+        return 11
+    }
+    ipc.close(split)
+    ipc.close_listener(split_server)
+    process.close(split_child)
+    return 0
+}

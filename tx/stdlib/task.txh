@@ -1,0 +1,8 @@
+def scope<T>(work: fn(task_scope)->T, max_pending: int, deadline_ms: int) -> T
+def spawn<T>(owner: task_scope, work: fn()->T) -> task<T>
+def wait<T>(value: task<T>) -> T
+def cancel(owner: task_scope) -> bool
+def token(owner: task_scope) -> cancel_token
+def current_token() -> cancel_token
+def after(owner: task_scope, delay_ms: int) -> task<void>
+def sleep(delay_ms: int) -> task<void>

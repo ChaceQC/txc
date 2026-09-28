@@ -67,4 +67,4 @@ mini-filesystem 已迁移，普通解与计时解分别通过 44/44 组正式数
 - **代码：** 内置 `vector<T>` 接受用户结构体/类、动态容器和嵌套类型化容器等具体类型；静态调用走复合元素专用 ABI，只有 `array` 转换与 `any` 恢复检查运行时类型。复合向量登记循环 GC，`deep_copy` 按对象图保留共享和环；原基础元素向量继续走原生元素 ABI。
 - **构建：** `scripts/build.ps1` 完成 Windows x64 工具链与标准库静态库构建，生成 `tx/package.compat`，成功后清理 `build/`。
 - **定向验证：** `examples/typed_vectors.tx` 编译运行，覆盖结构体元素字段读写、嵌套向量、独立复制、`any` 显式恢复及 `vector<array>` 引用环；`tests/stdlib/vector_object_module/main.tx` 跨 `.txh` 运行并输出 `17`。`tests/vectors/unsupported_element.tx` 的 `vector<any>` 在源码位置报告中文类型错误，`tests/stdlib/vector_object_type_mismatch.tx` 的动态数组元素不匹配在运行时失败。未运行全量套件。
-- **边界与验收：** 复合元素经已有 `std::any` 共享句柄保存，元素本身不是 C++ 原生结构布局；基础标量、字符串和字节向量保留连续专用布局。当前证据限于本机 Windows x64 与上述场景；2.6～2.8 的并发静态边界、调用栈与取消及终态验收仍待完成。
+- **边界与验收：** 复合元素经已有 `std::any` 共享句柄保存，元素本身不是 C++ 原生结构布局；基础标量、字符串和字节向量保留连续专用布局。`vector<T>` 只有在 T 递归满足 Send 且通过 `move(values)` 唯一转交时才可跨线程；容器本身不满足 Sync。Send/Sync 规则和定向证据见[2.6 实施记录](standard_library_plan.md#26-完成记录2026-09-28)及[Send/Sync 边界](send_sync.md)。当前仍未完成标准库终态矩阵。

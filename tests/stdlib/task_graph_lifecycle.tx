@@ -1,0 +1,50 @@
+import "task.txh" as task
+
+struct packet
+{
+    values: vector<vector<str>>
+}
+
+def make_packet() -> packet
+{
+    array cycle = [none]
+    cycle[0] = cycle
+    return packet(vector<vector<str>>(1, vector<str>(1, "图")))
+}
+
+async def build_packet() -> packet
+{
+    await task.sleep(1)
+    return make_packet()
+}
+
+async def relay_packet() -> packet
+{
+    task<packet> inner = build_packet()
+    return await inner
+}
+
+def run(scope: task_scope) -> packet
+{
+    task<packet> direct = task.spawn(scope, make_packet)
+    packet first = task.wait(direct)
+    if first.values[0][0] != "图"
+    {
+        return packet(vector<vector<str>>(1, vector<str>(1, "失败")))
+    }
+    task<packet> nested = relay_packet()
+    return task.wait(nested)
+}
+
+def main() -> int
+{
+    for attempt in 0..=63
+    {
+        packet received = task.scope(run, 4, 1000)
+        if received.values[0][0] != "图"
+        {
+            return attempt + 1
+        }
+    }
+    return 0
+}

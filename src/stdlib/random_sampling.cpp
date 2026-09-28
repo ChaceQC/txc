@@ -58,7 +58,7 @@ void write_choice(const element_type& value, void* result)
 {
     if constexpr (std::is_same_v<element_type, text_reference>)
     {
-        *static_cast<void**>(result) = detail::retain_text_handle(value.handle());
+        *static_cast<void**>(result) = detail::copy_text_handle(value.handle());
     }
     else if constexpr (std::is_same_v<element_type, byte_value> ||
                        std::is_same_v<element_type, std::any>)

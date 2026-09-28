@@ -66,7 +66,7 @@ struct algorithm_callback_value<text_reference>
     using abi_type = const void*;
 
     explicit algorithm_callback_value(const text_reference& value)
-        : value(detail::retain_text_handle(value.handle()))
+        : value(detail::copy_text_handle(value.handle()))
     {
     }
 

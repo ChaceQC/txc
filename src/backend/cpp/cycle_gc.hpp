@@ -17,6 +17,17 @@ void note_gc_allocation() noexcept;
 void collect_cycles();
 void gc_safepoint();
 
+class concurrent_execution_scope
+{
+public:
+    concurrent_execution_scope();
+    ~concurrent_execution_scope();
+
+    concurrent_execution_scope(const concurrent_execution_scope&) = delete;
+    concurrent_execution_scope& operator=(
+        const concurrent_execution_scope&) = delete;
+};
+
 } // namespace tx_generated
 
 extern "C" int txrt_gc_safepoint() noexcept;

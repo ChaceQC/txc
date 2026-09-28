@@ -217,6 +217,25 @@ private:
     [[nodiscard]] ir_value emit_algorithm_intrinsic(
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value emit_thread_intrinsic(
+        const expression& item, const function_decl& target,
+        const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value emit_task_intrinsic(
+        const expression& item, const function_decl& target,
+        const std::vector<ir_value>& arguments);
+    [[nodiscard]] ir_value emit_task_wait(
+        const expression& item, const ir_value& argument);
+    [[nodiscard]] ir_value emit_async_call(
+        const expression& item, const call_expression& call,
+        const function_decl& target);
+    void write_sync_declarations();
+    [[nodiscard]] ir_value emit_sync_intrinsic(
+        const expression& item, const function_decl& target,
+        const std::vector<ir_value>& arguments);
+    void write_channel_declarations();
+    [[nodiscard]] ir_value emit_channel_intrinsic(
+        const expression& item, const function_decl& target,
+        const std::vector<ir_value>& arguments);
     [[nodiscard]] ir_value emit_serde_intrinsic(
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);

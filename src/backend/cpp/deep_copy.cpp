@@ -1,4 +1,6 @@
 #include "backend/cpp/value_abi.hpp"
+#include "backend/cpp/deep_copy.hpp"
+#include "backend/cpp/concurrency_value.hpp"
 
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/value_format.hpp"
@@ -16,6 +18,7 @@
 #include "stdlib/regex.hpp"
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
+#include "stdlib/ipc.hpp"
 #include "stdlib/json_stream.hpp"
 #include "stdlib/cbor.hpp"
 #include "stdlib/csv.hpp"
@@ -119,7 +122,8 @@ public:
         }
         if (value.type() == typeid(cancel_source) ||
             value.type() == typeid(cancel_token) ||
-            value.type() == typeid(regex_pattern))
+            value.type() == typeid(regex_pattern) ||
+            is_shareable_concurrency_value(value))
         {
             // 取消令牌复制共享同一状态，不能复制成独立取消域。
             return value;
@@ -131,7 +135,10 @@ public:
         {
             throw std::runtime_error("deep_copy 不支持复制文件流或增量编解码状态");
         }
-        if (value.type() == typeid(process_child) || value.type() == typeid(process_pipe))
+        if (value.type() == typeid(process_child) ||
+            value.type() == typeid(process_pipe) ||
+            value.type() == typeid(ipc_listener) ||
+            value.type() == typeid(ipc_stream))
         {
             throw std::runtime_error("deep_copy 不支持复制子进程或管道");
         }

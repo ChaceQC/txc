@@ -17,10 +17,14 @@ bool is_builtin_name(const std::string& name)
            name == "self" || name == "super" || name == "bind" ||
            name == "secret_bytes" ||
            name == "assert_send" || name == "assert_sync" ||
+           name == "move" ||
            name == "cancel_source" || name == "cancel_token" ||
+           name == "condition" || name == "semaphore" || name == "once" ||
+           name == "task_scope" ||
            name == "encoding_decoder" || name == "encoding_encoder" ||
            name == "regex_pattern" || name == "fs_watcher" ||
            name == "process_child" || name == "process_pipe" ||
+           name == "ipc_listener" || name == "ipc_stream" ||
            name == "json_reader" || name == "json_writer" ||
            name == "cbor_reader" || name == "cbor_writer" ||
            name == "csv_reader" || name == "csv_writer" ||
@@ -113,6 +117,30 @@ void semantic_analyzer::validate_ordered_key_shape(const value_type& type,
 
 void semantic_analyzer::validate_type(const value_type& type, source_pos position) const
 {
+    const auto contains_guard = [&](const auto& self,
+                                    const value_type& candidate) -> bool
+    {
+        if (is_lock_guard_type(candidate))
+        {
+            return true;
+        }
+        for (const auto& parameter : candidate.parameters)
+        {
+            if (self(self, parameter))
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+    for (const auto& parameter : type.parameters)
+    {
+        if (contains_guard(contains_guard, parameter))
+        {
+            throw compile_error(position,
+                "锁卫士不能作为容器、结构体或 sum 类型的组成值");
+        }
+    }
     if (value_type::is_container_name(type.container_name()) &&
         contains_secret(type))
     {
@@ -133,6 +161,50 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
                 throw compile_error(position, "fn 的参数不能是 void");
             }
             validate_type(part, position);
+        }
+        return;
+    }
+    if (type.is_join_handle())
+    {
+        const auto& result = type.parameters.front();
+        if (result != value_type::void_type && !is_send_type(result))
+        {
+            throw compile_error(position,
+                "join_handle<T> 的结果需要 Send 类型");
+        }
+        return;
+    }
+    if (type.is_task())
+    {
+        const auto& result = type.parameters.front();
+        if (result != value_type::void_type && !is_send_type(result))
+        {
+            throw compile_error(position,
+                "task<T> 的结果需要 Send 类型");
+        }
+        return;
+    }
+    if (type.is_sync_value())
+    {
+        const auto& value = type.parameters.front();
+        const auto kind = type.container_name();
+        const bool valid = kind == "atomic"
+            ? value == value_type::int_type || value == value_type::bool_type
+            : is_send_type(value);
+        if (!valid)
+        {
+            throw compile_error(position,
+                "同步容器的元素需要 Send 类型；atomic 仅支持 int/bool");
+        }
+        return;
+    }
+    if (type.is_channel() || type.is_selected())
+    {
+        const auto& value = type.parameters.front();
+        if (!is_send_type(value))
+        {
+            throw compile_error(position,
+                "channel/selected 的元素需要 Send 类型");
         }
         return;
     }
@@ -230,12 +302,16 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         type == value_type::text_stream_type ||
         type == value_type::cancel_source_type ||
         type == value_type::cancel_token_type ||
+        type.name == "condition" || type.name == "semaphore" ||
+        type.name == "once" || type.name == "task_scope" ||
         type == value_type::encoding_decoder_type ||
         type == value_type::encoding_encoder_type ||
         type == value_type::regex_pattern_type ||
         type == value_type::fs_watcher_type ||
         type == value_type::process_child_type ||
         type == value_type::process_pipe_type ||
+        type == value_type::ipc_listener_type ||
+        type == value_type::ipc_stream_type ||
         type == value_type::json_reader_type ||
         type == value_type::json_writer_type ||
         type == value_type::cbor_reader_type ||
@@ -269,6 +345,11 @@ void semantic_analyzer::register_structs(program& source)
         std::unordered_set<std::string> fields;
         for (const auto& field : definition.fields)
         {
+            if (is_lock_guard_type(field.type))
+            {
+                throw compile_error(field.position,
+                    "锁卫士不能作为结构体字段");
+            }
             if (contains_secret(field.type))
             {
                 throw compile_error(field.position,
@@ -343,6 +424,10 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
 {
     functions_.clear();
     algorithm_intrinsics_.clear();
+    thread_intrinsics_.clear();
+    task_intrinsics_.clear();
+    sync_intrinsics_.clear();
+    channel_intrinsics_.clear();
     random_intrinsics_.clear();
     serde_intrinsics_.clear();
     random_generator_type_ = value_type{};
@@ -365,9 +450,12 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
         {
             validate_type(function.return_type, function.position);
         }
-        function_signature signature{{}, function.return_type};
+        function_signature signature{{}, function.is_async
+            ? value_type::container_of("task", {function.return_type})
+            : function.return_type};
         signature.external = function.external;
         signature.external_name = function.external_name;
+        signature.is_async = function.is_async;
         signature.position = function.position;
         // 这些标准库边界显式接收 any；其他函数仍使用精确匹配规则。
         signature.accepts_any_value = function.external &&
@@ -380,7 +468,8 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
              function.external_name == "json.validate" ||
              function.external_name == "cbor.encode" ||
              function.external_name == "cbor.write" ||
-             function.external_name == "cbor.write_value");
+             function.external_name == "cbor.write_value" ||
+             function.external_name == "ipc.send");
         for (const auto& parameter : function.parameters)
         {
             if (!parameter.type.is_inferred_function())
@@ -410,6 +499,30 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
         {
             serde_intrinsics_[function.name] =
                 function.external_name.substr(6);
+        }
+        if (function.external_name.starts_with("thread.") &&
+            !function.type_parameters.empty())
+        {
+            thread_intrinsics_[function.name] =
+                function.external_name.substr(7);
+        }
+        if (function.external_name.starts_with("task.") &&
+            !function.type_parameters.empty())
+        {
+            task_intrinsics_[function.name] =
+                function.external_name.substr(5);
+        }
+        if (function.external_name.starts_with("sync.") &&
+            !function.type_parameters.empty())
+        {
+            sync_intrinsics_[function.name] =
+                function.external_name.substr(5);
+        }
+        if (function.external_name.starts_with("channel.") &&
+            !function.type_parameters.empty())
+        {
+            channel_intrinsics_[function.name] =
+                function.external_name.substr(8);
         }
         if (function.external_name.starts_with("algorithm.") &&
             function.external_name != "algorithm.sort" &&

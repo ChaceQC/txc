@@ -1,4 +1,6 @@
 #include "backend/cpp/value_format.hpp"
+#include "backend/cpp/concurrency_value.hpp"
+#include "stdlib/task.hpp"
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
 #include "stdlib/iterator.hpp"
@@ -13,6 +15,7 @@
 #include "stdlib/regex.hpp"
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
+#include "stdlib/ipc.hpp"
 #include "stdlib/json_stream.hpp"
 #include "stdlib/csv.hpp"
 #include "stdlib/xml.hpp"
@@ -175,6 +178,15 @@ void append_value(std::string& output, const std::any& value,
     {
         output += "<cancel_token>";
     }
+    else if (is_concurrency_value(value))
+    {
+        output += "<synchronized value>";
+    }
+    else if (value.type() == typeid(task_scope_handle) ||
+             value.type() == typeid(task_handle))
+    {
+        output += "<task>";
+    }
     else if (value.type() == typeid(encoding_decoder))
     {
         output += "<encoding_decoder>";
@@ -234,6 +246,14 @@ void append_value(std::string& output, const std::any& value,
     else if (value.type() == typeid(process_pipe))
     {
         output += "<process_pipe>";
+    }
+    else if (value.type() == typeid(ipc_listener))
+    {
+        output += "<ipc_listener>";
+    }
+    else if (value.type() == typeid(ipc_stream))
+    {
+        output += "<ipc_stream>";
     }
     else if (value.type() == typeid(fs_watcher))
     {

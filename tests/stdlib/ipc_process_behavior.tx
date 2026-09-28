@@ -1,0 +1,40 @@
+import "ipc.txh" as ipc
+import "process.txh" as process
+import "cancel.txh" as cancel
+
+def main() -> int
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    process.options config = process.make_options(
+        "tx_build/ipc_protocol_helper.exe", vector<str>(["echo"]))
+    config.stdin_mode = "pipe"
+    config.stdout_mode = "pipe"
+    config.stderr_mode = "null"
+    process_child child = process.spawn(config)
+    ipc_stream stream = ipc.from_process_pipes(
+        process.stdout_pipe(child), process.stdin_pipe(child), 1024)
+    ipc.send_result sent = ipc.send(stream, 3, 12345, 5000, token)
+    if sent.state != "sent"
+    {
+        return 1
+    }
+    ipc.message reply = ipc.recv(stream, 5000, token)
+    if reply.state != "data" || reply.version != 3 || reply.value as int != 12345
+    {
+        return 2
+    }
+    ipc.message end = ipc.recv(stream, 5000, token)
+    if end.state != "eof"
+    {
+        return 3
+    }
+    process.exit_status status = process.wait(child, 5000)
+    if status.exit_code != 0
+    {
+        return 4
+    }
+    ipc.close(stream)
+    process.close(child)
+    return 0
+}

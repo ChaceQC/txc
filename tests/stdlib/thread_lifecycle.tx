@@ -1,0 +1,54 @@
+import "thread.txh" as thread
+import "time.txh" as time
+import "error.txh" as errors
+import "string.txh" as string
+
+def fail() -> int
+{
+    return 1 / 0
+}
+
+def main() -> int
+{
+    join_handle<int> worker = thread.spawn(fail)
+    thread.id(worker)
+    thread.detach(worker)
+    try
+    {
+        thread.join(worker)
+        return 1
+    }
+    exception errors.runtime_error as failure
+    {
+        if failure.code != "invalid_state"
+        {
+            return 2
+        }
+    }
+    try
+    {
+        thread.id(worker)
+        return 3
+    }
+    exception errors.runtime_error as failure
+    {
+        if failure.code != "invalid_state"
+        {
+            return 4
+        }
+    }
+    for attempt in 0..=999
+    {
+        str reported = thread.take_detached_error()
+        if reported != ""
+        {
+            if !string.starts_with(reported, "operation_failed: ")
+            {
+                return 5
+            }
+            return 0
+        }
+        time.sleep_millis(1)
+    }
+    return 6
+}

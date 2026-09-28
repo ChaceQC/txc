@@ -1,0 +1,5 @@
+def bounded<T>(capacity: int) -> channel<T>
+def send<T>(value: channel<T>, item: T, timeout_ms: int, token: cancel_token) -> bool
+def recv<T>(value: channel<T>, timeout_ms: int, token: cancel_token) -> option<T>
+def close<T>(value: channel<T>) -> bool
+def select<T>(values: vector<channel<T>>, timeout_ms: int, token: cancel_token) -> selected<T>

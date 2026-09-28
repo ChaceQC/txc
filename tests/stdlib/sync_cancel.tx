@@ -1,0 +1,60 @@
+import "sync.txh" as sync
+import "thread.txh" as thread
+import "cancel.txh" as cancel
+import "time.txh" as time
+import "error.txh" as errors
+
+def wait_condition(owner: mutex<int>, signal: condition,
+                   token: cancel_token) -> void
+{
+    mutex_guard<int> guard = sync.lock(owner)
+    sync.wait(signal, guard, -1, token)
+    sync.guard_close(guard)
+}
+
+def wait_semaphore(permits: semaphore, token: cancel_token) -> void
+{
+    sync.acquire(permits, -1, token)
+}
+
+def main() -> int
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    mutex<int> owner = sync.new_mutex(0)
+    condition signal = sync.new_condition()
+    semaphore permits = sync.new_semaphore(0, 1)
+    join_handle<void> first = thread.spawn(bind(wait_condition,
+        owner, signal, token))
+    join_handle<void> second = thread.spawn(bind(wait_semaphore,
+        permits, token))
+    time.sleep_millis(10)
+    cancel.cancel(source)
+    try
+    {
+        thread.join(first)
+        return 1
+    }
+    exception errors.cancelled_error as failure
+    {
+        if failure.code != "cancelled"
+        {
+            return 2
+        }
+    }
+    try
+    {
+        thread.join(second)
+        return 3
+    }
+    exception errors.cancelled_error as failure
+    {
+        if failure.code != "cancelled"
+        {
+            return 4
+        }
+    }
+    mutex_guard<int> released = sync.lock(owner)
+    sync.guard_close(released)
+    return 0
+}

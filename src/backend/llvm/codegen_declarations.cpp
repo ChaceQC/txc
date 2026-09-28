@@ -69,6 +69,8 @@ void llvm_code_generator::write_external_declarations()
     write_iterator_declarations();
     write_container_declarations();
     write_algorithm_declarations();
+    write_sync_declarations();
+    write_channel_declarations();
     module_ << "declare i32 @txrt_parse_try_parse_int(ptr, i64, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_call_needs_default(ptr, ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_parse_try_parse_float(ptr, ptr, ptr, ptr)\n"
@@ -331,6 +333,35 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_cancel_cancel(ptr, ptr)\n"
             << "declare i32 @txrt_cancel_status(ptr, ptr)\n"
             << "declare i32 @txrt_cancel_wait(ptr, i64, ptr)\n";
+    module_ << "declare i32 @txrt_thread_spawn(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_thread_join_void(ptr)\n"
+            << "declare i32 @txrt_thread_join_i64(ptr, ptr)\n"
+            << "declare i32 @txrt_thread_join_f64(ptr, ptr)\n"
+            << "declare i32 @txrt_thread_join_bool(ptr, ptr)\n"
+            << "declare i32 @txrt_thread_join_str(ptr, ptr)\n"
+            << "declare i32 @txrt_thread_join_value(ptr, ptr)\n"
+            << "declare i32 @txrt_thread_detach(ptr)\n"
+            << "declare i32 @txrt_thread_id(ptr, ptr)\n"
+            << "declare i32 @txrt_thread_take_detached_error(ptr)\n";
+    module_ << "declare i32 @txrt_task_scope_void(ptr, i64, i64)\n"
+            << "declare i32 @txrt_task_scope_i64(ptr, i64, i64, ptr)\n"
+            << "declare i32 @txrt_task_scope_f64(ptr, i64, i64, ptr)\n"
+            << "declare i32 @txrt_task_scope_bool(ptr, i64, i64, ptr)\n"
+            << "declare i32 @txrt_task_scope_str(ptr, i64, i64, ptr)\n"
+            << "declare i32 @txrt_task_scope_value(ptr, i64, i64, ptr)\n"
+            << "declare i32 @txrt_task_spawn(ptr, ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_task_spawn_current(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_task_wait_void(ptr)\n"
+            << "declare i32 @txrt_task_wait_i64(ptr, ptr)\n"
+            << "declare i32 @txrt_task_wait_f64(ptr, ptr)\n"
+            << "declare i32 @txrt_task_wait_bool(ptr, ptr)\n"
+            << "declare i32 @txrt_task_wait_str(ptr, ptr)\n"
+            << "declare i32 @txrt_task_wait_value(ptr, ptr)\n"
+            << "declare i32 @txrt_task_cancel(ptr, ptr)\n"
+            << "declare i32 @txrt_task_token(ptr, ptr)\n"
+            << "declare i32 @txrt_task_current_token(ptr)\n"
+            << "declare i32 @txrt_task_after(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_task_sleep(i64, ptr)\n";
     module_ << "declare i32 @txrt_str_concat_literal(ptr, ptr, i64, i1, ptr)\n";
     module_ << "declare i32 @txrt_string_split_vector_literal(ptr, ptr, i64, ptr)\n"
             << "declare i32 @txrt_string_join_vector_literal(ptr, ptr, i64, ptr)\n"
@@ -467,6 +498,8 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_file_write_bytes(ptr, ptr)\n"
             << "declare i32 @txrt_file_atomic_write_bytes(ptr, ptr)\n"
             << "declare i32 @txrt_file_atomic_write_text(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_async_file_read_at(ptr, i64, i64, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_async_file_write_at(ptr, i64, ptr, ptr, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_fs_exists(ptr, ptr)\n"
             << "declare i32 @txrt_fs_is_file(ptr, ptr)\n"
             << "declare i32 @txrt_fs_is_directory(ptr, ptr)\n"
@@ -507,6 +540,14 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_process_make_limits(ptr, i64, i64, ptr, ptr)\n"
             << "declare i32 @txrt_process_run(ptr, ptr, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_process_run_with_cancel(ptr, ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_ipc_listen(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_ipc_accept(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_ipc_connect(ptr, i64, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_ipc_from_process_pipes(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_ipc_send(ptr, i64, ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_ipc_recv(ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_ipc_close(ptr, ptr)\n"
+            << "declare i32 @txrt_ipc_close_listener(ptr, ptr)\n"
             << "declare i32 @txrt_path_join(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_path_parent(ptr, ptr)\n"
             << "declare i32 @txrt_path_file_name(ptr, ptr)\n"

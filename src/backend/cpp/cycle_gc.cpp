@@ -1,6 +1,7 @@
 #include "backend/cpp/cycle_gc.hpp"
 
 #include "backend/cpp/runtime_abi_internal.hpp"
+#include "backend/cpp/runtime_context.hpp"
 #include "backend/cpp/value_format.hpp"
 #include "backend/cpp/vector_value.hpp"
 #include "backend/cpp/container_value.hpp"
@@ -9,8 +10,12 @@
 #include "stdlib/stdlib.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <mutex>
+#include <optional>
+#include <shared_mutex>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -21,6 +26,7 @@ namespace
 {
 
 constexpr std::size_t collection_interval = 64;
+std::atomic<std::uint64_t> next_gc_owner_id = 1;
 
 struct live_node
 {
@@ -38,6 +44,34 @@ struct object_graph
     std::vector<std::int64_t> external_refs;
     std::vector<bool> reachable;
 };
+
+struct gc_registry
+{
+    std::mutex mutex;
+    std::vector<detail::registered_gc_node> nodes;
+};
+
+gc_registry& registered_graph()
+{
+    static auto* registry = new gc_registry();
+    return *registry;
+}
+
+std::shared_mutex& execution_gate()
+{
+    static auto* gate = new std::shared_mutex();
+    return *gate;
+}
+
+thread_local std::size_t concurrent_depth = 0;
+thread_local std::optional<std::shared_lock<std::shared_mutex>> execution_lock;
+
+std::size_t registered_node_count()
+{
+    auto& registry = registered_graph();
+    std::lock_guard lock(registry.mutex);
+    return registry.nodes.size();
+}
 
 const void* object_identity(const std::any& value)
 {
@@ -120,13 +154,33 @@ void mark_reachable(object_graph& graph)
     }
 }
 
-object_graph inspect_graph(const detail::runtime_context& context)
+std::uint64_t ensure_gc_owner_id(detail::runtime_context& context)
 {
-    const auto& registered_nodes = context.registered_nodes;
+    if (context.gc_owner_id == 0)
+    {
+        context.gc_owner_id = next_gc_owner_id.fetch_add(
+            1, std::memory_order_relaxed);
+    }
+    return context.gc_owner_id;
+}
+
+object_graph inspect_graph(std::uint64_t owner)
+{
+    auto& registry = registered_graph();
+    std::vector<detail::registered_gc_node> registered_nodes;
+    {
+        std::lock_guard lock(registry.mutex);
+        registered_nodes = registry.nodes;
+    }
+
     object_graph graph;
     graph.nodes.reserve(registered_nodes.size());
     for (const auto& entry : registered_nodes)
     {
+        if (owner != 0 && entry.owner != owner)
+        {
+            continue;
+        }
         if (auto object = entry.object.lock())
         {
             graph.nodes.push_back({std::move(object), entry.trace,
@@ -165,11 +219,33 @@ struct collection_guard
 
 } // namespace
 
+concurrent_execution_scope::concurrent_execution_scope()
+{
+    if (concurrent_depth == 0)
+    {
+        execution_lock.emplace(execution_gate());
+    }
+    ++concurrent_depth;
+}
+
+concurrent_execution_scope::~concurrent_execution_scope()
+{
+    if (--concurrent_depth == 0)
+    {
+        execution_lock.reset();
+    }
+}
+
 void register_gc_node(const std::shared_ptr<void>& object, gc_trace trace,
                       gc_clear clear, gc_finalize finalize)
 {
+    auto& registry = registered_graph();
     auto& context = detail::current_runtime_context();
-    context.registered_nodes.push_back({object, trace, clear, finalize});
+    const auto owner = ensure_gc_owner_id(context);
+    {
+        std::lock_guard lock(registry.mutex);
+        registry.nodes.push_back({object, trace, clear, finalize, owner});
+    }
     ++context.allocations_since_collection;
 }
 
@@ -185,12 +261,24 @@ void collect_cycles()
     {
         return;
     }
+    std::optional<std::unique_lock<std::shared_mutex>> gate;
+    const auto owner_filter = concurrent_depth != 0
+        ? ensure_gc_owner_id(context) : 0;
+    if (owner_filter == 0)
+    {
+        gate.emplace(execution_gate(), std::try_to_lock);
+        if (!gate->owns_lock())
+        {
+            // 活跃工作线程可能正在改写其唯一移动的对象图；延后全图扫描。
+            return;
+        }
+    }
     context.collecting = true;
     collection_guard guard{context};
     bool completed = false;
     for (std::size_t round = 0; round < 16; ++round)
     {
-        auto graph = inspect_graph(context);
+        auto graph = inspect_graph(owner_filter);
         bool finalized = false;
         for (std::size_t index = 0; index < graph.nodes.size(); ++index)
         {
@@ -215,23 +303,32 @@ void collect_cycles()
         completed = true;
         break;
     }
-    std::erase_if(context.registered_nodes, [](const detail::registered_gc_node& entry)
+    auto& registry = registered_graph();
     {
-        return entry.object.expired();
-    });
+        std::lock_guard lock(registry.mutex);
+        std::erase_if(registry.nodes,
+            [](const detail::registered_gc_node& entry)
+            {
+                return entry.object.expired();
+            });
+    }
     context.allocations_since_collection = completed ? 0 :
-        std::max(collection_interval, context.registered_nodes.size() / 2);
+        std::max(collection_interval, registered_node_count() / 2);
 }
 
 void gc_safepoint()
 {
     const auto& context = detail::current_runtime_context();
-    if (context.collecting || context.registered_nodes.empty())
+    if (context.collecting || concurrent_depth != 0)
     {
         return;
     }
-    const auto threshold = std::max(collection_interval,
-                                    context.registered_nodes.size() / 2);
+    const auto registered_nodes = registered_node_count();
+    if (registered_nodes == 0)
+    {
+        return;
+    }
+    const auto threshold = std::max(collection_interval, registered_nodes / 2);
     if (context.allocations_since_collection >= threshold)
     {
         collect_cycles();

@@ -1,0 +1,46 @@
+import "thread.txh" as thread
+import "error.txh" as errors
+
+def add(base: int, value: int) -> int
+{
+    return base + value
+}
+
+def divide(base: int, value: int) -> int
+{
+    return base / value
+}
+
+def ready() -> bool
+{
+    return true
+}
+
+def main() -> int
+{
+    join_handle<int> first = thread.spawn(bind(add, 40, 2))
+    int first_value = thread.join(first)
+    if first_value != 42
+    {
+        return 1
+    }
+    join_handle<bool> second = thread.spawn(ready)
+    if !thread.join(second)
+    {
+        return 2
+    }
+    join_handle<int> failed = thread.spawn(bind(divide, 8, 0))
+    try
+    {
+        thread.join(failed)
+        return 3
+    }
+    exception errors.runtime_error as e
+    {
+        if e.code != "operation_failed"
+        {
+            return 4
+        }
+    }
+    return 0
+}

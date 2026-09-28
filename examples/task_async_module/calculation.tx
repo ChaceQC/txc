@@ -1,0 +1,12 @@
+import "task.txh" as task
+
+async def twice(value: int) -> int
+{
+    await task.sleep(10)
+    return value * 2
+}
+
+async def ready() -> bool
+{
+    return true
+}

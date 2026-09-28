@@ -1,0 +1,48 @@
+import "thread.txh" as thread
+import "task.txh" as task
+import "channel.txh" as channel
+import "sync.txh" as sync
+import "cancel.txh" as cancel
+import "time.txh" as time
+import "ipc.txh" as ipc
+
+def value() -> int
+{
+    return 42
+}
+
+def one_scope(scope: task_scope) -> int
+{
+    task<void> timer = task.after(scope, 1)
+    task.wait(timer)
+    task<int> result = task.spawn(scope, value)
+    return task.wait(result)
+}
+
+def main() -> int
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    for attempt in 0..=999
+    {
+        join_handle<int> worker = thread.spawn(value)
+        if thread.join(worker) != 42 || task.scope(one_scope, 3, 1000) != 42
+        {
+            return 1
+        }
+        channel<int> queue = channel.bounded<int>(1)
+        channel.send(queue, 7, 0, token)
+        channel.close(queue)
+        if channel.recv(queue, 0, token).value() != 7
+        {
+            return 2
+        }
+        mutex<int> owner = sync.new_mutex(0)
+        mutex_guard<int> guard = sync.lock(owner)
+        sync.guard_close(guard)
+        ipc_listener listener = ipc.listen("tx_ipc_handle_stress", 32)
+        ipc.close_listener(listener)
+        time.sleep_millis(1)
+    }
+    return 0
+}

@@ -2,6 +2,12 @@
 
 本文说明当前已实现的标准库接口。后续能力缺口、建议优先级和实现前提见[标准库扩展规划](standard_library_plan.md)。
 
+`Send/Sync`、唯一移动、跨线程释放与循环回收的 2.6 验收已完成；第 10 节的线程、同步原语和通道支持 `Send` 值，接口见[线程](thread.md)、[同步原语](synchronization.md)和[有界通道](channel.md)，类型及所有权规则见[Send/Sync](send_sync.md)。
+
+`task.txh` 提供结构化作用域、任务组、取消、截止时间和异步计时；`async def` 与 `await` 接入有界工作线程和 Windows IOCP 事件循环。静态类型与使用边界见[结构化任务与异步函数](task.md)，示例见[task_async.tx](../examples/task_async.tx)。`async_file.txh` 通过同一 IOCP 循环提供有界、可取消的文件读写，结果报告已完成的外部效果，契约见[异步文件操作](async_file.md)。
+
+`ipc.txh` 使用本机命名管道或子进程管道传送有版本、会话号和长度上限的规范 CBOR 消息。EOF、半包、超时续读、重连与超限规则见[本机 IPC](ipc.md)。
+
 `httpx` 与 `websocket` 提供 HTTP/1.1、HTTP/2、WS/WSS 客户端和对应服务端的同步文本、二进制与文件流接口。HTTP/2 支持 HTTPS ALPN、明文 h2c prior knowledge，以及使用 PEM 证书的 TLS 服务端；二进制正文和消息直接使用 `bytes` 或 `binary_stream`。完整签名、边界及定向验证状态见[网络模块说明](network.md)。公开接口分别为 [httpx.txh](../tx/stdlib/httpx.txh) 和 [websocket.txh](../tx/stdlib/websocket.txh)。
 
 `requests` 在 `httpx` 上提供接近 Python Requests 的同步客户端、命名参数、`session` 与 `response` 类、JSON、表单、Cookie 和重定向。公开接口为 [requests.txh](../tx/stdlib/requests.txh)，`.tx` 实现构建进同一个标准库静态库。具体签名、Python API 对照及限制见[requests 模块说明](requests.md)。

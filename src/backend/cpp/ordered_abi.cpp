@@ -30,7 +30,7 @@ void write_value(const value_type& value, void* result)
     }
     else if constexpr (std::is_same_v<value_type, text_reference>)
     {
-        *static_cast<void**>(result) = retain_text_handle(value.handle());
+        *static_cast<void**>(result) = copy_text_handle(value.handle());
     }
     else if constexpr (std::is_same_v<value_type, std::uint8_t>)
     {

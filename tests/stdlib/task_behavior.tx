@@ -1,0 +1,100 @@
+import "task.txh" as task
+import "error.txh" as errors
+
+def fail() -> int
+{
+    return 1 / 0
+}
+
+def ignore_failure(scope: task_scope) -> int
+{
+    task.spawn(scope, fail)
+    return 0
+}
+
+def cancel_timer(scope: task_scope) -> int
+{
+    task<void> timer = task.after(scope, 100000)
+    task.cancel(scope)
+    try
+    {
+        task.wait(timer)
+        return 1
+    }
+    exception errors.cancelled_error as failure
+    {
+        if failure.code != "cancelled"
+        {
+            return 2
+        }
+    }
+    return 0
+}
+
+def deadline_timer(scope: task_scope) -> int
+{
+    task<void> timer = task.after(scope, 100000)
+    try
+    {
+        task.wait(timer)
+        return 1
+    }
+    exception errors.cancelled_error as failure
+    {
+        if failure.code != "cancelled"
+        {
+            return 2
+        }
+    }
+    return 0
+}
+
+def fail_scope(scope: task_scope) -> int
+{
+    task.after(scope, 100000)
+    return 1 / 0
+}
+
+def void_scope(scope: task_scope) -> void
+{
+    task<void> timer = task.after(scope, 1)
+    task.wait(timer)
+}
+
+def main() -> int
+{
+    try
+    {
+        task.scope(ignore_failure, 2, 1000)
+        return 3
+    }
+    exception errors.runtime_error as failure
+    {
+        if failure.code != "operation_failed"
+        {
+            return 4
+        }
+    }
+    if task.scope(cancel_timer, 2, 1000) != 0
+    {
+        return 5
+    }
+    if task.scope(deadline_timer, 2, 1) != 0
+    {
+        return 6
+    }
+    try
+    {
+        task.scope(fail_scope, 2, 1000)
+        return 7
+    }
+    exception errors.runtime_error as failure
+    {
+        if failure.code != "operation_failed"
+        {
+            return 8
+        }
+    }
+    task.scope(void_scope, 2, 1000)
+    return 0
+}

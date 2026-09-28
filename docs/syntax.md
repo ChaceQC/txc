@@ -24,7 +24,9 @@
 
 不透明内置类型 `csv_reader` 与 `csv_writer` 使用相同的共享游标、`any` 恢复、禁止复制和跨线程传递规则。`csv.next_row` 返回 `option<vector<str>>`；表头快照与已返回行独立于游标，关闭后仍可使用。dialect、字段限额与失败语义见 [CSV](csv.md)，示例见 [csv_stream.tx](../examples/csv_stream.tx)。
 
-`assert_send(value)` 与 `assert_sync(value)` 在编译期检查跨线程传递/共享的基础类型规则，并在运行时正常求值该实参；当前不启动线程。可证明类型及尚未完成的唯一移动与同步封装边界见[Send/Sync 规则](send_sync.md)。
+`assert_send(value)` 与 `assert_sync(value)` 在编译期检查跨线程传递/共享规则，并在运行时正常求值该实参。`move(value)` 消费唯一拥有的可变 Send 局部变量；原变量随即不可读写。普通赋值别名、容器/字段/闭包捕获或未知调用可能保留别名时，`move` 会在源码位置报错；条件、循环和异常分支中暂不允许移动。可变复合闭包捕获须写成 `bind(work, move(value))`。完整类型范围、线程边界和锁卫士生命周期见[Send/Sync 规则](send_sync.md)。`join_handle<T>`、`mutex<T>`、`rw_lock<T>`、锁卫士、`atomic<T>`、`channel<T>` 与只读 `selected<T>` 是新增的内置参数化类型；目前 T 仅限文档列出的标量。`selected<T>` 有 `index: int` 和 `value: option<T>` 两个只读字段。
+
+`async def`、`await` 和 `task<T>` 的静态类型、作用域及取消规则见[结构化任务与异步函数](task.md)。
 
 `map<K, V>`、`set<T>`、`ordered_map<K, V>`、`ordered_set<T>`、`heap<T>`、`queue<T>`、`deque<T>` 的类型参数、接口、共享和快照遍历规则见[类型化容器](typed_containers.md)。这些类型在变量、函数及 `.txh` 签名、struct/class 字段中保留完整静态类型。`entry<K, V>` 是映射条目快照的内置只读值类型，字段为 `key: K` 和 `value: V`，不能自行构造或修改字段。`deque<T>` 与 `vector<T>` 使用相同的具体元素类型规则，支持整数下标读写；两端增删为 O(1)，中间插入/删除为 O(n)。普通函数的静态函数类型及作为参数传递的规则见[函数值与函数参数](function_values.md)。
 
@@ -86,7 +88,7 @@ def stop_early(done: bool) -> void {
 
 含 `T = none` 形参的普通函数仍可作为 `fn` 函数值传递，间接调用入口会把具体 `T` 值装入带标记的参数句柄。`fn` 类型记录完整形参类型，不保存默认表达式，因此通过函数值调用时仍需提供所有实参。
 
-`bind(function, prefix_arg, ...)` 将已知签名函数的前若干参数按值捕获，返回剩余参数签名的闭包。例如 `def add(base: int, value: int) -> int` 可用 `fn(int)->int plus_five = bind(add, 5)` 创建闭包。捕获按普通赋值语义保存：标量复制，可变复合对象持有共享引用；需要独立对象时显式 `deep_copy` 后捕获。闭包拥有这些值，可跨创建它的作用域存活；调用期间对内部值的借用只在该次同步调用内有效，不能把借用地址作为 TX 值保存。闭包失败沿原函数的错误类别传播。显式 `&` 引用捕获暂不提供，避免产生逃逸的栈引用。
+`bind(function, prefix_arg, ...)` 将已知签名函数的前若干参数按值捕获，返回剩余参数签名的闭包。例如 `def add(base: int, value: int) -> int` 可用 `fn(int)->int plus_five = bind(add, 5)` 创建闭包。普通捕获按赋值语义保存：标量复制，可变复合对象持有共享引用；需要独立对象时显式 `deep_copy` 后捕获。跨线程闭包另外检查每个捕获：可变 Send 对象须唯一移动，例如 `thread.spawn(bind(work, move(values)))`；字符串、字节和受控同步句柄按其类型规则传递。闭包拥有捕获值，可跨创建它的作用域存活；调用期间对内部值的借用只在该次同步调用内有效，不能把借用地址作为 TX 值保存。闭包失败沿原函数的错误类别传播。显式 `&` 引用捕获暂不提供，避免产生逃逸的栈引用。
 
 函数可在普通参数后声明 `*args` 和 `**kwargs`，各至多一个，顺序必须如此。`*args` 的类型为 `array`，`**kwargs` 的类型为 `dict`；可省略这两个参数的类型标注，也可分别写 `: array`、`: dict`。普通参数仍需显式标注类型，当前没有默认值。多余的位置实参进入 `args`，未对应普通参数名的命名实参进入 `kwargs`。调用时可写 `name=表达式`、`*数组表达式` 和 `**字典表达式`；位置实参（包括 `*`）应写在命名实参（包括 `**`）之前。实参从左到右求值；重复命名、同一参数同时接受位置和命名值、缺少必需参数，以及多余实参没有对应收集参数，都会报错。`**` 展开时字典的键必须是 `str`。显式实参按静态类型匹配；展开所得的值在运行时检查目标参数类型。对于带展开的重载调用，必须能在编译期唯一确定重载。
 

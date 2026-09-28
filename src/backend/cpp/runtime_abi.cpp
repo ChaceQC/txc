@@ -68,8 +68,13 @@ void cleanup_live_handles() noexcept
         {
             auto* text = static_cast<handle_record<std::string>*>(current);
             // 清理根引用不破坏仍由容器或析构函数持有的不可变文本。
-            text->references = 0;
-            if (text->internal_references == 0)
+            bool destroy = false;
+            {
+                std::lock_guard lock(text->reference_mutex);
+                text->references = 0;
+                destroy = text->internal_references == 0;
+            }
+            if (destroy)
             {
                 delete text;
             }
@@ -193,8 +198,10 @@ extern "C" int txrt_str_new(const char* bytes, std::size_t length,
 
 extern "C" int txrt_str_clone(const void* value, void** result) noexcept
 {
-    *result = tx_generated::detail::retain_text_handle(value);
-    return 0;
+    return invoke_checked([&]
+    {
+        *result = tx_generated::detail::copy_text_handle(value);
+    });
 }
 
 extern "C" bool txrt_str_equals_literal(const void* value,

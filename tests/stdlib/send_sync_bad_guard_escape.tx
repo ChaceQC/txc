@@ -1,0 +1,10 @@
+import "sync.txh" as sync
+
+def main() -> int
+{
+    mutex<int> owner = sync.new_mutex(1)
+    mutex_guard<int> guard = sync.lock(owner)
+    auto alias = guard
+    sync.guard_close(guard)
+    return 0
+}

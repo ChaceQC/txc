@@ -1,0 +1,14 @@
+import "thread.txh" as thread
+
+def read(values: vector<int>) -> int
+{
+    return values[0]
+}
+
+def main() -> int
+{
+    vector<int> values = vector<int>(1, 5)
+    auto alias = values
+    join_handle<int> worker = thread.spawn(bind(read, move(values)))
+    return thread.join(worker)
+}

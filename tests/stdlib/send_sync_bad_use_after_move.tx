@@ -1,0 +1,6 @@
+def main() -> int
+{
+    vector<int> values = vector<int>(1, 5)
+    vector<int> moved = move(values)
+    return values[0]
+}
