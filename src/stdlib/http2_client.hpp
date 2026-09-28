@@ -28,12 +28,20 @@ http_response_data client_send(std::string_view method,
 class client_session
 {
 public:
+    struct response_chunk
+    {
+        std::string data;
+        bool eof = false;
+    };
+
     client_session(network::socket_handle socket, std::int64_t timeout_ms);
+    client_session(std::shared_ptr<tls::secure_connection> secure,
+                   std::int64_t timeout_ms);
     ~client_session() noexcept;
     client_session(const client_session&) = delete;
     client_session& operator=(const client_session&) = delete;
 
-    http_response_data run(std::string_view method,
+    http_response_data run(std::string_view method, std::string_view scheme,
                            std::string_view target,
                            std::string_view authority,
                            const network::header_map& headers,
@@ -43,6 +51,15 @@ public:
                            const binary_stream& destination,
                            std::int64_t max_response_bytes,
                            bool binary);
+    void start(std::string_view method, std::string_view scheme,
+               std::string_view target, std::string_view authority,
+               const network::header_map& headers,
+               std::int64_t body_length,
+               std::int64_t max_response_bytes);
+    void write_body(std::string_view data);
+    void finish_upload();
+    http_response_data response_headers();
+    response_chunk read_response_chunk(std::size_t max_bytes);
 
 private:
     static int on_header(nghttp2_session*, const nghttp2_frame*,
@@ -55,6 +72,12 @@ private:
     static nghttp2_ssize read_request_data(nghttp2_session*, std::int32_t,
         std::uint8_t*, std::size_t, std::uint32_t*, nghttp2_data_source*, void*);
 
+    void initialize();
+    void submit_request(std::string_view method, std::string_view scheme,
+                        std::string_view target,
+                        std::string_view authority,
+                        const network::header_map& headers,
+                        std::int64_t body_length);
     void header(std::string_view name, std::string_view value);
     void data_chunk(std::string_view bytes);
     void frame_received(const nghttp2_frame* frame);
@@ -63,7 +86,8 @@ private:
     void check_error();
     void record_error() noexcept;
     [[nodiscard]] std::vector<std::pair<std::string, std::string>>
-        request_headers(std::string_view method, std::string_view target,
+        request_headers(std::string_view method, std::string_view scheme,
+                        std::string_view target,
                         std::string_view authority,
                         const network::header_map& headers,
                         std::int64_t body_length);
@@ -81,6 +105,13 @@ private:
     std::int32_t stream_id_ = 0;
     bool complete_ = false;
     bool binary_ = false;
+    bool streaming_input_ = false;
+    bool upload_finished_ = false;
+    bool response_headers_ready_ = false;
+    std::uint64_t upload_unsubmitted_remaining_ = 0;
+    std::string upload_buffer_;
+    std::size_t upload_offset_ = 0;
+    std::size_t response_offset_ = 0;
     std::exception_ptr error_;
 };
 

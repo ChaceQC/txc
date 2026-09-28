@@ -1,5 +1,9 @@
 import "error.txh" as errors
+import "bytes.txh" as byte_values
+import "file_stream.txh" as files
+import "httpx.txh" as httpx
 import "requests.txh" as requests
+import "secret.txh" as secrets
 import "system.txh" as system
 
 def main() -> int
@@ -9,35 +13,52 @@ def main() -> int
     str root = args[1]
     str unrelated = args[2]
     str package = args[3]
-    str system_url = args[4]
+    str wrong_host_url = args[4]
+    str empty_package = args[5]
+    str long_package = args[6]
+    str long_password = args[7]
+    str oversized_password = args[8]
+    str proxy_url = args[9]
+    str wrong_usage_url = args[10]
 
     auto client = requests.session()
-    auto system_response = client.get(system_url, timeout=10)
-    if system_response.status_code < 200 || system_response.status_code >= 400
+    requests.request_options secure_options = requests.default_options()
+    map<str, str> auth_headers = map<str, str>()
+    auth_headers["Authorization"] = "Bearer audit-only"
+    secure_options.headers = auth_headers
+    secure_options.ca_file = root
+    secure_options.client_pfx_file = package
+    secure_options.client_pfx_password = "test-only-password"
+    secure_options = requests.with_text(secure_options, "synthetic-body")
+    auto custom_response = client.post(url, secure_options)
+    if custom_response.status_code != 200
     {
         return 1
     }
-
-    bool custom_root_rejected = false
-    try
-    {
-        client.get(url, verify=root, cert=[package, "test-only-password"])
-    }
-    exception errors.io_error as failure
-    {
-        custom_root_rejected = failure.code == "security_error"
-    }
-    if !custom_root_rejected
+    auto reused_response = client.get(url, secure_options)
+    if reused_response.status_code != 200
     {
         return 2
     }
+    auto redirect_response = client.get(url + "/redirect", secure_options)
+    if redirect_response.status_code != 200
+    {
+        return 3
+    }
+    requests.request_options retry_options = secure_options
+    retry_options.max_retries = 1
+    auto retry_response = client.get(url + "/retry", retry_options)
+    if retry_response.status_code != 200
+    {
+        return 4
+    }
 
-    // 同一会话更换 CA 后必须销毁旧池，并在请求发送前拒绝新配置。
+    // 错误 CA 和错误主机名均在服务端收到 HTTP 请求前终止。
     bool rebuilt_pool_rejected = false
     try
     {
-        client.get(url, verify=unrelated,
-                   cert=[package, "test-only-password"])
+        secure_options.ca_file = unrelated
+        client.post(url, secure_options)
     }
     exception errors.io_error as failure
     {
@@ -45,20 +66,36 @@ def main() -> int
     }
     if !rebuilt_pool_rejected
     {
-        return 3
+        return 2
     }
     client.close()
 
-    bool direct_custom_root_rejected = false
+    bool wrong_host_rejected = false
     try
     {
-        requests.get(url, verify=root, cert=[package, "test-only-password"])
+        secure_options.ca_file = root
+        requests.post(wrong_host_url, secure_options)
     }
     exception errors.io_error as failure
     {
-        direct_custom_root_rejected = failure.code == "security_error"
+        wrong_host_rejected = failure.code == "security_error"
     }
-    if !direct_custom_root_rejected
+    if !wrong_host_rejected
+    {
+        return 3
+    }
+
+    bool wrong_usage_rejected = false
+    try
+    {
+        secure_options.ca_file = root
+        requests.post(wrong_usage_url, secure_options)
+    }
+    exception errors.io_error as failure
+    {
+        wrong_usage_rejected = failure.code == "security_error"
+    }
+    if !wrong_usage_rejected
     {
         return 4
     }
@@ -77,6 +114,100 @@ def main() -> int
         return 5
     }
 
+    bool empty_password_imported = false
+    try
+    {
+        requests.get(url, cert=[empty_package, ""])
+    }
+    exception errors.io_error as failure
+    {
+        empty_password_imported = failure.code == "security_error"
+    }
+    if !empty_password_imported
+    {
+        return 6
+    }
+
+    bool boundary_password_imported = false
+    try
+    {
+        requests.get(url, cert=[long_package, long_password])
+    }
+    exception errors.io_error as failure
+    {
+        boundary_password_imported = (failure.code == "invalid_argument" &&
+            failure.message == "客户端证书或密码无效")
+    }
+    if !boundary_password_imported
+    {
+        return 7
+    }
+
+    bool oversized_password_rejected = false
+    try
+    {
+        requests.get(url, cert=[long_package, oversized_password])
+    }
+    exception errors.io_error as failure
+    {
+        oversized_password_rejected = (failure.code == "invalid_argument" &&
+            failure.message == "客户端证书密码长度无效")
+    }
+    if !oversized_password_rejected
+    {
+        return 8
+    }
+
+    bool wrong_password_rejected = false
+    try
+    {
+        requests.get(url, cert=[package, "wrong-test-password"])
+    }
+    exception errors.io_error as failure
+    {
+        wrong_password_rejected = failure.code == "invalid_argument"
+    }
+    if !wrong_password_rejected
+    {
+        return 9
+    }
+
+    binary_stream package_file = files.open_binary(package, "read")
+    bytes package_data = files.read_all_bytes(package_file)
+    files.close(package_file)
+    vector<int> invalid_password_data = vector<int>()
+    invalid_password_data.push_back(255)
+    secret_bytes invalid_password = secrets.from_bytes(
+        byte_values.from_vector(invalid_password_data))
+    bool invalid_utf8_rejected = false
+    try
+    {
+        auto invalid_session = httpx.open_secure_session("direct", 1, false,
+            vector<bytes>(), true, package_data, invalid_password, false)
+        httpx.close_session(invalid_session)
+    }
+    exception errors.io_error as failure
+    {
+        invalid_utf8_rejected = failure.code == "invalid_argument"
+    }
+    secrets.close(invalid_password)
+    if !invalid_utf8_rejected
+    {
+        return 10
+    }
+
+    requests.request_options proxy_options = requests.default_options()
+    proxy_options.ca_file = root
+    proxy_options.client_pfx_file = package
+    proxy_options.client_pfx_password = "test-only-password"
+    proxy_options.proxy_https = proxy_url
+    proxy_options.timeout_ms = 5000
+    auto proxy_response = requests.get(url, proxy_options)
+    if proxy_response.status_code != 200
+    {
+        return 11
+    }
+
     bool disabled_rejected = false
     try
     {
@@ -88,7 +219,7 @@ def main() -> int
     }
     if !disabled_rejected
     {
-        return 6
+        return 12
     }
     return 0
 }

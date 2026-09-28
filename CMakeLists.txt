@@ -542,6 +542,11 @@ add_library(txstdlib STATIC
     src/stdlib/network_listener.cpp
     src/stdlib/network_url.cpp
     src/stdlib/httpx_client.cpp
+    src/stdlib/httpx_client_custom_tls.cpp
+    src/stdlib/httpx_client_custom_tls_pool.cpp
+    src/stdlib/httpx_client_custom_tls_proxy.cpp
+    src/stdlib/httpx_client_custom_tls_response.cpp
+    src/stdlib/httpx_client_custom_tls_transport.cpp
     src/stdlib/httpx_winhttp.cpp
     src/stdlib/httpx_client_session.cpp
     src/stdlib/httpx_client_tls.cpp
@@ -564,6 +569,7 @@ add_library(txstdlib STATIC
     src/stdlib/http2_server.cpp
     src/stdlib/http2_client.cpp
     src/stdlib/http2_client_callbacks.cpp
+    src/stdlib/http2_client_stream.cpp
     src/stdlib/ws.cpp
     src/stdlib/ws_client.cpp
     src/stdlib/ws_client_stream.cpp

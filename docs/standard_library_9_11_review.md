@@ -15,7 +15,7 @@
 
 | 编号 | 优先级 | 所属部分 | 问题 | 证据 | 修复状态 |
 | --- | --- | --- | --- | --- | --- |
-| R01 | P1 | 11 | 自定义 CA 验证晚于 HTTP 请求发送 | 已复现 | 待修复 |
+| R01 | P1 | 11 | 自定义 CA 验证晚于 HTTP 请求发送 | 已复现 | 已修复 |
 | R02 | P1 | 9、10 | 密码学共享随机状态缺少并发保护 | 静态确认 | 已修复 |
 | R03 | P1 | 11 | 失败 HTTP/2 会话持续阻断后续正常连接 | 已复现 | 待修复 |
 | R04 | P1 | 10 | IOCP 启动与取消之间存在遗漏取消的窗口 | 静态确认 | 待修复 |
@@ -24,7 +24,7 @@
 | R07 | P2 | 11 | HTTP/3 已完成流的句柄延迟到连接销毁才释放 | 静态确认 | 待修复 |
 | R08 | P2 | 10、11 | 异步网络等待占满通用任务池 | 已复现 | 待修复 |
 | R09 | P2 | 10 | 文本和复合结果的线程、任务异常被覆盖 | 已复现 | 待修复 |
-| R10 | P2 | 11 | 客户端证书密码存在未清零的普通字符串副本 | 静态确认 | 待修复 |
+| R10 | P2 | 11 | 客户端证书密码存在未清零的普通字符串副本 | 静态确认 | 已修复 |
 
 下文行号均对应上述代码基准；后续修改后应按函数名与调用关系重新定位。
 
@@ -274,6 +274,10 @@ Windows x64 `scripts/build.ps1 -Incremental` 构建通过；`python scripts/chec
    2. 对受该路径直接影响的代理 CONNECT、客户端证书、HTTP/1.1、显式 HTTP/2、重定向及连接复用各取代表性正常和失败路径；错误证书后的连接不得被下一次请求复用。
    3. 上述条件成立后，移除 4.2 的临时封堵，并同步改掉文档中“收到响应头前再校验”的旧描述。此时才可将 R01 改为“已修复”。
 
+**顺序 2a 执行记录（2026-09-28）：** `src/stdlib/httpx_client_tls.cpp` 为自定义锚导入可选 PKCS#12 身份，并通过现有 `tls::secure_connection` 建立 Mbed TLS 连接。该安全流在返回前完成自定义/系统信任链、服务端用途、有效期及主机名检查；自定义 CA 路径不再调用 WinHTTP 的忽略未知根选项，也不在响应后补做验证。`src/stdlib/httpx_client_custom_tls.cpp` 只在验证成功后序列化 HTTP/1.1 请求头；HTTP/2 在同一已验证安全流上协商 `h2` 后由 nghttp2 发送。连接池按源站与代理隔离，HTTP/1.1 与 HTTP/2 均支持会话内顺序复用；重定向、重试继续由 `requests` 层驱动，每次新连接重新验证。显式代理先以 CONNECT 建立隧道；空代理设置通过 WinHTTP 系统代理配置解析。错误证书和 ALPN 失败的连接不会进入池。普通系统信任且没有自定义锚的会话继续使用 WinHTTP。
+
+Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 构建通过。`python -X utf8 scripts/check_requests_11_8_tls.py` 输出 `REQUESTS_TLS_SEQ2_OK`：正确 CA 与客户端证书请求完整上传合成 Authorization/正文；错误 CA、错误主机名和错误服务端用途下服务端未收到 HTTP 请求；同源 HTTP/1.1 连续请求复用相同 TCP 源端口；本机 CONNECT 代理、HTTP/2 ALPN 及同一 HTTP/2 会话连续请求通过；重定向和首次连接被关闭后的安全 GET 重试通过。未运行全量测试。自定义 CA 分支对 `decompress=true` 请求 `identity` 编码；显式要求其他压缩编码或服务端忽略该编码时会明确失败，详见 `docs/httpx_sessions.md`。
+
 ### 4.5 顺序 2b：R10 清理客户端证书密码的普通副本
 
 1. **改造 `password_buffer` 的数据流。**
@@ -282,6 +286,10 @@ Windows x64 `scripts/build.ps1 -Incremental` 构建通过；`python scripts/chec
 2. **核对秘密的其余生命周期。**
    1. 检查该密码在 `PFXImportCertStore` 前后没有额外普通字符串副本、日志或异常消息回显。
    2. 对空密码、非法 UTF-8、边界长度及错误 PKCS#12 密码做定向验证；清零覆盖范围通过源码和必要的受控检查确认，不在测试输出中打印秘密字节。
+
+**顺序 2b 执行记录（2026-09-28）：** `src/stdlib/httpx_client_tls.cpp` 的 `password_buffer` 不再构造普通 `std::string`。它先对秘密字节视图执行严格 UTF-8 长度计算，再一次分配带 NUL 终止位的 `sensitive_wide_buffer`，直接转换，并在 PKCS#12 导入返回后立即清零释放。`src/stdlib/x509_pkcs12.cpp` 的客户端身份导入也采用同样可在构造失败时清零的受控缓冲，覆盖自定义 CA 与客户端证书组合。4096 字节上限、内嵌 NUL 拒绝及空密码行为保留。
+
+同一 TLS 定向用例验证空密码包可进入系统信任握手；非法 UTF-8 和 4097 字节输入在导入前以 `invalid_argument` 拒绝；错误 PKCS#12 密码以 `invalid_argument` 拒绝。4096 字节 UTF-8 值通过项目的长度与编码检查并到达 `PFXImportCertStore`；Windows 对测试生成的该长密码包返回 `invalid_argument`，因此没有把这个包记作成功导入。`scripts/check_requests_11_8_tls.py` 通过；未输出或记录任何密码值。R10 状态更新为“已修复”。
 
 ### 4.6 顺序 3：R06 统一 HTTP/2 流表锁规则
 

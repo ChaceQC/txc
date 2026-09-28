@@ -18,6 +18,14 @@ namespace
 constexpr std::size_t transfer_chunk = 16 * 1024;
 constexpr std::size_t maximum_transfer = 16 * 1024 * 1024;
 
+void check_tls_timeout(std::int64_t timeout_ms)
+{
+    if (timeout_ms < 1 || timeout_ms > INT_MAX)
+    {
+        network::fail("invalid_argument", "TLS 超时须为 1～2147483647 毫秒");
+    }
+}
+
 [[noreturn]] void transfer_error(std::string_view action, int status)
 {
     throw runtime_failure({tx::error_kind::security, "operation_failed",
@@ -126,7 +134,7 @@ void secure_connection::wait_io(bool write,
 socket::read_result secure_connection::read(std::int64_t max_bytes,
                                             std::int64_t timeout_ms)
 {
-    socket::check_timeout(timeout_ms);
+    check_tls_timeout(timeout_ms);
     if (max_bytes < 1 || max_bytes > static_cast<std::int64_t>(maximum_transfer))
     {
         network::fail("invalid_argument", "TLS 读取长度必须为 1～16 MiB");
@@ -183,7 +191,7 @@ socket::read_result secure_connection::read(std::int64_t max_bytes,
 std::int64_t secure_connection::write(std::string_view data,
                                       std::int64_t timeout_ms)
 {
-    socket::check_timeout(timeout_ms);
+    check_tls_timeout(timeout_ms);
     if (data.size() > maximum_transfer)
     {
         network::fail("size_limit", "TLS 单次写入输入超过 16 MiB");
@@ -232,7 +240,7 @@ void secure_connection::close(std::int64_t timeout_ms)
     }
     try
     {
-        socket::check_timeout(timeout_ms);
+        check_tls_timeout(timeout_ms);
         const auto deadline = std::chrono::steady_clock::now() +
             std::chrono::milliseconds(timeout_ms);
         while (true)

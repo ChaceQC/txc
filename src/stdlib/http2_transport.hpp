@@ -44,6 +44,8 @@ public:
     transport(network::socket_handle socket,
               const std::shared_ptr<tls_config>& tls,
               std::int64_t timeout_ms);
+    transport(std::shared_ptr<tls::secure_connection> secure,
+              std::int64_t timeout_ms);
     ~transport() noexcept;
     transport(const transport&) = delete;
     transport& operator=(const transport&) = delete;
@@ -57,6 +59,8 @@ private:
     static int tls_recv(void* context, unsigned char* data, std::size_t size);
     network::socket_handle socket_;
     std::shared_ptr<tls_config> tls_;
+    std::shared_ptr<tls::secure_connection> secure_;
+    std::int64_t timeout_ms_ = 0;
     mbedtls_ssl_context ssl_{};
 };
 

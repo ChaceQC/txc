@@ -1,0 +1,20 @@
+import "httpx.txh" as httpx
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    int port = args[0] as int
+    httpx.listener server = httpx.listen_h2_tls("127.0.0.1", port,
+        args[1], args[2])
+    int index = 0
+    while index < 2
+    {
+        httpx.request request = httpx.accept(server, 10000)
+        httpx.respond(request.connection,
+            httpx.response(200, map<str, str>(), vector<str>(), "TLS H2 OK"))
+        index += 1
+    }
+    httpx.close(server)
+    return 0
+}

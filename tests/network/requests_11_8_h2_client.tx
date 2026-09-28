@@ -1,0 +1,22 @@
+import "requests.txh" as requests
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    requests.request_options options = requests.default_options()
+    options.ca_file = args[1]
+    options.http2 = true
+    options.timeout_ms = 5000
+    auto client = requests.session()
+    auto first = client.get(args[0], options)
+    auto second = client.get(args[0], options)
+    client.close()
+    if (first.status_code != 200 || first.text() != "TLS H2 OK" ||
+        second.status_code != 200 || second.text() != "TLS H2 OK"
+    )
+    {
+        return 1
+    }
+    return 0
+}

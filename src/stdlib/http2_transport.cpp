@@ -2,6 +2,7 @@
 
 #include "stdlib/crypto_internal.hpp"
 #include "stdlib/file_stream.hpp"
+#include "stdlib/tls_stream.hpp"
 
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/platform_util.h>
@@ -121,7 +122,7 @@ tls_config::~tls_config() noexcept
 transport::transport(network::socket_handle socket,
                      const std::shared_ptr<tls_config>& tls,
                      std::int64_t timeout_ms)
-    : socket_(std::move(socket)), tls_(tls)
+    : socket_(std::move(socket)), tls_(tls), timeout_ms_(timeout_ms)
 {
     set_receive_timeout(timeout_ms);
     mbedtls_ssl_init(&ssl_);
@@ -153,8 +154,28 @@ transport::transport(network::socket_handle socket,
     }
 }
 
+transport::transport(std::shared_ptr<tls::secure_connection> secure,
+                     std::int64_t timeout_ms)
+    : secure_(std::move(secure)), timeout_ms_(timeout_ms)
+{
+    if (timeout_ms_ < 1 || timeout_ms_ > INT_MAX)
+    {
+        network::fail("invalid_argument", "HTTP/2 TLS 超时无效");
+    }
+    if (!secure_ || secure_->closed())
+    {
+        network::fail("connection_closed", "HTTP/2 TLS 安全流已关闭");
+    }
+    mbedtls_ssl_init(&ssl_);
+}
+
 transport::~transport() noexcept
 {
+    if (secure_)
+    {
+        mbedtls_ssl_free(&ssl_);
+        return;
+    }
     if (tls_)
     {
         int status = 0;
@@ -195,6 +216,15 @@ transport::~transport() noexcept
 
 void transport::set_receive_timeout(std::int64_t timeout_ms)
 {
+    timeout_ms_ = timeout_ms;
+    if (secure_)
+    {
+        if (timeout_ms_ < 1 || timeout_ms_ > INT_MAX)
+        {
+            network::fail("invalid_argument", "HTTP/2 TLS 超时无效");
+        }
+        return;
+    }
     if (timeout_ms < 0 || timeout_ms > std::numeric_limits<DWORD>::max())
     {
         network::fail("invalid_argument", "HTTP/2 读取超时无效");
@@ -232,6 +262,17 @@ int transport::tls_recv(void* context, unsigned char* data, std::size_t size)
 
 std::string transport::read_some(std::size_t max_bytes)
 {
+    if (secure_)
+    {
+        auto result = secure_->read(static_cast<std::int64_t>(max_bytes),
+                                    timeout_ms_);
+        if (result.eof)
+        {
+            return {};
+        }
+        return {reinterpret_cast<const char*>(result.data.data()),
+                result.data.size()};
+    }
     std::string result(max_bytes, '\0');
     int received = 0;
     if (!tls_)
@@ -269,6 +310,16 @@ void transport::write_all(std::string_view bytes)
 {
     while (!bytes.empty())
     {
+        if (secure_)
+        {
+            const auto written = secure_->write(bytes, timeout_ms_);
+            if (written <= 0)
+            {
+                network::fail("connection_closed", "HTTP/2 TLS 安全流已关闭");
+            }
+            bytes.remove_prefix(static_cast<std::size_t>(written));
+            continue;
+        }
         int written = 0;
         if (!tls_)
         {

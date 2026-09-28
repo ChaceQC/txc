@@ -33,6 +33,7 @@ struct client_options
     std::string hostname;
     trust_options trust;
     std::int64_t identity_id = 0;
+    bool allow_no_alpn = false;
 };
 
 struct server_options
@@ -83,6 +84,7 @@ private:
     std::shared_ptr<network::socket_handle> native_;
     bool server_ = false;
     bool require_client_identity_ = false;
+    bool allow_no_alpn_ = false;
     bool peer_eof_ = false;
     bool released_ = false;
     std::atomic<bool> closed_ = false;

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <vector>
 
 #ifdef _WIN32
@@ -19,44 +20,86 @@ namespace tx_generated::x509
 namespace
 {
 
-class password_buffer
+std::size_t password_character_count(std::span<const std::uint8_t> bytes)
+{
+    if (bytes.size() > 4096 ||
+        std::find(bytes.begin(), bytes.end(), 0) != bytes.end())
+    {
+        fail("invalid_argument", "PKCS#12 密码长度无效或含空字符");
+    }
+    if (bytes.empty())
+    {
+        return 0;
+    }
+    const int count = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+        reinterpret_cast<const char*>(bytes.data()),
+        static_cast<int>(bytes.size()), nullptr, 0);
+    if (count <= 0)
+    {
+        fail("invalid_argument", "PKCS#12 密码不是有效 UTF-8");
+    }
+    return static_cast<std::size_t>(count);
+}
+
+class sensitive_wide_buffer
 {
 public:
-    explicit password_buffer(const secret::handle& password)
+    explicit sensitive_wide_buffer(std::size_t characters)
+        : value_(characters + 1, L'\0')
     {
-        const auto bytes = password->view();
-        if (bytes.size() > 4096 ||
-            std::find(bytes.begin(), bytes.end(), 0) != bytes.end())
-        {
-            fail("invalid_argument", "PKCS#12 密码长度无效或含空字符");
-        }
-        if (bytes.empty())
-        {
-            value_.push_back(L'\0');
-            return;
-        }
-        const auto size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-            reinterpret_cast<const char*>(bytes.data()),
-            static_cast<int>(bytes.size()), nullptr, 0);
-        if (size <= 0)
-        {
-            fail("invalid_argument", "PKCS#12 密码不是有效 UTF-8");
-        }
-        value_.resize(static_cast<std::size_t>(size) + 1);
-        if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-                reinterpret_cast<const char*>(bytes.data()),
-                static_cast<int>(bytes.size()), value_.data(), size) != size)
-        {
-            fail("operation_failed", "PKCS#12 密码编码失败");
-        }
-        value_.back() = L'\0';
     }
 
-    ~password_buffer()
+    ~sensitive_wide_buffer()
     {
         if (!value_.empty())
         {
             SecureZeroMemory(value_.data(), value_.size() * sizeof(wchar_t));
+        }
+    }
+
+    sensitive_wide_buffer(const sensitive_wide_buffer&) = delete;
+    sensitive_wide_buffer& operator=(const sensitive_wide_buffer&) = delete;
+
+    wchar_t* data() noexcept
+    {
+        return value_.data();
+    }
+
+    const wchar_t* c_str() const noexcept
+    {
+        return value_.data();
+    }
+
+    std::size_t characters() const noexcept
+    {
+        return value_.size() - 1;
+    }
+
+private:
+    std::vector<wchar_t> value_;
+};
+
+class password_buffer
+{
+public:
+    explicit password_buffer(const secret::handle& password)
+        : value_(password_character_count(password->view()))
+    {
+        const auto bytes = password->view();
+        if (bytes.empty())
+        {
+            return;
+        }
+        const auto characters = value_.characters();
+        const int converted = MultiByteToWideChar(CP_UTF8,
+            MB_ERR_INVALID_CHARS,
+            reinterpret_cast<const char*>(bytes.data()),
+            static_cast<int>(bytes.size()), value_.data(),
+            static_cast<int>(characters));
+        if (converted <= 0 ||
+            static_cast<std::size_t>(converted) != characters)
+        {
+            fail("operation_failed", "PKCS#12 密码编码失败");
         }
     }
 
@@ -65,11 +108,11 @@ public:
 
     const wchar_t* data() const noexcept
     {
-        return value_.data();
+        return value_.c_str();
     }
 
 private:
-    std::vector<wchar_t> value_;
+    sensitive_wide_buffer value_;
 };
 
 store_ptr import_store(const byte_value& data, const secret::handle& password)

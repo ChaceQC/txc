@@ -91,6 +91,39 @@ nghttp2_ssize client_session::read_request_data(nghttp2_session*,
     auto* self = static_cast<client_session*>(data);
     try
     {
+        if (self->streaming_input_)
+        {
+            if (self->upload_offset_ == self->upload_buffer_.size())
+            {
+                if (self->upload_finished_ && self->request_remaining_ == 0)
+                {
+                    *flags |= NGHTTP2_DATA_FLAG_EOF;
+                    return 0;
+                }
+                return NGHTTP2_ERR_DEFERRED;
+            }
+            const auto available = self->upload_buffer_.size() -
+                                   self->upload_offset_;
+            const auto amount = static_cast<std::size_t>(
+                std::min<std::uint64_t>(available,
+                    std::min<std::uint64_t>(length,
+                                            self->request_remaining_)));
+            std::memcpy(buffer,
+                self->upload_buffer_.data() + self->upload_offset_, amount);
+            self->upload_offset_ += amount;
+            self->request_remaining_ -= amount;
+            if (self->upload_offset_ == self->upload_buffer_.size())
+            {
+                self->upload_buffer_.clear();
+                self->upload_offset_ = 0;
+            }
+            if (self->upload_finished_ && self->request_remaining_ == 0 &&
+                self->upload_buffer_.empty())
+            {
+                *flags |= NGHTTP2_DATA_FLAG_EOF;
+            }
+            return static_cast<nghttp2_ssize>(amount);
+        }
         if (self->request_remaining_ == 0)
         {
             *flags |= NGHTTP2_DATA_FLAG_EOF;
@@ -205,6 +238,11 @@ void client_session::frame_received(const nghttp2_frame* frame)
     if (frame->hd.type == NGHTTP2_RST_STREAM)
     {
         network::fail("protocol_error", "HTTP/2 服务端重置了请求流");
+    }
+    if (frame->hd.type == NGHTTP2_HEADERS &&
+        frame->headers.cat == NGHTTP2_HCAT_RESPONSE)
+    {
+        response_headers_ready_ = true;
     }
     if ((frame->hd.type == NGHTTP2_HEADERS || frame->hd.type == NGHTTP2_DATA) &&
         (frame->hd.flags & NGHTTP2_FLAG_END_STREAM) != 0)

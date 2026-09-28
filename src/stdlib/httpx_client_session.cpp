@@ -1,6 +1,7 @@
 #include "stdlib/httpx_client_session.hpp"
 
 #include "stdlib/encoding.hpp"
+#include "stdlib/httpx_client_custom_tls.hpp"
 #include "stdlib/httpx_client_tls.hpp"
 #include "stdlib/httpx_winhttp.hpp"
 
@@ -20,7 +21,11 @@ struct session_state
 {
     network::http_handle handle;
     bool decompress = false;
+    bool allow_http2 = false;
+    std::int64_t max_connections = 0;
+    std::string proxy_url;
     std::shared_ptr<const httpx_client_tls::settings> tls;
+    std::shared_ptr<httpx_custom_tls::session_pool> custom_tls_pool;
 };
 
 enum class request_phase
@@ -43,6 +48,7 @@ struct request_state
     std::uint64_t compression_limit = std::numeric_limits<std::uint64_t>::max();
     bool require_http2 = false;
     std::string hostname;
+    std::shared_ptr<httpx_custom_tls::request> custom_tls;
 };
 
 struct registry
@@ -209,6 +215,9 @@ std::int64_t open_configured(std::string_view proxy_url,
     }
     auto state = std::make_shared<session_state>();
     state->decompress = decompress;
+    state->allow_http2 = allow_http2;
+    state->max_connections = max_connections;
+    state->proxy_url = std::string(proxy_url);
     std::wstring named_proxy;
     DWORD access = WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY;
     if (proxy_url == "direct")
@@ -270,15 +279,35 @@ std::int64_t open_secure(std::string_view proxy_url,
     }
     const auto id = open_configured(proxy_url, max_connections,
                                     decompress, allow_http2);
-    session_at(id)->tls = std::move(tls);
+    auto state = session_at(id);
+    if (tls && httpx_client_tls::has_custom_anchors(*tls))
+    {
+        state->custom_tls_pool =
+            std::make_shared<httpx_custom_tls::session_pool>(tls,
+                state->handle.get(), proxy_url, max_connections, decompress,
+                allow_http2);
+    }
+    state->tls = std::move(tls);
     return id;
 }
 
 void close(std::int64_t session) noexcept
 {
     auto& value = states();
-    std::lock_guard lock(value.mutex);
-    value.sessions.erase(session);
+    std::shared_ptr<session_state> closed;
+    {
+        std::lock_guard lock(value.mutex);
+        const auto found = value.sessions.find(session);
+        if (found != value.sessions.end())
+        {
+            closed = std::move(found->second);
+            value.sessions.erase(found);
+        }
+    }
+    if (closed && closed->custom_tls_pool)
+    {
+        closed->custom_tls_pool->close();
+    }
 }
 
 std::int64_t begin(std::int64_t session, std::string_view method,
@@ -298,7 +327,17 @@ std::int64_t begin(std::int64_t session, std::string_view method,
     state->remaining_upload = static_cast<std::uint64_t>(body_length);
     state->response_limit = static_cast<std::uint64_t>(max_response_bytes);
     state->require_http2 = require_http2;
-    configure_request(*state, method, url, headers, timeout_ms);
+    if (state->session->custom_tls_pool)
+    {
+        state->custom_tls = std::make_shared<httpx_custom_tls::request>(
+            state->session->custom_tls_pool, method, url,
+            headers, body_length, max_response_bytes, timeout_ms,
+            require_http2);
+    }
+    else
+    {
+        configure_request(*state, method, url, headers, timeout_ms);
+    }
     auto& value = states();
     std::lock_guard lock(value.mutex);
     const auto id = value.next_id++;
@@ -317,6 +356,12 @@ std::int64_t write(std::int64_t request, std::string_view data)
     if (data.size() > state->remaining_upload || data.size() > 16 * 1024 * 1024)
     {
         network::fail("size_limit", "HTTP 上传块超过声明长度或 16 MiB");
+    }
+    if (state->custom_tls)
+    {
+        const auto written = state->custom_tls->write(data);
+        state->remaining_upload -= static_cast<std::uint64_t>(written);
+        return written;
     }
     std::size_t offset = 0;
     while (offset < data.size())
@@ -346,6 +391,12 @@ http_response_data finish(std::int64_t request)
     if (state->phase != request_phase::uploading || state->remaining_upload != 0)
     {
         network::fail("invalid_argument", "HTTP 请求正文未完整写入或已提交");
+    }
+    if (state->custom_tls)
+    {
+        auto result = state->custom_tls->finish();
+        state->phase = request_phase::reading;
+        return result;
     }
     if (!WinHttpReceiveResponse(state->handle.get(), nullptr))
     {
@@ -386,6 +437,15 @@ response_chunk read(std::int64_t request, std::int64_t max_bytes)
     if (state->phase == request_phase::eof)
     {
         return {{}, true};
+    }
+    if (state->custom_tls)
+    {
+        auto result = state->custom_tls->read(max_bytes);
+        if (result.eof)
+        {
+            state->phase = request_phase::eof;
+        }
+        return result;
     }
     std::array<char, 16 * 1024> buffer{};
     DWORD received = 0;

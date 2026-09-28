@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <climits>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -39,12 +40,20 @@ byte_value certificate_bytes(const mbedtls_x509_crt* certificate)
         certificate->raw.p + certificate->raw.len));
 }
 
+void check_tls_timeout(std::int64_t timeout_ms)
+{
+    if (timeout_ms < 1 || timeout_ms > INT_MAX)
+    {
+        network::fail("invalid_argument", "TLS 超时须为 1～2147483647 毫秒");
+    }
+}
+
 } // namespace
 
 void validate_alpn(const std::vector<std::string>& protocols,
                    std::int64_t timeout_ms)
 {
-    socket::check_timeout(timeout_ms);
+    check_tls_timeout(timeout_ms);
     if (protocols.size() > 16)
     {
         security_error("size_limit", "TLS ALPN 协议数量超过 16");
@@ -67,7 +76,8 @@ secure_connection::secure_connection(
     std::shared_ptr<network::socket_handle> native,
     client_options options, std::vector<std::string> protocols,
     std::int64_t timeout_ms)
-    : native_(std::move(native)), identity_id_(options.identity_id),
+    : native_(std::move(native)), allow_no_alpn_(options.allow_no_alpn),
+      identity_id_(options.identity_id),
       hostname_(std::move(options.hostname)),
       trust_(std::move(options.trust)), protocols_(std::move(protocols))
 {
@@ -168,7 +178,7 @@ void secure_connection::initialize(std::int64_t timeout_ms)
         {
             selected_alpn_ = selected;
         }
-        if (!protocols_.empty() && selected_alpn_.empty())
+        if (!protocols_.empty() && selected_alpn_.empty() && !allow_no_alpn_)
         {
             security_error("alpn_mismatch", "TLS 对端没有协商所需 ALPN 协议");
         }
