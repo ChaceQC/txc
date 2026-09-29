@@ -17,6 +17,16 @@ int txrt_db_postgres_pool(const void* config, const void* password,
 int txrt_db_acquire(const void* pool, std::int64_t timeout_ms, void** result) noexcept;
 int txrt_db_release(const void* connection, bool* result) noexcept;
 int txrt_db_close_pool(const void* pool, bool* result) noexcept;
+int txrt_db_migration_checksum(const void* statements, void** result) noexcept;
+int txrt_db_migrate(const void* connection, std::int64_t version,
+    const void* statements, const void* checksum, bool* result) noexcept;
+int txrt_db_schema_version(const void* connection, std::int64_t* result) noexcept;
+int txrt_db_query_async(const void* pool, const void* sql, const void* params,
+    std::int64_t max_rows, std::int64_t max_bytes, std::int64_t timeout_ms, const void* token,
+    const char* task_type, const char* value_type, void** result) noexcept;
+int txrt_db_execute_async(const void* pool, const void* sql, const void* params,
+    std::int64_t timeout_ms, const void* token, const char* task_type,
+    const char* value_type, void** result) noexcept;
 
 int txrt_db_sqlite_options(const void* path, const char* type_name, void** result) noexcept;
 int txrt_db_sqlite_version(void** result) noexcept;

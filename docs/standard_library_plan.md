@@ -375,11 +375,17 @@
 
   **12.4 完成记录（2026-09-30）：** `db_pool` 单独声明 Send/Sync，提供 SQLite/PostgreSQL 惰性池、连接及等待上限、获取超时、显式/自动归还与关闭唤醒。归还使旧借用及子资源失效；PostgreSQL 回滚并 `DISCARD ALL` 后重设固定会话选项，未读结果或故障连接丢弃；SQLite 关闭后重开以清理 temp 状态，池不接受 `:memory:`。`tests/db/pool.tx` 及 `scripts/check_db_postgres.py native` 通过，覆盖 TX 线程共享、别名失效、事务回滚、真实 PostgreSQL 会话复用与临时状态清理、容量/排队上限、超时、关闭唤醒、断连替换及最后引用自动归还；SQLite 既有专项 6/6 通过。完成范围为 Windows x64 同步接口，12.5～12.7 和第 13 节继续分别推进。
 
-12.5 实现 schema 迁移的版本号、校验值、互斥和各驱动支持的事务边界；失败后可确定已应用到哪一步。
+- [x] **12.5** 实现 schema 迁移的版本号、校验值、互斥和各驱动支持的事务边界；失败后可确定已应用到哪一步。
 
-12.6 接入任务运行时的异步查询与取消，明确请求已发送、事务已提交等不可撤销边界。
+  **12.5 完成记录（2026-09-30）：** 提供 `migration_checksum/migrate/schema_version`、直接 ABI 及 SQL 长度分帧的 SHA-256 校验；SQLite IMMEDIATE 事务与 PostgreSQL 事务级 advisory lock 串行化版本检查、SQL 和账本提交。每个版本原子执行，重复版本核对校验值，跳号及校验冲突明确报错，失败后可重连查询最后提交版本。Windows x64 构建及 `scripts/check_db_postgres.py migration advanced` 对应专项通过，覆盖两驱动正常/重复应用、校验冲突、跳号、约束失败、双连接迁移竞争、DDL 回滚、独立 SHA-256 预期值和 PostgreSQL 非事务 DDL 拒绝。接口、保留表、提交断连和事务外效果边界见[数据库](db.md#125-版本迁移契约)。
 
-12.7 验证参数化查询、约束冲突、NULL/无行、保存点、断连、池耗尽、失败事务与关闭后误用。
+- [x] **12.6** 接入任务运行时的异步查询与取消，明确请求已发送、事务已提交等不可撤销边界。
+
+  **12.6 完成记录（2026-09-30）：** `query_async/execute_async` 返回类型明确的 `task`，复用有界工作队列和池内线程专属借用；调用时复制参数，查询设置行数和字节预算，每次操作在独立事务内执行。SQLite 指令进度/忙等待、池等待和 PostgreSQL socket 等待接入 token、作用域取消和截止时间；libpq 原生取消请求有界发送，取消后丢弃连接，不重放 SQL。不可变 `db_row/db_value` 经规则、文档与实现核对后声明 Send/Sync。Windows x64 构建、`scripts/check_db_postgres.py async advanced` 对应专项通过，覆盖两驱动参数快照、跨线程行值读取、NULL/无行、约束错误、预取消/运行中取消、超时、池等待取消、预算失败回滚和连接恢复。已确认提交不被随后取消覆盖，提交在途结果可能不确定；DNS 与系统文件调用边界见[数据库](db.md#126-池化异步与取消契约)。
+
+- [x] **12.7** 验证参数化查询、约束冲突、NULL/无行、保存点、断连、池耗尽、失败事务与关闭后误用。
+
+  **12.7 完成记录（2026-09-30）：** `scripts/check_db.py contracts sqlite completion` 全部通过（公共契约 3/3、SQLite 6/6、新增公开示例及静态参数诊断 3/3）；`scripts/check_db_postgres.py postgres pool native` 全部通过，复核 TLS/认证、参数绑定、4000 行逐行结果、SQLSTATE、约束冲突、保存点和失败事务恢复、断连替换、池耗尽/等待上限/关闭唤醒及旧资源误用。新增迁移与异步专项见 12.5/12.6，验收映射及可复现命令见[数据库第十二部分验收](database_acceptance.md)。本次只运行数据库相关定向验证，PostgreSQL 使用临时本机 TLS 实例；第 13 节跨模块链、协议模糊测试与其他平台验收未计入完成。
 
 **完成判定：** 本地数据库和客户端/服务端数据库都能安全查询、流式读取与管理事务。
 

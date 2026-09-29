@@ -438,6 +438,8 @@ add_library(txstdlib STATIC
     src/backend/cpp/ipc_abi.cpp
     src/backend/cpp/db_abi.cpp
     src/backend/cpp/db_pool_abi.cpp
+    src/backend/cpp/db_migration_abi.cpp
+    src/backend/cpp/db_async_abi.cpp
     src/backend/cpp/db_resource_abi.cpp
     src/backend/cpp/db_value_abi.cpp
     src/backend/cpp/db_row_abi.cpp
@@ -594,9 +596,14 @@ add_library(txstdlib STATIC
     src/stdlib/db_transaction.cpp
     src/stdlib/db_postgres_connection.cpp
     src/stdlib/db_postgres_io.cpp
+    src/stdlib/db_postgres_cancel.cpp
     src/stdlib/db_postgres_statement.cpp
     src/stdlib/db_postgres_rows.cpp
     src/stdlib/db_pool.cpp
+    src/stdlib/db_migration.cpp
+    src/stdlib/db_operation.cpp
+    src/stdlib/db_sqlite_operation.cpp
+    src/stdlib/db_async.cpp
     src/stdlib/db_pool_return.cpp
     src/stdlib/filesystem_listing.cpp
     src/stdlib/filesystem_operations.cpp

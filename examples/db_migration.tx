@@ -1,0 +1,12 @@
+import "db.txh" as db
+
+def main() -> int
+{
+    db_connection connection = db.open(db.sqlite_options("migration_example.sqlite"))
+    vector<str> statements = vector<str>([
+        "CREATE TABLE notes(id BIGINT PRIMARY KEY, body TEXT NOT NULL)"])
+    bool applied = db.migrate(connection, 1, statements, db.migration_checksum(statements))
+    print("本次已应用：", applied, "，当前版本：", db.schema_version(connection))
+    db.close(connection)
+    return 0
+}

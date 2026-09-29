@@ -1,6 +1,7 @@
 #include "stdlib/db_internal.hpp"
 #include "common/utf8.hpp"
 #include "stdlib/dns.hpp"
+#include "stdlib/db_operation.hpp"
 
 #include <algorithm>
 #include <array>
@@ -16,11 +17,15 @@ std::pair<std::string, std::string> resolve_endpoints(const db_postgres_options&
     std::vector<dns::address> addresses;
     try
     {
-        addresses = dns::resolve(options.host, options.connect_timeout_ms, {});
+        addresses = dns::resolve(options.host, db_operation_remaining(options.connect_timeout_ms),
+            db_current_operation ? db_current_operation->token : nullptr);
+        db_operation_check();
     }
     catch (const runtime_failure& failure)
     {
-        db_fail(failure.error().code == "timeout" ? "timeout" : "connection_failed",
+        const auto& code = failure.error().code;
+        db_fail(code == "cancelled" ? "cancelled" :
+            (code == "timeout" || code == "deadline_exceeded" ? "timeout" : "connection_failed"),
                 "PostgreSQL 地址解析失败或超时");
     }
     std::pair<std::string, std::string> result;

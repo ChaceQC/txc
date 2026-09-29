@@ -435,7 +435,9 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
         parameters = "ptr %tx_context" + (parameters.empty() ? "" : ", " + parameters);
     }
     if (target.external_name == "async_file.read_at" ||
-        target.external_name == "async_file.write_at")
+        target.external_name == "async_file.write_at" ||
+        target.external_name == "db.query_async" ||
+        target.external_name == "db.execute_async")
     {
         parameters += ", ptr " + global_bytes(item.type.name) +
             ", ptr " + global_bytes(item.type.parameters.front().name);

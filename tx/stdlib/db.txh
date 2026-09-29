@@ -46,6 +46,12 @@ def acquire(pool: db_pool, timeout_ms: int) -> db_connection
 def release(connection: db_connection) -> bool
 def close_pool(pool: db_pool) -> bool
 
+def migration_checksum(statements: vector<str>) -> str
+def migrate(connection: db_connection, version: int, statements: vector<str>, checksum: str) -> bool
+def schema_version(connection: db_connection) -> int
+def query_async(pool: db_pool, sql: str, params: parameters, max_rows: int, max_bytes: int, timeout_ms: int, token: cancel_token) -> task<vector<db_row>>
+def execute_async(pool: db_pool, sql: str, params: parameters, timeout_ms: int, token: cancel_token) -> task<execution>
+
 def sqlite_options(path: str) -> options
 def sqlite_version() -> str
 def open(config: options) -> db_connection

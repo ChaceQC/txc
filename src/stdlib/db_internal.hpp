@@ -130,6 +130,8 @@ bool db_in_transaction(const db_connection_state& connection) noexcept;
 void db_pg_control(db_connection_state& connection, const std::string& sql);
 void db_pg_configure(db_connection_state& connection);
 void db_pg_start(db_connection_state& connection);
+void db_pg_cancel_pending(db_connection_state& connection) noexcept;
+void db_pg_check_operation(db_connection_state& connection);
 db_pg_result db_pg_receive(db_connection_state& connection);
 void db_pg_check(db_connection_state& connection, PGresult* result,
                  bool opening = false);
@@ -143,5 +145,6 @@ void db_pg_validate_sql(std::string_view sql);
 void db_pg_validate_options(const db_postgres_options& options);
 void db_pg_validate_binding(const db_value& value);
 void db_return_lease(db_connection_state& connection) noexcept;
+void db_install_sqlite_operation(const db_connection& connection, std::int64_t busy_timeout_ms);
 
 } // namespace tx_generated

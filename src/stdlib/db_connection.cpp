@@ -142,6 +142,7 @@ db_connection db_open(const db_options& options)
     db_sqlite_check(connection, sqlite3_db_config(raw, SQLITE_DBCONFIG_DEFENSIVE, 1, nullptr));
     db_sqlite_check(connection, sqlite3_set_authorizer(raw, authorize, connection.get()));
     sqlite3_preupdate_hook(raw, observe_insert, connection.get());
+    db_install_sqlite_operation(connection, options.busy_timeout_ms);
     if (options.wal)
     {
         enable_wal(connection);

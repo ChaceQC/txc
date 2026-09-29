@@ -1,0 +1,94 @@
+import "db.txh" as db
+import "test.txh" as test
+import "error.txh" as errors
+import "task.txh" as task
+import "cancel.txh" as cancel
+import "env.txh" as env
+import "parse.txh" as parse
+import "secret.txh" as secret
+import "bytes.txh" as bytes
+import "thread.txh" as thread
+
+def read_shared(row: db_row, value: db_value) -> int
+{
+    return db.get_int(row, 0).value() + db.as_int(value).value()
+}
+
+def empty() -> db.parameters
+{
+    return db.parameters(vector<db_value>())
+}
+
+def checks(pool: db_pool, placeholder: str, scope: task_scope) -> void
+{
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    task.wait(db.execute_async(pool, "CREATE TABLE async_items(id BIGINT PRIMARY KEY, label TEXT)", empty(), 5000, token))
+    vector<db_value> values = vector<db_value>([db.int_value(1), db.str_value("' ; DROP TABLE async_items; -- 中文")])
+    task<db.execution> writing = db.execute_async(pool, "INSERT INTO async_items VALUES(" + placeholder + ")",
+        db.parameters(values), 5000, token)
+    values[0] = db.int_value(99)
+    test.assert_equal(1, task.wait(writing).affected_rows)
+    task<vector<db_row>> reading = db.query_async(pool, "SELECT id, label, NULL FROM async_items", empty(), 10, 4096, 5000, token)
+    vector<db_row> rows = task.wait(reading)
+    test.assert_equal(1, len(rows))
+    test.assert_equal(1, db.get_int(rows[0], 0).value())
+    test.assert_equal("' ; DROP TABLE async_items; -- 中文", db.get_str(rows[0], 1).value())
+    test.assert_false(db.get_str(rows[0], 2).is_some())
+    assert_send(rows[0])
+    assert_sync(rows[0])
+    join_handle<int> shared = thread.spawn(bind(read_shared, rows[0], db.int_value(41)))
+    test.assert_equal(42, thread.join(shared))
+    test.assert_equal(0, len(task.wait(db.query_async(pool, "SELECT id FROM async_items WHERE id=2", empty(), 1, 4096, 5000, token))))
+    bool caught = false
+    try
+    {
+        task.wait(db.query_async(pool, "SELECT id FROM async_items UNION ALL SELECT id FROM async_items", empty(), 1, 4096, 5000, token))
+    }
+    exception errors.database_error as failure
+    {
+        caught = failure.code == "limit_exceeded"
+    }
+    test.assert_true(caught)
+    caught = false
+    try
+    {
+        task.wait(db.execute_async(pool, "INSERT INTO async_items VALUES(1, 'duplicate')", empty(), 5000, token))
+    }
+    exception errors.database_error as failure
+    {
+        caught = failure.code == "constraint_violation"
+    }
+    test.assert_true(caught)
+    cancel.cancel(source)
+    caught = false
+    try
+    {
+        task.wait(db.execute_async(pool, "INSERT INTO async_items VALUES(2, 'cancelled')", empty(), 5000, token))
+    }
+    exception errors.database_error as failure
+    {
+        caught = failure.code == "cancelled"
+    }
+    test.assert_true(caught)
+    db.close_pool(pool)
+    test.assert_equal(1, db.get_int(rows[0], 0).value())
+}
+
+def run(scope: task_scope) -> void
+{
+    checks(db.pool(db.sqlite_options("async.sqlite"), 2, 8), "?, ?", scope)
+    if env.get("TX_DB_PORT", "") != ""
+    {
+        db.postgres_config config = db.postgres_options("localhost", "postgres", "tx_test", env.get("TX_DB_CA"))
+        config.port = parse.parse_int(env.get("TX_DB_PORT"))
+        checks(db.postgres_pool(config, secret.from_bytes(bytes.from_hex(env.get("TX_DB_PASSWORD_HEX"))), 2, 8), "$1, $2", scope)
+    }
+}
+
+def main() -> int
+{
+    task.scope(run, 32, -1)
+    print("async passed")
+    return 0
+}

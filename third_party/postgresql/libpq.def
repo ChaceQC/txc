@@ -1,5 +1,10 @@
 LIBRARY libpq.dll
 EXPORTS
+    PQcancelCreate
+    PQcancelFinish
+    PQcancelPoll
+    PQcancelSocket
+    PQcancelStart
     PQclear
     PQcmdTuples
     PQconnectionNeedsPassword

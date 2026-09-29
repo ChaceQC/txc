@@ -1,0 +1,75 @@
+import "db.txh" as db
+import "test.txh" as test
+import "error.txh" as errors
+import "env.txh" as env
+import "parse.txh" as parse
+import "secret.txh" as secret
+import "bytes.txh" as bytes
+
+def apply(connection: db_connection, version: int, statements: vector<str>) -> bool
+{
+    return db.migrate(connection, version, statements, db.migration_checksum(statements))
+}
+
+def checks(connection: db_connection) -> void
+{
+    test.assert_equal(0, db.schema_version(connection))
+    vector<str> first = vector<str>(["CREATE TABLE migration_items(id BIGINT PRIMARY KEY)",
+        "INSERT INTO migration_items VALUES(1)"])
+    test.assert_true(apply(connection, 1, first))
+    test.assert_false(apply(connection, 1, first))
+    bool caught = false
+    try
+    {
+        apply(connection, 1, vector<str>(["INSERT INTO migration_items VALUES(2)"]))
+    }
+    exception errors.database_error as failure
+    {
+        caught = failure.code == "migration_mismatch"
+    }
+    test.assert_true(caught)
+    caught = false
+    try
+    {
+        apply(connection, 3, first)
+    }
+    exception errors.database_error as failure
+    {
+        caught = failure.code == "migration_order"
+    }
+    test.assert_true(caught)
+    caught = false
+    try
+    {
+        apply(connection, 2, vector<str>(["INSERT INTO migration_items VALUES(2)",
+            "INSERT INTO migration_items VALUES(1)"]))
+    }
+    exception errors.database_error as failure
+    {
+        caught = failure.code == "constraint_violation"
+    }
+    test.assert_true(caught)
+    test.assert_equal(1, db.schema_version(connection))
+    test.assert_true(apply(connection, 2, vector<str>(["INSERT INTO migration_items VALUES(2)"])))
+    test.assert_equal(2, db.schema_version(connection))
+    db_cursor cursor = db.query(db.prepare(connection, "SELECT count(*) FROM migration_items"))
+    test.assert_equal(2, db.get_int(db.next(cursor).value(), 0).value())
+    test.assert_false(db.next(cursor).is_some())
+    db.close_cursor(cursor)
+    db.close(connection)
+}
+
+def main() -> int
+{
+    test.assert_equal("51b87740d5edfb8f9906e6e74644dbd1e9e645d6bff047ad493e88269295130d",
+        db.migration_checksum(vector<str>(["SELECT 1"])))
+    checks(db.open(db.sqlite_options(":memory:")))
+    if env.get("TX_DB_PORT", "") != ""
+    {
+        db.postgres_config config = db.postgres_options("localhost", "postgres", "tx_test", env.get("TX_DB_CA"))
+        config.port = parse.parse_int(env.get("TX_DB_PORT"))
+        checks(db.open_postgres(config, secret.from_bytes(bytes.from_hex(env.get("TX_DB_PASSWORD_HEX")))))
+    }
+    print("migration passed")
+    return 0
+}

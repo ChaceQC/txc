@@ -1,6 +1,26 @@
 # 数据库公共契约、SQLite 与 PostgreSQL
 
-`db.txh` 提供同步数据库接口。12.1 固定公共类型，12.2 接入 SQLite，12.3 接入 PostgreSQL，12.4 提供有界连接池。迁移及异步查询继续由 12.5、12.6 实现；各项完成证据在实施后登记。
+`db.txh` 提供 SQLite/PostgreSQL、连接池、版本迁移及池化异步接口。各项完成证据在实施后登记。
+
+## 12.5 版本迁移契约
+
+`migration_checksum(statements: vector<str>) -> str` 对按顺序排列的 SQL 计算 SHA-256：输入为 `tx-migration-v1\n`，随后逐条拼接 UTF-8 字节长度、冒号和原始 SQL 字节；空白与注释也计入。最多 4096 条，总 SQL 不超过 16 MiB，每条不超过 1 MiB；每项必须是一条完整 SQL。
+
+`migrate(connection, version, statements, checksum) -> bool` 每次应用一个版本，版本从 1 连续递增。调用前必须没有事务及活动游标。先校验传入校验值，再在锁内创建/读取保留表、验证历史连续性；同版本同校验值返回 false，不重复执行；校验冲突报 `migration_mismatch`，跳号或历史缺口报 `migration_order`。成功提交返回 true。`schema_version(connection) -> int` 在相同互斥规则下返回最后提交版本（无历史为 0），因此需要可写连接。
+
+SQLite 使用 `BEGIN IMMEDIATE`，在 `main.tx_schema_migrations` 保存记录；PostgreSQL 使用 READ COMMITTED 事务与数据库范围的事务级 advisory lock（两个键 1954037095、1），在 `public.tx_schema_migrations` 保存记录。所有协作客户端必须使用本 API；保留表、锁键不可被应用 SQL 改写。锁等待沿用 SQLite 忙等待和 PostgreSQL 操作超时。每个版本的 SQL 和历史行在同一事务提交；失败自动回滚该版本，早先版本保持。迁移 SQL 是可信部署输入，不接受参数占位符，不允许自行控制事务；驱动不支持事务内执行的命令（例如 PostgreSQL CREATE INDEX CONCURRENTLY）直接失败，不降级为非事务执行。
+
+迁移不会自动重试不确定的 COMMIT。提交时断连应重新连接并调用 `schema_version`，再以相同校验值重试确认；禁止仅凭断连判定回滚。序列、自定义函数或触发器产生的事务外效果遵循驱动语义。迁移账本用于部署一致性检查，不是抵抗数据库管理员篡改的安全机制。
+
+## 12.6 池化异步与取消契约
+
+`query_async(pool, sql, params, max_rows, max_bytes, timeout_ms, token) -> task<vector<db_row>>` 和 `execute_async(pool, sql, params, timeout_ms, token) -> task<execution>` 必须在 `task.scope` 内启动。调用时复制 SQL 和参数，在现有有界任务工作线程上借用连接、绑定、运行并归还；调用方可继续工作，以 `task.wait` 或 `await` 取得结果。连接、语句和游标不会跨线程传递。返回的行和值是可 Send/Sync 的不可变快照；结果向量仍遵循唯一移动规则。
+
+查询显式限制行数（1～1000000）与结果字节预算（1～64 MiB，含列名、文本、BLOB、值及行的估算开销），超过报 `limit_exceeded`，不返回截断成功。同步游标继续提供不积累完整结果的读取方式。参数最多 4096 个，快照总预算 64 MiB。异步每次调用独占借用并执行一个显式事务，执行结果和所有查询行到齐后提交；失败回滚，连接不健康则丢弃。跨多条 SQL 的事务继续在同一个同步工作回调内使用已有事务 API。
+
+`timeout_ms` 为 1～2147483647，覆盖排队、借用、查询和提交；显式 token 与任务作用域取消都生效。SQLite 在指令进度与忙等待检查取消；PostgreSQL 在发送前及非阻塞 socket 等待中检查，取消已发送的请求时丢弃连接而不重放。DNS 复用其有界解析及显式 token，作用域取消在解析返回后检查；操作系统文件打开/同步调用不能保证强制中断。取消报 `database_error/cancelled`，操作或 token/作用域截止时间报 `timeout`。
+
+取消被观察到且尚未提交时回滚；服务器已经收到 COMMIT 后的断连/取消可能无法确定是否提交，错误消息明确这一边界，不能自动重试写入。已确认提交的成功结果不因随后取消而改成失败；清理失败只丢弃连接，不覆盖已经确认的执行结果。SQL 函数、序列或触发器的事务外效果仍按驱动规则处理。
 
 ## 12.3 PostgreSQL 契约
 
@@ -20,7 +40,7 @@ SQL、参数数量及列数量上限沿用公共约束。PostgreSQL 行上限按
 
 ## 12.4 有界连接池契约
 
-`pool(sqlite_config, max_connections, max_waiters)` 和 `postgres_pool(config, password, max_connections, max_waiters)` 创建惰性池；连接上限 1～256、等待者上限 0～4096。`db_pool` 是唯一允许 Send/Sync 的数据库句柄，内部同步；借出的 `db_connection` 仍只允许借用线程使用。
+`pool(sqlite_config, max_connections, max_waiters)` 和 `postgres_pool(config, password, max_connections, max_waiters)` 创建惰性池；连接上限 1～256、等待者上限 0～4096。`db_pool` 内部同步并允许 Send/Sync；不可变行/值也允许 Send/Sync，借出的 `db_connection` 仍只允许借用线程使用。
 
 `acquire(pool, timeout_ms)` 按单调时钟限制获取等待和新建连接，0 表示不排队；耗尽或等待队列已满分别报 `pool_exhausted`，等待到期报 `timeout`。不保证 FIFO。`release(connection)` 归还，重复返回 false；`close(connection)` 对池借用执行归还。旧连接、语句、游标、事务别名全部失效，下次借用创建独立句柄。最后一个借用引用释放自动归还；子资源持有借用，仍存活时不会提前归还。
 
@@ -46,7 +66,7 @@ SQL、参数数量及列数量上限沿用公共约束。PostgreSQL 行上限按
 | `db_value` | 显式标记的动态 SQL 值；由 `null_value/int_value/float_value/bool_value/str_value/bytes_value/decimal_value/datetime_value` 创建 |
 | `db_transaction` | 属于连接的事务；显式提交，未提交的最后一个引用释放时自动回滚 |
 
-全部数据库不透明类型禁止手工构造，支持 `any` 显式恢复并检查实际类型。连接、语句、游标、事务和池禁止 `deep_copy`；不可变行和值可复制。只有 `db_pool` 声明 `Send/Sync`，其余六种类型编译期拒绝跨线程传递；原生层也检查连接创建线程，错误码为 `thread_violation`。SQL 列的动态类型只在读取/绑定边界检查，函数目标及签名在编译期确定并生成直接 C ABI 调用。
+全部数据库不透明类型禁止手工构造，支持 `any` 显式恢复并检查实际类型。连接、语句、游标、事务和池禁止 `deep_copy`；不可变行和值可复制。`db_pool/db_row/db_value` 声明 `Send/Sync`，其余四种资源类型编译期拒绝跨线程传递；原生层也检查连接创建线程，错误码为 `thread_violation`。SQL 列的动态类型只在读取/绑定边界检查，函数目标及签名在编译期确定并生成直接 C ABI 调用。
 
 ## NULL、无行、缺列与类型
 
@@ -99,7 +119,9 @@ PostgreSQL 固定包、校验值、GNU 导入库和运行库交付详见 [libpq 
 
 固定 SQLite amalgamation 3.53.4：`https://www.sqlite.org/2026/sqlite-amalgamation-3530400.zip`，SHA-256 `1e71ddf93849c6a6ecf58b827c0692073d2dd7ee40196158068f7b29f422e87d`。CMake 下载并校验，C 静态库最终并入 `tx/libtxstdlib.a`；SQLite 公有领域声明随 `tx/SQLITE-LICENSE` 交付，无额外数据库 DLL。SQLITE 源码不需要用户安装或链接。
 
-公开例子见 [sqlite.tx](../examples/sqlite.tx) 和 [postgres.tx](../examples/postgres.tx)。12.1～12.4 的记录覆盖 Windows x64 同步数据库接口，不替代 12.7 的数据库综合验收及第 13 节跨模块/跨平台验收。
+公开例子见 [sqlite.tx](../examples/sqlite.tx)、[postgres.tx](../examples/postgres.tx)、[db_migration.tx](../examples/db_migration.tx) 和 [db_async.tx](../examples/db_async.tx)。
+
+**12.5～12.7 完成记录（2026-09-30）：** 迁移、池化异步与取消、不可变行值 Send/Sync、公开示例及数据库边界专项已实现并通过 Windows x64 定向验证。`check_db_postgres.py migration async advanced` 验证两驱动新能力；`check_db.py contracts sqlite completion` 与 `check_db_postgres.py postgres pool native` 复核公共契约、既有 SQLite/PostgreSQL 和池行为。映射、命令与平台边界见[数据库第十二部分验收](database_acceptance.md)。第 13 节跨模块、模糊测试和跨平台终态验收继续独立推进。
 
 **12.1 完成记录（2026-09-30）：** `.txh`、六类不透明类型、编译期签名检查、直接 ABI、值/行表示、`any` 检查及复制边界已交付。Windows x64 构建通过，`python scripts/check_db.py contracts` 3/3 通过：值构造/读取、NULL 与零/空值、完整十进制和时间偏移、错误类型/领域格式，以及错误绑定参数和 Send 静态诊断。连接、逐行读取和事务状态的实际 SQLite 路径由 12.2 单独验证。
 

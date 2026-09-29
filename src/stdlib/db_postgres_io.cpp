@@ -5,6 +5,7 @@
 #endif
 
 #include "stdlib/db_internal.hpp"
+#include "stdlib/db_operation.hpp"
 
 #include <algorithm>
 
@@ -50,38 +51,43 @@ void db_pg_result_deleter::operator()(PGresult* value) const noexcept
 
 void db_pg_wait(db_connection_state& connection, bool writing)
 {
-    const auto remaining = std::chrono::duration_cast<std::chrono::microseconds>(
-        connection.operation_deadline - std::chrono::steady_clock::now()).count();
-    if (remaining <= 0)
+    for (;;)
     {
-        db_pg_lost(connection, "timeout");
-    }
-    const auto socket = PQsocket(connection.postgres.get());
-    if (socket < 0)
-    {
-        db_pg_lost(connection);
-    }
-    fd_set descriptors;
-    FD_ZERO(&descriptors);
-    FD_SET(socket, &descriptors);
-    // Windows 非阻塞 connect 失败通过 exceptfds 唤醒，libpq 随后尝试下一个地址。
-    auto exceptional = descriptors;
-    timeval timeout{static_cast<long>(remaining / 1000000),
-                    static_cast<long>(remaining % 1000000)};
-    const auto status = select(socket + 1, writing ? nullptr : &descriptors,
-        writing ? &descriptors : nullptr, &exceptional, &timeout);
-    if (status == 0)
-    {
-        db_pg_lost(connection, "timeout");
-    }
-    if (status < 0)
-    {
-        db_pg_lost(connection);
+        db_pg_check_operation(connection);
+        const auto remaining = std::chrono::duration_cast<std::chrono::microseconds>(
+            connection.operation_deadline - std::chrono::steady_clock::now()).count();
+        if (remaining <= 0)
+        {
+            db_pg_lost(connection, "timeout");
+        }
+        const auto socket = PQsocket(connection.postgres.get());
+        if (socket < 0)
+        {
+            db_pg_lost(connection);
+        }
+        fd_set descriptors;
+        FD_ZERO(&descriptors);
+        FD_SET(socket, &descriptors);
+        // Windows 非阻塞 connect 失败通过 exceptfds 唤醒，不能把轮询间隔误当成就绪。
+        auto exceptional = descriptors;
+        const auto slice = db_current_operation ? std::min<std::int64_t>(remaining, 10000) : remaining;
+        timeval timeout{static_cast<long>(slice / 1000000), static_cast<long>(slice % 1000000)};
+        const auto status = select(socket + 1, writing ? nullptr : &descriptors,
+            writing ? &descriptors : nullptr, &exceptional, &timeout);
+        if (status < 0)
+        {
+            db_pg_lost(connection);
+        }
+        if (status > 0)
+        {
+            return;
+        }
     }
 }
 
 void db_pg_start(db_connection_state& connection)
 {
+    db_pg_check_operation(connection);
     if (!connection.postgres || PQstatus(connection.postgres.get()) != CONNECTION_OK)
     {
         db_pg_lost(connection);

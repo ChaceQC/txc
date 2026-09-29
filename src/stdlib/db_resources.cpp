@@ -1,4 +1,5 @@
 #include "stdlib/db_internal.hpp"
+#include "stdlib/db_operation.hpp"
 
 namespace tx_generated
 {
@@ -127,6 +128,11 @@ void db_reconcile_transaction(const db_connection& connection)
     }
     connection->last_error = code;
     db_reconcile_transaction(connection);
+    if ((code & 255) == SQLITE_INTERRUPT || (code & 255) == SQLITE_BUSY ||
+        (code & 255) == SQLITE_LOCKED)
+    {
+        db_operation_check();
+    }
     const char* stable = opening ? "connection_failed" : "query_failed";
     switch (code & 255)
     {
@@ -165,6 +171,10 @@ void db_finish_cursor(db_cursor_state& cursor, bool closed) noexcept
             }
             if (cursor.pg_started && statement->connection->postgres)
             {
+                if (db_current_operation)
+                {
+                    db_pg_cancel_pending(*statement->connection);
+                }
                 // 未消费结果不能返回池或交给下一条语句；不无界等待服务器。
                 statement->connection->postgres.reset();
                 statement->connection->cleanup_failed = true;

@@ -1,0 +1,10 @@
+import "db.txh" as db
+import "cancel.txh" as cancel
+
+def main() -> int
+{
+    db_pool pool = db.pool(db.sqlite_options("unused.sqlite"), 1, 1)
+    db.query_async(pool, "SELECT 1", vector<db_value>(), 1, 4096, 1000,
+        cancel.token(cancel.source()))
+    return 0
+}

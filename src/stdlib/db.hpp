@@ -94,6 +94,11 @@ db_connection db_acquire(const db_pool& pool, std::int64_t timeout_ms);
 bool db_release(const db_connection& connection);
 bool db_close_pool(const db_pool& pool);
 
+std::string db_migration_checksum(const std::vector<std::string>& statements);
+bool db_migrate(const db_connection& connection, std::int64_t version,
+    const std::vector<std::string>& statements, std::string_view checksum);
+std::int64_t db_schema_version(const db_connection& connection);
+
 [[noreturn]] void db_fail(const char* code, const char* message);
 std::string_view db_runtime_type(const std::any& value);
 bool db_type_matches(const std::any& value, std::string_view name);

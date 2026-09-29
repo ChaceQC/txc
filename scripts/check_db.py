@@ -1,4 +1,4 @@
-"""只验证 12.1 公共契约和 12.2 同步 SQLite，可按小项分别执行。"""
+"""数据库公共契约、SQLite 与 12.5/12.6 公开示例，可按小项分别执行。"""
 
 from pathlib import Path
 from contextlib import closing
@@ -72,16 +72,28 @@ def sqlite_checks(folder):
     print("12.2 SQLite 定向验证：6/6")
 
 
+def completion_checks(folder):
+    compile_and_run("examples/db_migration.tx", folder)
+    compile_and_run("examples/db_async.tx", folder)
+    source = ROOT / "tests/db/async_wrong_parameter.tx"
+    output = run([COMPILER, "check", source], ROOT, expected=1)
+    if source.name not in output or "db.query_async" not in output:
+        raise AssertionError(output)
+    print("PASS 异步参数类型诊断")
+    print("12.5/12.6 公开示例和类型边界：3/3")
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     selected = sys.argv[1:] or ["contracts", "sqlite"]
-    if any(name not in ("contracts", "sqlite") for name in selected):
-        raise SystemExit("用法：python scripts/check_db.py [contracts] [sqlite]")
+    checks = {"contracts": contracts, "sqlite": sqlite_checks, "completion": completion_checks}
+    if any(name not in checks for name in selected):
+        raise SystemExit("用法：python scripts/check_db.py [contracts] [sqlite] [completion]")
     OUTPUT.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="db_", dir=OUTPUT) as temporary:
         folder = Path(temporary)
         for group in selected:
-            (contracts if group == "contracts" else sqlite_checks)(folder)
+            checks[group](folder)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 #include "stdlib/db_pool_internal.hpp"
+#include "stdlib/db_operation.hpp"
 
 #include <algorithm>
 
@@ -51,10 +52,18 @@ void wait_slot(const db_pool& pool, std::unique_lock<std::mutex>& lock,
     bool ready = false;
     try
     {
-        ready = pool->changed.wait_until(lock, deadline, [&]
+        const auto available = [&]
         {
             return pool->closed || !pool->idle.empty() || pool->total < pool->capacity;
-        });
+        };
+        do
+        {
+            db_operation_check();
+            const auto wake = db_current_operation ? std::min(deadline,
+                std::chrono::steady_clock::now() + std::chrono::milliseconds(10)) : deadline;
+            ready = pool->changed.wait_until(lock, wake, available);
+        }
+        while (!ready && std::chrono::steady_clock::now() < deadline);
     }
     catch (...)
     {
@@ -121,6 +130,7 @@ db_pool db_make_postgres_pool(const db_postgres_options& options,
 
 db_connection db_acquire(const db_pool& pool, std::int64_t timeout_ms)
 {
+    db_operation_check();
     if (!pool || timeout_ms < 0 || timeout_ms > 2147483647)
     {
         db_fail("invalid_argument", "数据库池或获取超时无效");

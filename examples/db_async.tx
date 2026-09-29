@@ -1,0 +1,23 @@
+import "db.txh" as db
+import "task.txh" as task
+
+async def count_rows(pool: db_pool, token: cancel_token) -> int
+{
+    vector<db_row> rows = await db.query_async(pool, "SELECT 42 AS answer",
+        db.parameters(vector<db_value>()), 1, 4096, 5000, token)
+    return db.get_int(rows[0], 0).value()
+}
+
+def run(scope: task_scope) -> void
+{
+    db_pool pool = db.pool(db.sqlite_options("async_example.sqlite"), 2, 8)
+    task<int> answer = count_rows(pool, task.token(scope))
+    print("异步结果：", task.wait(answer))
+    db.close_pool(pool)
+}
+
+def main() -> int
+{
+    task.scope(run, 16, -1)
+    return 0
+}

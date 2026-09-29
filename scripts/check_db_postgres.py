@@ -1,4 +1,4 @@
-"""12.3/12.4 定向验证：仅启动工作区临时 PostgreSQL，不连接已有数据库。"""
+"""12.3～12.7 定向验证：仅启动工作区临时 PostgreSQL，不连接已有数据库。"""
 
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -126,14 +126,14 @@ def temporary_server(folder, server):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     groups = set(sys.argv[1:] or ["postgres", "pool", "native", "example"])
-    if groups - {"postgres", "pool", "native", "example"}:
-        raise SystemExit("用法：python scripts/check_db_postgres.py [postgres] [pool] [native] [example]")
+    if groups - {"postgres", "pool", "native", "example", "migration", "async", "advanced"}:
+        raise SystemExit("用法：python scripts/check_db_postgres.py [postgres] [pool] [native] [example] [migration] [async] [advanced]")
     server = server_root()
     with tempfile.TemporaryDirectory(prefix="db_postgres_", dir=ROOT / "tx_build") as temporary:
         folder = Path(temporary)
         with temporary_server(folder, server) as environment:
             environment["PATH"] = str(ROOT / "tx") + os.pathsep + environment["PATH"]
-            for source in ("postgres.tx", "pool.tx"):
+            for source in ("postgres.tx", "pool.tx", "migration.tx", "async.tx"):
                 if Path(source).stem not in groups:
                     continue
                 executable = folder / (source + ".exe")
@@ -142,16 +142,17 @@ def main():
                 print(run([executable], folder, environment, timeout=30).strip())
             if "example" in groups:
                 run([ROOT / "tx/txc.exe", "check", ROOT / "examples/postgres.tx"], ROOT, environment)
-            if "native" not in groups:
-                return
-            executable = folder / "postgres_native.exe"
-            run([shutil.which("g++"), "-std=c++23", "-O0", "-pthread", "-Isrc",
-                 ROOT / "tests/db/postgres_native.cpp", "tx/libtxstdlib.a", "-Ltx/link",
-                 "-lwinhttp", "-lws2_32", "-ldnsapi", "-ladvapi32", "-lbcrypt", "-lcrypt32",
-                 "-lncrypt", "-lshell32", "-luser32", "-liconv", "-o", executable],
-                ROOT, environment, timeout=90)
-            print(run([executable], folder, environment, timeout=35).strip())
-    print("12.3/12.4 PostgreSQL 和连接池定向验证全部通过")
+            for group, source in (("native", "postgres_native"), ("advanced", "advanced_native")):
+                if group not in groups:
+                    continue
+                executable = folder / (source + ".exe")
+                run([shutil.which("g++"), "-std=c++23", "-O0", "-pthread", "-Isrc",
+                     ROOT / "tests/db" / (source + ".cpp"), "tx/libtxstdlib.a", "-Ltx/link",
+                     "-lwinhttp", "-lws2_32", "-ldnsapi", "-ladvapi32", "-lbcrypt", "-lcrypt32",
+                     "-lncrypt", "-lshell32", "-luser32", "-liconv", "-o", executable],
+                    ROOT, environment, timeout=90)
+                print(run([executable], folder, environment, timeout=35).strip())
+    print("所选数据库定向验证全部通过")
 
 
 if __name__ == "__main__":
