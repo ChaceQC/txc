@@ -187,8 +187,9 @@ file(GLOB _tx_abi_files CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/backend/cpp/*.hpp"
     "${CMAKE_SOURCE_DIR}/src/backend/llvm/*.cpp")
 list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hpp"
+    "src/common/record_copy_kind.hpp"
     "src/common/text_encoding.hpp" "src/stdlib/parse.hpp" "src/stdlib/serde_direct.hpp"
-    "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp")
+    "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp" "src/stdlib/iterator.hpp")
 list(SORT _tx_interface_files)
 list(SORT _tx_abi_files)
 set(TX_INTERFACE_COUNT 0)
@@ -307,6 +308,8 @@ add_executable(txc
     src/backend/llvm/codegen_cast.cpp
     src/backend/llvm/codegen_dict.cpp
     src/backend/llvm/codegen_expression_ops.cpp
+    src/backend/llvm/codegen_division.cpp
+    src/backend/llvm/codegen_integer_range.cpp
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
     src/backend/llvm/codegen_class.cpp
@@ -322,6 +325,7 @@ add_executable(txc
     src/backend/llvm/codegen_string_borrow.cpp
     src/backend/llvm/codegen_string_literal_compare.cpp
     src/backend/llvm/codegen_call_binding.cpp
+    src/backend/llvm/codegen_literal_spread.cpp
     src/backend/llvm/codegen_call_borrow.cpp
     src/driver/module_loader.cpp
     src/driver/module_loader_class.cpp
@@ -441,6 +445,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/value_abi.cpp
     src/backend/cpp/value_snapshot_abi.cpp
     src/backend/cpp/deep_copy.cpp
+    src/backend/cpp/deep_copy_resources.cpp
     src/backend/cpp/class_abi.cpp
     src/backend/cpp/value_format.cpp
     src/backend/cpp/dictionary_abi.cpp

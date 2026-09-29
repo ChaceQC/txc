@@ -1,0 +1,18 @@
+{
+  "head": "85433b37ac702426b0277ce1803793ff1ccf0e48",
+  "sha256": {
+    "tx\\txc.exe": "0d50f86bfe41150a859d62b6b88dbc8d1cd57278ce022b2d39d8e5b1ac164423",
+    "tx\\libtxstdlib.a": "f466c03707d2f850368a2749d53e7a90b9edeec84f47d6b6e9c8babdea408e0e",
+    "benchmarks\\performance_optimization_12_14_2026-09-29\\paths.tx": "c17eef06c035eb80d89eb693e9eb90bfecbacea60c19ea0ddf005a8bd1a0b9f3",
+    "tx_build\\performance_12_14\\baseline\\libgcc_s_seh-1.dll": "d7e343dd266747177c3699bc3201ea36eceef158e98530e089263bc55bb2a6d7",
+    "tx_build\\performance_12_14\\baseline\\libicudt78.dll": "60255653982986c9fb72ad1b10b8dc502e498d890e0218cb0a47bc5907aa4e43",
+    "tx_build\\performance_12_14\\baseline\\libicuin78.dll": "1925ba8b617ffbaf986dc6f5edc2d0952b0d48a9b710e1047809abd6a9846af3",
+    "tx_build\\performance_12_14\\baseline\\libicuuc78.dll": "be4fc632a5fca5dc4a6fa8726084d63f45b7561b078d00bf107bffc30d336fb7",
+    "tx_build\\performance_12_14\\baseline\\libstdc++-6.dll": "47559ac91bda181bd21e8e1af352eb87703248277d55fdc8da8f20464fcca5e7",
+    "tx_build\\performance_12_14\\baseline\\libstdc++-u.dll": "5df0dba7064c43343ff33d2a02bbcbdfc1e035bc9d91024ec003c6d5a3054aa2",
+    "tx_build\\performance_12_14\\baseline\\libwinpthread-1.dll": "08168351ae29d6d5825e4c3c64176bf1ec4a3724e5b87a4e3596f24c20455ab2",
+    "tx_build\\performance_12_14\\baseline\\libwinpthread-u.dll": "72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0",
+    "tx_build\\performance_12_14\\baseline\\msquic.dll": "e1544c8e8586411f70fadbc808d6b4dd020b027820792d78c187e36460e23bc9",
+    "tx_build\\performance_12_14\\baseline\\paths.exe": "0e5da750648a5e34cb3ced4505a341ec119517e0028f44ec8f2c67b2cf9604c7"
+  }
+}

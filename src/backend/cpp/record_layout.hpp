@@ -2,6 +2,7 @@
 
 #include "backend/cpp/typed_slots.hpp"
 #include "backend/cpp/cycle_gc.hpp"
+#include "common/record_copy_kind.hpp"
 
 #include <string_view>
 
@@ -14,6 +15,7 @@ struct record_field
     const char* type_name;
     std::uint64_t offset;
     std::uint64_t kind;
+    tx::record_copy_kind copy_kind;
 };
 
 struct record_type
@@ -34,7 +36,7 @@ struct record_type
     const slot_kind* kinds;
 };
 
-static_assert(sizeof(record_field) == 32 && offsetof(record_field, offset) == 16);
+static_assert(sizeof(record_field) == 40 && offsetof(record_field, offset) == 16);
 static_assert(sizeof(record_type) == 112 && offsetof(record_type, virtual_targets) == 56);
 
 struct record_storage

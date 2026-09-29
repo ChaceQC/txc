@@ -8,6 +8,12 @@
 
 示例见[迭代器示例](../examples/iterators.tx)。
 
+## 稳定 snapshot 游标优化
+
+性能计划第 12 项对整个函数中不逃逸、不重绑定的局部 `iterator<int/float/bool>` snapshot 缓存稳定视图。局部标量 option 的 next 直接读取元素并写回 index，不逐元素跨 ABI；原句柄保持拥有关系。closed 仍优先检查，首次读空仍写入 exhausted，后续表达式报错不会撤销已提交的推进。LLVM 只有在循环没有可能改变状态的操作时才能提升检查。
+
+普通赋值别名、传参、返回、deep_copy、实时游标或复合元素继续执行完整入口。单个局部 snapshot 内混合直接 next、普通 next 和 close 时共享同一游标状态。统计库读取相同状态；固定为无对象边的标量/文本迭代器不登记循环节点，实际创建仍计入分配次数。定向用例见 [iterators.tx](../tests/performance_12_14/iterators.tx)。
+
 ## 2.4 实施记录
 
 - **代码：** `iterator<T>` 接入类型解析、静态方法签名、LLVM 调用和六种元素 ABI；迭代器持有源向量或快照，普通赋值共享游标，`deep_copy` 复制游标与容器图。标量元素的 `next()` 可直接写入局部 `option<T>` 的栈上状态和值，不逐项创建运行时 `option` 对象；需要传递或保存该值时才生成句柄。局部迭代器调用借用句柄；复合迭代器接入 `any` 类型恢复、打印及循环回收对象图。现有 `for value in vector` 的代码路径未更改。

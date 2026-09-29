@@ -6,6 +6,24 @@
 namespace tx
 {
 
+std::string llvm_code_generator::call_parameter_names(
+    const std::vector<parameter>& parameters, std::size_t fixed_count)
+{
+    if (fixed_count == 0)
+    {
+        return "null";
+    }
+    const auto table = "@tx_call_names_" + std::to_string(next_string_++);
+    std::string entries;
+    for (std::size_t index = 0; index < fixed_count; ++index)
+    {
+        entries += (index ? ", ptr " : "ptr ") + global_bytes(parameters[index].name);
+    }
+    globals_ << table << " = private constant [" << fixed_count << " x ptr] ["
+             << entries << "]\n";
+    return table;
+}
+
 llvm_code_generator::ir_value llvm_code_generator::emit_variadic_array(
     const std::vector<ir_value>& values, source_pos position)
 {
@@ -151,8 +169,10 @@ llvm_code_generator::emit_direct_spreads(
     if (parameters[fixed_count].kind != parameter_kind::variadic_array ||
         parameters[fixed_count + 1].kind != parameter_kind::variadic_dict ||
         call.arguments[fixed_count].kind != argument_kind::spread_array ||
-        call.arguments[fixed_count + 1].kind != argument_kind::spread_dict)
+        call.arguments[fixed_count + 1].kind != argument_kind::spread_dict ||
+        !stable_value_expression(*call.arguments[fixed_count + 1].value))
     {
+        // 后续 ** 求值若能修改 * 的源，必须先在通用路径复制位置实参。
         return std::nullopt;
     }
     for (std::size_t index = 0; index < fixed_count; ++index)
@@ -180,21 +200,7 @@ llvm_code_generator::emit_direct_spreads(
     }
     const auto spread_dict = expression_value(
         *call.arguments[fixed_count + 1].value);
-    std::string names = "null";
-    if (fixed_count != 0)
-    {
-        names = "%slot" + std::to_string(next_slot_++);
-        allocations_ << "  " << names << " = alloca ptr, i64 "
-                     << fixed_count << '\n';
-        for (std::size_t index = 0; index < fixed_count; ++index)
-        {
-            const auto address = temporary();
-            write_instruction(address + " = getelementptr ptr, ptr " + names +
-                              ", i64 " + std::to_string(index));
-            write_instruction("store ptr " + global_bytes(parameters[index].name) +
-                              ", ptr " + address);
-        }
-    }
+    const auto names = call_parameter_names(parameters, fixed_count);
     const auto args_slot = allocate(value_type::array_type, item.position);
     const auto kwargs_slot = allocate(value_type::dict_type, item.position);
     const auto status = temporary();
@@ -270,6 +276,10 @@ llvm_code_generator::emit_bound_arguments(
     if (!has_spread)
     {
         return emit_static_arguments(item, call, parameters);
+    }
+    if (auto literal = emit_literal_spreads(item, call, parameters))
+    {
+        return std::move(*literal);
     }
     if (auto direct = emit_direct_spreads(item, call, parameters))
     {
@@ -348,20 +358,7 @@ llvm_code_generator::emit_bound_arguments(
     }
     emit_spread_defaults(parameters, fixed_count, positional, keywords,
                          item.position);
-    std::string names = "null";
-    if (fixed_count != 0)
-    {
-        names = "%slot" + std::to_string(next_slot_++);
-        allocations_ << "  " << names << " = alloca ptr, i64 " << fixed_count << '\n';
-        for (std::size_t index = 0; index < fixed_count; ++index)
-        {
-            const auto address = temporary();
-            write_instruction(address + " = getelementptr ptr, ptr " + names +
-                              ", i64 " + std::to_string(index));
-            write_instruction("store ptr " + global_bytes(parameters[index].name) +
-                              ", ptr " + address);
-        }
-    }
+    const auto names = call_parameter_names(parameters, fixed_count);
     const auto bound_slot = allocate(value_type::array_type, item.position);
     const auto bind_status = temporary();
     write_instruction(bind_status + " = call i32 @txrt_call_bind(ptr " +
@@ -379,14 +376,10 @@ llvm_code_generator::emit_bound_arguments(
     result.reserve(parameters.size());
     for (std::size_t index = 0; index < parameters.size(); ++index)
     {
-        const auto address = allocate(value_type::any_type, item.position, false);
-        const auto status = temporary();
-        write_instruction(status + " = call i32 @txrt_array_element_address(ptr " +
-                          bound + ", i64 " + std::to_string(index) +
-                          ", ptr " + address + ")");
-        write_instruction("call void @txrt_require_success(i32 " + status + ")");
         const auto borrowed = temporary();
-        write_instruction(borrowed + " = load ptr, ptr " + address);
+        // bind 已验证长度且没有用户代码能修改 bound，直接借用已绑定的槽。
+        write_instruction(borrowed + " = call ptr @txrt_call_bound_slot(ptr " +
+            bound + ", i64 " + std::to_string(index) + ")");
         const bool nullable = parameter_is_nullable(parameters[index]);
         const auto type_status = temporary();
         write_instruction(type_status + " = call i32 @" +

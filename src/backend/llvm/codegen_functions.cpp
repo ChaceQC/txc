@@ -32,6 +32,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
     current_method_owner_ = function.owner_class;
     current_function_body_ = &function.body;
     current_statement_position_ = &function.position;
+    last_stack_position_.reset();
     entry_scalar_field_cache_.clear();
     terminated_ = false;
     in_entry_block_ = true;

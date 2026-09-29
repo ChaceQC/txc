@@ -1,0 +1,128 @@
+import "time.txh" as time
+
+struct point
+{
+    x: int
+    y: int
+    z: float
+    active: bool
+    name: str
+}
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - started)
+    print(checksum)
+}
+
+def scan(size: int, repeats: int, name: str)
+{
+    vector<int> values = vector<int>()
+    for i in 1..=size
+    {
+        values.push_back(i)
+    }
+    int checksum = 0
+    auto started = time.monotonic_micros()
+    for round in 1..=repeats
+    {
+        for value in values
+        {
+            checksum += value
+        }
+    }
+    report(name, started, checksum)
+}
+
+def snapshot()
+{
+    vector<int> values = vector<int>()
+    for i in 1..=100000
+    {
+        values.push_back(i)
+    }
+    int checksum = 0
+    auto started = time.monotonic_micros()
+    for round in 1..=10
+    {
+        auto cursor = values.snapshot_iter()
+        for i in 1..=100000
+        {
+            auto item = cursor.next()
+            checksum += item.value()
+        }
+    }
+    report("snapshot", started, checksum)
+}
+
+def recursive(n: int) -> int
+{
+    if n > 0
+    {
+        return n + recursive(n - 1)
+    }
+    return 0
+}
+
+def combine(a: int, b: int, *args: array, **kwargs: dict) -> int
+{
+    return a + b + len(args) + len(kwargs)
+}
+
+def arithmetic()
+{
+    int checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=1000000
+    {
+        checksum += i / 7
+    }
+    report("division", started, checksum)
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 1..=20000
+    {
+        checksum += recursive(100)
+    }
+    report("recursion", started, checksum)
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 1..=20000
+    {
+        checksum += combine(*[i, 2, 3], **{"extra": 4})
+    }
+    report("static_spread", started, checksum)
+    array args = [3]
+    dict kwargs = {"extra": 4}
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 1..=20000
+    {
+        checksum += combine(i, 2, *args, **kwargs)
+    }
+    report("dynamic_spread", started, checksum)
+}
+
+def copies()
+{
+    auto original = point(3, 7, 1.5, true, "record")
+    int checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=100000
+    {
+        auto copied = deep_copy(original)
+        checksum += copied.x + copied.y
+    }
+    report("deep_copy", started, checksum)
+}
+
+def main() -> int
+{
+    snapshot()
+    scan(1000, 1000, "vector_1k")
+    scan(100000, 10, "vector_100k")
+    arithmetic()
+    copies()
+    return 0
+}

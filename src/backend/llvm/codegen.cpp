@@ -233,7 +233,9 @@ llvm_code_generator::ir_value llvm_code_generator::load(
         write_instruction(cloned + " = load ptr, ptr " + copied);
         return {variable.type, cloned, false, load_vector_reference(variable)};
     }
-    return {variable.type, result};
+    ir_value loaded{variable.type, result};
+    loaded.integer_range = variable.integer_range;
+    return loaded;
 }
 
 std::string llvm_code_generator::cache_array_reference(
@@ -418,6 +420,7 @@ void llvm_code_generator::emit_gc_safepoint()
 
 void llvm_code_generator::start_block(const std::string& name)
 {
+    last_stack_position_.reset();
     body_ << name << ":\n";
     terminated_ = false;
     in_entry_block_ = false;
@@ -488,7 +491,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
         }
     }
     module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
-            << "%tx_record_field = type { ptr, ptr, i64, i64 }\n"
+            << "%tx_record_field = type { ptr, ptr, i64, i64, i64 }\n"
             << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr }\n"
             << "%tx_record_view = type { ptr, ptr }\n"
             << "declare ptr @txrt_record_view(ptr)\n"
@@ -645,6 +648,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare i32 @txrt_keyword_set(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_keyword_merge(ptr, ptr)\n"
             << "declare i32 @txrt_call_bind(ptr, ptr, ptr, i64, i32, i32, ptr)\n"
+            << "declare ptr @txrt_call_bound_slot(ptr, i64)\n"
             << "declare i32 @txrt_call_split_spreads(ptr, ptr, ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_struct_new(ptr, ptr, i64, ptr)\n"
             << "declare i32 @txrt_struct_set_field(ptr, i64, ptr, ptr)\n"

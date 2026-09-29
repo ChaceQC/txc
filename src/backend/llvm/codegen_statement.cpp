@@ -88,9 +88,15 @@ void llvm_code_generator::emit_declaration(
     const auto array_reference = type == value_type::array_type
         ? cache_array_reference(value.text, item.position) : std::string{};
     variable_slot slot{type, address, false, array_reference};
+    if (type == value_type::int_type && current_function_body_ &&
+        scalar_local_unchanged(declaration.name, *current_function_body_, &declaration))
+    {
+        slot.integer_range = integer_range_of(value);
+    }
     slot.default_heap = default_heap_local(declaration);
     cache_closure_local(slot, declaration, value.text);
     cache_record_view(slot, value.text);
+    cache_iterator_cursor(slot, declaration, value.text);
     if (type == value_type::str_type && immutable_format_local(declaration))
     {
         slot.constant_text = constant_format_text(*declaration.initializer);

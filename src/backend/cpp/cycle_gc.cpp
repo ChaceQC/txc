@@ -41,7 +41,8 @@ struct object_graph
 {
     std::vector<live_node> nodes;
     std::unordered_map<const void*, std::size_t> positions;
-    std::vector<std::vector<std::size_t>> edges;
+    std::vector<std::size_t> edges;
+    std::vector<std::size_t> edge_offsets;
     std::vector<std::int64_t> external_refs;
     std::vector<bool> reachable;
 };
@@ -73,6 +74,12 @@ std::size_t registered_node_count()
 
 const void* object_identity(const std::any& value)
 {
+    if (!value.has_value() || value.type() == typeid(std::int64_t) ||
+        value.type() == typeid(double) || value.type() == typeid(bool) ||
+        value.type() == typeid(std::string))
+    {
+        return nullptr;
+    }
     if (value.type() == typeid(tx_array))
     {
         return std::any_cast<const tx_array&>(value).identity();
@@ -122,7 +129,8 @@ void append_edge(const std::any& value, void* context)
     {
         return;
     }
-    graph.edges[source].push_back(found->second);
+    (void)source;
+    graph.edges.push_back(found->second);
     --graph.external_refs[found->second];
 }
 
@@ -141,8 +149,9 @@ void mark_reachable(object_graph& graph)
     {
         const auto source = pending.back();
         pending.pop_back();
-        for (const auto target : graph.edges[source])
+        for (auto edge = graph.edge_offsets[source]; edge < graph.edge_offsets[source + 1]; ++edge)
         {
+            const auto target = graph.edges[edge];
             if (!graph.reachable[target])
             {
                 graph.reachable[target] = true;
@@ -165,27 +174,30 @@ std::uint64_t ensure_gc_owner_id(detail::runtime_context& context)
 object_graph inspect_graph(std::uint64_t owner)
 {
     auto& registry = registered_graph();
-    std::vector<detail::registered_gc_node> registered_nodes;
+    object_graph graph;
     {
         std::lock_guard lock(registry.mutex);
-        registered_nodes = registry.nodes;
-    }
-
-    object_graph graph;
-    graph.nodes.reserve(registered_nodes.size());
-    for (const auto& entry : registered_nodes)
-    {
-        if (owner != 0 && entry.owner != owner)
+        if (owner == 0)
         {
-            continue;
+            graph.nodes.reserve(registry.nodes.size());
         }
-        if (auto object = entry.object.lock())
+        for (const auto& entry : registry.nodes)
         {
-            graph.nodes.push_back({std::move(object), entry.trace,
-                                   entry.clear, entry.finalize});
+            // owner 过滤先于 weak_ptr::lock，不复制无关线程的登记项。
+            if (owner != 0 && entry.owner != owner)
+            {
+                continue;
+            }
+            if (auto object = entry.object.lock())
+            {
+                graph.nodes.push_back({std::move(object), entry.trace,
+                                       entry.clear, entry.finalize});
+            }
         }
     }
-    graph.edges.resize(graph.nodes.size());
+    graph.edge_offsets.reserve(graph.nodes.size() + 1);
+    graph.edges.reserve(graph.nodes.size());
+    graph.positions.reserve(graph.nodes.size());
     graph.external_refs.reserve(graph.nodes.size());
     graph.reachable.resize(graph.nodes.size(), false);
     for (std::size_t index = 0; index < graph.nodes.size(); ++index)
@@ -197,10 +209,12 @@ object_graph inspect_graph(std::uint64_t owner)
     }
     for (std::size_t index = 0; index < graph.nodes.size(); ++index)
     {
+        graph.edge_offsets.push_back(graph.edges.size());
         edge_context context{graph, index};
         graph.nodes[index].trace(graph.nodes[index].object.get(),
                                  append_edge, &context);
     }
+    graph.edge_offsets.push_back(graph.edges.size());
     mark_reachable(graph);
     return graph;
 }

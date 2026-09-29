@@ -1,0 +1,50 @@
+import "test.txh" as test
+
+struct leaf
+{
+    integer: int
+    fraction: float
+    flag: bool
+    text: str
+}
+
+struct graph
+{
+    first: leaf
+    second: leaf
+    edges: array
+    numbers: vector<int>
+    flags: vector<bool>
+    labels: vector<str>
+    records: vector<leaf>
+}
+
+def main() -> int
+{
+    auto item = leaf(7, 1.5, true, "中文")
+    array edges = [none]
+    edges[0] = edges
+    auto original = graph(item, item, edges, vector<int>([1, 2]),
+        vector<bool>([true]), vector<str>(["label"]), vector<leaf>([item]))
+    auto copied = deep_copy(original)
+    copied.first.integer = 99
+    test.assert_equal(99, copied.second.integer)
+    test.assert_equal(99, copied.records[0].integer)
+    test.assert_equal(7, original.first.integer)
+    test.assert_equal(1.5, copied.first.fraction)
+    test.assert_true(copied.first.flag)
+    test.assert_equal("中文", copied.first.text)
+    copied.numbers[0] = 42
+    copied.flags[0] = false
+    copied.labels[0] = "changed"
+    test.assert_equal(1, original.numbers[0])
+    test.assert_true(original.flags[0])
+    test.assert_equal("label", original.labels[0])
+    array nested = copied.edges[0]
+    nested[0] = 9
+    test.assert_equal(9, copied.edges[0] as int)
+    test.assert_equal(1, len(edges[0]))
+    edges[0] = none
+    print("graphs ok")
+    return 0
+}

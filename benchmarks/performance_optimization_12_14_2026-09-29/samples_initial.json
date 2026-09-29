@@ -1,0 +1,395 @@
+{
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "old_tx",
+      "new_tx",
+      "old_graph",
+      "new_graph",
+      "cpp_graph",
+      "cpp_vector"
+    ],
+    [
+      "cpp_vector",
+      "cpp_graph",
+      "new_graph",
+      "old_graph",
+      "new_tx",
+      "old_tx"
+    ],
+    [
+      "old_tx",
+      "new_tx",
+      "old_graph",
+      "new_graph",
+      "cpp_graph",
+      "cpp_vector"
+    ],
+    [
+      "cpp_vector",
+      "cpp_graph",
+      "new_graph",
+      "old_graph",
+      "new_tx",
+      "old_tx"
+    ],
+    [
+      "old_tx",
+      "new_tx",
+      "old_graph",
+      "new_graph",
+      "cpp_graph",
+      "cpp_vector"
+    ]
+  ],
+  "samples_ms": {
+    "old_tx": {
+      "snapshot": [
+        15.598,
+        16.344,
+        14.079,
+        14.333,
+        14.36
+      ],
+      "vector_1k": [
+        0.478,
+        0.483,
+        0.482,
+        0.486,
+        0.492
+      ],
+      "vector_100k": [
+        0.27,
+        0.278,
+        0.273,
+        0.268,
+        0.268
+      ],
+      "division": [
+        2.987,
+        2.893,
+        2.867,
+        2.819,
+        2.846
+      ],
+      "recursion": [
+        7.454,
+        7.13,
+        7.038,
+        7.021,
+        7.065
+      ],
+      "static_spread": [
+        80.242,
+        80.091,
+        78.983,
+        80.025,
+        79.604
+      ],
+      "dynamic_spread": [
+        14.964,
+        15.551,
+        14.99,
+        15.573,
+        14.925
+      ],
+      "deep_copy": [
+        357.941,
+        352.054,
+        354.661,
+        377.403,
+        354.974
+      ]
+    },
+    "new_tx": {
+      "snapshot": [
+        3.051,
+        4.034,
+        3.894,
+        2.89,
+        3.702
+      ],
+      "vector_1k": [
+        0.239,
+        0.237,
+        0.241,
+        0.239,
+        0.279
+      ],
+      "vector_100k": [
+        0.274,
+        0.267,
+        0.266,
+        0.305,
+        0.377
+      ],
+      "division": [
+        0.42,
+        0.41,
+        0.413,
+        0.412,
+        0.427
+      ],
+      "recursion": [
+        7.234,
+        6.892,
+        7.069,
+        7.013,
+        6.936
+      ],
+      "static_spread": [
+        17.533,
+        16.982,
+        17.244,
+        17.199,
+        16.694
+      ],
+      "dynamic_spread": [
+        16.051,
+        15.418,
+        15.636,
+        15.849,
+        15.889
+      ],
+      "deep_copy": [
+        74.354,
+        79.577,
+        80.274,
+        77.636,
+        77.877
+      ]
+    },
+    "old_graph": {
+      "graph_copy": [
+        12.574,
+        12.596,
+        11.893,
+        11.865,
+        12.044
+      ],
+      "graph_gc": [
+        9.916,
+        10.299,
+        9.537,
+        9.469,
+        9.616
+      ]
+    },
+    "new_graph": {
+      "graph_copy": [
+        8.69,
+        8.141,
+        8.297,
+        8.407,
+        8.503
+      ],
+      "graph_gc": [
+        5.893,
+        5.615,
+        5.606,
+        5.892,
+        5.792
+      ]
+    },
+    "cpp_graph": {
+      "graph_copy": [
+        1.93,
+        2.059,
+        2.06,
+        1.89,
+        1.8
+      ],
+      "graph_gc": [
+        6.323,
+        6.047,
+        6.109,
+        6.035,
+        5.677
+      ]
+    },
+    "cpp_vector": {
+      "vector_1k": [
+        0.522,
+        0.522,
+        0.529,
+        0.532,
+        0.582
+      ],
+      "vector_100k": [
+        0.541,
+        0.536,
+        0.528,
+        0.532,
+        0.539
+      ]
+    }
+  },
+  "medians_ms": {
+    "old_tx": {
+      "snapshot": 14.36,
+      "vector_1k": 0.483,
+      "vector_100k": 0.27,
+      "division": 2.867,
+      "recursion": 7.065,
+      "static_spread": 80.025,
+      "dynamic_spread": 14.99,
+      "deep_copy": 354.974
+    },
+    "new_tx": {
+      "snapshot": 3.702,
+      "vector_1k": 0.239,
+      "vector_100k": 0.274,
+      "division": 0.413,
+      "recursion": 7.013,
+      "static_spread": 17.199,
+      "dynamic_spread": 15.849,
+      "deep_copy": 77.877
+    },
+    "old_graph": {
+      "graph_copy": 12.044,
+      "graph_gc": 9.616
+    },
+    "new_graph": {
+      "graph_copy": 8.407,
+      "graph_gc": 5.792
+    },
+    "cpp_graph": {
+      "graph_copy": 1.93,
+      "graph_gc": 6.047
+    },
+    "cpp_vector": {
+      "vector_1k": 0.529,
+      "vector_100k": 0.536
+    }
+  },
+  "resources": {
+    "old_tx": [
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    "new_tx": [
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    "old_graph": [
+      {
+        "peak_working_set_bytes": 5758976,
+        "peak_pagefile_bytes": 1208320,
+        "maximum_gc_pause_us": 162
+      },
+      {
+        "peak_working_set_bytes": 5763072,
+        "peak_pagefile_bytes": 1212416,
+        "maximum_gc_pause_us": 265
+      },
+      {
+        "peak_working_set_bytes": 5767168,
+        "peak_pagefile_bytes": 1212416,
+        "maximum_gc_pause_us": 172
+      },
+      {
+        "peak_working_set_bytes": 5763072,
+        "peak_pagefile_bytes": 1212416,
+        "maximum_gc_pause_us": 137
+      },
+      {
+        "peak_working_set_bytes": 5767168,
+        "peak_pagefile_bytes": 1208320,
+        "maximum_gc_pause_us": 166
+      }
+    ],
+    "new_graph": [
+      {
+        "peak_working_set_bytes": 5775360,
+        "peak_pagefile_bytes": 1241088,
+        "maximum_gc_pause_us": 125
+      },
+      {
+        "peak_working_set_bytes": 5767168,
+        "peak_pagefile_bytes": 1241088,
+        "maximum_gc_pause_us": 123
+      },
+      {
+        "peak_working_set_bytes": 5767168,
+        "peak_pagefile_bytes": 1241088,
+        "maximum_gc_pause_us": 96
+      },
+      {
+        "peak_working_set_bytes": 5771264,
+        "peak_pagefile_bytes": 1241088,
+        "maximum_gc_pause_us": 103
+      },
+      {
+        "peak_working_set_bytes": 5771264,
+        "peak_pagefile_bytes": 1241088,
+        "maximum_gc_pause_us": 109
+      }
+    ],
+    "cpp_graph": [
+      {
+        "peak_working_set_bytes": 5623808,
+        "peak_pagefile_bytes": 1200128,
+        "maximum_gc_pause_us": 110
+      },
+      {
+        "peak_working_set_bytes": 5619712,
+        "peak_pagefile_bytes": 1196032,
+        "maximum_gc_pause_us": 81
+      },
+      {
+        "peak_working_set_bytes": 5615616,
+        "peak_pagefile_bytes": 1191936,
+        "maximum_gc_pause_us": 101
+      },
+      {
+        "peak_working_set_bytes": 5623808,
+        "peak_pagefile_bytes": 1196032,
+        "maximum_gc_pause_us": 104
+      },
+      {
+        "peak_working_set_bytes": 5615616,
+        "peak_pagefile_bytes": 1191936,
+        "maximum_gc_pause_us": 96
+      }
+    ],
+    "cpp_vector": [
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  },
+  "checksums": {
+    "snapshot": 50000500000,
+    "vector_1k": 500500000,
+    "vector_100k": 50000500000,
+    "division": 71428214286,
+    "recursion": 101000000,
+    "static_spread": 200090000,
+    "dynamic_spread": 200090000,
+    "deep_copy": 1000000,
+    "graph_copy": 12800,
+    "graph_gc": 25600
+  },
+  "sha256": {
+    "tx\\txc.exe": "56eb25ddccd038361ea7725a299e520bd8a62d91cd5462fd2822820338125104",
+    "tx\\libtxstdlib.a": "91a645dc3244c15979dda6f0b942a72fe4f2f29d7a9c5785ee2fa0d5e7b7c0d6",
+    "tx\\package.compat": "c5f0fadcaeec4d0c6c9130f9749719cb8b31076606eae0d989f3fce7161be93b",
+    "benchmarks\\performance_optimization_12_14_2026-09-29\\paths.tx": "c17eef06c035eb80d89eb693e9eb90bfecbacea60c19ea0ddf005a8bd1a0b9f3",
+    "benchmarks\\performance_optimization_12_14_2026-09-29\\graph_core.cpp": "aa3ddaac7c41a3f2e390851f26bf75a3d8510e5bb4e0c9cd0efa77767c487788",
+    "benchmarks\\performance_optimization_12_14_2026-09-29\\vector_reference.cpp": "217080311d5814d9d87461684545c706de6f2189fb88f529aa57acb0e54a72a3",
+    "tx_build\\performance_12_14\\baseline\\paths.exe": "0e5da750648a5e34cb3ced4505a341ec119517e0028f44ec8f2c67b2cf9604c7",
+    "tx_build\\performance_12_14\\candidate\\paths.exe": "14cd7d451edba41fbcb813ee5b5803ec167ff47184e014e26e67f7888b9d87a8",
+    "tx_build\\performance_12_14\\old_graph.exe": "9b9b23cabc70eda5146fa2be95232e877e17e97ca0b7a5ff42b0b8c6a46a6ca9",
+    "tx_build\\performance_12_14\\new_graph.exe": "d9c1fbd77f1eae9931ebacef166d6bb82c7150a2d0dcb0b225f4f59bd29bcf2e",
+    "tx_build\\performance_12_14\\vector_reference.exe": "0ddb0d452a36ac0e5aee065a5d48c33b9c7f7867396506f4819cc537bf6aab87"
+  }
+}

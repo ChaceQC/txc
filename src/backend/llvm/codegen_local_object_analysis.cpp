@@ -13,6 +13,7 @@ class local_use_checker
 public:
     const variable_declaration& candidate;
     bool fields_only;
+    bool scalar_reads = false;
 
     bool named(const expression& item) const
     {
@@ -24,7 +25,7 @@ public:
     {
         if (named(item))
         {
-            return false;
+            return scalar_reads;
         }
         if (const auto* member = std::get_if<member_expression>(&item.data))
         {
@@ -54,7 +55,7 @@ public:
         }
         if (const auto* update = std::get_if<update_expression>(&item.data))
         {
-            return expression_safe(*update->target);
+            return !(scalar_reads && named(*update->target)) && expression_safe(*update->target);
         }
         if (const auto* cast = std::get_if<cast_expression>(&item.data))
         {
@@ -101,7 +102,8 @@ public:
         }
         if (const auto* assignment = std::get_if<variable_assignment>(&item.data))
         {
-            return expression_safe(*assignment->target) && expression_safe(*assignment->value);
+            return !(scalar_reads && named(*assignment->target)) &&
+                expression_safe(*assignment->target) && expression_safe(*assignment->value);
         }
         if (const auto* unpack = std::get_if<unpack_assignment>(&item.data))
         {
@@ -151,6 +153,14 @@ bool llvm_code_generator::confined_local(
 {
     return current_function_body_ &&
         local_use_checker{declaration, fields_only}.body_safe(*current_function_body_);
+}
+
+bool llvm_code_generator::scalar_local_unchanged(const std::string& name,
+    const std::vector<stmt_ptr>& body, const variable_declaration* allowed)
+{
+    variable_declaration candidate;
+    candidate.name = name;
+    return local_use_checker{allowed ? *allowed : candidate, false, true}.body_safe(body);
 }
 
 bool llvm_code_generator::default_heap_local(const variable_declaration& declaration) const

@@ -1,0 +1,18 @@
+{
+  "tests/performance_12_14/iterators": "iterators ok",
+  "tests/performance_12_14/arithmetic": "arithmetic ok",
+  "tests/performance_12_14/spreads": "spreads ok",
+  "tests/performance_12_14/graphs": "graphs ok",
+  "examples/iterators": "2 4 true\n3 4 6\n3\n9 4\n6\n3\n6\n11 true\ntrue\n文本\n8",
+  "tests/stdlib/iterator_module/main": "17",
+  "tests/statistics/basic": "",
+  "examples/variadic_unpack": "左\n右\n9\n13\n17\n21\n结果\n2\n3\n完成\ntrue\n布尔键\n空键\n7\nstatus",
+  "tests/stdlib/stack_trace": "operation_failed\nmain (E:/Project/other/Compilation/tests/stdlib/stack_trace.tx:17:9)\nmiddle (E:/Project/other/Compilation/tests/stdlib/stack_trace.tx:10:5)\ninner (E:/Project/other/Compilation/tests/stdlib/stack_trace.tx:5:5)",
+  "examples/cycle_collection": "1\nafter gc\nlink deinit 1\nlink deinit 2\nlink deinit 3\nlink deinit 4\narray owner deinit\ndict owner deinit\nlink deinit 1\nlink deinit 2\nlink deinit 3\nlink deinit 4\narray owner deinit\ndict owner deinit",
+  "examples/cycle_resurrection": "victim deinit\n7",
+  "examples/memory_error_cleanup": "guard deinit\n运行错误：数组索引越界\n  位于 main (E:/Project/other/Compilation/examples/memory_error_cleanup.tx:23:5)\n  位于 fail (E:/Project/other/Compilation/examples/memory_error_cleanup.tx:13:1)",
+  "tests/stdlib/task_graph_lifecycle": "",
+  "tests/stdlib/closure_cycle": "6",
+  "tests/performance_09_11/behavior": "static object and closure 0",
+  "structure": "snapshot view, alias fallback, native division, conservative ranges"
+}

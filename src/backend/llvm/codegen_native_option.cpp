@@ -62,6 +62,11 @@ bool llvm_code_generator::emit_native_option_declaration(
     else if (call && call->receiver && call->receiver->type.is_iterator() &&
              call->name == "next")
     {
+        if (emit_cursor_next(*call, present, scalar))
+        {
+            scopes_.back().emplace(declaration.name, std::move(slot));
+            return true;
+        }
         bool borrowed = false;
         const auto receiver = expression_value_or_borrow(*call->receiver, borrowed);
         const auto status = temporary();

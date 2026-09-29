@@ -100,7 +100,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_vector_update(
 void llvm_code_generator::emit_vector_for_each(const for_each& loop)
 {
     push_scope();
-    auto vector = expression_value(*loop.values);
+    bool borrowed = false;
+    // 整个循环没有容器写入或回调时，局部拥有者足以保活，省去每次外层扫描的 clone。
+    const bool can_borrow = loop.values->type.is_vector() &&
+        std::holds_alternative<name_reference>(loop.values->data) && stable_vector_loop(loop.body);
+    auto vector = can_borrow ? expression_value_or_borrow(*loop.values, borrowed)
+                             : expression_value(*loop.values);
     if (vector.type.is_typed_container())
     {
         const auto source = vector;
@@ -108,9 +113,9 @@ void llvm_code_generator::emit_vector_for_each(const for_each& loop)
             {source}, value_type::vector_of(source.type.parameters.front()), loop.values->position);
         release(source);
     }
-    const auto owner = allocate(vector.type, loop.values->position);
+    const auto owner = allocate(vector.type, loop.values->position, !borrowed);
     write_instruction("store ptr " + vector.text + ", ptr " + owner);
-    scopes_.back().emplace("$vector", variable_slot{vector.type, owner});
+    scopes_.back().emplace("$vector", variable_slot{vector.type, owner, borrowed});
     vector.vector_reference = vector_reference(vector);
     const auto length = vector_length(vector, false);
     const auto& element_type = vector.type.parameters.front();

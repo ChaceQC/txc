@@ -10,6 +10,17 @@ llvm_code_generator::ir_value llvm_code_generator::checked_binary(
     const std::string& name, const ir_value& left, const ir_value& right,
     const value_type& result_type, source_pos position)
 {
+    if (name == "txrt_div_i64" || name == "txrt_div_f64")
+    {
+        return emit_division(name, left, right, position);
+    }
+    if (result_type == value_type::int_type)
+    {
+        if (auto proven = emit_proven_arithmetic(name, left, right))
+        {
+            return *proven;
+        }
+    }
     if (name == "txrt_mod_i64" && result_type == value_type::int_type)
     {
         std::int64_t divisor = 0;

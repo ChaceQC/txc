@@ -1,9 +1,54 @@
 #include "backend/llvm/codegen.hpp"
+#include "common/record_copy_kind.hpp"
 
 #include <algorithm>
 
 namespace tx
 {
+
+std::uint64_t llvm_code_generator::record_copy_tag(const value_type& type) const
+{
+    using kind = record_copy_kind;
+    auto result = kind::unknown;
+    if (type == value_type::str_type || type == value_type::bytes_type)
+    {
+        result = kind::value;
+    }
+    else if (structs_.contains(type.name))
+    {
+        result = kind::structure;
+    }
+    else if (classes_.contains(type.name))
+    {
+        result = kind::class_object;
+    }
+    else if (type.is_vector())
+    {
+        const auto& element = type.parameters.front();
+        result = element == value_type::int_type ? kind::vector_i64 :
+            element == value_type::float_type ? kind::vector_f64 :
+            element == value_type::bool_type ? kind::vector_bool :
+            element == value_type::str_type ? kind::vector_str :
+            element == value_type::bytes_type ? kind::vector_bytes : kind::vector_object;
+    }
+    else if (type.is_typed_container())
+    {
+        result = kind::container;
+    }
+    else if (type.is_iterator())
+    {
+        result = kind::iterator;
+    }
+    else if (type.is_function())
+    {
+        result = kind::closure;
+    }
+    else if (type == value_type::array_type || type == value_type::dict_type)
+    {
+        result = type == value_type::array_type ? kind::array : kind::dictionary;
+    }
+    return static_cast<std::uint64_t>(result);
+}
 
 bool llvm_code_generator::static_record_type(const value_type& type) const
 {
@@ -81,10 +126,17 @@ void llvm_code_generator::emit_record_metadata(const value_type& type)
         field_values += (index ? ", " : "") + std::string("%tx_record_field { ptr ") +
             (name.empty() ? "null" : global_bytes(name)) + ", ptr " +
             (name.empty() ? "null" : global_bytes(field_type.name)) +
-            ", i64 " + std::to_string(index * 8) + ", i64 " + std::to_string(kind) + " }";
-        // 不可变文本和 bytes 不构成环；其余引用保守扫描。
+            ", i64 " + std::to_string(index * 8) + ", i64 " + std::to_string(kind) +
+            ", i64 " + std::to_string(record_copy_tag(field_type)) + " }";
+        const bool value_sequence = (field_type.is_vector() || field_type.is_iterator()) &&
+            (field_type.parameters.front() == value_type::int_type ||
+             field_type.parameters.front() == value_type::float_type ||
+             field_type.parameters.front() == value_type::bool_type ||
+             field_type.parameters.front() == value_type::str_type ||
+             field_type.parameters.front() == value_type::bytes_type);
+        // 不可变文本、bytes 及纯值序列不构成环；其余引用保守扫描。
         if (!name.empty() && kind == 0 && field_type != value_type::str_type &&
-            field_type != value_type::bytes_type)
+            field_type != value_type::bytes_type && !value_sequence)
         {
             scans.push_back(index);
         }

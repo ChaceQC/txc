@@ -1,0 +1,115 @@
+import "test.txh" as test
+import "error.txh" as errors
+
+struct counter
+{
+    value: int
+}
+
+def tick(state: counter) -> int
+{
+    state.value += 1
+    return state.value
+}
+
+def pair(a: int, b: int) -> int
+{
+    return a * 10 + b
+}
+
+def defaults(a: int, b: int = 9) -> int
+{
+    return pair(a, b)
+}
+
+def literal_spread(a: int) -> int
+{
+    return pair(*[a, 2])
+}
+
+def dynamic_spread(values: array) -> int
+{
+    return pair(*values)
+}
+
+def mutate(a: int, *args: array, **kwargs: dict) -> int
+{
+    args[0] = 90
+    kwargs["tag"] = 80
+    return a + len(args) + len(kwargs)
+}
+
+def change_source(values: array) -> dict
+{
+    values[0] = 99
+    return {"tag": 3}
+}
+
+def observe(a: int, *args: array, **kwargs: dict) -> int
+{
+    return args[0] as int
+}
+
+def main() -> int
+{
+    auto state = counter(0)
+    test.assert_equal(12, pair(*[tick(state)], **{"b": tick(state)}))
+    test.assert_equal(43, pair(**{"b": tick(state), "a": tick(state)}))
+    test.assert_equal(59, defaults(*[tick(state)]))
+    test.assert_equal(3, mutate(*[1, 2], **{"tag": 3}))
+    array args = [2]
+    dict kwargs = {"tag": 3}
+    test.assert_equal(3, mutate(1, *args, **kwargs))
+    test.assert_equal(2, args[0] as int)
+    test.assert_equal(3, kwargs["tag"] as int)
+    test.assert_equal(2, observe(1, *args, **change_source(args)))
+    test.assert_equal(99, args[0] as int)
+    array fixed = [7, 8]
+    test.assert_equal(78, pair(*fixed))
+    test.assert_equal(72, literal_spread(7))
+    test.assert_equal(78, dynamic_spread(fixed))
+    int caught = 0
+    try
+    {
+        print(pair(*[1], **{"a": 2, "b": 3}))
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    try
+    {
+        print(pair(*[1]))
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    try
+    {
+        print(pair(*[1, 2, 3]))
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    try
+    {
+        print(pair(**{"a": 1, 2: 3}))
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    try
+    {
+        print(pair(*["wrong", 2]))
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    test.assert_equal(5, caught)
+    print("spreads ok")
+    return 0
+}

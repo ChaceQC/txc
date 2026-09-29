@@ -164,6 +164,7 @@ void llvm_code_generator::emit_if(const if_statement& branch)
 
     start_block(then_label);
     push_scope();
+    refine_integer_condition(*branch.condition, branch.then_body, true);
     emit_statements(branch.then_body);
     pop_scope();
     if (!terminated_)
@@ -175,6 +176,7 @@ void llvm_code_generator::emit_if(const if_statement& branch)
     {
         start_block(else_label);
         push_scope();
+        refine_integer_condition(*branch.condition, branch.else_body, false);
         emit_statements(branch.else_body);
         pop_scope();
         if (!terminated_)
@@ -233,7 +235,18 @@ void llvm_code_generator::emit_for(const for_loop& loop)
 
     start_block(body_label);
     push_scope();
-    scopes_.back().emplace(loop.name, variable_slot{value_type::int_type, cursor});
+    variable_slot iteration{value_type::int_type, cursor};
+    const bool unchanged_cursor = scalar_local_unchanged(loop.name, loop.body);
+    if (unchanged_cursor)
+    {
+        const auto lower = integer_range_of(first).first;
+        const auto upper = integer_range_of(last).second;
+        if (lower <= upper)
+        {
+            iteration.integer_range = integer_interval{lower, upper};
+        }
+    }
+    scopes_.back().emplace(loop.name, iteration);
     emit_statements(loop.body);
     pop_scope();
     if (!terminated_)
@@ -253,10 +266,20 @@ void llvm_code_generator::emit_for(const for_loop& loop)
     write_instruction("br i1 " + at_end + ", label %" + end_label +
                       ", label %" + step_label);
     start_block(step_label);
-    const auto next = checked_binary("txrt_add_i64",
+    ir_value next{value_type::int_type, {}};
+    if (unchanged_cursor)
+    {
+        // 到达此处时 first <= cursor < last，且用户代码不能修改 cursor。
+        next.text = temporary();
+        write_instruction(next.text + " = add nsw i64 " + before_step + ", 1");
+    }
+    else
+    {
+        next = checked_binary("txrt_add_i64",
                                      {value_type::int_type, before_step},
                                      {value_type::int_type, "1"},
                                      value_type::int_type, loop.first->position);
+    }
     write_instruction("store i64 " + next.text + ", ptr " + cursor);
     write_instruction("br label %" + check_label);
     start_block(end_label);

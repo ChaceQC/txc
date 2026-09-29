@@ -76,6 +76,11 @@ bool fixed_name(const char* const* names, std::size_t count,
 
 using tx_generated::detail::invoke_checked;
 
+extern "C" const void* txrt_call_bound_slot(const void* bound, std::size_t index) noexcept
+{
+    return &std::any_cast<const tx_array&>(as_value(bound))[index];
+}
+
 extern "C" int txrt_keyword_set(void* keywords, const char* name,
                                    const void* value) noexcept
 {
@@ -126,8 +131,9 @@ extern "C" int txrt_call_bind(const void* positional,
         {
             throw std::runtime_error("位置实参数量过多");
         }
-        tx_array bound(fixed_count + static_cast<std::size_t>(accepts_args) +
-                       static_cast<std::size_t>(accepts_kwargs));
+        tx_array bound;
+        bound.reserve(fixed_count + static_cast<std::size_t>(accepts_args) +
+                      static_cast<std::size_t>(accepts_kwargs));
         for (std::size_t index = 0; index < fixed_count; ++index)
         {
             const std::any* named_value = words.find_value(
@@ -142,14 +148,14 @@ extern "C" int txrt_call_bind(const void* positional,
                 throw std::runtime_error("缺少必需参数：" +
                                          std::string(names[index]));
             }
-            bound[index] = named_value ? *named_value : values[index];
+            bound.push_back(named_value ? *named_value : values[index]);
         }
         if (accepts_args)
         {
             const auto begin = values.begin() +
                 static_cast<std::ptrdiff_t>(fixed_count < values.size()
                     ? fixed_count : values.size());
-            bound[fixed_count] = tx_array(begin, values.end());
+            bound.push_back(tx_array(begin, values.end()));
         }
         tx_dict extra;
         words.for_each([&](const std::any& key, const std::any& value)
@@ -166,8 +172,7 @@ extern "C" int txrt_call_bind(const void* positional,
         });
         if (accepts_kwargs)
         {
-            bound[fixed_count + static_cast<std::size_t>(accepts_args)] =
-                std::move(extra);
+            bound.push_back(std::move(extra));
         }
         *result = tx_generated::detail::make_handle<std::any>(std::move(bound));
     });

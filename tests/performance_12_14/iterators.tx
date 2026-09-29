@@ -1,0 +1,96 @@
+import "test.txh" as test
+import "error.txh" as errors
+
+def stable_snapshot()
+{
+    auto values = vector<int>([2, 4, 6])
+    auto cursor = values.snapshot_iter()
+    values.clear()
+    auto first = cursor.next()
+    test.assert_equal(2, first.value())
+    try
+    {
+        auto second = cursor.next()
+        print(second.value() / 0)
+    }
+    exception errors.runtime_error as e
+    {
+        auto third = cursor.next()
+        test.assert_equal(6, third.value())
+    }
+    auto end = cursor.next()
+    auto again = cursor.next()
+    test.assert_true(end.is_none() && again.is_none())
+    cursor.close()
+    bool closed = false
+    try
+    {
+        auto invalid = cursor.next()
+    }
+    exception errors.runtime_error as e
+    {
+        closed = e.code == "invalid_state"
+    }
+    test.assert_true(closed)
+}
+
+def scalar_kinds()
+{
+    auto flags = vector<bool>([true, false])
+    auto cursor = flags.snapshot_iter()
+    auto first = cursor.next()
+    auto second = cursor.next()
+    auto end = cursor.next()
+    test.assert_true(first.value() && !second.value() && end.is_none())
+    auto numbers = vector<float>([1.5, -2.5])
+    auto floats = numbers.snapshot_iter()
+    auto a = floats.next()
+    auto b = floats.next()
+    test.assert_equal(-1.0, a.value() + b.value())
+    auto empty_values = vector<int>()
+    auto empty = empty_values.snapshot_iter()
+    auto missing = empty.next()
+    test.assert_true(missing.is_none())
+}
+
+def aliases_and_live()
+{
+    auto values = vector<int>([1, 2])
+    auto cursor = values.snapshot_iter()
+    auto alias = cursor
+    auto a = cursor.next()
+    auto b = alias.next()
+    test.assert_equal(3, a.value() + b.value())
+    alias.close()
+    bool closed = false
+    try
+    {
+        auto invalid = cursor.next()
+    }
+    exception errors.runtime_error as e
+    {
+        closed = e.code == "invalid_state"
+    }
+    test.assert_true(closed)
+    auto live = values.live_iter()
+    auto first = live.next()
+    values[1] = 5
+    auto second = live.next()
+    test.assert_equal(6, first.value() + second.value())
+    auto end = live.next()
+    values.push_back(7)
+    auto still_end = live.next()
+    test.assert_true(end.is_none() && still_end.is_none())
+    auto copied = deep_copy(live)
+    auto copied_end = copied.next()
+    test.assert_true(copied_end.is_none())
+}
+
+def main() -> int
+{
+    stable_snapshot()
+    scalar_kinds()
+    aliases_and_live()
+    print("iterators ok")
+    return 0
+}

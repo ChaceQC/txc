@@ -5,6 +5,8 @@
 extern "C"
 {
 
+const void* txrt_call_bound_slot(const void* bound, std::size_t index) noexcept;
+
 int txrt_keyword_set(void* keywords, const char* name,
                        const void* value) noexcept;
 int txrt_keyword_merge(void* keywords, const void* source) noexcept;

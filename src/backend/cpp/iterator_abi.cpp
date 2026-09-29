@@ -40,8 +40,15 @@ int create_iterator(const void* source, const char* element_name,
     {
         auto& vector = vector_value<element_type>(source);
         std::any values = snapshot ? std::any(vector.copy()) : std::any(vector);
-        *result = make_handle<std::any>(tx_iterator(iterator_state{
-            std::move(values), element_name}));
+        tx_iterator iterator(iterator_state{std::move(values), element_name, {}});
+        if (snapshot)
+        {
+            const auto& elements = std::any_cast<const tx_vector<element_type>&>(
+                iterator.data().values).data().values;
+            iterator.data().cursor.elements = elements.data();
+            iterator.data().cursor.size = elements.size();
+        }
+        *result = make_handle<std::any>(std::move(iterator));
     });
 }
 
@@ -50,22 +57,23 @@ const element_type* read_next(const void* source)
 {
     auto& iterator = std::any_cast<const tx_iterator&>(
         *static_cast<const std::any*>(source)).data();
-    if (iterator.closed)
+    auto& cursor = iterator.cursor;
+    if (cursor.closed)
     {
         throw runtime_failure({tx::error_kind::runtime,
             "invalid_state", "已关闭的 iterator 不能继续读取"});
     }
-    if (iterator.exhausted)
+    if (cursor.exhausted)
     {
         return nullptr;
     }
     const auto& values = std::any_cast<const tx_vector<element_type>&>(
         iterator.values).data().values;
-    if (iterator.index < values.size())
+    if (cursor.index < values.size())
     {
-        return &values[iterator.index++];
+        return &values[cursor.index++];
     }
-    iterator.exhausted = true;
+    cursor.exhausted = true;
     return nullptr;
 }
 
@@ -165,7 +173,23 @@ extern "C" int txrt_iterator_close(const void* source) noexcept
     {
         auto& iterator = std::any_cast<const tx_iterator&>(
             *static_cast<const std::any*>(source)).data();
-        iterator.closed = true;
+        iterator.cursor.closed = true;
+        iterator.cursor.elements = nullptr;
         iterator.values.reset();
+    });
+}
+
+extern "C" void* txrt_iterator_snapshot_cursor(const void* source) noexcept
+{
+    return &std::any_cast<const tx_iterator&>(
+        *static_cast<const std::any*>(source)).data().cursor;
+}
+
+extern "C" int txrt_iterator_closed_error() noexcept
+{
+    return invoke_checked([]
+    {
+        throw runtime_failure({tx::error_kind::runtime,
+            "invalid_state", "已关闭的 iterator 不能继续读取"});
     });
 }

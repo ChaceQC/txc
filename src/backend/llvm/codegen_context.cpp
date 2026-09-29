@@ -46,6 +46,13 @@ void llvm_code_generator::emit_stack_location()
         return;
     }
     const auto& position = *current_statement_position_;
+    if (last_stack_position_ && last_stack_position_->file == position.file &&
+        last_stack_position_->line == position.line &&
+        last_stack_position_->column == position.column)
+    {
+        return;
+    }
+    last_stack_position_ = position;
     body_ << "  store ptr " << global_bytes(position.file) << ", ptr %tx_location_1\n"
           << "  store i64 " << position.line << ", ptr %tx_location_2\n"
           << "  store i64 " << position.column << ", ptr %tx_location_3\n";

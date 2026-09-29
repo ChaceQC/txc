@@ -1,0 +1,118 @@
+import "test.txh" as test
+import "error.txh" as errors
+import "math.txh" as math
+
+def divide(a: int, b: int) -> int
+{
+    return a / b
+}
+
+def floating(a: float, b: float) -> float
+{
+    return a / b
+}
+
+def bounded(n: int) -> int
+{
+    if n > 0
+    {
+        return n - 1
+    }
+    return 0
+}
+
+def mutable_range(n: int) -> int
+{
+    if n > 0
+    {
+        n--
+        n = -9223372036854775808
+        return n - 1
+    }
+    return 0
+}
+
+def update_argument(n: int) -> int
+{
+    if n >= 0
+    {
+        return divide(n++, 1)
+    }
+    return 0
+}
+
+def proven() -> int
+{
+    int result = 0
+    for i in 1..=100
+    {
+        result += (i * 3 + 2) / 7
+    }
+    return result
+}
+
+def main() -> int
+{
+    test.assert_equal(-3, divide(-10, 3))
+    test.assert_equal(3, divide(-10, -3))
+    test.assert_equal(-2.5, floating(5.0, -2.0))
+    test.assert_true(math.is_nan(floating(math.log(-1.0), 2.0)))
+    test.assert_true(math.is_nan(floating(2.0, math.log(-1.0))))
+    test.assert_true(!math.is_finite(floating(math.exp(1000.0), 2.0)))
+    test.assert_equal(0, -9223372036854775808 % -1)
+    test.assert_equal(9223372036854775806, bounded(9223372036854775807))
+    test.assert_equal(2150, proven())
+    int caught = 0
+    try
+    {
+        print(divide(1, 0))
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_equal("整数除零", e.message)
+        caught += 1
+    }
+    try
+    {
+        print(divide(-9223372036854775808, -1))
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_equal("整数除法溢出", e.message)
+        caught += 1
+    }
+    try
+    {
+        print(floating(1.0, -0.0))
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_equal("浮点数除零", e.message)
+        caught += 1
+    }
+    try
+    {
+        print(mutable_range(1))
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    try
+    {
+        print(update_argument(9223372036854775807))
+    }
+    exception errors.runtime_error as e
+    {
+        caught += 1
+    }
+    int visits = 0
+    for i in 9223372036854775807..=9223372036854775807
+    {
+        visits += 1
+    }
+    test.assert_equal(1, visits)
+    test.assert_equal(5, caught)
+    print("arithmetic ok")
+    return 0
+}

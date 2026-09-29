@@ -21,6 +21,7 @@ public:
                                        bool library_mode = false);
 
 private:
+    using integer_interval = std::pair<std::int64_t, std::int64_t>;
     struct ir_value
     {
         value_type type;
@@ -29,6 +30,7 @@ private:
         std::string vector_reference = {};
         std::string vector_data = {};
         std::string vector_size = {};
+        std::optional<integer_interval> integer_range = std::nullopt;
     };
 
     struct variable_slot
@@ -54,6 +56,8 @@ private:
         const function_decl* closure_function = nullptr;
         std::string record_view;
         std::string stack_record;
+        std::string iterator_cursor;
+        std::optional<integer_interval> integer_range;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -432,6 +436,20 @@ private:
                          const variable_assignment& assignment);
     void emit_unpack(const statement& item,
                      const unpack_assignment& assignment);
+    [[nodiscard]] static integer_interval integer_range_of(const ir_value& value);
+    [[nodiscard]] std::uint64_t record_copy_tag(const value_type& type) const;
+    [[nodiscard]] std::optional<ir_value> emit_proven_arithmetic(
+        const std::string& name, const ir_value& left, const ir_value& right);
+    [[nodiscard]] ir_value emit_division(const std::string& name,
+        const ir_value& left, const ir_value& right, source_pos position);
+    [[nodiscard]] static bool scalar_local_unchanged(const std::string& name,
+        const std::vector<stmt_ptr>& body, const variable_declaration* allowed = nullptr);
+    void refine_integer_condition(const expression& condition,
+        const std::vector<stmt_ptr>& body, bool truth);
+    void cache_iterator_cursor(variable_slot& slot,
+        const variable_declaration& declaration, const std::string& handle);
+    [[nodiscard]] bool emit_cursor_next(const call_expression& call,
+        const std::string& present, const std::string& scalar);
     [[nodiscard]] std::vector<ir_value> emit_bound_arguments(
         const expression& item, const call_expression& call,
         const std::vector<parameter>& parameters);
@@ -443,6 +461,11 @@ private:
     [[nodiscard]] std::optional<std::vector<ir_value>> emit_direct_spreads(
         const expression& item, const call_expression& call,
         const std::vector<parameter>& parameters);
+    [[nodiscard]] std::optional<std::vector<ir_value>> emit_literal_spreads(
+        const expression& item, const call_expression& call,
+        const std::vector<parameter>& parameters);
+    [[nodiscard]] std::string call_parameter_names(const std::vector<parameter>& parameters,
+        std::size_t fixed_count);
     [[nodiscard]] std::vector<ir_value> emit_static_arguments(
         const expression& item, const call_expression& call,
         const std::vector<parameter>& parameters);
@@ -487,6 +510,7 @@ private:
     void write_stack_frame(const function_decl& function);
     void emit_stack_pop();
     void emit_stack_location();
+    std::optional<source_pos> last_stack_position_;
     void emit_error_location();
     void emit_gc_safepoint();
     void start_block(const std::string& name);

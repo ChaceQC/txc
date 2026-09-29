@@ -51,8 +51,9 @@ void visit(const void* source, bool from_iterator, operation&& apply)
         }
         return;
     }
-    auto& cursor = std::any_cast<const tx_iterator&>(
+    auto& state = std::any_cast<const tx_iterator&>(
         *static_cast<const std::any*>(source)).data();
+    auto& cursor = state.cursor;
     if (cursor.closed)
     {
         fail("invalid_state", "已关闭的统计迭代器不能继续读取");
@@ -62,7 +63,7 @@ void visit(const void* source, bool from_iterator, operation&& apply)
         return;
     }
     const auto& values = std::any_cast<const float_vector&>(
-        cursor.values).data().values;
+        state.values).data().values;
     while (cursor.index < values.size())
     {
         const auto value = values[cursor.index++];
