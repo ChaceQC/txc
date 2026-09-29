@@ -66,22 +66,13 @@ void cleanup_live_handles() noexcept
         unregister_handle(current);
         if (kind == handle_kind::text)
         {
-            auto* text = static_cast<handle_record<std::string>*>(current);
-            // 清理根引用不破坏仍由容器或析构函数持有的不可变文本。
-            bool destroy = false;
-            {
-                std::lock_guard lock(text->reference_mutex);
-                text->references = 0;
-                destroy = text->internal_references == 0;
-            }
-            if (destroy)
-            {
-                delete text;
-            }
+            // 容器只持有独立内容；线程退出可直接注销自己的根。
+            release_text_root(static_cast<text_handle_record*>(current));
         }
         else
         {
-            delete static_cast<handle_record<std::any>*>(current);
+            error_cleanup_guard error_guard;
+            delete static_cast<value_handle_record*>(current);
         }
     }
     try
@@ -207,13 +198,14 @@ extern "C" int txrt_str_clone(const void* value, void** result) noexcept
 extern "C" bool txrt_str_equals_literal(const void* value,
     const char* bytes, std::size_t length) noexcept
 {
-    return std::string_view(*static_cast<const std::string*>(value)) ==
+    return std::string_view(tx_generated::detail::text_value(value)) ==
            std::string_view(bytes, length);
 }
 
 extern "C" void txrt_str_release(void* value) noexcept
 {
-    tx_generated::detail::destroy_handle(static_cast<std::string*>(value));
+    tx_generated::detail::destroy_handle(
+        static_cast<tx_generated::detail::text_handle_record*>(value));
 }
 
 extern "C" int txrt_str_concat(const void* left, const void* right,
@@ -221,8 +213,8 @@ extern "C" int txrt_str_concat(const void* left, const void* right,
 {
     return invoke_checked([&] {
         *result = tx_generated::detail::make_handle<std::string>(
-            *static_cast<const std::string*>(left) +
-            *static_cast<const std::string*>(right));
+            tx_generated::detail::text_value(left) +
+            tx_generated::detail::text_value(right));
     });
 }
 
@@ -230,8 +222,8 @@ extern "C" int txrt_str_compare(const void* left, const void* right,
                                  int* result) noexcept
 {
     return invoke_checked([&] {
-        *result = static_cast<const std::string*>(left)->compare(
-            *static_cast<const std::string*>(right));
+        *result = tx_generated::detail::text_value(left).compare(
+            tx_generated::detail::text_value(right));
     });
 }
 
@@ -239,14 +231,14 @@ extern "C" int txrt_str_len(const void* value,
                              std::int64_t* result) noexcept
 {
     return invoke_checked([&] {
-        *result = tx_generated::tx_len(*static_cast<const std::string*>(value));
+        *result = tx_generated::tx_len(tx_generated::detail::text_value(value));
     });
 }
 
 extern "C" int txrt_print_str(const void* value, bool newline) noexcept
 {
     return invoke_checked([&] {
-        tx_generated::tx_print(*static_cast<const std::string*>(value), newline);
+        tx_generated::tx_print(tx_generated::detail::text_value(value), newline);
     });
 }
 
@@ -254,7 +246,7 @@ extern "C" int txrt_input(const void* prompt, void** result) noexcept
 {
     return invoke_checked([&] {
         *result = tx_generated::detail::make_handle<std::string>(prompt
-            ? tx_generated::tx_input(*static_cast<const std::string*>(prompt))
+            ? tx_generated::tx_input(tx_generated::detail::text_value(prompt))
             : tx_generated::tx_input());
     });
 }
@@ -263,7 +255,7 @@ extern "C" int txrt_input_or_none(const void* prompt, void** result) noexcept
 {
     return invoke_checked([&] {
         *result = tx_generated::detail::make_handle<std::any>(prompt
-            ? tx_generated::tx_input_or_none(*static_cast<const std::string*>(prompt))
+            ? tx_generated::tx_input_or_none(tx_generated::detail::text_value(prompt))
             : tx_generated::tx_input_or_none());
     });
 }
@@ -272,14 +264,14 @@ extern "C" int txrt_parse_int(const void* value,
                                 std::int64_t* result) noexcept
 {
     return invoke_checked([&] {
-        *result = tx_generated::tx_parse_int(*static_cast<const std::string*>(value));
+        *result = tx_generated::tx_parse_int(tx_generated::detail::text_value(value));
     }, tx::error_kind::parse);
 }
 
 extern "C" int txrt_parse_float(const void* value, double* result) noexcept
 {
     return invoke_checked([&] {
-        *result = tx_generated::tx_parse_float(*static_cast<const std::string*>(value));
+        *result = tx_generated::tx_parse_float(tx_generated::detail::text_value(value));
     }, tx::error_kind::parse);
 }
 

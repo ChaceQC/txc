@@ -15,10 +15,17 @@ struct call_effects
 {
     // 未登记的入口一律保守，不能把未知回调或用户析构当成叶子操作。
     bool allocates = true;
+    bool registers_gc_node = true;
     bool runs_user_code = true;
     bool releases_user_objects = true;
     bool mutates_arguments = true;
     bool saves_arguments = true;
+
+    [[nodiscard]] bool needs_gc_safepoint() const
+    {
+        return allocates || registers_gc_node || runs_user_code ||
+            releases_user_objects;
+    }
 
     [[nodiscard]] bool allows_borrow() const
     {

@@ -115,7 +115,7 @@ extern "C" const void* txrt_dict_ref_element_read_ptr_str(
     const void* value, const void* key) noexcept
 {
     return read_ptr(value, std::string_view(
-        *static_cast<const std::string*>(key)));
+        tx_generated::detail::text_value(key)));
 }
 
 extern "C" const void* txrt_dict_ref_element_read_ptr_literal(
@@ -134,7 +134,7 @@ extern "C" std::int64_t txrt_dict_ref_get_i64_str(
     const void* value, const void* key) noexcept
 {
     return read_i64(value, std::string_view(
-        *static_cast<const std::string*>(key)));
+        tx_generated::detail::text_value(key)));
 }
 
 extern "C" std::int64_t txrt_dict_ref_get_i64_literal(
@@ -153,7 +153,7 @@ extern "C" double txrt_dict_ref_get_f64_str(
     const void* value, const void* key) noexcept
 {
     return read_f64(value, std::string_view(
-        *static_cast<const std::string*>(key)));
+        tx_generated::detail::text_value(key)));
 }
 
 extern "C" double txrt_dict_ref_get_f64_literal(
@@ -172,7 +172,7 @@ extern "C" void* txrt_dict_ref_get_str_str(
     const void* value, const void* key) noexcept
 {
     return read_str(value, std::string_view(
-        *static_cast<const std::string*>(key)));
+        tx_generated::detail::text_value(key)));
 }
 
 extern "C" void* txrt_dict_ref_get_str_literal(

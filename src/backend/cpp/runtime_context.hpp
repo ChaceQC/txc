@@ -53,6 +53,7 @@ struct runtime_context
     bool cleaning_handles = false;
     std::size_t allocations_since_collection = 0;
     bool collecting = false;
+    std::size_t concurrent_depth = 0;
     std::uint64_t gc_owner_id = 0;
     std::mt19937_64 random_engine;
     bool random_initialized = false;

@@ -1,0 +1,212 @@
+{
+  "date": "2026-09-29",
+  "source": "benchmarks/diverse_performance.tx",
+  "source_sha256": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+  "programs": {
+    "before": {
+      "path": "tx_build/diverse_performance_03_for_04.exe",
+      "sha256": "5b3575c78c2f3716a744956188663c98cfb4bfa18e23a98fe4be9730e7203752"
+    },
+    "after": {
+      "path": "tx_build/diverse_performance_04.exe",
+      "sha256": "6258ead78ed49f71fbfcec101a9ea1304a8036e680feed08d4f9bd871fdcbe62"
+    }
+  },
+  "unit": "microseconds",
+  "runs": [
+    {
+      "round": 0,
+      "program": "before",
+      "warmup": true,
+      "values": {
+        "format_literal": {
+          "us": 13360,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 57104,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 0,
+      "program": "after",
+      "warmup": true,
+      "values": {
+        "format_literal": {
+          "us": 13856,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 88835,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 1,
+      "program": "before",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 13227,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 63740,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 1,
+      "program": "after",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 13790,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 57383,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 2,
+      "program": "after",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 17082,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 62194,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 2,
+      "program": "before",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 12901,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 56831,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 3,
+      "program": "before",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 19785,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 69288,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 3,
+      "program": "after",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 13751,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 61463,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 4,
+      "program": "after",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 13139,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 61311,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 4,
+      "program": "before",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 12776,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 61535,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 5,
+      "program": "before",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 13163,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 57720,
+          "checksum": "488890"
+        }
+      }
+    },
+    {
+      "round": 5,
+      "program": "after",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 13611,
+          "checksum": "488890"
+        },
+        "format_dynamic": {
+          "us": 58551,
+          "checksum": "488890"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "format_literal": {
+      "before_median_us": 13163,
+      "after_median_us": 13751,
+      "before_over_after": 0.9572394734928369,
+      "checksum": "488890"
+    },
+    "format_dynamic": {
+      "before_median_us": 61535,
+      "after_median_us": 61311,
+      "before_over_after": 1.00365350426514,
+      "checksum": "488890"
+    }
+  }
+}

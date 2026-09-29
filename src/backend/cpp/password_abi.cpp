@@ -16,7 +16,7 @@ const tx_generated::secret::handle& secret_argument(const void* value)
 
 const std::string& text_argument(const void* value)
 {
-    return *static_cast<const std::string*>(value);
+    return tx_generated::detail::text_value(value);
 }
 
 } // namespace

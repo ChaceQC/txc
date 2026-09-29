@@ -16,7 +16,7 @@ tx_generated::detail::text_encoding selected_encoding(const void* name)
     try
     {
         return tx_generated::detail::parse_encoding(
-            *static_cast<const std::string*>(name));
+            tx_generated::detail::text_value(name));
     }
     catch (const std::runtime_error& error)
     {
@@ -35,7 +35,7 @@ namespace
 
 void encode_memory(const void* text, tx::text_encoding selected, void** result)
 {
-    const auto& source = *static_cast<const std::string*>(text);
+    const auto& source = tx_generated::detail::text_value(text);
     if (source.size() > static_cast<std::size_t>(
             std::numeric_limits<int>::max()))
     {

@@ -1,3 +1,4 @@
+#include "backend/cpp/runtime_abi_internal.hpp"
 #include "stdlib/time_calendar_internal.hpp"
 
 #include <unicode/ucal.h>
@@ -222,7 +223,7 @@ extern "C" int txrt_time_at_zone(const void* value, const void* name,
 {
     return detail::invoke_checked([&]
     {
-        const auto& zone = *static_cast<const std::string*>(name);
+        const auto& zone = tx_generated::detail::text_value(name);
         *result = make_zone(type_name,
             to_zone(read_offset(value).unix_micros, zone));
     });
@@ -235,8 +236,8 @@ extern "C" int txrt_time_resolve_local(const void* date, const void* time,
     return detail::invoke_checked([&]
     {
         *result = make_zone(type_name, resolve(read_date(date), read_time(time),
-            *static_cast<const std::string*>(name),
-            *static_cast<const std::string*>(policy)));
+            tx_generated::detail::text_value(name),
+            tx_generated::detail::text_value(policy)));
     });
 }
 

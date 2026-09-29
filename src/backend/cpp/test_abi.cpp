@@ -19,7 +19,7 @@ thread_local std::int64_t registered_failures = 0;
 
 const std::string& text(const void* value)
 {
-    return *static_cast<const std::string*>(value);
+    return tx_generated::detail::text_value(value);
 }
 
 [[noreturn]] void fail(const std::string& detail, const void* message)

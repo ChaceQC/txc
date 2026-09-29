@@ -26,7 +26,7 @@ extern "C" int txrt_serde_deserialize_json(const tx_generated::serde_schema* sch
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(tx_generated::serde_deserialize_json(
-            schema, *static_cast<const std::string*>(text)));
+            schema, tx_generated::detail::text_value(text)));
     });
 }
 

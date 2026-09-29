@@ -74,7 +74,7 @@ extern "C" int txrt_decimal_parse(const void* text, const char* type_name,
     {
         *result = tx_generated::decimal_math::make(
             tx_generated::decimal_math::parse(
-                *static_cast<const std::string*>(text)), type_name);
+                tx_generated::detail::text_value(text)), type_name);
     });
 }
 
@@ -124,7 +124,7 @@ extern "C" int txrt_decimal_quantize(const void* source, std::int64_t scale,
             tx_generated::decimal_math::quantize(
                 tx_generated::decimal_math::read(source),
                 static_cast<int>(scale),
-                *static_cast<const std::string*>(mode)), type_name);
+                tx_generated::detail::text_value(mode)), type_name);
     });
 }
 
@@ -145,7 +145,7 @@ extern "C" int txrt_decimal_##name(const void* left, const void* right,     \
                 tx_generated::decimal_math::read(left),                      \
                 tx_generated::decimal_math::read(right),                     \
                 static_cast<int>(scale),                                     \
-                *static_cast<const std::string*>(mode)), type_name);         \
+                tx_generated::detail::text_value(mode)), type_name);         \
     });                                                                      \
 }
 

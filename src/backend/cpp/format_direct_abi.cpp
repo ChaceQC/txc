@@ -16,6 +16,6 @@ extern "C" int txrt_format_format(const void* text, const void* args,
         const auto& keywords = std::any_cast<const tx_generated::tx_dict&>(
             *static_cast<const std::any*>(kwargs));
         *result = tx_generated::detail::make_handle<std::string>(tx_generated::tx_fn_format(
-            *static_cast<const std::string*>(text), values, keywords));
+            tx_generated::detail::text_value(text), values, keywords));
     });
 }

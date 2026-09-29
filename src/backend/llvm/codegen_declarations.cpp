@@ -113,6 +113,7 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_format_append_f64(ptr, double, ptr, i8)\n"
             << "declare i32 @txrt_format_append_bool(ptr, i1, ptr, i8)\n"
             << "declare i32 @txrt_format_append_str(ptr, ptr, ptr, i8)\n"
+            << "declare void @txrt_format_finish(ptr)\n"
             << "declare i32 @txrt_serde_deserialize_json(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_serde_serialize_cbor(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_serde_deserialize_cbor(ptr, ptr, ptr)\n"

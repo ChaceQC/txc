@@ -13,7 +13,7 @@ using tx_generated::detail::invoke_checked;
 
 const std::string& text(const void* value)
 {
-    return *static_cast<const std::string*>(value);
+    return tx_generated::detail::text_value(value);
 }
 
 const tx_generated::tx_dict& dictionary(const void* value)

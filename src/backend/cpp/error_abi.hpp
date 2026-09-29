@@ -9,6 +9,8 @@ namespace tx_generated::detail
 {
 
 void set_error(tx::error_kind kind, const char* code, const char* message) noexcept;
+void set_error(runtime_context& context, tx::error_kind kind,
+               const char* code, const char* message) noexcept;
 
 // 析构回调在干净的错误状态下运行，退出时恢复最初的错误。
 class error_cleanup_guard

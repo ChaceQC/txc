@@ -24,10 +24,10 @@ concurrent_result invoke_concurrent_callback(const void* target,
         return reinterpret_cast<bool (*)(const void*)>(target)(callback);
     case 4:
     {
-        using text_owner = std::unique_ptr<std::string,
-            decltype(&detail::destroy_handle<std::string>)>;
-        text_owner value(reinterpret_cast<std::string* (*)(const void*)>(
-            target)(callback), &detail::destroy_handle<std::string>);
+        using text_owner = std::unique_ptr<detail::text_handle_record,
+            decltype(&detail::destroy_handle<detail::text_handle_record>)>;
+        text_owner value(reinterpret_cast<detail::text_handle_record* (*)(const void*)>(
+            target)(callback), &detail::destroy_handle<detail::text_handle_record>);
         if (!value)
         {
             // TX 回调失败时以空指针返回，原始错误已经留在当前上下文。
@@ -38,7 +38,7 @@ concurrent_result invoke_concurrent_callback(const void* target,
             }
             return {};
         }
-        return *value;
+        return detail::text_value(value.get());
     }
     case 5:
     {

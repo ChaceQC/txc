@@ -81,6 +81,9 @@ void run_callback(const std::shared_ptr<task_scope_state>& scope,
     // 帮助执行嵌套任务时，每个任务必须有独立的错误栈和句柄登记链。
     detail::runtime_context context;
     auto* previous_context = detail::thread_context;
+    // 帮助执行嵌套任务时，外层仍持有执行门，继承深度以免重复加锁。
+    context.concurrent_depth = previous_context
+        ? previous_context->concurrent_depth : 0;
     detail::thread_context = &context;
     context.propagate_errors = true;
     const auto previous_scope = active_scope;

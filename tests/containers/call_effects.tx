@@ -1,0 +1,135 @@
+import "dictionary.txh" as dictionary
+import "cancel.txh" as cancel
+import "error.txh" as errors
+import "test.txh" as test
+
+class witness
+{
+    public:
+        traces: vector<int>
+
+        def init(traces: vector<int>)
+        {
+            self.traces = traces
+        }
+
+        def deinit()
+        {
+            self.traces.push_back(1)
+            print(1 / 0)
+        }
+}
+
+struct callback_key
+{
+    id: int
+
+    def hash_key() -> int
+    {
+        return self.id
+    }
+
+    def operator ==(other: callback_key) -> bool
+    {
+        return self.id == other.id
+    }
+}
+
+def safe_queries(values: dict, mapping: map<int, int>, members: set<int>,
+                 jobs: queue<int>, pending: deque<int>, token: cancel_token) -> int
+{
+    auto total = 0
+    for i in 1..=4
+    {
+        if dictionary.contains(values, i)
+        {
+            total += 1
+        }
+        if mapping.contains(i)
+        {
+            total += mapping[i]
+        }
+        if members.contains(i)
+        {
+            total += 1
+        }
+        total += jobs.front()
+        total += pending.back()
+        total += cancel.status(token)
+    }
+    return total
+}
+
+def safe_pop(jobs: queue<int>, pending: deque<int>)
+{
+    jobs.pop()
+    pending.pop_front()
+}
+
+def unsafe_pop(jobs: queue<witness>)
+{
+    jobs.pop()
+}
+
+def unsafe_contains(values: map<callback_key, int>, key: callback_key) -> bool
+{
+    auto found = false
+    if values.contains(key)
+    {
+        found = true
+    }
+    return found
+}
+
+def text_query(values: queue<str>) -> int
+{
+    auto length = 0
+    length += len(values.front())
+    return length
+}
+
+def main() -> int
+{
+    dict values = {1: 2, 2: 3, 3: 4, 4: 5}
+    auto mapping = map<int, int>()
+    auto members = set<int>()
+    for i in 1..=4
+    {
+        mapping[i] = i
+        members.insert(i)
+    }
+    auto jobs = queue<int>()
+    jobs.push(7)
+    auto pending = deque<int>()
+    pending.push_back(11)
+    auto owner = cancel.source()
+    auto token = cancel.token(owner)
+    test.assert_equal(90, safe_queries(values, mapping, members,
+                                       jobs, pending, token))
+    safe_pop(jobs, pending)
+    test.assert_true(jobs.empty())
+    test.assert_true(pending.empty())
+
+    auto traces = vector<int>()
+    auto objects = queue<witness>()
+    objects.push(witness(traces))
+    auto caught = false
+    try
+    {
+        unsafe_pop(objects)
+    }
+    exception errors.runtime_error as e
+    {
+        caught = true
+    }
+    test.assert_true(caught)
+    test.assert_equal(1, traces.size())
+    auto object_map = map<callback_key, int>()
+    object_map[callback_key(3)] = 9
+    test.assert_true(unsafe_contains(object_map, callback_key(3)))
+    auto words = queue<str>()
+    words.push("text")
+    test.assert_equal(4, text_query(words))
+    print("call effects 0")
+    return 0
+}

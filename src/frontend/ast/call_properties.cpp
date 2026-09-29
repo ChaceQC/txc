@@ -13,6 +13,19 @@ bool scalar_type(const value_type& type)
         type == value_type::bool_type || type == value_type::str_type;
 }
 
+bool returns_text(const value_type& type, std::string_view operation)
+{
+    if (type.is_map())
+    {
+        return type.parameters[1] == value_type::str_type &&
+            (operation == "read" || operation == "get");
+    }
+    return !type.parameters.empty() &&
+        type.parameters.front() == value_type::str_type &&
+        (operation == "read" || operation == "front" ||
+         operation == "back" || operation == "get");
+}
+
 bool stable_index(const index_expression& index)
 {
     const auto& type = index.object->type;
@@ -42,7 +55,7 @@ call_effects container_call_effects(
     if ((type.is_typed_container() || type.is_vector()) &&
         (operation == "size" || operation == "empty" || operation == "capacity"))
     {
-        return {false, false, false, false, false};
+        return {false, false, false, false, false, false};
     }
     if (!scalar_container_type(type))
     {
@@ -65,8 +78,13 @@ call_effects container_call_effects(
     {
         return {};
     }
-    // 返回文本只增加内部引用，不会调用用户析构。
-    return {!query, false, false, !query && !snapshot, saves};
+    // 文本结果会复制句柄；标量修改不会登记循环节点，但扩容仍可能分配。
+    const bool allocates = snapshot || (!query &&
+        operation != "pop" && operation != "pop_front" &&
+        operation != "pop_back" && operation != "clear" &&
+        operation != "remove" && operation != "erase") ||
+        returns_text(type, operation);
+    return {allocates, false, false, false, !query && !snapshot, saves};
 }
 
 bool stable_borrow_expression(const expression& item)

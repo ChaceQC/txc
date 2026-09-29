@@ -1,3 +1,4 @@
+#include "backend/cpp/runtime_abi_internal.hpp"
 #include "stdlib/time_calendar_internal.hpp"
 
 #include <algorithm>
@@ -14,7 +15,7 @@ extern "C" int txrt_time_parse_local_date(const void* text,
     return detail::invoke_checked([&]
     {
         *result = make_date(type_name, parse_date_text(
-            *static_cast<const std::string*>(text)));
+            tx_generated::detail::text_value(text)));
     });
 }
 
@@ -80,7 +81,7 @@ extern "C" int txrt_time_parse_local_time(const void* text,
     return detail::invoke_checked([&]
     {
         *result = make_time(type_name, parse_time_text(
-            *static_cast<const std::string*>(text)));
+            tx_generated::detail::text_value(text)));
     });
 }
 
@@ -98,7 +99,7 @@ extern "C" int txrt_time_parse_offset_datetime(const void* text,
 {
     return detail::invoke_checked([&]
     {
-        const std::string_view input = *static_cast<const std::string*>(text);
+        const std::string_view input = tx_generated::detail::text_value(text);
         if (input.size() < 20 || input[10] != 'T')
         {
             fail_parse("invalid_syntax", "带偏移时间需要日期、T 和时刻");

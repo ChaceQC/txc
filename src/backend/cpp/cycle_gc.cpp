@@ -27,6 +27,7 @@ namespace
 
 constexpr std::size_t collection_interval = 64;
 std::atomic<std::uint64_t> next_gc_owner_id = 1;
+std::atomic<std::size_t> registered_nodes_hint = 0;
 
 struct live_node
 {
@@ -62,8 +63,6 @@ std::shared_mutex& execution_gate()
     static auto* gate = new std::shared_mutex();
     return *gate;
 }
-
-thread_local std::size_t concurrent_depth = 0;
 
 std::size_t registered_node_count()
 {
@@ -220,17 +219,18 @@ struct collection_guard
 
 concurrent_execution_scope::concurrent_execution_scope()
 {
-    if (concurrent_depth == 0)
+    context_ = &detail::current_runtime_context();
+    if (context_->concurrent_depth == 0)
     {
         // 锁跟随栈上作用域释放，避免 MinGW 在线程退出时析构非平凡 TLS 对象。
         execution_lock_ = std::shared_lock<std::shared_mutex>(execution_gate());
     }
-    ++concurrent_depth;
+    ++context_->concurrent_depth;
 }
 
 concurrent_execution_scope::~concurrent_execution_scope()
 {
-    --concurrent_depth;
+    --context_->concurrent_depth;
 }
 
 void register_gc_node(const std::shared_ptr<void>& object, gc_trace trace,
@@ -242,6 +242,9 @@ void register_gc_node(const std::shared_ptr<void>& object, gc_trace trace,
     {
         std::lock_guard lock(registry.mutex);
         registry.nodes.push_back({object, trace, clear, finalize, owner});
+        // 登记完成后发布数量提示；真正扫描仍在锁内取快照。
+        registered_nodes_hint.store(registry.nodes.size(),
+                                    std::memory_order_release);
     }
     ++context.allocations_since_collection;
 }
@@ -251,15 +254,14 @@ void note_gc_allocation() noexcept
     ++detail::current_runtime_context().allocations_since_collection;
 }
 
-void collect_cycles()
+void collect_cycles_for_context(detail::runtime_context& context)
 {
-    auto& context = detail::current_runtime_context();
     if (context.collecting)
     {
         return;
     }
     std::optional<std::unique_lock<std::shared_mutex>> gate;
-    const auto owner_filter = concurrent_depth != 0
+    const auto owner_filter = context.concurrent_depth != 0
         ? ensure_gc_owner_id(context) : 0;
     if (owner_filter == 0)
     {
@@ -308,15 +310,30 @@ void collect_cycles()
             {
                 return entry.object.expired();
             });
+        registered_nodes_hint.store(registry.nodes.size(),
+                                    std::memory_order_release);
     }
     context.allocations_since_collection = completed ? 0 :
         std::max(collection_interval, registered_node_count() / 2);
 }
 
-void gc_safepoint()
+void collect_cycles()
 {
-    const auto& context = detail::current_runtime_context();
-    if (context.collecting || concurrent_depth != 0)
+    collect_cycles_for_context(detail::current_runtime_context());
+}
+
+void gc_safepoint(detail::runtime_context& context)
+{
+    if (context.collecting || context.concurrent_depth != 0 ||
+        context.allocations_since_collection < collection_interval)
+    {
+        return;
+    }
+    // 数量只是调度提示：锁内再读真实数量，进入回收时仍取完整快照。
+    const auto hinted_nodes = registered_nodes_hint.load(
+        std::memory_order_acquire);
+    if (hinted_nodes == 0 || context.allocations_since_collection <
+        std::max(collection_interval, hinted_nodes / 2))
     {
         return;
     }
@@ -328,8 +345,13 @@ void gc_safepoint()
     const auto threshold = std::max(collection_interval, registered_nodes / 2);
     if (context.allocations_since_collection >= threshold)
     {
-        collect_cycles();
+        collect_cycles_for_context(context);
     }
+}
+
+void gc_safepoint()
+{
+    gc_safepoint(detail::current_runtime_context());
 }
 
 } // namespace tx_generated
@@ -340,4 +362,14 @@ extern "C" int txrt_gc_safepoint() noexcept
     {
         tx_generated::gc_safepoint();
     });
+}
+
+extern "C" int txrt_gc_safepoint_context(void* raw_context) noexcept
+{
+    auto& context = *static_cast<tx_generated::detail::runtime_context*>(
+        raw_context);
+    return tx_generated::detail::invoke_checked([&]
+    {
+        tx_generated::gc_safepoint(context);
+    }, tx::error_kind::runtime, &context);
 }

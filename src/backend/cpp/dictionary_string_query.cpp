@@ -15,8 +15,8 @@ const std::any* find_joined_key(const void* dictionary,
 {
     const auto& values = std::any_cast<const tx_generated::tx_dict&>(
         *static_cast<const std::any*>(dictionary));
-    const auto& left = *static_cast<const std::string*>(first);
-    const auto& right = *static_cast<const std::string*>(second);
+    const auto& left = tx_generated::detail::text_value(first);
+    const auto& right = tx_generated::detail::text_value(second);
     // 短复合键只需临时字节，按原哈希函数查询，不创建 TX 字符串句柄。
     std::array<char, 256> local;
     if (left.size() <= local.size() && right.size() <= local.size() - left.size())

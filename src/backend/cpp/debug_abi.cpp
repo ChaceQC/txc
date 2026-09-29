@@ -104,7 +104,7 @@ extern "C" int txrt_debug_dump_str(const void* value) noexcept
 {
     return invoke_checked([&]
     {
-        const auto& str = *static_cast<const std::string*>(value);
+        const auto& str = tx_generated::detail::text_value(value);
         print_value("str", tx_generated::json_stringify(std::any(str)));
     });
 }

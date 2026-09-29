@@ -1,6 +1,8 @@
 #include "backend/llvm/codegen.hpp"
 #include "backend/llvm/codegen_format_plan.hpp"
 
+#include <algorithm>
+
 namespace tx
 {
 
@@ -35,7 +37,19 @@ std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_static_fo
     std::vector<ir_value> values{{value_type::void_type, {}}};
     for (std::size_t index = 1; index < call.arguments.size(); ++index)
     {
-        values.push_back(expression_value(*call.arguments[index].value));
+        const auto& argument = *call.arguments[index].value;
+        const bool stable_suffix = std::all_of(
+            call.arguments.begin() + index + 1, call.arguments.end(),
+            [&](const call_argument& following)
+            {
+                return stable_value_expression(*following.value);
+            });
+        bool borrowed = false;
+        auto value = argument.type == value_type::str_type && stable_suffix
+            ? read_only_string_value(argument, borrowed)
+            : expression_value(argument);
+        value.borrowed = borrowed;
+        values.push_back(value);
     }
     const auto output = allocate(value_type::str_type, item.position);
     const auto created = temporary();
@@ -68,6 +82,7 @@ std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_static_fo
         }
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
     }
+    write_instruction("call void @txrt_format_finish(ptr " + result + ")");
     for (const auto& value : values)
     {
         release(value);

@@ -11,7 +11,7 @@ namespace
 
 const std::string& text_argument(const void* value)
 {
-    return *static_cast<const std::string*>(value);
+    return tx_generated::detail::text_value(value);
 }
 
 const tx_generated::binary_stream& binary_argument(const void* value)

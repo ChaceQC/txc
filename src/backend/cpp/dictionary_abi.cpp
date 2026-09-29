@@ -107,7 +107,7 @@ int set_string_key(void* value, const void* key, value_type item) noexcept
     return invoke_checked([&]
     {
         as_dict(value).emplace_back(
-            *static_cast<const std::string*>(key), std::move(item));
+            tx_generated::detail::text_value(key), std::move(item));
     });
 }
 
@@ -135,7 +135,7 @@ extern "C" int txrt_dict_set_str_str(void* value, const void* key,
                                         const void* item) noexcept
 {
     return set_string_key(value, key,
-        *static_cast<const std::string*>(item));
+        tx_generated::detail::text_value(item));
 }
 
 extern "C" int txrt_dict_len(const void* value,
@@ -191,7 +191,7 @@ extern "C" int txrt_dict_element_address_str(void* value, const void* key,
     return invoke_checked([&]
     {
         *result = dict_element_address(as_dict(value),
-            *static_cast<const std::string*>(key), create);
+            tx_generated::detail::text_value(key), create);
     });
 }
 

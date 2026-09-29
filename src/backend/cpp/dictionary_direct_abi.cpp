@@ -46,7 +46,7 @@ extern "C" int txrt_dictionary_get_str(const void* values, const void* key,
     return invoke_leaf([&]
     {
         const auto* found = dictionary_value(values).find_value(
-            std::string_view(*static_cast<const std::string*>(key)));
+            std::string_view(tx_generated::detail::text_value(key)));
         *result = make_handle<std::any>(found ? *found : std::any{});
     });
 }
@@ -67,7 +67,7 @@ extern "C" int txrt_dictionary_contains_str(const void* values,
     return invoke_leaf([&]
     {
         *result = dictionary_value(values).find_value(
-            std::string_view(*static_cast<const std::string*>(key))) != nullptr;
+            std::string_view(tx_generated::detail::text_value(key))) != nullptr;
     });
 }
 
@@ -87,7 +87,7 @@ extern "C" int txrt_dictionary_remove_str(void* values,
     return invoke_checked([&]
     {
         *result = dictionary_value(values).erase(
-            std::string_view(*static_cast<const std::string*>(key)));
+            std::string_view(tx_generated::detail::text_value(key)));
     });
 }
 

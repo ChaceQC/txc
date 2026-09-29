@@ -16,7 +16,7 @@ extern "C" int txrt_parse_try_parse_int(const void* text, std::int64_t base,
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(make_result_value(result_type, error_type,
-            tx_generated::try_parse_int(*static_cast<const std::string*>(text), base)));
+            tx_generated::try_parse_int(tx_generated::detail::text_value(text), base)));
     });
 }
 
@@ -26,7 +26,7 @@ extern "C" int txrt_parse_try_parse_float(const void* text,
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(make_result_value(result_type, error_type,
-            tx_generated::try_parse_float(*static_cast<const std::string*>(text))));
+            tx_generated::try_parse_float(tx_generated::detail::text_value(text))));
     });
 }
 
@@ -35,7 +35,7 @@ extern "C" int txrt_parse_parse_int(const void* text, std::int64_t base,
 {
     return invoke_checked([&]
     {
-        auto parsed = tx_generated::try_parse_int(*static_cast<const std::string*>(text), base);
+        auto parsed = tx_generated::try_parse_int(tx_generated::detail::text_value(text), base);
         if (!parsed.ok)
         {
             throw tx_generated::runtime_failure(std::move(parsed.error));
@@ -48,7 +48,7 @@ extern "C" int txrt_parse_parse_float(const void* text, double* result) noexcept
 {
     return invoke_checked([&]
     {
-        auto parsed = tx_generated::try_parse_float(*static_cast<const std::string*>(text));
+        auto parsed = tx_generated::try_parse_float(tx_generated::detail::text_value(text));
         if (!parsed.ok)
         {
             throw tx_generated::runtime_failure(std::move(parsed.error));

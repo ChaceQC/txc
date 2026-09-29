@@ -1,0 +1,348 @@
+{
+  "measured_at_utc": "2026-09-29T09:42:06.339309+00:00",
+  "source_sha256": "6e77763d77f435006016519a717723d14337336312d4589a8836345d9882bfa8",
+  "program_sha256": {
+    "02": "41530dc71586c5219aca7a81862ae3b985a5a2c1c711ed794f2fbda7d340b61b",
+    "03": "a82ddb50225567a83ac982b57346d67d8240ed2f7b7723865a4008570124f61d"
+  },
+  "warmup": {
+    "02": {
+      "dictionary": {
+        "ms": 5.007,
+        "checksum": "1000000"
+      },
+      "map": {
+        "ms": 3.769,
+        "checksum": "3000000"
+      },
+      "set": {
+        "ms": 4.028,
+        "checksum": "1000000"
+      },
+      "queue": {
+        "ms": 1.73,
+        "checksum": "5000050000"
+      },
+      "cancel": {
+        "ms": 6.271,
+        "checksum": "0"
+      }
+    },
+    "03": {
+      "dictionary": {
+        "ms": 3.605,
+        "checksum": "1000000"
+      },
+      "map": {
+        "ms": 3.542,
+        "checksum": "3000000"
+      },
+      "set": {
+        "ms": 3.209,
+        "checksum": "1000000"
+      },
+      "queue": {
+        "ms": 1.532,
+        "checksum": "5000050000"
+      },
+      "cancel": {
+        "ms": 4.995,
+        "checksum": "0"
+      }
+    }
+  },
+  "samples": [
+    {
+      "round": 1,
+      "program": "02",
+      "values": {
+        "dictionary": {
+          "ms": 5.617,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.8,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 4.154,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 2.236,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 6.133,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 1,
+      "program": "03",
+      "values": {
+        "dictionary": {
+          "ms": 3.707,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.532,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 2.877,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.468,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 4.983,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 2,
+      "program": "03",
+      "values": {
+        "dictionary": {
+          "ms": 3.504,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.512,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 3.292,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.56,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 4.918,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 2,
+      "program": "02",
+      "values": {
+        "dictionary": {
+          "ms": 5.409,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.819,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 4.166,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.804,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 6.099,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 3,
+      "program": "02",
+      "values": {
+        "dictionary": {
+          "ms": 4.962,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.818,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 4.005,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.819,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 6.186,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 3,
+      "program": "03",
+      "values": {
+        "dictionary": {
+          "ms": 3.536,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.466,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 2.838,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.598,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 5.023,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 4,
+      "program": "03",
+      "values": {
+        "dictionary": {
+          "ms": 3.627,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.597,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 2.857,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.593,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 4.92,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 4,
+      "program": "02",
+      "values": {
+        "dictionary": {
+          "ms": 4.986,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.727,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 4.08,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.8,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 6.09,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 5,
+      "program": "02",
+      "values": {
+        "dictionary": {
+          "ms": 4.954,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.716,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 4.567,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.754,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 6.677,
+          "checksum": "0"
+        }
+      }
+    },
+    {
+      "round": 5,
+      "program": "03",
+      "values": {
+        "dictionary": {
+          "ms": 3.463,
+          "checksum": "1000000"
+        },
+        "map": {
+          "ms": 3.539,
+          "checksum": "3000000"
+        },
+        "set": {
+          "ms": 2.848,
+          "checksum": "1000000"
+        },
+        "queue": {
+          "ms": 1.673,
+          "checksum": "5000050000"
+        },
+        "cancel": {
+          "ms": 4.912,
+          "checksum": "0"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "dictionary": {
+      "02_median_ms": 4.986,
+      "03_median_ms": 3.536,
+      "02_over_03": 1.4100678733031673,
+      "checksum": "1000000"
+    },
+    "map": {
+      "02_median_ms": 3.8,
+      "03_median_ms": 3.532,
+      "02_over_03": 1.0758776896942241,
+      "checksum": "3000000"
+    },
+    "set": {
+      "02_median_ms": 4.154,
+      "03_median_ms": 2.857,
+      "02_over_03": 1.4539726986349315,
+      "checksum": "1000000"
+    },
+    "queue": {
+      "02_median_ms": 1.804,
+      "03_median_ms": 1.593,
+      "02_over_03": 1.1324544883866918,
+      "checksum": "5000050000"
+    },
+    "cancel": {
+      "02_median_ms": 6.133,
+      "03_median_ms": 4.92,
+      "02_over_03": 1.2465447154471545,
+      "checksum": "0"
+    }
+  }
+}

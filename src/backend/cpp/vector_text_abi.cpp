@@ -1,3 +1,4 @@
+#include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/vector_abi.hpp"
 #include "backend/cpp/runtime_abi.hpp"
 #include "backend/cpp/vector_abi_internal.hpp"
@@ -95,7 +96,7 @@ extern "C" int txrt_string_split_vector_literal(
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(split_vector(
-            *static_cast<const std::string*>(text), std::string_view(separator, length)));
+            tx_generated::detail::text_value(text), std::string_view(separator, length)));
     });
 }
 
@@ -112,13 +113,13 @@ extern "C" int txrt_string_join_vector_literal(
 extern "C" int txrt_string_split_vector(
     const void* text, const void* separator, void** result) noexcept
 {
-    const auto& delimiter = *static_cast<const std::string*>(separator);
+    const auto& delimiter = tx_generated::detail::text_value(separator);
     return txrt_string_split_vector_literal(text, delimiter.data(), delimiter.size(), result);
 }
 
 extern "C" int txrt_string_join_vector(
     const void* vector, const void* separator, void** result) noexcept
 {
-    const auto& delimiter = *static_cast<const std::string*>(separator);
+    const auto& delimiter = tx_generated::detail::text_value(separator);
     return txrt_string_join_vector_literal(vector, delimiter.data(), delimiter.size(), result);
 }

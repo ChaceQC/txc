@@ -136,8 +136,24 @@ int scope_value(const void* callback, std::int64_t max_pending,
                 reinterpret_cast<void (*)(const void*, const void*)>(target)(
                     callback, parameter);
             }
-            else if constexpr (std::is_same_v<value_type, std::string> ||
-                               std::is_same_v<value_type, std::any>)
+            else if constexpr (std::is_same_v<value_type, std::string>)
+            {
+                using text_root = tx_generated::detail::text_handle_record;
+                using owner_type = std::unique_ptr<text_root,
+                    decltype(&tx_generated::detail::destroy_handle<text_root>)>;
+                owner_type returned(reinterpret_cast<text_root* (*)(
+                    const void*, const void*)>(target)(callback, parameter),
+                    &tx_generated::detail::destroy_handle<text_root>);
+                if (returned)
+                {
+                    value = tx_generated::detail::text_value(returned.get());
+                }
+                else if (context.last_error_kind == tx::error_kind::none)
+                {
+                    throw std::runtime_error("任务作用域结果为空");
+                }
+            }
+            else if constexpr (std::is_same_v<value_type, std::any>)
             {
                 using owner_type = std::unique_ptr<value_type,
                     decltype(&tx_generated::detail::destroy_handle<value_type>)>;

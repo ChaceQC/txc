@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "frontend/ast/call_properties.hpp"
 
 #include <algorithm>
 
@@ -43,30 +44,40 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
 {
     if (std::holds_alternative<integer_literal>(item.data) ||
         std::holds_alternative<floating_literal>(item.data) ||
-        std::holds_alternative<boolean_literal>(item.data) ||
-        std::holds_alternative<string_literal>(item.data) ||
-        std::holds_alternative<none_literal>(item.data))
+        std::holds_alternative<boolean_literal>(item.data))
     {
         return true;
     }
-    if (std::holds_alternative<name_reference>(item.data))
+    if (std::holds_alternative<string_literal>(item.data) ||
+        std::holds_alternative<none_literal>(item.data))
     {
+        return false;
+    }
+    if (const auto* name = std::get_if<name_reference>(&item.data))
+    {
+        if (name->function_value)
+        {
+            return false;
+        }
         // 作为普通值读取局部标量 option 时会在逃逸边界生成句柄。
         return !item.type.is_option() ||
             !scalar_option_suffix(item.type.parameters.front());
     }
     if (const auto* member = std::get_if<member_expression>(&item.data))
     {
-        return gc_neutral_expression(*member->object);
+        return !is_value_handle(item.type) && item.type != value_type::str_type &&
+            gc_neutral_expression(*member->object);
     }
     if (const auto* index = std::get_if<index_expression>(&item.data))
     {
-        return gc_neutral_expression(*index->object) &&
+        return !is_value_handle(item.type) && item.type != value_type::str_type &&
+               gc_neutral_expression(*index->object) &&
                gc_neutral_expression(*index->index);
     }
     if (const auto* cast = std::get_if<cast_expression>(&item.data))
     {
-        return gc_neutral_expression(*cast->value);
+        return !is_value_handle(item.type) && item.type != value_type::str_type &&
+            gc_neutral_expression(*cast->value);
     }
     if (const auto* unary = std::get_if<unary_operation>(&item.data))
     {
@@ -75,11 +86,18 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
     }
     if (const auto* update = std::get_if<update_expression>(&item.data))
     {
+        if (const auto* index = std::get_if<index_expression>(&update->target->data);
+            index && (index->object->type.is_typed_container() ||
+                      index->object->type.is_vector()))
+        {
+            return false;
+        }
         return gc_neutral_expression(*update->target);
     }
     if (const auto* binary = std::get_if<binary_operation>(&item.data))
     {
-        return gc_neutral_expression(*binary->left) &&
+        return item.type != value_type::str_type &&
+               gc_neutral_expression(*binary->left) &&
                gc_neutral_expression(*binary->right) &&
                (!binary->binding || gc_neutral_binding(*binary->binding));
     }
@@ -98,25 +116,52 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
          call->name == "is_none"))
     {
         // 名称接收者可直接借用或读取栈值；复杂接收者可能先创建句柄。
-        return std::holds_alternative<name_reference>(call->receiver->data);
+        return item.type != value_type::str_type &&
+            std::holds_alternative<name_reference>(call->receiver->data);
+    }
+    if (call->indirect)
+    {
+        return false;
     }
     if (call->receiver && !gc_neutral_expression(*call->receiver))
     {
         return false;
     }
-    for (const auto& argument : call->arguments)
+    for (std::size_t index = 0; index < call->arguments.size(); ++index)
     {
-        if (argument.kind == argument_kind::spread_array ||
-            argument.kind == argument_kind::spread_dict ||
-            !gc_neutral_expression(*argument.value))
+        const auto& argument = call->arguments[index];
+        const auto& value = *argument.value;
+        // 具名和展开绑定会物化参数；文本/none 字面量会创建句柄。
+        if (argument.kind != argument_kind::positional ||
+            std::holds_alternative<string_literal>(value.data) ||
+            std::holds_alternative<none_literal>(value.data) ||
+            !gc_neutral_expression(value))
+        {
+            return false;
+        }
+        if ((is_value_handle(value.type) || value.type == value_type::str_type) &&
+            (index >= call->properties.arguments.size() ||
+             call->properties.arguments[index] != argument_ownership::borrowed ||
+             !stable_borrow_expression(value)))
         {
             return false;
         }
     }
-    if (call->name == "len" || call->name == "is_none" ||
-        call->name == "to_float")
+    if (call->receiver && is_value_handle(call->receiver->type) &&
+        ((!call->receiver->type.is_typed_container() &&
+          !call->receiver->type.is_vector()) ||
+         call->properties.receiver != argument_ownership::borrowed ||
+         !stable_borrow_expression(*call->receiver)))
     {
-        return true;
+        return false;
+    }
+    if (call->container_type || (call->receiver &&
+        (call->receiver->type.is_typed_container() ||
+         call->receiver->type.is_vector())) ||
+        (!call->overload_index && (call->name == "len" ||
+         call->name == "is_none" || call->name == "to_float")))
+    {
+        return !call->properties.effects.needs_gc_safepoint();
     }
     if (!call->overload_index)
     {
@@ -129,11 +174,28 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
         return false;
     }
     const auto& target = *found->second[*call->overload_index];
+    if (target.external)
+    {
+        return !call->virtual_dispatch &&
+            !call->properties.effects.needs_gc_safepoint();
+    }
     if (std::any_of(target.parameters.begin(), target.parameters.end(),
         [](const parameter& value)
         { return value.kind != parameter_kind::ordinary; }))
     {
         return false;
+    }
+    if (target.is_async || target.parameters.size() != call->arguments.size())
+    {
+        return false;
+    }
+    for (std::size_t index = 0; index < call->arguments.size(); ++index)
+    {
+        if (call->arguments[index].value->type != target.parameters[index].type)
+        {
+            // 隐式转换可物化句柄，不能只依据被调用函数体省略安全点。
+            return false;
+        }
     }
     if (call->virtual_dispatch)
     {
@@ -188,6 +250,13 @@ bool llvm_code_generator::gc_neutral_statement(const statement& item)
     if (const auto* assignment =
             std::get_if<variable_assignment>(&item.data))
     {
+        if (const auto* index = std::get_if<index_expression>(&assignment->target->data);
+            index && (index->object->type.is_typed_container() ||
+                      index->object->type.is_vector()) &&
+            container_call_effects(index->object->type, "set").needs_gc_safepoint())
+        {
+            return false;
+        }
         if (is_value_handle(assignment->target->type))
         {
             // 覆盖旧引用可能触发 deinit，进而创建需要循环回收的节点。
@@ -309,11 +378,8 @@ bool llvm_code_generator::gc_neutral_function(const function_decl& function)
 {
     if (function.external)
     {
-        // 这些入口的成功路径只读写标量或线程局部随机状态，不登记 GC 对象。
-        return function.external_name == "math.sqrt" ||
-               function.external_name == "random.seed" ||
-               function.external_name == "random.random_int" ||
-               function.external_name == "random.random_float";
+        // 外部调用按已绑定调用点的属性判断；没有调用点时保持保守。
+        return false;
     }
     if (const auto found = gc_neutral_cache_.find(&function);
         found != gc_neutral_cache_.end())

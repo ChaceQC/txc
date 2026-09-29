@@ -267,7 +267,7 @@ extern "C" int txrt_async_file_read_at(const void* path,
             static_cast<std::size_t>(max_bytes));
         operation->token = require_token(token);
         *result = schedule_file(std::move(operation), task_name,
-            static_cast<const std::string*>(path)->c_str(), false);
+            tx_generated::detail::text_value(path).c_str(), false);
 #else
         (void)path;
         (void)token;
@@ -294,7 +294,7 @@ extern "C" int txrt_async_file_write_at(const void* path,
             bytes);
         operation->token = require_token(token);
         *result = schedule_file(std::move(operation), task_name,
-            static_cast<const std::string*>(path)->c_str(), true);
+            tx_generated::detail::text_value(path).c_str(), true);
 #else
         (void)path;
         (void)token;

@@ -52,7 +52,7 @@ extern "C" int txrt_dns_resolve(const void* host, std::int64_t timeout_ms,
     return tx_generated::detail::invoke_checked([&]
     {
         *result = make_addresses(tx_generated::dns::resolve(
-            *static_cast<const std::string*>(host), timeout_ms, {}),
+            tx_generated::detail::text_value(host), timeout_ms, {}),
             vector_type, address_type);
     }, tx::error_kind::io);
 }
@@ -64,7 +64,7 @@ extern "C" int txrt_dns_resolve_with_cancel(const void* host,
     return tx_generated::detail::invoke_checked([&]
     {
         *result = make_addresses(tx_generated::dns::resolve(
-            *static_cast<const std::string*>(host), timeout_ms,
+            tx_generated::detail::text_value(host), timeout_ms,
             token_state(token)), vector_type, address_type);
     }, tx::error_kind::io);
 }

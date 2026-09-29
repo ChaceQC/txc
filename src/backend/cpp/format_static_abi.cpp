@@ -11,7 +11,7 @@ int append_value(void* output, const value_type& value,
 {
     return tx_generated::detail::invoke_leaf([&]
     {
-        *static_cast<std::string*>(output) +=
+        tx_generated::detail::text_builder(output) +=
             tx_generated::format_field_value(value, *spec, conversion);
     });
 }
@@ -22,7 +22,7 @@ extern "C" int txrt_format_begin(void** result) noexcept
 {
     return tx_generated::detail::invoke_leaf([&]
     {
-        *result = tx_generated::detail::make_handle<std::string>();
+        *result = tx_generated::detail::make_text_builder();
     });
 }
 
@@ -31,7 +31,7 @@ extern "C" int txrt_format_literal(void* result, const char* text,
 {
     return tx_generated::detail::invoke_leaf([&]
     {
-        static_cast<std::string*>(result)->append(text, length);
+        tx_generated::detail::text_builder(result).append(text, length);
     });
 }
 
@@ -56,5 +56,10 @@ extern "C" int txrt_format_append_bool(void* result, bool value,
 extern "C" int txrt_format_append_str(void* result, const void* value,
     const tx::format_spec* spec, char conversion) noexcept
 {
-    return append_value(result, *static_cast<const std::string*>(value), spec, conversion);
+    return append_value(result, tx_generated::detail::text_value(value), spec, conversion);
+}
+
+extern "C" void txrt_format_finish(void* result) noexcept
+{
+    tx_generated::detail::publish_text_builder(result);
 }

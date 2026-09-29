@@ -1,3 +1,4 @@
+#include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/process_abi.hpp"
 #include "backend/cpp/process_abi_internal.hpp"
 #include "stdlib/vector.hpp"
@@ -57,7 +58,7 @@ extern "C" int txrt_process_make_options(const void* executable, const void* arg
     return invoke_checked([&]
     {
         tx_generated::struct_fields fields(9);
-        fields[0] = {"executable", *static_cast<const std::string*>(executable)};
+        fields[0] = {"executable", tx_generated::detail::text_value(executable)};
         fields[1] = {"args", value<tx_generated::string_vector>(args).copy()};
         fields[2] = {"cwd", std::string{}};
         fields[3] = {"env", tx_generated::string_vector{}};

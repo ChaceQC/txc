@@ -41,7 +41,7 @@ extern "C" int txrt_x509_parse_pem(const void* text, void** result) noexcept
     return tx_generated::detail::invoke_checked([&]
     {
         *result = certificate_vector(tx_generated::x509::parse_pem(
-            *static_cast<const std::string*>(text)));
+            tx_generated::detail::text_value(text)));
     });
 }
 
@@ -84,8 +84,8 @@ extern "C" int txrt_x509_verify(const void* leaf,
     {
         auto verified = tx_generated::x509::verify(byte_argument(leaf),
             vector_argument(intermediates), vector_argument(trust_anchors),
-            *static_cast<const std::string*>(hostname),
-            *static_cast<const std::string*>(purpose), system_trust);
+            tx_generated::detail::text_value(hostname),
+            tx_generated::detail::text_value(purpose), system_trust);
         tx_generated::bytes_vector chain;
         chain.data().values = std::move(verified.chain);
         chain.data().refresh();

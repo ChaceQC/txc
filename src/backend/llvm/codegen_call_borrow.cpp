@@ -21,6 +21,8 @@ llvm_code_generator::ir_value llvm_code_generator::call_argument_value(
     bool borrowed = false;
     auto value = can_borrow && is_value_handle(argument.type)
         ? container_value(argument, true, borrowed)
+        : can_borrow && argument.type == value_type::str_type
+        ? read_only_string_value(argument, borrowed)
         : can_borrow ? expression_value_or_borrow(argument, borrowed)
                      : expression_value(argument);
     value.borrowed = borrowed;

@@ -227,6 +227,6 @@ extern "C" int txrt_math_round_to_int(double value, const void* mode,
 {
     return tx_generated::detail::invoke_leaf([&]
     {
-        *result = round_to_integer(value, *static_cast<const std::string*>(mode));
+        *result = round_to_integer(value, tx_generated::detail::text_value(mode));
     });
 }

@@ -1,0 +1,525 @@
+{
+  "date": "2026-09-29",
+  "programs": {
+    "cpp": {
+      "path": "tx_build/diverse_performance_cpp_05.exe",
+      "sha256": "f3e202d742d7d08dc1ec2d74bd8ee237bd17bc988f7774724badbf24e76f39fa",
+      "sources": {
+        "benchmarks/diverse_performance.cpp": "28e78f25705d63f07a795d836ed0c2efff56764e59093d4dae44f9f86a103211",
+        "benchmarks/performance_equivalence/parse_contract.cpp": "b73ad456b870b5299774d0ae72d9893383c2e57cd6f933fbe034dc9351362f9b",
+        "benchmarks/performance_equivalence/serde_payload.cpp": "6d81a1cecb4c99443d808bba2e2df8d2c5c4039712db7fdc36acb15a022f67be"
+      }
+    },
+    "tx": {
+      "path": "tx_build/diverse_performance_05.exe",
+      "sha256": "6b4d1877697c2ac503b995b3fd523fb87cb297be3ef69cc0de42188ee8ed0192"
+    }
+  },
+  "contract_check": "passed",
+  "unit": "microseconds",
+  "measurement": "one warmup each, then five alternating rounds; internal elapsed time",
+  "summary": {
+    "format_literal": {
+      "cpp": 696,
+      "tx": 9708
+    },
+    "format_dynamic": {
+      "cpp": 1011,
+      "tx": 52152
+    },
+    "encoding_literal": {
+      "cpp": 2828,
+      "tx": 13479
+    },
+    "encoding_dynamic": {
+      "cpp": 2734,
+      "tx": 14776
+    },
+    "parse_valid": {
+      "cpp": 1702,
+      "tx": 63603
+    },
+    "parse_invalid": {
+      "cpp": 6193,
+      "tx": 71357
+    },
+    "serde_short_text": {
+      "cpp": 917,
+      "tx": 18973
+    },
+    "serde_long_text": {
+      "cpp": 4199,
+      "tx": 36270
+    }
+  },
+  "runs": [
+    {
+      "round": 0,
+      "program": "cpp",
+      "warmup": true,
+      "values": {
+        "format_literal": {
+          "us": 688,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 993,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 2842,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 2689,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 1668,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 6493,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 910,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 4253,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 0,
+      "program": "tx",
+      "warmup": true,
+      "values": {
+        "format_literal": {
+          "us": 10262,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 52574,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 13901,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 15063,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 65287,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 76686,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 19166,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 36372,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 1,
+      "program": "cpp",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 695,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 1000,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 2865,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 2753,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 1686,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 5957,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 917,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 4851,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 1,
+      "program": "tx",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 9572,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 50144,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 13450,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 14388,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 63508,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 71357,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 18973,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 36435,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 2,
+      "program": "tx",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 9685,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 52152,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 13832,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 15026,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 64745,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 72692,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 19593,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 36379,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 2,
+      "program": "cpp",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 771,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 1011,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 2737,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 2609,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 1710,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 6011,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 874,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 4185,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 3,
+      "program": "cpp",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 768,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 1115,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 2777,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 2591,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 1702,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 6199,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 892,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 4126,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 3,
+      "program": "tx",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 9842,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 53003,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 13479,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 14959,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 63603,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 69503,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 18830,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 35837,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 4,
+      "program": "tx",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 9747,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 50894,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 13214,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 14333,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 62789,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 71255,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 18441,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 35245,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 4,
+      "program": "cpp",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 696,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 1013,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 2960,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 2744,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 1690,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 6193,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 924,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 4199,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 5,
+      "program": "cpp",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 689,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 1011,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 2828,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 2734,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 1766,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 6663,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 952,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 4598,
+          "checksum": 655000
+        }
+      }
+    },
+    {
+      "round": 5,
+      "program": "tx",
+      "warmup": false,
+      "values": {
+        "format_literal": {
+          "us": 9708,
+          "checksum": 488890
+        },
+        "format_dynamic": {
+          "us": 52366,
+          "checksum": 488890
+        },
+        "encoding_literal": {
+          "us": 13527,
+          "checksum": 900000
+        },
+        "encoding_dynamic": {
+          "us": 14776,
+          "checksum": 900000
+        },
+        "parse_valid": {
+          "us": 66641,
+          "checksum": 100000
+        },
+        "parse_invalid": {
+          "us": 73888,
+          "checksum": 100000
+        },
+        "serde_short_text": {
+          "us": 19030,
+          "checksum": 40000
+        },
+        "serde_long_text": {
+          "us": 36270,
+          "checksum": 655000
+        }
+      }
+    }
+  ]
+}

@@ -394,7 +394,8 @@ void llvm_code_generator::write_instruction(const std::string& text)
 void llvm_code_generator::emit_gc_safepoint()
 {
     const auto status = temporary();
-    write_instruction(status + " = call i32 @txrt_gc_safepoint()");
+    write_instruction(status +
+        " = call i32 @txrt_gc_safepoint_context(ptr %tx_context)");
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
 }
 
@@ -475,7 +476,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare ptr @txrt_runtime_context()\n"
             << "declare i32 @txrt_prepare_console()\n"
             << "declare void @txrt_require_success(i32)\n"
-            << "declare i32 @txrt_gc_safepoint()\n"
+            << "declare i32 @txrt_gc_safepoint_context(ptr)\n"
             << "declare i32 @txrt_print_i64(i64, i1)\n"
             << "declare i32 @txrt_print_f64(double, i1)\n"
             << "declare i32 @txrt_print_bool(i1, i1)\n"

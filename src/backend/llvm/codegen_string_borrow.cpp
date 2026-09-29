@@ -22,6 +22,10 @@ llvm_code_generator::ir_value llvm_code_generator::read_only_string_value(
             const auto slot = vector_slot(owner, at, item.position);
             const auto result = temporary();
             write_instruction(result + " = load ptr, ptr " + slot);
+            if (!owner_borrowed)
+            {
+                release(owner);
+            }
             borrowed = true;
             return {value_type::str_type, result};
         }

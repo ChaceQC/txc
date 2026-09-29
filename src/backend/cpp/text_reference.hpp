@@ -8,8 +8,13 @@ namespace tx_generated
 
 namespace detail
 {
-void retain_text_reference(const void* value) noexcept;
+struct text_payload;
+text_payload* retain_text_reference(const void* value) noexcept;
+void retain_text_payload(text_payload* value) noexcept;
+void release_text_payload(text_payload* value) noexcept;
 void release_text_reference(const void* value) noexcept;
+const std::string& text_value(const void* value) noexcept;
+const void* borrowed_text_pointer(const text_payload* value) noexcept;
 }
 
 // 只持有文本载荷，不登记为错误退出时独立清理的根句柄。
@@ -17,9 +22,9 @@ class text_reference
 {
 public:
     explicit text_reference(const void* value = nullptr) noexcept
-        : value_(static_cast<const std::string*>(value))
+        : value_(detail::borrowed_text_pointer(
+            detail::retain_text_reference(value)))
     {
-        detail::retain_text_reference(value_);
     }
     text_reference(const text_reference& other) noexcept : text_reference(other.value_)
     {
@@ -39,7 +44,7 @@ public:
     }
     [[nodiscard]] const std::string& get() const noexcept
     {
-        return *value_;
+        return detail::text_value(value_);
     }
     [[nodiscard]] const void* handle() const noexcept
     {
@@ -47,7 +52,7 @@ public:
     }
 
 private:
-    const std::string* value_;
+    const void* value_;
 };
 
 static_assert(sizeof(text_reference) == sizeof(void*));

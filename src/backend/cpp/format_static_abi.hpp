@@ -15,5 +15,6 @@ int txrt_format_append_bool(void* result, bool value,
     const tx::format_spec* spec, char conversion) noexcept;
 int txrt_format_append_str(void* result, const void* value,
     const tx::format_spec* spec, char conversion) noexcept;
+void txrt_format_finish(void* result) noexcept;
 
 }

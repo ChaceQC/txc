@@ -131,7 +131,7 @@ extern "C" int txrt_value_box_bool(bool value, void** result) noexcept
 extern "C" int txrt_value_box_str(const void* value, void** result) noexcept
 {
     return invoke_checked([&] {
-        *result = make_handle<std::any>(*static_cast<const std::string*>(value));
+        *result = make_handle<std::any>(tx_generated::detail::text_value(value));
     });
 }
 

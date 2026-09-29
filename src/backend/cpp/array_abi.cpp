@@ -289,7 +289,7 @@ extern "C" int txrt_array_ref_set_str(void* value, std::int64_t index,
     {
         auto& array = *static_cast<tx_generated::tx_array*>(value);
         array.set_text(scalar_index(array, index),
-                       *static_cast<const std::string*>(item));
+                       tx_generated::detail::text_value(item));
     });
 }
 
@@ -330,7 +330,7 @@ extern "C" int txrt_array_set_str(void* value, std::int64_t index,
     {
         auto& array = array_for_write(value);
         array.set_text(scalar_index(array, index),
-                       *static_cast<const std::string*>(item));
+                       tx_generated::detail::text_value(item));
     });
 }
 

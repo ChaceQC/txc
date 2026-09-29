@@ -10,9 +10,9 @@
 namespace tx_generated::detail
 {
 
-void set_error(tx::error_kind kind, const char* code, const char* message) noexcept
+void set_error(runtime_context& context, tx::error_kind kind,
+               const char* code, const char* message) noexcept
 {
-    auto& context = current_runtime_context();
     try
     {
         context.last_error_stack = capture_stack(context);
@@ -24,6 +24,11 @@ void set_error(tx::error_kind kind, const char* code, const char* message) noexc
     context.last_error_kind = kind;
     std::snprintf(context.last_error_code, sizeof(context.last_error_code), "%s", code);
     std::snprintf(context.last_error, sizeof(context.last_error), "%s", message);
+}
+
+void set_error(tx::error_kind kind, const char* code, const char* message) noexcept
+{
+    set_error(current_runtime_context(), kind, code, message);
 }
 
 error_cleanup_guard::error_cleanup_guard() noexcept
@@ -94,8 +99,8 @@ extern "C" int txrt_error_fail_io(const void* code,
     {
         throw tx_generated::runtime_failure({
             tx::error_kind::io,
-            *static_cast<const std::string*>(code),
-            *static_cast<const std::string*>(message)});
+            tx_generated::detail::text_value(code),
+            tx_generated::detail::text_value(message)});
     });
 }
 

@@ -78,7 +78,7 @@ using tx_generated::socket::resource_kind;
 
 const std::string& text_at(const void* value)
 {
-    return *static_cast<const std::string*>(value);
+    return tx_generated::detail::text_value(value);
 }
 
 } // namespace

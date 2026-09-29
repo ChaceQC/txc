@@ -34,7 +34,7 @@ thread_local std::int64_t active_http_request = 0;
 
 const std::string& text_at(const void* value)
 {
-    return *static_cast<const std::string*>(value);
+    return tx_generated::detail::text_value(value);
 }
 
 std::string_view bytes_at(const void* value)

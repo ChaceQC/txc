@@ -1,0 +1,163 @@
+{
+  "measured_at_utc": "2026-09-29T09:05:03.129085+00:00",
+  "source_and_program_sha256": {
+    "old": "4b1fbef79a4ebf4d6b92a7bb615dad0f4279823b96193c8bd03872c8719db577",
+    "new": "41530dc71586c5219aca7a81862ae3b985a5a2c1c711ed794f2fbda7d340b61b",
+    "source": "6e77763d77f435006016519a717723d14337336312d4589a8836345d9882bfa8"
+  },
+  "paths": {
+    "old": "E:\\Project\\other\\Compilation\\tx_build\\call_borrowing_20260929.exe",
+    "new": "E:\\Project\\other\\Compilation\\tx_build\\call_borrowing_02.exe",
+    "source": "E:\\Project\\other\\Compilation\\benchmarks\\call_borrowing.tx"
+  },
+  "warmups": 1,
+  "rounds": 7,
+  "order_by_round": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "timing": "program internal microseconds, converted to milliseconds",
+  "results": {
+    "dictionary": {
+      "checksum": "1000000",
+      "old_samples_ms": [
+        37.293,
+        37.115,
+        37.286,
+        36.832,
+        37.133,
+        37.23,
+        37.804
+      ],
+      "new_samples_ms": [
+        5.102,
+        5.073,
+        4.914,
+        4.913,
+        5.112,
+        5.132,
+        5.005
+      ],
+      "old_median_ms": 37.23,
+      "new_median_ms": 5.073
+    },
+    "map": {
+      "checksum": "3000000",
+      "old_samples_ms": [
+        3.394,
+        3.488,
+        3.272,
+        3.368,
+        3.436,
+        3.547,
+        3.426
+      ],
+      "new_samples_ms": [
+        3.842,
+        3.779,
+        3.728,
+        3.748,
+        3.737,
+        3.714,
+        3.868
+      ],
+      "old_median_ms": 3.426,
+      "new_median_ms": 3.748
+    },
+    "set": {
+      "checksum": "1000000",
+      "old_samples_ms": [
+        38.686,
+        39.178,
+        37.52,
+        36.751,
+        39.542,
+        36.615,
+        37.429
+      ],
+      "new_samples_ms": [
+        4.218,
+        4.016,
+        3.98,
+        4.227,
+        3.976,
+        3.957,
+        4.063
+      ],
+      "old_median_ms": 37.52,
+      "new_median_ms": 4.016
+    },
+    "queue": {
+      "checksum": "5000050000",
+      "old_samples_ms": [
+        12.741,
+        11.978,
+        11.335,
+        11.354,
+        11.603,
+        12.093,
+        11.652
+      ],
+      "new_samples_ms": [
+        1.841,
+        2.275,
+        1.785,
+        1.706,
+        1.735,
+        1.777,
+        2.014
+      ],
+      "old_median_ms": 11.652,
+      "new_median_ms": 1.785
+    },
+    "cancel": {
+      "checksum": "0",
+      "old_samples_ms": [
+        38.752,
+        39.874,
+        38.396,
+        38.497,
+        39.286,
+        39.941,
+        39.015
+      ],
+      "new_samples_ms": [
+        6.271,
+        6.159,
+        6.08,
+        6.161,
+        6.11,
+        6.301,
+        6.353
+      ],
+      "old_median_ms": 39.015,
+      "new_median_ms": 6.161
+    }
+  }
+}

@@ -66,7 +66,7 @@ extern "C" int txrt_ipc_listen(const void* name,
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(tx_generated::ipc_listen(
-            *static_cast<const std::string*>(name), max_bytes));
+            tx_generated::detail::text_value(name), max_bytes));
     });
 }
 
@@ -88,7 +88,7 @@ extern "C" int txrt_ipc_connect(const void* name,
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(tx_generated::ipc_connect(
-            *static_cast<const std::string*>(name), max_bytes,
+            tx_generated::detail::text_value(name), max_bytes,
             timeout_ms, token_of(token)));
     });
 }

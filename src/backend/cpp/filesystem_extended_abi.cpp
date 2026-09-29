@@ -18,7 +18,7 @@ using tx_generated::detail::make_handle;
 
 const std::string& text_value(const void* value)
 {
-    return *static_cast<const std::string*>(value);
+    return tx_generated::detail::text_value(value);
 }
 
 const tx_generated::fs_watcher& watcher_value(const void* value)

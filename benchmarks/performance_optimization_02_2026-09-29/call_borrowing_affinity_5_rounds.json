@@ -1,0 +1,135 @@
+{
+  "measured_at_utc": "2026-09-29T09:05:11.396661+00:00",
+  "source_and_program_sha256": {
+    "old": "4b1fbef79a4ebf4d6b92a7bb615dad0f4279823b96193c8bd03872c8719db577",
+    "new": "41530dc71586c5219aca7a81862ae3b985a5a2c1c711ed794f2fbda7d340b61b",
+    "source": "6e77763d77f435006016519a717723d14337336312d4589a8836345d9882bfa8"
+  },
+  "paths": {
+    "old": "E:\\Project\\other\\Compilation\\tx_build\\call_borrowing_20260929.exe",
+    "new": "E:\\Project\\other\\Compilation\\tx_build\\call_borrowing_02.exe",
+    "source": "E:\\Project\\other\\Compilation\\benchmarks\\call_borrowing.tx"
+  },
+  "warmups": 1,
+  "rounds": 5,
+  "order_by_round": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "timing": "program internal microseconds, converted to milliseconds",
+  "results": {
+    "dictionary": {
+      "checksum": "1000000",
+      "old_samples_ms": [
+        36.256,
+        36.679,
+        36.17,
+        36.619,
+        36.131
+      ],
+      "new_samples_ms": [
+        4.93,
+        4.955,
+        5.017,
+        5.123,
+        5.335
+      ],
+      "old_median_ms": 36.256,
+      "new_median_ms": 5.017
+    },
+    "map": {
+      "checksum": "3000000",
+      "old_samples_ms": [
+        3.264,
+        3.256,
+        3.232,
+        3.324,
+        3.438
+      ],
+      "new_samples_ms": [
+        3.694,
+        3.702,
+        3.816,
+        3.734,
+        3.778
+      ],
+      "old_median_ms": 3.264,
+      "new_median_ms": 3.734
+    },
+    "set": {
+      "checksum": "1000000",
+      "old_samples_ms": [
+        36.055,
+        37.103,
+        36.032,
+        36.214,
+        36.136
+      ],
+      "new_samples_ms": [
+        3.947,
+        3.975,
+        3.953,
+        3.924,
+        3.978
+      ],
+      "old_median_ms": 36.136,
+      "new_median_ms": 3.953
+    },
+    "queue": {
+      "checksum": "5000050000",
+      "old_samples_ms": [
+        11.543,
+        11.581,
+        11.591,
+        11.572,
+        11.384
+      ],
+      "new_samples_ms": [
+        1.729,
+        1.721,
+        1.948,
+        1.709,
+        1.68
+      ],
+      "old_median_ms": 11.572,
+      "new_median_ms": 1.721
+    },
+    "cancel": {
+      "checksum": "0",
+      "old_samples_ms": [
+        38.184,
+        38.894,
+        39.316,
+        38.901,
+        38.913
+      ],
+      "new_samples_ms": [
+        6.016,
+        6.053,
+        6.057,
+        6.067,
+        6.101
+      ],
+      "old_median_ms": 38.901,
+      "new_median_ms": 6.057
+    }
+  }
+}

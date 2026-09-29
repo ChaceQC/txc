@@ -68,7 +68,7 @@ extern "C" int txrt_socket_connect_async(const void* ip,
     {
         *result = schedule(5, task_name, token,
             tx_generated::socket_async::make_connect(
-                *static_cast<const std::string*>(ip), port, timeout_ms,
+                tx_generated::detail::text_value(ip), port, timeout_ms,
                 stream_name));
     }, tx::error_kind::io);
 }
@@ -130,7 +130,7 @@ extern "C" int txrt_socket_send_to_async(const void* endpoint,
             *static_cast<const std::any*>(data));
         *result = schedule(1, task_name, token,
             tx_generated::socket_async::make_send_to(std::move(state),
-                *static_cast<const std::string*>(ip), port, bytes,
+                tx_generated::detail::text_value(ip), port, bytes,
                 timeout_ms));
     }, tx::error_kind::io);
 }

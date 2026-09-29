@@ -13,7 +13,7 @@ namespace
 
 const std::string& text_value(const void* value)
 {
-    return *static_cast<const std::string*>(value);
+    return tx_generated::detail::text_value(value);
 }
 
 const tx_generated::regex_pattern& pattern_value(const void* value)

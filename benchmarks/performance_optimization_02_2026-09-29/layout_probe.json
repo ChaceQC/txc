@@ -1,0 +1,88 @@
+{
+  "date": "2026-09-29",
+  "purpose": "Isolate the map timing sensitivity to linked code layout without changing benchmark or runtime logic.",
+  "build": {
+    "source": "benchmarks/call_borrowing.tx",
+    "source_sha256": "6e77763d77f435006016519a717723d14337336312d4589a8836345d9882bfa8",
+    "llvm_ir": "tx_build/call_borrowing_02.ll",
+    "llvm_ir_sha256": "105cd27e68d73b0ffcacffd392d1272c6c462c2df7f222e4643337c3afe21a14",
+    "program_object": "tx_build/performance_02_layout_program.o",
+    "program_object_sha256": "9c46e2e98de6d6054fcd98ee2862061e7d214894fe48323e1b08c0d53b7ce183",
+    "runtime_library": "tx/libtxstdlib.a",
+    "runtime_library_sha256": "83ee01f706b0ce035c679478b227c4a68ba21699bc82d1f26cb3a7c700ee89f1",
+    "method": "Compile the same LLVM IR object with tx/clang.exe -target x86_64-w64-windows-gnu -x ir -c -O3. Compile layout_pad.S with -x assembler-with-cpp and -DPAD_BYTES=<size>. Link each executable with the same tx/link/ld.exe argument list used by src/driver/main.cpp, placing the pad object between the program object and tx/libtxstdlib.a. No source or runtime implementation changes between variants.",
+    "pad_source": "benchmarks/performance_optimization_02_2026-09-29/layout_pad.S",
+    "benchmark_function_address_all_variants": "0x1400019f0"
+  },
+  "measurement": {
+    "cpu": "AMD Ryzen 7 6800H",
+    "affinity_mask": 4,
+    "warmups_per_variant": 1,
+    "rounds": 7,
+    "units": "ms, from the benchmark's internal microsecond timer",
+    "order_by_round": [
+      [0, 16, 32, 48, 64],
+      [0, 64, 48, 32, 16],
+      [32, 48, 64, 0, 16],
+      [32, 16, 0, 64, 48],
+      [64, 0, 16, 32, 48],
+      [64, 48, 32, 16, 0],
+      [16, 32, 48, 64, 0]
+    ],
+    "map_checksum_all_variants": 3000000,
+    "variants": [
+      {
+        "pad_bytes": 0,
+        "binary": "tx_build/performance_02_layout_0.exe",
+        "binary_sha256": "097ce6e5612ea16be60a4f135ab24a71e5a7ba37f508e478e251120e201b70c6",
+        "map_read_address": "0x14001d7f0",
+        "map_read_address_mod_64": 48,
+        "map_samples_ms": [4.239, 4.186, 4.207, 4.174, 4.166, 4.345, 4.232],
+        "map_median_ms": 4.207
+      },
+      {
+        "pad_bytes": 16,
+        "binary": "tx_build/performance_02_layout_16.exe",
+        "binary_sha256": "394fb8fe87169fd60ee44375a9e3e41df8f5b682c0bef641ac432ed8cdab0c4b",
+        "map_read_address": "0x14001d800",
+        "map_read_address_mod_64": 0,
+        "map_samples_ms": [3.046, 3.139, 3.116, 3.082, 3.123, 3.677, 3.384],
+        "map_median_ms": 3.123
+      },
+      {
+        "pad_bytes": 32,
+        "binary": "tx_build/performance_02_layout_32.exe",
+        "binary_sha256": "636820ac9b748cd04c1db76b504c1f08c71b64a7283380d0b4024f154b0fe1e6",
+        "map_read_address": "0x14001d810",
+        "map_read_address_mod_64": 16,
+        "map_samples_ms": [3.243, 3.245, 3.271, 3.728, 3.349, 3.269, 3.318],
+        "map_median_ms": 3.271
+      },
+      {
+        "pad_bytes": 48,
+        "binary": "tx_build/performance_02_layout_48.exe",
+        "binary_sha256": "3a30333d04ddc61f5f002337d2fe6d401f06ad1ed59e1336608dde402f5a57f1",
+        "map_read_address": "0x14001d820",
+        "map_read_address_mod_64": 32,
+        "map_samples_ms": [3.733, 3.718, 3.715, 3.718, 3.723, 3.728, 6.136],
+        "map_median_ms": 3.723
+      },
+      {
+        "pad_bytes": 64,
+        "binary": "tx_build/performance_02_layout_64.exe",
+        "binary_sha256": "467e84bf42d0027f5beca3b13731a40bd0014874008808405e99ad10cac8d6f0",
+        "map_read_address": "0x14001d830",
+        "map_read_address_mod_64": 48,
+        "map_samples_ms": [4.311, 4.157, 4.212, 4.167, 4.207, 4.177, 4.183],
+        "map_median_ms": 4.183
+      }
+    ],
+    "five_round_crosscheck_medians_ms": [
+      {"pad_bytes": 0, "dictionary": 5.091, "map": 4.206, "set": 4.074, "queue": 1.838, "cancel": 6.084},
+      {"pad_bytes": 16, "dictionary": 4.951, "map": 3.120, "set": 3.973, "queue": 1.726, "cancel": 6.084},
+      {"pad_bytes": 32, "dictionary": 5.013, "map": 3.321, "set": 3.957, "queue": 1.892, "cancel": 6.114},
+      {"pad_bytes": 48, "dictionary": 5.007, "map": 3.717, "set": 3.957, "queue": 1.740, "cancel": 6.108},
+      {"pad_bytes": 64, "dictionary": 5.094, "map": 4.204, "set": 3.965, "queue": 1.968, "cancel": 6.105}
+    ]
+  }
+}

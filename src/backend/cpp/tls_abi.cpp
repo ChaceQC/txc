@@ -251,7 +251,7 @@ extern "C" int txrt_tls_client(const void* hostname, const void* roots,
 {
     return tx_generated::detail::invoke_checked([&]
     {
-        client_value config{*static_cast<const std::string*>(hostname),
+        client_value config{tx_generated::detail::text_value(hostname),
             read_trust(value<dynamic_struct>(roots)), 0};
         validate_hostname(config.hostname);
         // 嵌套结构沿用参数中的真实类型名，避免跨模块结构身份丢失。

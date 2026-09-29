@@ -14,7 +14,7 @@ extern "C" int txrt_str_concat_literal(const void* value, const char* bytes,
             *result = tx_generated::detail::copy_text_handle(value);
             return;
         }
-        const auto& text = *static_cast<const std::string*>(value);
+        const auto& text = tx_generated::detail::text_value(value);
         std::string combined;
         if (length > combined.max_size() - text.size())
         {

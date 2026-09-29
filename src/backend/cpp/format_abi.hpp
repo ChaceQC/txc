@@ -22,7 +22,7 @@ inline const std::any& value(const void* handle)
 
 inline const std::string& text(const void* handle)
 {
-    return *static_cast<const std::string*>(handle);
+    return tx_generated::detail::text_value(handle);
 }
 
 template<class type>

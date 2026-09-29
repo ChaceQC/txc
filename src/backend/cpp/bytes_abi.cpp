@@ -78,7 +78,7 @@ extern "C" int txrt_bytes_from_hex(const void* text, void** result) noexcept
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(tx_generated::bytes_from_hex(
-            *static_cast<const std::string*>(text)));
+            tx_generated::detail::text_value(text)));
     });
 }
 
@@ -96,7 +96,7 @@ extern "C" int txrt_bytes_from_base64(const void* text, void** result) noexcept
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(tx_generated::bytes_from_base64(
-            *static_cast<const std::string*>(text)));
+            tx_generated::detail::text_value(text)));
     });
 }
 
@@ -116,7 +116,7 @@ extern "C" int txrt_bytes_from_base64_url(const void* text,
     return invoke_checked([&]
     {
         *result = make_handle<std::any>(tx_generated::bytes_from_base64_url(
-            *static_cast<const std::string*>(text)));
+            tx_generated::detail::text_value(text)));
     });
 }
 
