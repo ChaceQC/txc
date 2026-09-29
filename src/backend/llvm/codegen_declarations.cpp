@@ -78,8 +78,15 @@ void llvm_code_generator::write_external_declarations()
     write_sync_declarations();
     write_channel_declarations();
     module_ << "declare i32 @txrt_parse_try_parse_int(ptr, i64, ptr, ptr, ptr)\n"
-            << "declare i32 @txrt_parse_int_scalar(ptr, i64, ptr, ptr, ptr)\n"
-            << "declare i32 @txrt_parse_float_scalar(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_int_scalar_context(ptr, ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_float_scalar_context(ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_error_field_context(ptr, i64, i64, ptr)\n"
+            << "declare i64 @txrt_parse_error_field_length(i64, i64)\n"
+            << "declare i32 @txrt_format_arguments_context(ptr, ptr, ptr, i64, i64, ptr)\n"
+            << "declare void @tx_format_argument_i64(ptr, i64, ptr, i8)\n"
+            << "declare void @tx_format_argument_f64(ptr, i64, ptr, i8)\n"
+            << "declare void @tx_format_argument_bool(ptr, i64, ptr, i8)\n"
+            << "declare void @tx_format_argument_str(ptr, i64, ptr, i8)\n"
             << "declare i32 @txrt_parse_materialize_int(i1, i64, i64, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_parse_materialize_float(i1, double, i64, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_call_needs_default(ptr, ptr, i64, ptr, ptr)\n"

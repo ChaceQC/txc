@@ -6,6 +6,25 @@ namespace
 {
 
 template<class value_type, auto write>
+void encode_scalar_slot(serde_writer& writer, const typed_slot& value,
+    const serde_type&, serde_depth depth)
+{
+    depth.check(true);
+    if constexpr (std::is_same_v<value_type, std::int64_t>)
+    {
+        (writer.*write)(value.integer);
+    }
+    else if constexpr (std::is_same_v<value_type, double>)
+    {
+        (writer.*write)(value.floating);
+    }
+    else
+    {
+        (writer.*write)(value.boolean);
+    }
+}
+
+template<class value_type, auto write>
 void encode_scalar(serde_writer& writer, const std::any& value,
     const serde_type&, serde_depth depth)
 {
@@ -94,11 +113,14 @@ std::any decode_structure(serde_reader& reader, const serde_type& type, serde_de
 using namespace tx_generated;
 
 extern "C" const serde_codec tx_serde_integer{
-    encode_scalar<std::int64_t, &serde_writer::integer>, decode_scalar<std::int64_t>};
+    encode_scalar<std::int64_t, &serde_writer::integer>, decode_scalar<std::int64_t>,
+    encode_scalar_slot<std::int64_t, &serde_writer::integer>};
 extern "C" const serde_codec tx_serde_floating{
-    encode_scalar<double, &serde_writer::floating>, decode_scalar<double>};
+    encode_scalar<double, &serde_writer::floating>, decode_scalar<double>,
+    encode_scalar_slot<double, &serde_writer::floating>};
 extern "C" const serde_codec tx_serde_boolean{
-    encode_scalar<bool, &serde_writer::boolean>, decode_scalar<bool>};
+    encode_scalar<bool, &serde_writer::boolean>, decode_scalar<bool>,
+    encode_scalar_slot<bool, &serde_writer::boolean>};
 extern "C" const serde_codec tx_serde_text{
     encode_scalar<std::string, &serde_writer::text>, decode_scalar<std::string>};
 extern "C" const serde_codec tx_serde_bytes{

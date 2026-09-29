@@ -1,0 +1,20 @@
+{
+  "performance_15_16/libraries": {
+    "output": "",
+    "sha256": "514fb4f310d9573d6e7b453e30fe6790d094134eba4b1e859e5e2fb5a3919953"
+  },
+  "statistics/basic": {
+    "output": "",
+    "sha256": "7438d7b0d2e1ff330f6fc44ed1ab43e5f336ff2eab78e4e56e599722059ada18"
+  },
+  "bytes_file_stream/behavior": {
+    "output": "字节与文件流边界场景通过\n",
+    "sha256": "2080b5bb34f1bfb7d25aa17c741ecf3655f97f8710a7aaf52db6341e0a2001ac"
+  },
+  "bytes_file_stream/encodings": {
+    "output": "七种编码的内存转换和增量文本流通过\n",
+    "sha256": "d52e4d74826f72f85790508e9dafae5e8885e2fbd64bd2c58a80ac15d5fe0f43"
+  },
+  "hex_allocations": "PASS one output buffer; invalid high bytes/NUL reject before output allocation\n",
+  "package_compatibility": "兼容指纹正常与 4 种错配场景通过\n"
+}

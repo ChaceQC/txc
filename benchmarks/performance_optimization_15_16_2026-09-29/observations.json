@@ -1,0 +1,180 @@
+{
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "samples": {
+    "old": [
+      {
+        "wall_ms": 937.9804999916814,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 908.376,
+            "checksum": 12800
+          }
+        }
+      },
+      {
+        "wall_ms": 892.2686000005342,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 865.815,
+            "checksum": 12800
+          }
+        }
+      },
+      {
+        "wall_ms": 892.9232999798842,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 869.84,
+            "checksum": 12800
+          }
+        }
+      },
+      {
+        "wall_ms": 882.5305000063963,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 859.763,
+            "checksum": 12800
+          }
+        }
+      },
+      {
+        "wall_ms": 867.6021000137553,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 844.889,
+            "checksum": 12800
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "wall_ms": 849.1674999822862,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 820.574,
+            "checksum": 12800
+          }
+        }
+      },
+      {
+        "wall_ms": 900.0363000086509,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 872.812,
+            "checksum": 12800
+          }
+        }
+      },
+      {
+        "wall_ms": 872.9855000274256,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 848.271,
+            "checksum": 12800
+          }
+        }
+      },
+      {
+        "wall_ms": 872.7904999977909,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 850.38,
+            "checksum": 12800
+          }
+        }
+      },
+      {
+        "wall_ms": 892.3156999517232,
+        "cases": {
+          "file_stream_rw": {
+            "ms": 866.279,
+            "checksum": 12800
+          }
+        }
+      }
+    ]
+  },
+  "medians_ms": {
+    "old": {
+      "file_stream_rw": 865.815
+    },
+    "new": {
+      "file_stream_rw": 850.38
+    }
+  },
+  "checksums": {
+    "old": {
+      "file_stream_rw": 12800
+    },
+    "new": {
+      "file_stream_rw": 12800
+    }
+  },
+  "sha256": {
+    "tx_build\\performance_15_16\\file_io\\old\\file_io.exe": "069bcd9da10b25faf67467c4b16a4d37b435735e0e3728c7ee9e7e8855afc36e",
+    "tx_build\\performance_15_16\\file_io\\new\\file_io.exe": "8e3f29a48ea74a3ec9a42452d5eb43fae731d8b48dec1c5b1cc50179b2fdbbc5"
+  },
+  "source_sha256": "6267f408cdcda055661e554dd8a8a6827b88ed002f42c9ab5a0609b7b9293671",
+  "memory_sampling_ms": 2,
+  "memory_samples": {
+    "old": [
+      {
+        "sampled_peak_working_set": 9613312,
+        "sampled_peak_commit": 2514944,
+        "output_lines": 30
+      },
+      {
+        "sampled_peak_working_set": 9609216,
+        "sampled_peak_commit": 2510848,
+        "output_lines": 30
+      },
+      {
+        "sampled_peak_working_set": 9613312,
+        "sampled_peak_commit": 2510848,
+        "output_lines": 30
+      }
+    ],
+    "new": [
+      {
+        "sampled_peak_working_set": 9613312,
+        "sampled_peak_commit": 2519040,
+        "output_lines": 30
+      },
+      {
+        "sampled_peak_working_set": 9605120,
+        "sampled_peak_commit": 2510848,
+        "output_lines": 30
+      },
+      {
+        "sampled_peak_working_set": 9605120,
+        "sampled_peak_commit": 2510848,
+        "output_lines": 30
+      }
+    ]
+  }
+}

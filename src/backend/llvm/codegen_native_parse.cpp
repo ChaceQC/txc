@@ -114,6 +114,7 @@ bool llvm_code_generator::emit_native_parse_declaration(
     const auto& type = declaration.initializer->type;
     const auto& scalar_type = structs_.at(type.name)->fields.at(1).type;
     variable_slot variable{type, allocate(type, item.position)};
+    variable.parse_declaration = &declaration;
     variable.native_parse_ok = allocate(value_type::bool_type, item.position);
     variable.native_parse_value = allocate(scalar_type, item.position);
     variable.native_parse_error = allocate(value_type::int_type, item.position);
@@ -127,7 +128,7 @@ bool llvm_code_generator::emit_native_parse_declaration(
     const bool integer = scalar_type == value_type::int_type;
     const auto status = temporary();
     write_instruction(status + " = call i32 @txrt_parse_" +
-        std::string(integer ? "int" : "float") + "_scalar(ptr " + arguments[0].text +
+        std::string(integer ? "int" : "float") + "_scalar_context(ptr %tx_context, ptr " + arguments[0].text +
         (integer ? ", i64 " + (arguments.size() == 2 ? arguments[1].text : "10") : "") +
         ", ptr " + variable.native_parse_ok + ", ptr " + variable.native_parse_value +
         ", ptr " + variable.native_parse_error + ")");

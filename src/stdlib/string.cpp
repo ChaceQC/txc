@@ -1,4 +1,5 @@
 #include "stdlib/stdlib.hpp"
+#include "common/utf8.hpp"
 
 #include <limits>
 #include <stdexcept>
@@ -66,17 +67,25 @@ bool is_ascii_space(char value)
 
 tx_int tx_len(std::string_view text)
 {
-    tx_int count = 0;
-    for (std::size_t offset = 0; offset < text.size();)
+    if (text.size() < 32)
     {
-        offset = next_utf8(text, offset);
-        if (count == std::numeric_limits<tx_int>::max())
+        tx_int count = 0;
+        for (std::size_t offset = 0; offset < text.size(); ++count)
         {
-            throw std::overflow_error("字符串长度超出 int 范围");
+            offset = next_utf8(text, offset);
         }
-        ++count;
+        return count;
     }
-    return count;
+    const auto scanned = tx::scan_utf8(text);
+    if (!scanned.valid)
+    {
+        throw std::runtime_error("字符串包含无效 UTF-8");
+    }
+    if (scanned.length > static_cast<std::size_t>(std::numeric_limits<tx_int>::max()))
+    {
+        throw std::overflow_error("字符串长度超出 int 范围");
+    }
+    return static_cast<tx_int>(scanned.length);
 }
 
 tx_int tx_len(const std::string& text)

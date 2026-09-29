@@ -15,6 +15,31 @@ struct output_field
     const serde_type* type;
 };
 
+void write_known_field(serde_writer& writer, const dynamic_struct& input,
+    const serde_schema& schema, const serde_field& field, serde_depth depth)
+{
+    if (schema.layout && input->fixed.type == schema.layout)
+    {
+        if (field.type.codec->encode_slot)
+        {
+            field.type.codec->encode_slot(writer, input->view.data[field.index], field.type, depth);
+        }
+        else
+        {
+            // 引用字段借用对象内的 any，不复制字符串、容器或对象引用。
+            field.type.codec->encode(writer, input->reference_field(field.index), field.type, depth);
+        }
+    }
+    else if (!input->fixed.type)
+    {
+        field.type.codec->encode(writer, input->fields[field.index].value, field.type, depth);
+    }
+    else
+    {
+        field.type.codec->encode(writer, input->read_field(field.index), field.type, depth);
+    }
+}
+
 const tx_dict* unknown_fields(const dynamic_struct& value, const serde_schema& schema)
 {
     if (schema.unknown_index < 0)
@@ -117,7 +142,12 @@ void serde_write_struct(serde_writer& writer, const std::any& value,
     {
         serde_encode_error("type_mismatch", "serde 结构体实际类型与 schema 不一致");
     }
-    serde_cycle_guard guard(writer.active, input->identity());
+    std::optional<serde_cycle_guard> guard;
+    // 与对象 GC 扫描描述一致：纯标量/文本/值序列没有向外对象边，不可能形成环。
+    if (!schema.layout || (*input)->fixed.type != schema.layout || schema.layout->scan_count != 0)
+    {
+        guard.emplace(writer.active, input->identity());
+    }
     const auto* unknown = unknown_fields(*input, schema);
     if (unknown && unknown->size() != 0)
     {
@@ -134,7 +164,7 @@ void serde_write_struct(serde_writer& writer, const std::any& value,
         const auto& field = schema.field_data[order[index]];
         writer.separator(index + 1);
         writer.key(field.name, field.number);
-        field.type.codec->encode(writer, (*input)->read_field(field.index), field.type, depth.child());
+        write_known_field(writer, *input, schema, field, depth.child());
     }
     writer.end(true);
 }

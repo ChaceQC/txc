@@ -36,6 +36,7 @@ void llvm_code_generator::emit_declaration(
         return;
     }
     if (emit_native_parse_declaration(item, declaration) ||
+        emit_parse_error_declaration(item, declaration) ||
         emit_native_option_declaration(item, declaration))
     {
         return;
@@ -379,6 +380,7 @@ void llvm_code_generator::emit_statement(const statement& item)
             std::get_if<variable_declaration>(&item.data))
     {
         const auto slot = find_variable(declaration->name, item.position);
+        local_scalar_only = !slot.readonly_parse_error.empty();
         if (slot.local_array_length)
         {
             const auto* literal = declaration->initializer

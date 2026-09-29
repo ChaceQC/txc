@@ -31,6 +31,14 @@ struct scalar_parse_result
 };
 
 [[nodiscard]] error_info materialize_parse_error(parse_error error);
+struct parse_error_text
+{
+    std::string_view kind;
+    std::string_view code;
+    std::string_view message;
+};
+
+[[nodiscard]] parse_error_text parse_error_text_of(parse_error error) noexcept;
 [[nodiscard]] scalar_parse_result<std::int64_t> parse_int_scalar(
     std::string_view text, std::int64_t base = 10) noexcept;
 [[nodiscard]] scalar_parse_result<double> parse_float_scalar(std::string_view text) noexcept;

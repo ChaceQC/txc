@@ -38,7 +38,7 @@ def main():
     local = re.search(r"define[^\n]*@tx_fn_m0_local_ok_0\([^\n]*\).*?\n}", ir, re.S)
     assert local, "local_ok function missing"
     calls = sorted(set(re.findall(r"call[^\n]*?@(\w+)\(", local.group())))
-    assert "txrt_parse_int_scalar" in calls, calls
+    assert "txrt_parse_int_scalar_context" in calls, calls
     forbidden = [name for name in calls if any(token in name for token in
         ["parse_materialize", "parse_try_parse", "str_clone", "gc_safepoint", "struct_", "value_clone", "value_release"])]
     assert not forbidden, forbidden

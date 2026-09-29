@@ -165,7 +165,9 @@ void llvm_code_generator::emit_record_metadata(const value_type& type)
              << ", i64 " << (is_class ? virtual_slot_count_ : 0) << ", ptr "
              << (destructors ? "@tx_class_destructors_" + type.name : "null")
              << ", i64 " << destructors << ", ptr " << symbol << ".scan, i64 " << scans.size()
-             << ", ptr " << kind_data << " }\n";
+             << ", ptr " << kind_data << ", ptr "
+             << (is_class && virtual_slot_count_ ? "@tx_class_view_vtable_" + type.name : "null")
+             << " }\n";
 }
 
 } // namespace tx

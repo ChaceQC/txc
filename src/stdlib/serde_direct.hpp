@@ -51,13 +51,19 @@ struct serde_sequence
     std::string previous_key;
 };
 
+struct serde_key
+{
+    std::string name;
+    std::int64_t number = 0;
+};
+
 class serde_reader
 {
 public:
     serde_reader(serde_format format, std::string_view input);
     serde_sequence begin(bool object, serde_depth depth);
     bool next(serde_sequence& sequence);
-    std::any key(serde_sequence& sequence, std::size_t depth);
+    serde_key key(serde_sequence& sequence, std::size_t depth);
     std::any scalar(std::size_t depth);
     bool take_null();
     void skip(std::size_t depth);
@@ -73,6 +79,7 @@ struct serde_codec
 {
     void (*encode)(serde_writer&, const std::any&, const serde_type&, serde_depth);
     std::any (*decode)(serde_reader&, const serde_type&, serde_depth);
+    void (*encode_slot)(serde_writer&, const typed_slot&, const serde_type&, serde_depth) = nullptr;
 };
 
 void serde_write_struct(serde_writer& writer, const std::any& value,

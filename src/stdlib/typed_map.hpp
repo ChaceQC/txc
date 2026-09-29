@@ -49,7 +49,7 @@ struct map_storage final : container_model<map_storage<key_type, value_type>>,
     [[nodiscard]] value_type read(const key_type& key) const
     {
         require_ordered_key(key);
-        const auto found = values.find(key);
+        const auto found = find_key(key);
         if (found == values.end())
         {
             throw std::out_of_range("map 键不存在");
@@ -60,8 +60,19 @@ struct map_storage final : container_model<map_storage<key_type, value_type>>,
     [[nodiscard]] value_type get(const key_type& key, const value_type& fallback) const
     {
         require_ordered_key(key);
-        const auto found = values.find(key);
+        const auto found = find_key(key);
         return found == values.end() ? fallback : found->second;
+    }
+
+    [[nodiscard]] auto find_key(const key_type& key) const
+    {
+        // 唯一键直接决定命中与缺失，无需计算桶号；不保留跨修改的槽位。
+        if (values.size() == 1)
+        {
+            const auto item = values.begin();
+            return scalar_equal<key_type>{}(item->first, key) ? item : values.end();
+        }
+        return values.find(key);
     }
 
     template<bool keys>

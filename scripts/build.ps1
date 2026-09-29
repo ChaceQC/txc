@@ -131,6 +131,9 @@ Copy-Item -LiteralPath (Join-Path $build_dir '_deps/msquic_binary-src/build/nati
 $compiler_path = Join-Path $tool_dir 'txc.exe'
 $library_path = Join-Path $tool_dir 'libtxstdlib.a'
 $interface_dir = Join-Path $tool_dir 'stdlib'
+# 每轮从 CMake 的原始库开始；不能把上轮已合并依赖的发布库再次合并。
+Copy-Item -LiteralPath (Join-Path $build_dir 'libtxstdlib.a') `
+    -Destination $library_path -Force
 foreach ($module in @('httpx_bridge', 'websocket_bridge', 'requests_bridge'))
 {
     $source = Join-Path $project_root "src/stdlib/$module.tx"

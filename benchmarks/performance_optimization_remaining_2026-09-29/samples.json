@@ -1,0 +1,1966 @@
+{
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "borrowing_old",
+      "borrowing_new",
+      "diverse_old",
+      "diverse_new",
+      "paths_old",
+      "paths_new",
+      "parse_old",
+      "parse_new"
+    ],
+    [
+      "parse_new",
+      "parse_old",
+      "paths_new",
+      "paths_old",
+      "diverse_new",
+      "diverse_old",
+      "borrowing_new",
+      "borrowing_old"
+    ],
+    [
+      "borrowing_old",
+      "borrowing_new",
+      "diverse_old",
+      "diverse_new",
+      "paths_old",
+      "paths_new",
+      "parse_old",
+      "parse_new"
+    ],
+    [
+      "parse_new",
+      "parse_old",
+      "paths_new",
+      "paths_old",
+      "diverse_new",
+      "diverse_old",
+      "borrowing_new",
+      "borrowing_old"
+    ],
+    [
+      "borrowing_old",
+      "borrowing_new",
+      "diverse_old",
+      "diverse_new",
+      "paths_old",
+      "paths_new",
+      "parse_old",
+      "parse_new"
+    ]
+  ],
+  "samples": {
+    "borrowing_old": [
+      {
+        "wall_ms": 55.692599969916046,
+        "cases": {
+          "dictionary": {
+            "ms": 6.795,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 5.845,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.087,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.639,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 7.136,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 46.87220003688708,
+        "cases": {
+          "dictionary": {
+            "ms": 3.65,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.575,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.607,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 2.02,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.068,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 43.100800015963614,
+        "cases": {
+          "dictionary": {
+            "ms": 3.682,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.322,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.268,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.743,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.062,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 41.74999997485429,
+        "cases": {
+          "dictionary": {
+            "ms": 3.827,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.315,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.909,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.58,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.279,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 43.32619998604059,
+        "cases": {
+          "dictionary": {
+            "ms": 3.774,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.328,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.899,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.64,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.308,
+            "checksum": 0
+          }
+        }
+      }
+    ],
+    "borrowing_new": [
+      {
+        "wall_ms": 55.4701000219211,
+        "cases": {
+          "dictionary": {
+            "ms": 3.846,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.618,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.793,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 2.687,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 7.266,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 50.05869996966794,
+        "cases": {
+          "dictionary": {
+            "ms": 3.779,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.835,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.023,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 2.184,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 4.979,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 49.21650001779199,
+        "cases": {
+          "dictionary": {
+            "ms": 3.826,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.217,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.238,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 2.05,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.97,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 45.15510000055656,
+        "cases": {
+          "dictionary": {
+            "ms": 4.2,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.598,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.409,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.868,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 4.956,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 42.20080003142357,
+        "cases": {
+          "dictionary": {
+            "ms": 3.73,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.697,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.896,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.557,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 4.97,
+            "checksum": 0
+          }
+        }
+      }
+    ],
+    "diverse_old": [
+      {
+        "wall_ms": 224.47379998629913,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.761,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 5.855,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.52,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.538,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 3.498,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 5.697,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 4.591,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 2.29,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 28.655,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.953,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 9.89,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 11.384,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 19.688,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 25.963,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 12.105,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 39.01,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 3.647,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 3.891,
+            "checksum": 100000
+          }
+        }
+      },
+      {
+        "wall_ms": 150.15800000401214,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.383,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 4.021,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.3,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.309,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.054,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 2.359,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 2.391,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 1.2,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 17.041,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.9,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 6.23,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 6.137,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 14.702,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 15.179,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 11.037,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 29.279,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 3.317,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 3.31,
+            "checksum": 100000
+          }
+        }
+      },
+      {
+        "wall_ms": 150.43510001851246,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.381,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 4.775,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.298,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.312,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.017,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 2.289,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 2.791,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 1.181,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 18.074,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.901,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 5.68,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 5.73,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 13.355,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 14.506,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 10.435,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 28.679,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 3.1,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 3.078,
+            "checksum": 100000
+          }
+        }
+      },
+      {
+        "wall_ms": 154.58679996663705,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.384,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 3.543,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.297,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.358,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.042,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 2.413,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 2.356,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 1.187,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 17.754,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.894,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 5.732,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 5.866,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 18.742,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 15.355,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 12.461,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 28.603,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 3.266,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 3.281,
+            "checksum": 100000
+          }
+        }
+      },
+      {
+        "wall_ms": 150.51910001784563,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.387,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 3.853,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.303,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.334,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.03,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 2.413,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 2.474,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 1.172,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 17.238,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.936,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 7.92,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 10.474,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 14.414,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 14.832,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 10.672,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 27.052,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 3.165,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 3.19,
+            "checksum": 100000
+          }
+        }
+      }
+    ],
+    "diverse_new": [
+      {
+        "wall_ms": 165.1564000057988,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.576,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 6.454,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.318,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.322,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.611,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 3.152,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 3.558,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 1.269,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 18.277,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.942,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 6.2,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 5.575,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 15.326,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 16.177,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 11.447,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 31.192,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 1.024,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 1.001,
+            "checksum": 100000
+          }
+        }
+      },
+      {
+        "wall_ms": 143.51850003004074,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.374,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 4.158,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.315,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.295,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.224,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 2.681,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 2.392,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 1.198,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 17.628,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.897,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 5.323,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 5.444,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 14.976,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 16.887,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 11.533,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 28.352,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 0.954,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 0.966,
+            "checksum": 100000
+          }
+        }
+      },
+      {
+        "wall_ms": 150.8386000059545,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.384,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 3.739,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.427,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.297,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.38,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 3.126,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 2.424,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 1.204,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 17.165,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.913,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 5.467,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 5.689,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 15.727,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 16.113,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 14.413,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 29.525,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 0.972,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 0.987,
+            "checksum": 100000
+          }
+        }
+      },
+      {
+        "wall_ms": 153.351399989333,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.384,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 3.703,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.307,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.303,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.319,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 2.861,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 5.301,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 2.291,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 21.862,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.96,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 6.592,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 5.725,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 14.624,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 14.598,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 10.84,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 29.725,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 0.978,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 0.955,
+            "checksum": 100000
+          }
+        }
+      },
+      {
+        "wall_ms": 139.41119995433837,
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.385,
+            "checksum": 3000000
+          },
+          "vector_scan_100k": {
+            "ms": 3.911,
+            "checksum": 30000000
+          },
+          "vector_index_sequential": {
+            "ms": 0.294,
+            "checksum": 47857475
+          },
+          "vector_index_strided": {
+            "ms": 0.292,
+            "checksum": 47857965
+          },
+          "map_hit_128": {
+            "ms": 2.238,
+            "checksum": 31748464
+          },
+          "map_hit_8192": {
+            "ms": 3.167,
+            "checksum": 2047690384
+          },
+          "map_hit_10_percent": {
+            "ms": 2.493,
+            "checksum": 50000
+          },
+          "dictionary_int_hit": {
+            "ms": 1.196,
+            "checksum": 200000
+          },
+          "dictionary_text_hit": {
+            "ms": 16.97,
+            "checksum": 200000
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.923,
+            "checksum": 1
+          },
+          "format_literal": {
+            "ms": 5.384,
+            "checksum": 488890
+          },
+          "format_dynamic": {
+            "ms": 5.564,
+            "checksum": 488890
+          },
+          "encoding_literal": {
+            "ms": 13.742,
+            "checksum": 900000
+          },
+          "encoding_dynamic": {
+            "ms": 15.323,
+            "checksum": 900000
+          },
+          "serde_short_text": {
+            "ms": 10.269,
+            "checksum": 40000
+          },
+          "serde_long_text": {
+            "ms": 28.071,
+            "checksum": 655000
+          },
+          "parse_valid": {
+            "ms": 0.96,
+            "checksum": 100000
+          },
+          "parse_invalid": {
+            "ms": 0.952,
+            "checksum": 100000
+          }
+        }
+      }
+    ],
+    "paths_old": [
+      {
+        "wall_ms": 220.58570000808686,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 16.268,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 41.066,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 23.306,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 6.727,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.561,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 11.901,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 4.038,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 7.213,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.737,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 41.785,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 181.1337000108324,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 14.681,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 20.95,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 10.811,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 6.624,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.905,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 12.407,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 4.093,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 7.314,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.434,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.4,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 218.65999995497987,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 16.252,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 24.469,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 13.2,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 9.199,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 37.785,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 12.327,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 4.212,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 7.255,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 10.152,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.77,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 185.16920000547543,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 15.309,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 24.442,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 10.898,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 7.167,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.939,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 11.853,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.996,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 7.159,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.178,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.701,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 200.63109998591244,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 14.671,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 20.432,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 10.502,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 6.538,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.417,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 12.692,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 4.181,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 7.679,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.221,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 58.338,
+            "checksum": 6300
+          }
+        }
+      }
+    ],
+    "paths_new": [
+      {
+        "wall_ms": 177.43739997968078,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 18.441,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 20.839,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 8.682,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 6.681,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.846,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 9.98,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 1.937,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 3.626,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.316,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.504,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 175.17830000724643,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 18.094,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 20.783,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 8.541,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 6.644,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.418,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.085,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 1.987,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 3.658,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.33,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.247,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 188.86059999931604,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 18.098,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 21.085,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 8.696,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 6.633,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 20.412,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.587,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 2.014,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 4.027,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 8.839,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 39.571,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 173.87120000785217,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 18.981,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 20.5,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 8.307,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 6.501,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.14,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 11.062,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 2.178,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 3.748,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.832,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 39.467,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 183.4722000057809,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 18.606,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 22.115,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 8.605,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 6.942,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.677,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.591,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 2.054,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 3.62,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.137,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 46.456,
+            "checksum": 6300
+          }
+        }
+      }
+    ],
+    "parse_old": [
+      {
+        "wall_ms": 382.1449000388384,
+        "cases": {
+          "local_valid": {
+            "ms": 2.017,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 2.075,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 161.683,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 179.111,
+            "checksum": 4100000
+          }
+        }
+      },
+      {
+        "wall_ms": 358.632999996189,
+        "cases": {
+          "local_valid": {
+            "ms": 1.95,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 2.028,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 156.487,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 176.459,
+            "checksum": 4100000
+          }
+        }
+      },
+      {
+        "wall_ms": 363.35739999776706,
+        "cases": {
+          "local_valid": {
+            "ms": 2.011,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 2.132,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 157.634,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 178.046,
+            "checksum": 4100000
+          }
+        }
+      },
+      {
+        "wall_ms": 358.28939999919385,
+        "cases": {
+          "local_valid": {
+            "ms": 1.947,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 2.091,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 154.611,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 178.471,
+            "checksum": 4100000
+          }
+        }
+      },
+      {
+        "wall_ms": 371.9361000112258,
+        "cases": {
+          "local_valid": {
+            "ms": 2.037,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 2.077,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 161.284,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 183.2,
+            "checksum": 4100000
+          }
+        }
+      }
+    ],
+    "parse_new": [
+      {
+        "wall_ms": 371.33779999567196,
+        "cases": {
+          "local_valid": {
+            "ms": 0.976,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 0.91,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 162.135,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 182.913,
+            "checksum": 4100000
+          }
+        }
+      },
+      {
+        "wall_ms": 367.451699974481,
+        "cases": {
+          "local_valid": {
+            "ms": 1.195,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 0.928,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 163.942,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 178.191,
+            "checksum": 4100000
+          }
+        }
+      },
+      {
+        "wall_ms": 366.2481000064872,
+        "cases": {
+          "local_valid": {
+            "ms": 0.963,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 0.905,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 160.008,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 179.661,
+            "checksum": 4100000
+          }
+        }
+      },
+      {
+        "wall_ms": 356.2205000198446,
+        "cases": {
+          "local_valid": {
+            "ms": 0.956,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 0.908,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 152.226,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 179.952,
+            "checksum": 4100000
+          }
+        }
+      },
+      {
+        "wall_ms": 376.1882000253536,
+        "cases": {
+          "local_valid": {
+            "ms": 0.958,
+            "checksum": 100000
+          },
+          "local_invalid": {
+            "ms": 0.917,
+            "checksum": 0
+          },
+          "full_valid": {
+            "ms": 160.066,
+            "checksum": 100000
+          },
+          "full_invalid": {
+            "ms": 176.718,
+            "checksum": 4100000
+          }
+        }
+      }
+    ]
+  },
+  "checksums": {
+    "borrowing_old": {
+      "dictionary": 1000000,
+      "map": 3000000,
+      "set": 1000000,
+      "queue": 5000050000,
+      "cancel": 0
+    },
+    "borrowing_new": {
+      "dictionary": 1000000,
+      "map": 3000000,
+      "set": 1000000,
+      "queue": 5000050000,
+      "cancel": 0
+    },
+    "diverse_old": {
+      "vector_scan_1k": 3000000,
+      "vector_scan_100k": 30000000,
+      "vector_index_sequential": 47857475,
+      "vector_index_strided": 47857965,
+      "map_hit_128": 31748464,
+      "map_hit_8192": 2047690384,
+      "map_hit_10_percent": 50000,
+      "dictionary_int_hit": 200000,
+      "dictionary_text_hit": 200000,
+      "dictionary_mostly_miss": 1,
+      "format_literal": 488890,
+      "format_dynamic": 488890,
+      "encoding_literal": 900000,
+      "encoding_dynamic": 900000,
+      "serde_short_text": 40000,
+      "serde_long_text": 655000,
+      "parse_valid": 100000,
+      "parse_invalid": 100000
+    },
+    "diverse_new": {
+      "vector_scan_1k": 3000000,
+      "vector_scan_100k": 30000000,
+      "vector_index_sequential": 47857475,
+      "vector_index_strided": 47857965,
+      "map_hit_128": 31748464,
+      "map_hit_8192": 2047690384,
+      "map_hit_10_percent": 50000,
+      "dictionary_int_hit": 200000,
+      "dictionary_text_hit": 200000,
+      "dictionary_mostly_miss": 1,
+      "format_literal": 488890,
+      "format_dynamic": 488890,
+      "encoding_literal": 900000,
+      "encoding_dynamic": 900000,
+      "serde_short_text": 40000,
+      "serde_long_text": 655000,
+      "parse_valid": 100000,
+      "parse_invalid": 100000
+    },
+    "paths_old": {
+      "hex_encode_short": 3200000,
+      "hex_decode_short": 1600000,
+      "hex_encode_large": 13107200,
+      "hex_decode_large": 6553600,
+      "utf8_encode_short": 1000000,
+      "utf8_decode_short": 300000,
+      "utf8_encode_large": 5120000,
+      "utf8_decode_large": 1536000,
+      "mean_short": 630000,
+      "mean_large": 6300
+    },
+    "paths_new": {
+      "hex_encode_short": 3200000,
+      "hex_decode_short": 1600000,
+      "hex_encode_large": 13107200,
+      "hex_decode_large": 6553600,
+      "utf8_encode_short": 1000000,
+      "utf8_decode_short": 300000,
+      "utf8_encode_large": 5120000,
+      "utf8_decode_large": 1536000,
+      "mean_short": 630000,
+      "mean_large": 6300
+    },
+    "parse_old": {
+      "local_valid": 100000,
+      "local_invalid": 0,
+      "full_valid": 100000,
+      "full_invalid": 4100000
+    },
+    "parse_new": {
+      "local_valid": 100000,
+      "local_invalid": 0,
+      "full_valid": 100000,
+      "full_invalid": 4100000
+    }
+  },
+  "medians_ms": {
+    "borrowing_old": {
+      "dictionary": 3.774,
+      "map": 4.328,
+      "set": 3.087,
+      "queue": 1.64,
+      "cancel": 5.279
+    },
+    "borrowing_new": {
+      "dictionary": 3.826,
+      "map": 3.697,
+      "set": 3.238,
+      "queue": 2.05,
+      "cancel": 4.979
+    },
+    "diverse_old": {
+      "vector_scan_1k": 0.384,
+      "vector_scan_100k": 4.021,
+      "vector_index_sequential": 0.3,
+      "vector_index_strided": 0.334,
+      "map_hit_128": 2.042,
+      "map_hit_8192": 2.413,
+      "map_hit_10_percent": 2.474,
+      "dictionary_int_hit": 1.187,
+      "dictionary_text_hit": 17.754,
+      "dictionary_mostly_miss": 0.901,
+      "format_literal": 6.23,
+      "format_dynamic": 6.137,
+      "encoding_literal": 14.702,
+      "encoding_dynamic": 15.179,
+      "serde_short_text": 11.037,
+      "serde_long_text": 28.679,
+      "parse_valid": 3.266,
+      "parse_invalid": 3.281
+    },
+    "diverse_new": {
+      "vector_scan_1k": 0.384,
+      "vector_scan_100k": 3.911,
+      "vector_index_sequential": 0.315,
+      "vector_index_strided": 0.297,
+      "map_hit_128": 2.319,
+      "map_hit_8192": 3.126,
+      "map_hit_10_percent": 2.493,
+      "dictionary_int_hit": 1.204,
+      "dictionary_text_hit": 17.628,
+      "dictionary_mostly_miss": 0.923,
+      "format_literal": 5.467,
+      "format_dynamic": 5.575,
+      "encoding_literal": 14.976,
+      "encoding_dynamic": 16.113,
+      "serde_short_text": 11.447,
+      "serde_long_text": 29.525,
+      "parse_valid": 0.972,
+      "parse_invalid": 0.966
+    },
+    "paths_old": {
+      "hex_encode_short": 15.309,
+      "hex_decode_short": 24.442,
+      "hex_encode_large": 10.898,
+      "hex_decode_large": 6.727,
+      "utf8_encode_short": 19.905,
+      "utf8_decode_short": 12.327,
+      "utf8_encode_large": 4.093,
+      "utf8_decode_large": 7.255,
+      "mean_short": 9.434,
+      "mean_large": 40.77
+    },
+    "paths_new": {
+      "hex_encode_short": 18.441,
+      "hex_decode_short": 20.839,
+      "hex_encode_large": 8.605,
+      "hex_decode_large": 6.644,
+      "utf8_encode_short": 19.677,
+      "utf8_decode_short": 10.587,
+      "utf8_encode_large": 2.014,
+      "utf8_decode_large": 3.658,
+      "mean_short": 9.316,
+      "mean_large": 40.247
+    },
+    "parse_old": {
+      "local_valid": 2.011,
+      "local_invalid": 2.077,
+      "full_valid": 157.634,
+      "full_invalid": 178.471
+    },
+    "parse_new": {
+      "local_valid": 0.963,
+      "local_invalid": 0.91,
+      "full_valid": 160.066,
+      "full_invalid": 179.661
+    }
+  },
+  "compile_wall_ms": {
+    "borrowing": 1438.6194000253454,
+    "diverse": 871.8993000220507,
+    "paths": 731.8474000203423,
+    "parse": 697.8506000014022
+  },
+  "sha256": {
+    "tx_build\\performance_remaining\\baseline\\borrowing.exe": "c8e772166efb613760561cb59035ff2b32c776fe10d0e667a8a075a19383cfbe",
+    "tx_build\\performance_remaining\\candidate\\borrowing.exe": "c13d621af172d9a87474e3df7d6d654ae438f00d01d91e69bc36bb20a3daeec9",
+    "tx_build\\performance_remaining\\baseline\\diverse.exe": "80d8165130a5ef5769f2d8d80548d20ad501bdbdab0e49c6170a1eb44eb8d76e",
+    "tx_build\\performance_remaining\\candidate\\diverse.exe": "da80a825bfff87636bdca0faa2b177b1a05d154a0128b0b2ba20fb85d3891561",
+    "tx_build\\performance_remaining\\baseline\\paths.exe": "7da3e2adb71a12b03dcb76beecf6d4272df86f80267ddd9d3bb9707a784d5be7",
+    "tx_build\\performance_remaining\\candidate\\paths.exe": "d97df4147758592261dad07ce46bf551ea2280ca13e01ac7d9b961f91b78f7c8",
+    "tx_build\\performance_remaining\\baseline\\parse.exe": "87a549b0d68a5387b71ac1923afbd3548c084213d491f5e4bee7c0e055b34c8d",
+    "tx_build\\performance_remaining\\candidate\\parse.exe": "f5e1f8e9a8ed37f2d077f710bef92f85816b4b8aedcd93c03c19d817c92cf1b2",
+    "tx\\txc.exe": "91ba310f726f662e243927591754cfc29fadc2d9b8961c3a4cb78cab15d85a5c",
+    "tx\\libtxstdlib.a": "0ae149e23a5ac83b227c327f51126d431a296bd540a1e5138846b81e63c557e8",
+    "tx\\package.compat": "d0c4400d159038bd728f305762101e022b453cd5479b900f4614e94549eab35d",
+    "tx_build\\performance_remaining\\candidate\\libgcc_s_seh-1.dll": "d7e343dd266747177c3699bc3201ea36eceef158e98530e089263bc55bb2a6d7",
+    "tx_build\\performance_remaining\\candidate\\libicudt78.dll": "60255653982986c9fb72ad1b10b8dc502e498d890e0218cb0a47bc5907aa4e43",
+    "tx_build\\performance_remaining\\candidate\\libicuin78.dll": "1925ba8b617ffbaf986dc6f5edc2d0952b0d48a9b710e1047809abd6a9846af3",
+    "tx_build\\performance_remaining\\candidate\\libicuuc78.dll": "be4fc632a5fca5dc4a6fa8726084d63f45b7561b078d00bf107bffc30d336fb7",
+    "tx_build\\performance_remaining\\candidate\\libstdc++-6.dll": "47559ac91bda181bd21e8e1af352eb87703248277d55fdc8da8f20464fcca5e7",
+    "tx_build\\performance_remaining\\candidate\\libstdc++-u.dll": "5df0dba7064c43343ff33d2a02bbcbdfc1e035bc9d91024ec003c6d5a3054aa2",
+    "tx_build\\performance_remaining\\candidate\\libwinpthread-1.dll": "08168351ae29d6d5825e4c3c64176bf1ec4a3724e5b87a4e3596f24c20455ab2",
+    "tx_build\\performance_remaining\\candidate\\libwinpthread-u.dll": "72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0",
+    "tx_build\\performance_remaining\\candidate\\msquic.dll": "e1544c8e8586411f70fadbc808d6b4dd020b027820792d78c187e36460e23bc9"
+  }
+}

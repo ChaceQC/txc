@@ -1,0 +1,67 @@
+import "format.txh" as fmt
+import "test.txh" as test
+import "error.txh" as errors
+
+struct holder
+{
+    text: str
+}
+
+def change(value: holder) -> int
+{
+    value.text = "new"
+    return 7
+}
+
+def positional(template: str, text: str, number: int, real: float, flag: bool) -> str
+{
+    return fmt.format(template, text, number, real, flag)
+}
+
+def named(template: str) -> str
+{
+    return fmt.format(template, 9, x="甲")
+}
+
+def changed(template: str, value: holder) -> str
+{
+    return fmt.format(template, value.text, change(value))
+}
+
+def invalid(template: str, value: str) -> str
+{
+    return fmt.format(template, value)
+}
+
+def main() -> int
+{
+    for repetition in 0..=1
+    {
+        test.assert_equal("甲|+0017|1.25|true", positional("{}|{:+05d}|{:.2f}|{}", "甲", 17, 1.25, true))
+        test.assert_equal("甲:甲:9", named("{x}:{x}:{}"))
+        test.assert_equal("old:7", changed("{}:{}", holder("old")))
+        bool caught = false
+        try
+        {
+            invalid("{:d}", "wrong")
+        }
+        exception errors.runtime_error as error
+        {
+            caught = true
+        }
+        test.assert_true(caught)
+        caught = false
+        try
+        {
+            invalid("{} {2} {", "one")
+        }
+        exception errors.runtime_error as error
+        {
+            test.assert_equal("format 不能混用自动和手动位置编号", error.message)
+            caught = true
+        }
+        test.assert_true(caught)
+    }
+    print("FORMAT_DYNAMIC_OK")
+    return 0
+}

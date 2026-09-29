@@ -5,6 +5,14 @@
 extern "C"
 {
 
+int txrt_parse_error_field_context(void* context, std::int64_t error,
+    std::int64_t field, void** result) noexcept;
+std::int64_t txrt_parse_error_field_length(std::int64_t error, std::int64_t field) noexcept;
+
+int txrt_parse_int_scalar_context(void* context, const void* text, std::int64_t base,
+    bool* ok, std::int64_t* value, std::int64_t* error) noexcept;
+int txrt_parse_float_scalar_context(void* context, const void* text,
+    bool* ok, double* value, std::int64_t* error) noexcept;
 int txrt_parse_int_scalar(const void* text, std::int64_t base,
     bool* ok, std::int64_t* value, std::int64_t* error) noexcept;
 int txrt_parse_float_scalar(const void* text,

@@ -1,0 +1,15 @@
+{
+  "performance_remaining/behavior": {
+    "output": "REMAINING_BEHAVIOR_OK\n",
+    "source_sha256": "a530eff90eb59226c1272236392a62c0c594ae8b89c556c45cc9870008c79008"
+  },
+  "bytes_file_stream/encodings": {
+    "output": "七种编码的内存转换和增量文本流通过\n",
+    "source_sha256": "d52e4d74826f72f85790508e9dafae5e8885e2fbd64bd2c58a80ac15d5fe0f43"
+  },
+  "performance_15_16/libraries": {
+    "output": "",
+    "source_sha256": "514fb4f310d9573d6e7b453e30fe6790d094134eba4b1e859e5e2fb5a3919953"
+  },
+  "native": "REMAINING_NATIVE_OK\n"
+}

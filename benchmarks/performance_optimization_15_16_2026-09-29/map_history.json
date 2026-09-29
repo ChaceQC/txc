@@ -1,0 +1,469 @@
+{
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "before_02",
+      "after_02",
+      "current"
+    ],
+    [
+      "current",
+      "after_02",
+      "before_02"
+    ],
+    [
+      "before_02",
+      "after_02",
+      "current"
+    ],
+    [
+      "current",
+      "after_02",
+      "before_02"
+    ],
+    [
+      "before_02",
+      "after_02",
+      "current"
+    ]
+  ],
+  "samples": {
+    "before_02": [
+      {
+        "wall_ms": 165.99629999836907,
+        "cases": {
+          "dictionary": {
+            "ms": 40.242,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.467,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 41.237,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 12.377,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 45.191,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 154.81700003147125,
+        "cases": {
+          "dictionary": {
+            "ms": 38.526,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.324,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 37.914,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 12.045,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 40.352,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 160.2454999811016,
+        "cases": {
+          "dictionary": {
+            "ms": 37.514,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.499,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 39.841,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 12.695,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 42.661,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 154.78410001378506,
+        "cases": {
+          "dictionary": {
+            "ms": 36.663,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.194,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 37.509,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 11.961,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 39.737,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 162.69670001929626,
+        "cases": {
+          "dictionary": {
+            "ms": 38.115,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.31,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 43.212,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 13.268,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 42.405,
+            "checksum": 0
+          }
+        }
+      }
+    ],
+    "after_02": [
+      {
+        "wall_ms": 46.081399952527136,
+        "cases": {
+          "dictionary": {
+            "ms": 5.14,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.271,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.973,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.8,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 6.173,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 44.63650000980124,
+        "cases": {
+          "dictionary": {
+            "ms": 5.027,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.744,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 4.303,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.905,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 6.212,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 41.97060002479702,
+        "cases": {
+          "dictionary": {
+            "ms": 4.894,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.86,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 4.143,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.77,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 6.091,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 44.83889997936785,
+        "cases": {
+          "dictionary": {
+            "ms": 5.331,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.896,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 4.065,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.785,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 6.385,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 46.19080002885312,
+        "cases": {
+          "dictionary": {
+            "ms": 5.901,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.773,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 4.003,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.921,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 6.242,
+            "checksum": 0
+          }
+        }
+      }
+    ],
+    "current": [
+      {
+        "wall_ms": 42.390699964016676,
+        "cases": {
+          "dictionary": {
+            "ms": 4.309,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.328,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.802,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.898,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 4.959,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 42.028099996969104,
+        "cases": {
+          "dictionary": {
+            "ms": 3.727,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.241,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.416,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.875,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 4.966,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 40.00210005324334,
+        "cases": {
+          "dictionary": {
+            "ms": 3.556,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.236,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.877,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 2.311,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 4.932,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 41.14599997410551,
+        "cases": {
+          "dictionary": {
+            "ms": 3.811,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.252,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.967,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.827,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.079,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 41.8729999801144,
+        "cases": {
+          "dictionary": {
+            "ms": 3.549,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.256,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.143,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.945,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 4.997,
+            "checksum": 0
+          }
+        }
+      }
+    ]
+  },
+  "medians_ms": {
+    "before_02": {
+      "dictionary": 38.115,
+      "map": 3.467,
+      "set": 39.841,
+      "queue": 12.377,
+      "cancel": 42.405
+    },
+    "after_02": {
+      "dictionary": 5.14,
+      "map": 3.86,
+      "set": 4.065,
+      "queue": 1.8,
+      "cancel": 6.212
+    },
+    "current": {
+      "dictionary": 3.727,
+      "map": 4.252,
+      "set": 2.967,
+      "queue": 1.898,
+      "cancel": 4.966
+    }
+  },
+  "checksums": {
+    "before_02": {
+      "dictionary": 1000000,
+      "map": 3000000,
+      "set": 1000000,
+      "queue": 5000050000,
+      "cancel": 0
+    },
+    "after_02": {
+      "dictionary": 1000000,
+      "map": 3000000,
+      "set": 1000000,
+      "queue": 5000050000,
+      "cancel": 0
+    },
+    "current": {
+      "dictionary": 1000000,
+      "map": 3000000,
+      "set": 1000000,
+      "queue": 5000050000,
+      "cancel": 0
+    }
+  },
+  "sha256": {
+    "tx_build\\performance_15_16\\map_history\\before_02\\call_borrowing_20260929.exe": "4b1fbef79a4ebf4d6b92a7bb615dad0f4279823b96193c8bd03872c8719db577",
+    "tx_build\\performance_15_16\\map_history\\after_02\\call_borrowing_02.exe": "41530dc71586c5219aca7a81862ae3b985a5a2c1c711ed794f2fbda7d340b61b",
+    "tx_build\\performance_15_16\\candidate\\borrowing.exe": "9074b076266479baca3a7b6a62c0a12d466be47291ad8f36b72d615d82635ba2"
+  },
+  "dll_pairing_limit": "Historical DLLs are the preserved stage 01 bundle; initial execution loader paths remain unproven.",
+  "before_02_map_signature": "2a342d28b4edac9363478089126bfd552981ec09b5a7a395d50614f26eda740b",
+  "after_02_map_signature": "2a342d28b4edac9363478089126bfd552981ec09b5a7a395d50614f26eda740b",
+  "current_map_signature": "2a342d28b4edac9363478089126bfd552981ec09b5a7a395d50614f26eda740b"
+}

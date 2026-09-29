@@ -550,6 +550,13 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
         {
             bool borrowed = false;
             const auto& input = *call.arguments.front().value;
+            if (call.name == "len")
+            {
+                if (auto length = emit_parse_error_field(input, true))
+                {
+                    return *length;
+                }
+            }
             if (call.name == "len" && input.type == value_type::array_type)
             {
                 if (const auto* name = std::get_if<name_reference>(&input.data))
@@ -731,6 +738,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
     if (target.external)
     {
         if (auto formatted = emit_static_format(item, call, target))
+        {
+            return *formatted;
+        }
+        if (auto formatted = emit_dynamic_format(item, call, target))
         {
             return *formatted;
         }

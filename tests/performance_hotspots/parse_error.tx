@@ -1,0 +1,37 @@
+import "parse.txh" as parse
+import "error.txh" as errors
+import "test.txh" as test
+
+def inspect(text: str) -> str
+{
+    auto parsed = parse.try_parse_int(text)
+    auto error = parsed.error
+    test.assert_equal(len(error.kind), len(error.kind + ""))
+    test.assert_equal(len(error.code), len(error.code + ""))
+    test.assert_equal(len(error.message), len(error.message + ""))
+    return error.kind + ":" + error.code + ":" + error.message
+}
+
+def alias_changes()
+{
+    auto parsed = parse.try_parse_int("bad")
+    auto error = parsed.error
+    parsed.error.message = "changed"
+    test.assert_equal("changed", error.message)
+    auto second = parsed.error
+    second.code = "alias"
+    test.assert_equal("alias", error.code)
+    parsed.error = errors.error_info("custom", "replacement", "new")
+    test.assert_equal("alias", error.code)
+    test.assert_equal("replacement", parsed.error.code)
+}
+
+def main() -> int
+{
+    test.assert_equal("::", inspect("17"))
+    test.assert_equal("parse_error:invalid_syntax:整数文本含有不属于指定进制的字符", inspect("17x"))
+    test.assert_equal("parse_error:empty_input:整数解析文本不能为空", inspect(""))
+    alias_changes()
+    print("PARSE_ERROR_OK")
+    return 0
+}

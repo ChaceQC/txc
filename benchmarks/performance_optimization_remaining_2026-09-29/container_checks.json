@@ -1,0 +1,14 @@
+{
+  "performance_remaining/behavior": {
+    "output": "REMAINING_BEHAVIOR_OK\n",
+    "source_sha256": "a530eff90eb59226c1272236392a62c0c594ae8b89c556c45cc9870008c79008"
+  },
+  "containers/map_extended": {
+    "output": "4 7\n7 8\n2 3 true false\n2 1\n0 1\n",
+    "source_sha256": "7aafebdb0fcd65dffdbc9b39f704116e3ca7f0bcdca964d25155bdb54068303c"
+  },
+  "containers/behavior": {
+    "output": "maps true\nmap<str,str>{\"中文\": \"内容!\"} set<bool>{false, true} heap<float>(min)[-1.0, 2.5] queue<str>[\"内容!\"]\nfields true\norder true\n",
+    "source_sha256": "a2990c85519ebcef6786d10b7bcc16ab48a6ab7a78f823c36b7d1d0ffbbbe436"
+  }
+}

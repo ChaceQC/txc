@@ -38,7 +38,7 @@ std::string scalar_name()
 }
 
 template<class element_type>
-decltype(auto) scalar_value(const element_type& value)
+decltype(auto) scalar_value(const element_type& value) noexcept
 {
     if constexpr (std::is_same_v<element_type, text_reference>)
     {
@@ -69,7 +69,9 @@ void require_ordered_key(const element_type& value)
 template<class element_type>
 struct scalar_hash
 {
+    // 数字哈希不抛错且计算便宜；文本仍保留标准容器的节点哈希缓存策略。
     std::size_t operator()(const element_type& value) const
+        noexcept(std::is_arithmetic_v<element_type>)
     {
         const auto& scalar = scalar_value(value);
         return std::hash<std::decay_t<decltype(scalar)>>{}(scalar);
@@ -80,6 +82,7 @@ template<class element_type>
 struct scalar_equal
 {
     bool operator()(const element_type& left, const element_type& right) const
+        noexcept(noexcept(scalar_value(left) == scalar_value(right)))
     {
         return scalar_value(left) == scalar_value(right);
     }

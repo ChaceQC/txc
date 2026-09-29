@@ -10,7 +10,7 @@ using tx_generated::detail::invoke_checked;
 using tx_generated::detail::make_handle;
 using tx_generated::detail::make_result_value;
 
-extern "C" int txrt_parse_int_scalar(const void* text, std::int64_t base,
+extern "C" int txrt_parse_int_scalar_context(void* context, const void* text, std::int64_t base,
     bool* ok, std::int64_t* value, std::int64_t* error) noexcept
 {
     return invoke_checked([&]
@@ -20,10 +20,11 @@ extern "C" int txrt_parse_int_scalar(const void* text, std::int64_t base,
         *ok = parsed.error == tx_generated::parse_error::none;
         *value = parsed.value;
         *error = static_cast<std::int64_t>(parsed.error);
-    });
+    }, tx::error_kind::runtime,
+        static_cast<tx_generated::detail::runtime_context*>(context));
 }
 
-extern "C" int txrt_parse_float_scalar(const void* text,
+extern "C" int txrt_parse_float_scalar_context(void* context, const void* text,
     bool* ok, double* value, std::int64_t* error) noexcept
 {
     return invoke_checked([&]
@@ -33,7 +34,20 @@ extern "C" int txrt_parse_float_scalar(const void* text,
         *ok = parsed.error == tx_generated::parse_error::none;
         *value = parsed.value;
         *error = static_cast<std::int64_t>(parsed.error);
-    });
+    }, tx::error_kind::runtime,
+        static_cast<tx_generated::detail::runtime_context*>(context));
+}
+
+extern "C" int txrt_parse_int_scalar(const void* text, std::int64_t base,
+    bool* ok, std::int64_t* value, std::int64_t* error) noexcept
+{
+    return txrt_parse_int_scalar_context(nullptr, text, base, ok, value, error);
+}
+
+extern "C" int txrt_parse_float_scalar(const void* text,
+    bool* ok, double* value, std::int64_t* error) noexcept
+{
+    return txrt_parse_float_scalar_context(nullptr, text, ok, value, error);
 }
 
 namespace

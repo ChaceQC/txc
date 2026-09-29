@@ -1,0 +1,25 @@
+import "bytes.txh" as bytes
+import "encoding.txh" as encoding
+import "file_stream.txh" as streams
+import "time.txh" as time
+
+def main() -> int
+{
+    bytes data = encoding.encode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "utf-8")
+    str path = "tx_build/performance_15_16/file_io.bin"
+    int checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 0..=199
+    {
+        auto output = streams.open_binary(path, "write")
+        streams.write_bytes(output, data)
+        streams.close(output)
+        auto input = streams.open_binary(path, "read")
+        checksum += len(streams.read_all_bytes(input))
+        streams.close(input)
+    }
+    print("file_stream_rw")
+    print(time.monotonic_micros() - started)
+    print(checksum)
+    return 0
+}

@@ -105,6 +105,17 @@ void llvm_code_generator::emit_class_metadata(const class_decl& definition)
         }
     }
     write_ptrs("@tx_class_vtable_" + definition.name, targets);
+    if (static_record_type(value_type(definition.name)))
+    {
+        for (auto& target : targets)
+        {
+            if (target != "null")
+            {
+                target += "_record";
+            }
+        }
+        write_ptrs("@tx_class_view_vtable_" + definition.name, targets);
+    }
     std::vector<std::string> destructors;
     for (auto node = nodes.rbegin(); node != nodes.rend(); ++node)
     {
@@ -221,8 +232,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
     const auto receiver = expression_value_or_borrow(*call.receiver, borrowed);
     const auto& target = *functions_.at(call.name).at(*call.overload_index);
     std::string receiver_view;
-    if (!call.virtual_dispatch && !target.external &&
-        static_record_type(value_type(target.owner_class)))
+    if (!target.external && static_record_type(value_type(target.owner_class)))
     {
         const auto* name = std::get_if<name_reference>(&call.receiver->data);
         const auto cached = name ? find_variable(name->name, item.position).record_view : std::string{};
@@ -269,38 +279,33 @@ llvm_code_generator::ir_value llvm_code_generator::emit_method_call(
         }
         return result;
     }
-    const auto target_address = temporary();
+    std::string target_address;
     if (static_record_type(receiver.type))
     {
-        const auto view = record_view_value(receiver);
-        const auto type_slot = temporary();
-        const auto type = temporary();
-        const auto table_slot = temporary();
-        const auto table = temporary();
-        const auto target_slot = temporary();
-        write_instruction(type_slot + " = getelementptr inbounds %tx_record_view, ptr " + view + ", i32 0, i32 1");
-        write_instruction(type + " = load ptr, ptr " + type_slot);
-        write_instruction(table_slot + " = getelementptr inbounds %tx_record_type, ptr " + type + ", i32 0, i32 7");
-        write_instruction(table + " = load ptr, ptr " + table_slot);
-        write_instruction(target_slot + " = getelementptr inbounds ptr, ptr " + table +
-                          ", i64 " + std::to_string(call.virtual_slot));
-        write_instruction(target_address + " = load ptr, ptr " + target_slot);
+        receiver_view = record_view_value(receiver);
+        target_address = record_virtual_target(receiver_view, call.virtual_slot);
     }
     else
     {
+        target_address = temporary();
         write_instruction(target_address +
         " = call ptr @txrt_class_virtual_target_fast(ptr " +
         receiver.text + ", i64 " + std::to_string(call.virtual_slot) + ")");
     }
     const auto passed = coerce_nullable_arguments(target, arguments);
     std::string parameters = "ptr %tx_context";
-    for (const auto& argument : passed)
+    for (std::size_t index = 0; index < passed.size(); ++index)
     {
+        const auto& argument = passed[index];
         if (!parameters.empty())
         {
             parameters += ", ";
         }
         parameters += llvm_type(argument.type, item.position) + " " + argument.text;
+        if (index == 0 && !receiver_view.empty())
+        {
+            parameters += ", ptr " + receiver_view;
+        }
     }
     const auto invocation = "call " + llvm_type(item.type, item.position) +
         " " + target_address + "(" + parameters + ")";

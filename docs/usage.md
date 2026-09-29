@@ -1,6 +1,6 @@
 # 编译与运行 .tx 文件
 
-本文命令在 Windows PowerShell 中执行，工作目录为本仓库根目录。构建 txc 和运行时库需要支持 C++23 的 g++、CMake 3.21 或更高版本以及 Ninja；构建脚本还需要 LLVM 的 `clang.exe`，可通过 `TX_LLVM_BIN` 指定其 bin 目录或加入 PATH。当前已用 LLVM 23.1.2 验证。运行构建好的 txc 编译 `.tx` 时，不需要在 PATH 中安装 g++、LLVM 或链接器。
+本文命令在 Windows 的 PowerShell 7 中执行，工作目录为本仓库根目录。构建 txc 和运行时库需要支持 C++23 的 g++、CMake 3.21 或更高版本以及 Ninja；构建脚本还需要 LLVM 的 `clang.exe`，可通过 `TX_LLVM_BIN` 指定其 bin 目录或加入 PATH。当前已用 LLVM 23.1.2 验证。运行构建好的 txc 编译 `.tx` 时，不需要在 PATH 中安装 g++、LLVM 或链接器。
 
 ## 构建编译器
 
@@ -16,6 +16,8 @@
 编译器工具目录 `tx/` 包含 `txc.exe`、`clang.exe`、`libtxstdlib.a`、`package.compat`、`link/` 内的链接组件、运行时 DLL 和 `stdlib/*.txh` 公开接口。交付时保留整个 `tx/` 目录。脚本在 build/ 中以 Release 配置构建编译器、运行时库和标准库，还会把 `src/stdlib/httpx_bridge.tx`、`websocket_bridge.tx`、`requests_bridge.tx` 编成对象文件，并将固定版本的 nghttp2、Mbed TLS、Argon2 参考实现、PCRE2、libxml2 静态库及 ICU 导入库归档进 `libtxstdlib.a`；固定 ICU DLL、配套私有运行库和许可证（含 `ARGON2-LICENSE`）随 `tx/` 交付，txc 编译程序时会把所需 DLL 放在输出目录。`package.compat` 同时校验编译器、标准库、接口、ABI 指纹和运行时 DLL 的 SHA-256，混用不同批次产物时会在编译阶段报错。首次构建需要下载已固定 SHA-256 的源码与二进制归档，以及固定 Git 提交的 Argon2 源码。普通构建成功后删除中间目录，失败或启用 `-Incremental` 时保留。`tx/stdlib/` 不包含 `.tx` 实现源码。构建时使用 g++；生成的 txc 不会调用它。直接用单配置 CMake 构建时默认也采用 Release；可显式设置 `CMAKE_BUILD_TYPE` 覆盖。
 
 `txc` 在检查、测试、生成 LLVM IR 或编译前验证公开 `.txh`、编译器、最终标准库归档和运行时 ABI 的兼容指纹。缺文件或混用不同构建的产物会给出中文诊断；更新其中任一项后须重新运行构建脚本并整体交付 `tx/`。构建标准库桥接对象时的 `emit-library-llvm` 只验证接口，最终归档完成后再生成兼容清单。完整规则见[标准库公共契约](standard_library_foundation.md#5-包兼容指纹与依赖登记)。
+
+CMake 在 `build/libtxstdlib.a` 保存未合并的原生库；构建脚本每次从它生成 `tx/libtxstdlib.a`，再加入桥接对象和依赖。重复增量构建不会重复合并上次的第三方对象。单独执行 CMake 构建不完成发布包，须运行上述脚本生成兼容清单和完整工具目录。
 
 ## 编译源码
 

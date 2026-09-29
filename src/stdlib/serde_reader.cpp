@@ -76,7 +76,7 @@ bool serde_reader::next(serde_sequence& sequence)
     return true;
 }
 
-std::any serde_reader::key(serde_sequence& sequence, std::size_t depth)
+serde_key serde_reader::key(serde_sequence& sequence, std::size_t depth)
 {
     if (format == serde_format::json)
     {
@@ -91,7 +91,7 @@ std::any serde_reader::key(serde_sequence& sequence, std::size_t depth)
             input_.fail("invalid_syntax", "对象字段名后需要冒号");
         }
         json_.skip_space();
-        return result;
+        return {std::move(result), 0};
     }
     auto result = cbor_parse_value(input_, serde_cbor_limits, depth);
     const auto* number = std::any_cast<std::int64_t>(&result);
@@ -106,7 +106,7 @@ std::any serde_reader::key(serde_sequence& sequence, std::size_t depth)
             "CBOR 映射键重复或未按规范顺序排列");
     }
     sequence.previous_key = encoded;
-    return result;
+    return {{}, *number};
 }
 
 std::any serde_reader::scalar(std::size_t depth)

@@ -1,0 +1,39 @@
+import "error.txh" as errors
+import "time.txh" as time
+
+def main() -> int
+{
+    int maximum = 9223372036854775807
+    int minimum = -9223372036854775808
+    int one = 1
+    if time.unix_millis() < 0
+    {
+        one = 2
+    }
+    try
+    {
+        print(maximum + one)
+    }
+    exception errors.runtime_error as error
+    {
+        print(error.message)
+    }
+    try
+    {
+        print(minimum - one)
+    }
+    exception errors.runtime_error as error
+    {
+        print(error.message)
+    }
+    try
+    {
+        print(maximum * (one + 1))
+    }
+    exception errors.runtime_error as error
+    {
+        print(error.message)
+    }
+    print("OVERFLOW_OK")
+    return 0
+}

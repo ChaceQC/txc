@@ -1,0 +1,96 @@
+import "serde.txh" as serde
+import "test.txh" as test
+import "error.txh" as errors
+
+struct wide serde(version=1)
+{
+    field_0: int serde(1, default=0)
+    field_1: int serde(2, default=1)
+    field_2: int serde(3, default=2)
+    field_3: int serde(4, default=3)
+    field_4: int serde(5, default=4)
+    field_5: int serde(6, default=5)
+    field_6: int serde(7, default=6)
+    field_7: int serde(8, default=7)
+    field_8: int serde(9, default=8)
+    field_9: int serde(10, default=9)
+    field_10: int serde(11, default=10)
+    field_11: int serde(12, default=11)
+    field_12: int serde(13, default=12)
+    field_13: int serde(14, default=13)
+    field_14: int serde(15, default=14)
+    field_15: int serde(16, default=15)
+    field_16: int serde(17, default=16)
+    field_17: int serde(18, default=17)
+    field_18: int serde(19, default=18)
+    field_19: int serde(20, default=19)
+    field_20: int serde(21, default=20)
+    field_21: int serde(22, default=21)
+    field_22: int serde(23, default=22)
+    field_23: int serde(24, default=23)
+    field_24: int serde(25, default=24)
+    field_25: int serde(26, default=25)
+    field_26: int serde(27, default=26)
+    field_27: int serde(28, default=27)
+    field_28: int serde(29, default=28)
+    field_29: int serde(30, default=29)
+    field_30: int serde(31, default=30)
+    field_31: int serde(32, default=31)
+    field_32: int serde(33, default=32)
+    field_33: int serde(34, default=33)
+    field_34: int serde(35, default=34)
+    field_35: int serde(36, default=35)
+    field_36: int serde(37, default=36)
+    field_37: int serde(38, default=37)
+    field_38: int serde(39, default=38)
+    field_39: int serde(40, default=39)
+    field_40: int serde(41, default=40)
+    field_41: int serde(42, default=41)
+    field_42: int serde(43, default=42)
+    field_43: int serde(44, default=43)
+    field_44: int serde(45, default=44)
+    field_45: int serde(46, default=45)
+    field_46: int serde(47, default=46)
+    field_47: int serde(48, default=47)
+    field_48: int serde(49, default=48)
+    field_49: int serde(50, default=49)
+    field_50: int serde(51, default=50)
+    field_51: int serde(52, default=51)
+    field_52: int serde(53, default=52)
+    field_53: int serde(54, default=53)
+    field_54: int serde(55, default=54)
+    field_55: int serde(56, default=55)
+    field_56: int serde(57, default=56)
+    field_57: int serde(58, default=57)
+    field_58: int serde(59, default=58)
+    field_59: int serde(60, default=59)
+    field_60: int serde(61, default=60)
+    field_61: int serde(62, default=61)
+    field_62: int serde(63, default=62)
+    field_63: int serde(64, default=63)
+    field_64: int serde(65, default=64)
+}
+
+def main() -> int
+{
+    auto value = serde.deserialize_json<wide>("{\"$schema\":1,\"field_64\":99}")
+    test.assert_equal(0, value.field_0)
+    test.assert_equal(63, value.field_63)
+    test.assert_equal(99, value.field_64)
+    auto copy = serde.deserialize_cbor<wide>(serde.serialize_cbor(value))
+    test.assert_equal(99, copy.field_64)
+    bool caught = false
+    try
+    {
+        serde.deserialize_json<wide>("{\"$schema\":1,\"field_64\":2,\"field_64\":3}")
+    }
+    exception errors.parse_error as error
+    {
+        test.assert_equal("duplicate_key", error.code)
+        caught = true
+    }
+    test.assert_true(caught)
+    print("SERDE_WIDE_OK")
+    return 0
+}
+

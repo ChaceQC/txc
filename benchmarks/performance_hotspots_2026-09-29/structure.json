@@ -1,0 +1,8 @@
+{
+  "readonly_parse": "no result/error materialization or per-iteration safepoint",
+  "dynamic_format": "stack arguments without array/dict",
+  "dictionary": "unused keys with stable scalar body avoid snapshot",
+  "virtual_library_boundary": "regular program proven pure; library remains conservative",
+  "compatibility": "兼容指纹正常与 4 种错配场景通过",
+  "bridge_count_each": 1
+}

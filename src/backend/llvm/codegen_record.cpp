@@ -27,10 +27,42 @@ void llvm_code_generator::refresh_record_view(const variable_slot& slot, const s
 
 std::string llvm_code_generator::record_view_value(const ir_value& object)
 {
+    if (!object.record_view.empty())
+    {
+        return object.record_view;
+    }
     const auto view = temporary();
     write_instruction(view + " = call ptr @" + std::string(classes_.contains(object.type.name)
         ? "txrt_record_class_view" : "txrt_record_struct_view") + "(ptr " + object.text + ")");
     return view;
+}
+
+std::string llvm_code_generator::load_record_view(const variable_slot& variable)
+{
+    if (variable.record_view.empty())
+    {
+        return {};
+    }
+    const auto view = temporary();
+    write_instruction(view + " = load ptr, ptr " + variable.record_view);
+    return view;
+}
+
+std::string llvm_code_generator::record_virtual_target(const std::string& view, std::size_t slot)
+{
+    const auto type_slot = temporary();
+    const auto type = temporary();
+    const auto table_slot = temporary();
+    const auto table = temporary();
+    const auto target_slot = temporary();
+    const auto target = temporary();
+    write_instruction(type_slot + " = getelementptr inbounds %tx_record_view, ptr " + view + ", i32 0, i32 1");
+    write_instruction(type + " = load ptr, ptr " + type_slot);
+    write_instruction(table_slot + " = getelementptr inbounds %tx_record_type, ptr " + type + ", i32 0, i32 14");
+    write_instruction(table + " = load ptr, ptr " + table_slot);
+    write_instruction(target_slot + " = getelementptr inbounds ptr, ptr " + table + ", i64 " + std::to_string(slot));
+    write_instruction(target + " = load ptr, ptr " + target_slot);
+    return target;
 }
 
 std::string llvm_code_generator::record_field_slot(const ir_value& object, std::size_t index)

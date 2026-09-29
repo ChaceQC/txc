@@ -1,0 +1,328 @@
+{
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "before_02",
+      "current"
+    ],
+    [
+      "current",
+      "before_02"
+    ],
+    [
+      "before_02",
+      "current"
+    ],
+    [
+      "current",
+      "before_02"
+    ],
+    [
+      "before_02",
+      "current"
+    ]
+  ],
+  "samples": {
+    "before_02": [
+      {
+        "wall_ms": 170.64800002845004,
+        "cases": {
+          "dictionary": {
+            "ms": 37.079,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.318,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 42.354,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 14.586,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 48.619,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 188.71389998821542,
+        "cases": {
+          "dictionary": {
+            "ms": 46.73,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 4.044,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 43.037,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 13.842,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 46.289,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 179.3465000228025,
+        "cases": {
+          "dictionary": {
+            "ms": 42.347,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.834,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 39.692,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 13.457,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 44.924,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 154.27900000941008,
+        "cases": {
+          "dictionary": {
+            "ms": 36.711,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.433,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 38.146,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 12.347,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 40.219,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 162.4796999967657,
+        "cases": {
+          "dictionary": {
+            "ms": 37.279,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.349,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 39.748,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 13.455,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 46.427,
+            "checksum": 0
+          }
+        }
+      }
+    ],
+    "current": [
+      {
+        "wall_ms": 52.63369996100664,
+        "cases": {
+          "dictionary": {
+            "ms": 3.741,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.173,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.894,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.689,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.065,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 44.94549997616559,
+        "cases": {
+          "dictionary": {
+            "ms": 3.639,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.49,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.079,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.623,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 6.097,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 45.542500040028244,
+        "cases": {
+          "dictionary": {
+            "ms": 4.597,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 3.014,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 3.508,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.693,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.817,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 54.41320000682026,
+        "cases": {
+          "dictionary": {
+            "ms": 3.682,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 2.851,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.721,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.52,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.467,
+            "checksum": 0
+          }
+        }
+      },
+      {
+        "wall_ms": 43.51649997988716,
+        "cases": {
+          "dictionary": {
+            "ms": 3.599,
+            "checksum": 1000000
+          },
+          "map": {
+            "ms": 2.869,
+            "checksum": 3000000
+          },
+          "set": {
+            "ms": 2.735,
+            "checksum": 1000000
+          },
+          "queue": {
+            "ms": 1.957,
+            "checksum": 5000050000
+          },
+          "cancel": {
+            "ms": 5.085,
+            "checksum": 0
+          }
+        }
+      }
+    ]
+  },
+  "checksums": {
+    "dictionary": 1000000,
+    "map": 3000000,
+    "set": 1000000,
+    "queue": 5000050000,
+    "cancel": 0
+  },
+  "medians_ms": {
+    "before_02": {
+      "dictionary": 37.279,
+      "map": 3.433,
+      "set": 39.748,
+      "queue": 13.457,
+      "cancel": 46.289
+    },
+    "current": {
+      "dictionary": 3.682,
+      "map": 3.014,
+      "set": 2.894,
+      "queue": 1.689,
+      "cancel": 5.467
+    }
+  },
+  "sha256": {
+    "tx_build\\performance_15_16\\map_history\\before_02\\call_borrowing_20260929.exe": "4b1fbef79a4ebf4d6b92a7bb615dad0f4279823b96193c8bd03872c8719db577",
+    "tx_build\\performance_15_16\\map_history\\before_02\\libgcc_s_seh-1.dll": "d7e343dd266747177c3699bc3201ea36eceef158e98530e089263bc55bb2a6d7",
+    "tx_build\\performance_15_16\\map_history\\before_02\\libicudt78.dll": "60255653982986c9fb72ad1b10b8dc502e498d890e0218cb0a47bc5907aa4e43",
+    "tx_build\\performance_15_16\\map_history\\before_02\\libicuin78.dll": "1925ba8b617ffbaf986dc6f5edc2d0952b0d48a9b710e1047809abd6a9846af3",
+    "tx_build\\performance_15_16\\map_history\\before_02\\libicuuc78.dll": "be4fc632a5fca5dc4a6fa8726084d63f45b7561b078d00bf107bffc30d336fb7",
+    "tx_build\\performance_15_16\\map_history\\before_02\\libstdc++-6.dll": "47559ac91bda181bd21e8e1af352eb87703248277d55fdc8da8f20464fcca5e7",
+    "tx_build\\performance_15_16\\map_history\\before_02\\libstdc++-u.dll": "5df0dba7064c43343ff33d2a02bbcbdfc1e035bc9d91024ec003c6d5a3054aa2",
+    "tx_build\\performance_15_16\\map_history\\before_02\\libwinpthread-1.dll": "08168351ae29d6d5825e4c3c64176bf1ec4a3724e5b87a4e3596f24c20455ab2",
+    "tx_build\\performance_15_16\\map_history\\before_02\\libwinpthread-u.dll": "72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0",
+    "tx_build\\performance_15_16\\map_history\\before_02\\msquic.dll": "e1544c8e8586411f70fadbc808d6b4dd020b027820792d78c187e36460e23bc9",
+    "tx_build\\performance_remaining\\candidate\\borrowing.exe": "023079ff2820969cde5f167815c7993dc1530d23d863f1f7ca50389acbe51c49",
+    "tx_build\\performance_remaining\\candidate\\libgcc_s_seh-1.dll": "d7e343dd266747177c3699bc3201ea36eceef158e98530e089263bc55bb2a6d7",
+    "tx_build\\performance_remaining\\candidate\\libicudt78.dll": "60255653982986c9fb72ad1b10b8dc502e498d890e0218cb0a47bc5907aa4e43",
+    "tx_build\\performance_remaining\\candidate\\libicuin78.dll": "1925ba8b617ffbaf986dc6f5edc2d0952b0d48a9b710e1047809abd6a9846af3",
+    "tx_build\\performance_remaining\\candidate\\libicuuc78.dll": "be4fc632a5fca5dc4a6fa8726084d63f45b7561b078d00bf107bffc30d336fb7",
+    "tx_build\\performance_remaining\\candidate\\libstdc++-6.dll": "47559ac91bda181bd21e8e1af352eb87703248277d55fdc8da8f20464fcca5e7",
+    "tx_build\\performance_remaining\\candidate\\libstdc++-u.dll": "5df0dba7064c43343ff33d2a02bbcbdfc1e035bc9d91024ec003c6d5a3054aa2",
+    "tx_build\\performance_remaining\\candidate\\libwinpthread-1.dll": "08168351ae29d6d5825e4c3c64176bf1ec4a3724e5b87a4e3596f24c20455ab2",
+    "tx_build\\performance_remaining\\candidate\\libwinpthread-u.dll": "72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0",
+    "tx_build\\performance_remaining\\candidate\\msquic.dll": "e1544c8e8586411f70fadbc808d6b4dd020b027820792d78c187e36460e23bc9"
+  },
+  "limit": "旧程序使用 01 留存的 DLL；初始历史运行的加载路径仍不可追溯。"
+}

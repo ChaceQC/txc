@@ -284,6 +284,10 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* access = std::get_if<member_expression>(&item.data))
     {
+        if (auto error_field = emit_parse_error_field(item))
+        {
+            return *error_field;
+        }
         if (direct_scalar_field(item))
         {
             return load({item.type, scalar_field_address(item, true)});

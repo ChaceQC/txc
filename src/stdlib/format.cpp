@@ -1,5 +1,6 @@
 #include "stdlib/format_internal.hpp"
 #include "stdlib/format_plan_cache.hpp"
+#include "stdlib/format_arguments.hpp"
 #include "stdlib/stdlib.hpp"
 
 #include <charconv>
@@ -96,13 +97,8 @@ field parse_field(std::string_view text)
     return result;
 }
 
-const std::any* find_keyword(const tx_dict& kwargs, std::string_view name)
-{
-    return kwargs.find_value(name);
-}
-
-const std::any& resolve_field(const field& item, const tx_array& args,
-                              const tx_dict& kwargs, field_state& state)
+template<class arguments_type>
+const auto& resolve_field(const field& item, const arguments_type& args, field_state& state)
 {
     if (item.name.empty())
     {
@@ -136,7 +132,7 @@ const std::any& resolve_field(const field& item, const tx_array& args,
         throw std::runtime_error("format 不支持此字段名称或字段访问：" +
                                  std::string(item.name));
     }
-    if (const auto* keyword = find_keyword(kwargs, item.name))
+    if (const auto* keyword = args.find(item.name))
     {
         return *keyword;
     }
@@ -160,10 +156,8 @@ const std::any& resolve_field(const field& item, const tx_array& args,
     return args[index];
 }
 
-} // namespace
-
-std::string tx_fn_format(const std::string& text, const tx_array& args,
-                         const tx_dict& kwargs)
+template<class arguments_type>
+std::string format_values(const std::string& text, const arguments_type& args)
 {
     if (const auto plan = find_format_plan(text))
     {
@@ -175,7 +169,8 @@ std::string tx_fn_format(const std::string& text, const tx_array& args,
             result += part.literal;
             if (part.field)
             {
-                const auto& value = resolve_field({part.name, {}, part.conversion}, args, kwargs, state);
+                const field selected{part.name, {}, part.conversion};
+                const auto& value = resolve_field(selected, args, state);
                 append_format_value(result, value, part.spec, part.conversion);
             }
         }
@@ -212,7 +207,7 @@ std::string tx_fn_format(const std::string& text, const tx_array& args,
             }
             const auto item = parse_field(std::string_view(text).substr(
                 offset + 1, closing - offset - 1));
-            const auto& value = resolve_field(item, args, kwargs, state);
+            const auto& value = resolve_field(item, args, state);
             const auto spec = tx::parse_format_spec(item.spec);
             if (cacheable)
             {
@@ -244,6 +239,19 @@ std::string tx_fn_format(const std::string& text, const tx_array& args,
         remember_format_plan(std::move(plan));
     }
     return result;
+}
+
+} // namespace
+
+std::string tx_fn_format(const std::string& text, const tx_array& args, const tx_dict& kwargs)
+{
+    return format_values(text, legacy_format_arguments{args, kwargs});
+}
+
+std::string format_direct(const std::string& text, std::span<const format_argument> positional,
+    std::span<const format_argument> keywords)
+{
+    return format_values(text, direct_format_arguments{positional, keywords});
 }
 
 } // namespace tx_generated

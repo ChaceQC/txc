@@ -1,0 +1,54 @@
+{
+  "tests/performance_hotspots/local_array": "LOCAL_ARRAY_OK",
+  "tests/performance_hotspots/overflow": "整数加法溢出\n整数减法溢出\n整数乘法溢出\nOVERFLOW_OK",
+  "tests/stdlib/parse_scalar": {
+    "output": "PARSE_SCALAR_OK",
+    "source_sha256": "54c23c7cc609b76d73987858a41b53f4a8d87496ff9ac64b4486b7fe9c0e457e",
+    "program_sha256": "06af397c77d65defd308e63e31718b2113683bb83a2ee578ebe7dfe3e569b1bb"
+  },
+  "tests/performance_hotspots/parse_error": {
+    "output": "PARSE_ERROR_OK",
+    "source_sha256": "79a568da3b688e8cfb4a70ffe8db56ed518a84952a2f2df4b4dc72a101f5c185",
+    "program_sha256": "bcdf047c87cf0c44c867bdcf9ce7ba1335c2f450dd93235da141ab3d122a9582"
+  },
+  "tests/performance_hotspots/format_dynamic": "FORMAT_DYNAMIC_OK",
+  "tests/performance_hotspots/dictionary_iteration": "DICTIONARY_ITERATION_OK",
+  "tests/strings/format_optimized": "FORMAT_OPTIMIZED_OK",
+  "tests/serde/direct": {
+    "output": "SERDE_DIRECT_TX_OK",
+    "source_sha256": "d91688bccd32a3877be0e4fc08cb5671b2e8207ee1371c3dfefb66e63aecdd8a",
+    "program_sha256": "839dc479d5401c8c4e6965e982ca75b726e1f7dca1168b649221485535433c0a"
+  },
+  "tests/performance_hotspots/serde_wide": {
+    "output": "SERDE_WIDE_OK",
+    "source_sha256": "a7f2e3285ab3f631cf4eccaf05d6626329c49e5f370dd0055517df89ac3f77c0",
+    "program_sha256": "c0011ac434129227c6e2f38206dd26f616e73fa45658ae363d3a3665c1a887b3"
+  },
+  "tests/serde/behavior": {
+    "output": "SERDE_TX_OK",
+    "source_sha256": "c88086eb7a2b3dbc72fe98991ab0c8210d00f9153956df0a56f887f49f3be15b",
+    "program_sha256": "7771598984ce664602af1410e4d489708a2329192b64388dd507747e7bdcb728"
+  },
+  "tests/serde/module": "SERDE_MODULE_OK",
+  "tests/performance_09_11/behavior": "static object and closure 0",
+  "examples/advanced_classes": {
+    "output": "豆豆:汪\n7\nint=3\nstr=好\n汪\n7\n23\ndiamond-int\norigin-str\n1\n2\n5\n3\ndog deinit\ncounter deinit\nanimal deinit",
+    "source_sha256": "dab1004a36bf1046ab5c960895ee68a57ef48bb64f02c2fded072ae569835f27",
+    "program_sha256": "049d22b8e8b15e1ef507e16b247978077aa97af77081a4f64059f128c2e000ed"
+  },
+  "examples/advanced_class_module/main": {
+    "output": "module",
+    "source_sha256": "c02f2e990abbc9042585e3670ba1a6e7c6eab3295acf1f7f721864698924ab62",
+    "program_sha256": "d91dd08454e8c4672b04ac5e2652d5192917882356182e2b65af03bf652be51d"
+  },
+  "examples/cycle_resurrection": {
+    "output": "victim deinit\n7",
+    "source_sha256": "8479294ab3f01302194cf994c8830c368cec48ec8079b49ce404933d55bc5d64",
+    "program_sha256": "d89da198320b4bce35623c86c24e6af1853b2a80131bd40f7420d1d9823ab067"
+  },
+  "tests/performance_hotspots/virtual_views": {
+    "output": "VIRTUAL_VIEWS_OK",
+    "source_sha256": "6e9bf93200152ed8a2008592193607cdd87a84cae9394a9cb3103ad1d39a7239",
+    "program_sha256": "8824a2bd7fa11f470946dcfb6c06271617f9c5e7b1d8b7e55de0a33999d913e1"
+  }
+}

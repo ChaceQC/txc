@@ -329,7 +329,9 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
     scopes_.back().emplace("$foreach", variable_slot{
         values.type, values_address, borrowed_values});
     std::string iteration_values = values.text;
-    if (values.type == value_type::dict_type)
+    const bool count_only_dictionary = values.type == value_type::dict_type &&
+        !uses_name(loop.body, loop.name) && stable_vector_loop(loop.body);
+    if (values.type == value_type::dict_type && !count_only_dictionary)
     {
         // 字典无序；进入循环时取得键快照，后续增删不影响本次遍历。
         const auto keys_address = allocate(value_type::array_type,
@@ -356,7 +358,8 @@ void llvm_code_generator::emit_for_each(const for_each& loop)
     else
     {
         const auto length_status = temporary();
-        write_instruction(length_status + " = call i32 @txrt_array_len(ptr " +
+        write_instruction(length_status + " = call i32 @" +
+                          std::string(count_only_dictionary ? "txrt_dict_len" : "txrt_array_len") + "(ptr " +
                           iteration_values + ", ptr " + length_address + ")");
         write_instruction("call void @txrt_require_success(i32 " +
                           length_status + ")");

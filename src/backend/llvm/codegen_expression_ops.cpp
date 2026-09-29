@@ -62,8 +62,13 @@ llvm_code_generator::ir_value llvm_code_generator::checked_binary(
         start_block(error_label);
         const auto address = allocate(result_type, position);
         const auto status = temporary();
+        // 此分支已证明溢出，诊断只取决于运算种类。用确定溢出的常量调用原入口，
+        // 避免热循环为了冷错误路径一直保留旧累加值和右操作数。
+        const auto failure_left = name == "txrt_sub_i64"
+            ? "-9223372036854775808" : "9223372036854775807";
+        const auto failure_right = name == "txrt_mul_i64" ? "2" : "1";
         write_instruction(status + " = call i32 @" + name + "(i64 " +
-                          left.text + ", i64 " + right.text + ", ptr " +
+                          failure_left + ", i64 " + failure_right + ", ptr " +
                           address + ")");
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
         write_instruction("unreachable");
@@ -158,15 +163,32 @@ llvm_code_generator::ir_value llvm_code_generator::emit_operator_call(
     bool receiver_borrowed, bool argument_borrowed)
 {
     std::string callee = function_name(binding.symbol, binding.overload_index);
+    std::string receiver_view;
+    const auto& target = *functions_.at(binding.symbol).at(binding.overload_index);
+    if (!target.external && static_record_type(value_type(target.owner_class)))
+    {
+        receiver_view = record_view_value(receiver);
+        callee += "_record";
+    }
     if (binding.virtual_slot)
     {
-        callee = temporary();
-        write_instruction(callee +
-            " = call ptr @txrt_class_virtual_target_fast(ptr " +
-            receiver.text + ", i64 " +
-            std::to_string(*binding.virtual_slot) + ")");
+        if (!receiver_view.empty())
+        {
+            callee = record_virtual_target(receiver_view, *binding.virtual_slot);
+        }
+        else
+        {
+            callee = temporary();
+            write_instruction(callee +
+                " = call ptr @txrt_class_virtual_target_fast(ptr " +
+                receiver.text + ", i64 " + std::to_string(*binding.virtual_slot) + ")");
+        }
     }
     std::string arguments = "ptr %tx_context, ptr " + receiver.text;
+    if (!receiver_view.empty())
+    {
+        arguments += ", ptr " + receiver_view;
+    }
     if (argument)
     {
         arguments += ", " + llvm_type(argument->type, position) +

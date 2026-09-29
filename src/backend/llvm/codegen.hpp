@@ -31,6 +31,7 @@ private:
         std::string vector_data = {};
         std::string vector_size = {};
         std::optional<integer_interval> integer_range = std::nullopt;
+        std::string record_view = {};
     };
 
     struct variable_slot
@@ -58,6 +59,8 @@ private:
         std::string stack_record;
         std::string iterator_cursor;
         std::optional<integer_interval> integer_range;
+        const variable_declaration* parse_declaration = nullptr;
+        std::string readonly_parse_error;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -123,6 +126,12 @@ private:
         const expression& item, bool read_only = false);
     [[nodiscard]] bool confined_local(const variable_declaration& declaration,
                                      bool fields_only) const;
+    [[nodiscard]] bool readonly_local_fields(const variable_declaration& declaration,
+        const variable_declaration* allowed_alias = nullptr) const;
+    [[nodiscard]] bool emit_parse_error_declaration(const statement& item,
+        const variable_declaration& declaration);
+    [[nodiscard]] std::optional<ir_value> emit_parse_error_field(const expression& item,
+        bool length = false);
     [[nodiscard]] bool default_heap_local(const variable_declaration& declaration) const;
     [[nodiscard]] bool default_heap_receiver(const call_expression& call) const;
     [[nodiscard]] bool direct_scalar_field(
@@ -132,6 +141,8 @@ private:
     void cache_record_view(variable_slot& slot, const std::string& value);
     void refresh_record_view(const variable_slot& slot, const std::string& value);
     [[nodiscard]] std::string record_view_value(const ir_value& object);
+    [[nodiscard]] std::string load_record_view(const variable_slot& variable);
+    [[nodiscard]] std::string record_virtual_target(const std::string& view, std::size_t slot);
     [[nodiscard]] std::string record_field_slot(const ir_value& object, std::size_t index);
     [[nodiscard]] ir_value read_record_field(const ir_value& object,
         const expression& item, const member_expression& member);
@@ -282,6 +293,8 @@ private:
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
     [[nodiscard]] std::optional<ir_value> emit_static_format(
+        const expression& item, const call_expression& call, const function_decl& target);
+    [[nodiscard]] std::optional<ir_value> emit_dynamic_format(
         const expression& item, const call_expression& call, const function_decl& target);
     [[nodiscard]] std::optional<std::string> constant_format_text(const expression& item) const;
     [[nodiscard]] bool immutable_format_local(const variable_declaration& declaration) const;
@@ -543,6 +556,7 @@ private:
     const std::vector<stmt_ptr>* current_function_body_ = nullptr;
     const source_pos* current_statement_position_ = nullptr;
     bool recoverable_errors_ = false;
+    bool library_mode_ = false;
     std::vector<error_root> error_roots_;
     std::unordered_map<std::string, std::size_t> error_root_indices_;
     std::unordered_map<std::string, std::string> pointer_owners_;

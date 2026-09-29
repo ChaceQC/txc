@@ -14,6 +14,17 @@ public:
     const variable_declaration& candidate;
     bool fields_only;
     bool scalar_reads = false;
+    bool read_only_fields = false;
+    const variable_declaration* allowed_alias = nullptr;
+
+    bool field_owner(const expression& item) const
+    {
+        if (const auto* member = std::get_if<member_expression>(&item.data))
+        {
+            return field_owner(*member->object);
+        }
+        return named(item);
+    }
 
     bool named(const expression& item) const
     {
@@ -29,6 +40,11 @@ public:
         }
         if (const auto* member = std::get_if<member_expression>(&item.data))
         {
+            if (read_only_fields && field_owner(*member->object))
+            {
+                return item.type == value_type::int_type || item.type == value_type::float_type ||
+                    item.type == value_type::bool_type || item.type == value_type::str_type;
+            }
             return (fields_only && named(*member->object)) ||
                 expression_safe(*member->object);
         }
@@ -55,6 +71,10 @@ public:
         }
         if (const auto* update = std::get_if<update_expression>(&item.data))
         {
+            if (read_only_fields && field_owner(*update->target))
+            {
+                return false;
+            }
             return !(scalar_reads && named(*update->target)) && expression_safe(*update->target);
         }
         if (const auto* cast = std::get_if<cast_expression>(&item.data))
@@ -97,11 +117,16 @@ public:
         if (const auto* declaration = std::get_if<variable_declaration>(&item.data))
         {
             return (declaration == &candidate || declaration->name != candidate.name) &&
-                (!declaration->initializer || expression_safe(*declaration->initializer)) &&
+                (declaration == allowed_alias || !declaration->initializer ||
+                 expression_safe(*declaration->initializer)) &&
                 (!declaration->array_length || expression_safe(*declaration->array_length));
         }
         if (const auto* assignment = std::get_if<variable_assignment>(&item.data))
         {
+            if (read_only_fields && field_owner(*assignment->target))
+            {
+                return false;
+            }
             return !(scalar_reads && named(*assignment->target)) &&
                 expression_safe(*assignment->target) && expression_safe(*assignment->value);
         }
@@ -161,6 +186,13 @@ bool llvm_code_generator::scalar_local_unchanged(const std::string& name,
     variable_declaration candidate;
     candidate.name = name;
     return local_use_checker{allowed ? *allowed : candidate, false, true}.body_safe(body);
+}
+
+bool llvm_code_generator::readonly_local_fields(const variable_declaration& declaration,
+    const variable_declaration* allowed_alias) const
+{
+    return current_function_body_ && local_use_checker{
+        declaration, true, false, true, allowed_alias}.body_safe(*current_function_body_);
 }
 
 bool llvm_code_generator::default_heap_local(const variable_declaration& declaration) const

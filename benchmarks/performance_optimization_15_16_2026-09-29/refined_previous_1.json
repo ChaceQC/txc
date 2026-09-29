@@ -1,0 +1,538 @@
+{
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "samples": {
+    "old": [
+      {
+        "wall_ms": 200.95249998848885,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 17.446,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 22.535,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 25.917,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 10.12,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.887,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.236,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.7,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.415,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.722,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 41.261,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 208.51500000571832,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 18.966,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 25.23,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 26.199,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 9.51,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 21.047,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.618,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.494,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.299,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.646,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 44.518,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 197.23900000099093,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 18.136,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 21.136,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 25.984,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 9.602,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.849,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.356,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.523,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.251,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.168,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.518,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 197.3407000186853,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 17.847,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 21.263,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 25.962,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 9.269,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.884,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.023,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.554,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.448,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.2,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 41.368,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 205.12090000556782,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 19.451,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 21.558,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 27.49,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 9.99,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.203,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.45,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.512,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.929,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.338,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.767,
+            "checksum": 6300
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "wall_ms": 191.18339999113232,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 16.212,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 23.353,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 10.572,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 12.581,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 20.66,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 11.77,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 4.442,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.578,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.389,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 42.32,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 184.4773999764584,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 16.282,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 22.941,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 10.339,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 12.365,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 18.621,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.605,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.592,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.521,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.573,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 41.042,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 188.02440003491938,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 14.847,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 22.936,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 12.101,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 12.307,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 18.315,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.781,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.497,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.687,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 10.242,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.827,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 184.45070000598207,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 15.767,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 24.13,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 10.858,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 12.695,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 18.284,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.069,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.52,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.475,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 8.93,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 40.62,
+            "checksum": 6300
+          }
+        }
+      },
+      {
+        "wall_ms": 185.88999996427447,
+        "cases": {
+          "hex_encode_short": {
+            "ms": 15.546,
+            "checksum": 3200000
+          },
+          "hex_decode_short": {
+            "ms": 22.77,
+            "checksum": 1600000
+          },
+          "hex_encode_large": {
+            "ms": 11.468,
+            "checksum": 13107200
+          },
+          "hex_decode_large": {
+            "ms": 12.68,
+            "checksum": 6553600
+          },
+          "utf8_encode_short": {
+            "ms": 19.05,
+            "checksum": 1000000
+          },
+          "utf8_decode_short": {
+            "ms": 10.417,
+            "checksum": 300000
+          },
+          "utf8_encode_large": {
+            "ms": 3.522,
+            "checksum": 5120000
+          },
+          "utf8_decode_large": {
+            "ms": 6.656,
+            "checksum": 1536000
+          },
+          "mean_short": {
+            "ms": 9.5,
+            "checksum": 630000
+          },
+          "mean_large": {
+            "ms": 41.062,
+            "checksum": 6300
+          }
+        }
+      }
+    ]
+  },
+  "medians_ms": {
+    "old": {
+      "hex_encode_short": 18.136,
+      "hex_decode_short": 21.558,
+      "hex_encode_large": 25.984,
+      "hex_decode_large": 9.602,
+      "utf8_encode_short": 19.884,
+      "utf8_decode_short": 10.356,
+      "utf8_encode_large": 3.523,
+      "utf8_decode_large": 6.415,
+      "mean_short": 9.338,
+      "mean_large": 41.261
+    },
+    "new": {
+      "hex_encode_short": 15.767,
+      "hex_decode_short": 22.941,
+      "hex_encode_large": 10.858,
+      "hex_decode_large": 12.581,
+      "utf8_encode_short": 18.621,
+      "utf8_decode_short": 10.605,
+      "utf8_encode_large": 3.522,
+      "utf8_decode_large": 6.578,
+      "mean_short": 9.5,
+      "mean_large": 41.042
+    }
+  },
+  "checksums": {
+    "old": {
+      "hex_encode_short": 3200000,
+      "hex_decode_short": 1600000,
+      "hex_encode_large": 13107200,
+      "hex_decode_large": 6553600,
+      "utf8_encode_short": 1000000,
+      "utf8_decode_short": 300000,
+      "utf8_encode_large": 5120000,
+      "utf8_decode_large": 1536000,
+      "mean_short": 630000,
+      "mean_large": 6300
+    },
+    "new": {
+      "hex_encode_short": 3200000,
+      "hex_decode_short": 1600000,
+      "hex_encode_large": 13107200,
+      "hex_decode_large": 6553600,
+      "utf8_encode_short": 1000000,
+      "utf8_decode_short": 300000,
+      "utf8_encode_large": 5120000,
+      "utf8_decode_large": 1536000,
+      "mean_short": 630000,
+      "mean_large": 6300
+    }
+  },
+  "sha256": {
+    "tx_build\\performance_15_16\\baseline\\paths.exe": "2985c2ae9a1c7316f6fa202202b76ed46135d53c8dc671e8558d321f16e54807",
+    "tx_build\\performance_15_16\\refined\\paths.exe": "e6fbb7b07a4cebe3d4ed8b2eb44b6b95f4bdb9ceda6df47d56d8531705f89270"
+  }
+}

@@ -1,0 +1,87 @@
+import "time.txh" as time
+import "bytes.txh" as bytes
+import "encoding.txh" as encoding
+import "statistics.txh" as statistics
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - started)
+    print(checksum)
+}
+
+def hex_paths(size: int, rounds: int, label: str)
+{
+    vector<int> values = vector<int>()
+    for i in 1..=size
+    {
+        values.push_back((i - 1) % 256)
+    }
+    bytes data = bytes.from_vector(values)
+    str text = bytes.to_hex(data)
+    int checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=rounds
+    {
+        checksum += len(bytes.to_hex(data))
+    }
+    report("hex_encode_" + label, started, checksum)
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 1..=rounds
+    {
+        checksum += len(bytes.from_hex(text))
+    }
+    report("hex_decode_" + label, started, checksum)
+}
+
+def encoding_paths(size: int, rounds: int, label: str)
+{
+    str text = ""
+    for i in 1..=size
+    {
+        text += "你好🙂"
+    }
+    bytes data = encoding.encode(text, "utf-8")
+    int checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=rounds
+    {
+        checksum += len(encoding.encode(text, "utf-8"))
+    }
+    report("utf8_encode_" + label, started, checksum)
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 1..=rounds
+    {
+        checksum += len(encoding.decode(data, "utf-8"))
+    }
+    report("utf8_decode_" + label, started, checksum)
+}
+
+def mean_path(size: int, rounds: int, label: str)
+{
+    vector<float> values = vector<float>()
+    for i in 1..=size
+    {
+        values.push_back(((i - 1) % 128) as float)
+    }
+    int checksum = 0
+    auto started = time.monotonic_micros()
+    for i in 1..=rounds
+    {
+        checksum += statistics.mean(values) as int
+    }
+    report("mean_" + label, started, checksum)
+}
+
+def main() -> int
+{
+    hex_paths(16, 100000, "short")
+    hex_paths(65536, 100, "large")
+    encoding_paths(1, 100000, "short")
+    encoding_paths(1024, 500, "large")
+    mean_path(128, 10000, "short")
+    mean_path(65536, 100, "large")
+    return 0
+}

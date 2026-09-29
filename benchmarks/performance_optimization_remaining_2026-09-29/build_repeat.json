@@ -1,0 +1,8 @@
+{
+  "scope": "打包修复后连续两次增量构建；数字哈希布局修订前的候选包",
+  "before": {"bytes": 32005182, "members": 8971, "aes_count": 1},
+  "after": {"bytes": 32005182, "members": 8971, "aes_count": 1},
+  "original_repeated_build": {"bytes": 43830656, "aes_count": 2},
+  "result": "PASS：无 C++ 改动的重复构建不重复合并依赖",
+  "final_package": "最终源码的包身份另见 checks.json 和 samples_completed.json"
+}

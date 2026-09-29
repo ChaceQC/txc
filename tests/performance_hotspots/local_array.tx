@@ -1,0 +1,42 @@
+import "time.txh" as time
+
+def expect(condition: bool)
+{
+    if !condition
+    {
+        print(1 / 0)
+    }
+}
+
+def flags(length: int) -> int
+{
+    array[length] used
+    int count = 0
+    for index in 0..=length - 1
+    {
+        if is_none(used[index])
+        {
+            used[index] = true
+            count += 1
+        }
+        expect(!is_none(used[index]))
+    }
+    return count
+}
+
+def main() -> int
+{
+    int length = 32
+    if time.unix_millis() < 0
+    {
+        length = 17
+    }
+    expect(flags(length) == length)
+    array mixed = [7, 1.5, true, "9"]
+    expect((mixed[0] as int) == 7)
+    expect((mixed[1] as float) == 1.5)
+    expect((mixed[2] as bool) == true)
+    expect((mixed[3] as int) == 9)
+    print("LOCAL_ARRAY_OK")
+    return 0
+}

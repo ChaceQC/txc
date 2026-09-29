@@ -1,5 +1,5 @@
 #include "stdlib/encoding.hpp"
-#include "stdlib/json_utf8.hpp"
+#include "common/utf8.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -207,14 +207,23 @@ std::wstring utf8_to_wide(std::string_view text)
 void validate_utf8(std::string_view text)
 {
     (void)checked_length(text.size());
-    for (std::size_t offset = 0; offset < text.size();)
+    // 短输入直接在调用方扫描，避免为几个码点增加批量入口的调用成本。
+    if (text.size() < 32)
     {
-        const auto width = json_detail::utf8_width(text, offset);
-        if (width == 0)
+        for (std::size_t offset = 0; offset < text.size();)
         {
-            throw std::runtime_error("文本包含无效的字符集字节序列");
+            const auto width = tx::utf8_width(text, offset);
+            if (width == 0)
+            {
+                throw std::runtime_error("文本包含无效的字符集字节序列");
+            }
+            offset += width;
         }
-        offset += width;
+        return;
+    }
+    if (!tx::scan_utf8(text).valid)
+    {
+        throw std::runtime_error("文本包含无效的字符集字节序列");
     }
 }
 

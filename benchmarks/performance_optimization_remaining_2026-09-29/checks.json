@@ -1,0 +1,26 @@
+{
+  "performance_remaining/behavior": {
+    "output": "REMAINING_BEHAVIOR_OK\n",
+    "source_sha256": "a530eff90eb59226c1272236392a62c0c594ae8b89c556c45cc9870008c79008"
+  },
+  "bytes_file_stream/encodings": {
+    "output": "七种编码的内存转换和增量文本流通过\n",
+    "source_sha256": "d52e4d74826f72f85790508e9dafae5e8885e2fbd64bd2c58a80ac15d5fe0f43"
+  },
+  "performance_15_16/libraries": {
+    "output": "",
+    "source_sha256": "514fb4f310d9573d6e7b453e30fe6790d094134eba4b1e859e5e2fb5a3919953"
+  },
+  "native": "REMAINING_NATIVE_OK\n",
+  "compatibility": "兼容指纹正常与 4 种错配场景通过\n",
+  "bridges": {
+    "httpx_bridge": "5f2c4c224423ccf9311489bfc14b39a3dd7e760495b26f183aae6852da183797",
+    "websocket_bridge": "129264d383a96ceecd8216a23111a04877633ad88df95f1aaaec76c080b1059d",
+    "requests_bridge": "55fdc4c71645c7d842b30fbd9e258cd7b9fd62b2c2199721f9016b471fc053d3"
+  },
+  "artifacts": {
+    "txc.exe": "dc38ae306f2a7b1e6f8e5b20a6068e6ea153406255ce84f6d2f48149232fb756",
+    "libtxstdlib.a": "8c90a75f4d2c275c590291af12456ddee77bcc76289f4a05fb2adc5cca6f07d0",
+    "package.compat": "da6329ef055f95dc7b9b5ec785733405fe3ad10533f29c3f9a59d05b84992495"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "compatibility": "兼容指纹正常与 4 种错配场景通过\n",
+  "bridges": {
+    "httpx_bridge": "c6bcdf35f9f9951de88bc47656badf483cba310a35946e384b1752e35c172e3a",
+    "websocket_bridge": "0fa2b0e844498291f2c3611824848345a3395c897ff98fd5666eba1589711940",
+    "requests_bridge": "a7001d20bfeaa158f6c13bcca4f688dcf4901ec902c8c908c70b45340dae1273"
+  },
+  "artifacts": {
+    "txc.exe": "91ba310f726f662e243927591754cfc29fadc2d9b8961c3a4cb78cab15d85a5c",
+    "libtxstdlib.a": "0ae149e23a5ac83b227c327f51126d431a296bd540a1e5138846b81e63c557e8",
+    "package.compat": "d0c4400d159038bd728f305762101e022b453cd5479b900f4614e94549eab35d"
+  }
+}

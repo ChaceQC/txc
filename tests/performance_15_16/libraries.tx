@@ -1,0 +1,121 @@
+import "bytes.txh" as bytes
+import "encoding.txh" as encoding
+import "statistics.txh" as statistics
+import "error.txh" as errors
+
+def rejects_hex(text: str) -> bool
+{
+    try
+    {
+        bytes.from_hex(text)
+    }
+    exception errors.parse_error as error
+    {
+        return error.code == "invalid_hex"
+    }
+    return false
+}
+
+def hex_boundaries() -> bool
+{
+    vector<int> values = vector<int>()
+    for i in 0..=255
+    {
+        values.push_back(i)
+    }
+    bytes original = bytes.from_vector(values)
+    str text = bytes.to_hex(original)
+    if (len(text) != 512 || bytes.from_hex(text) != original ||
+        bytes.to_hex(bytes.from_hex("00AaFf")) != "00aaff" ||
+        bytes.to_hex(bytes.empty()) != "" || len(bytes.from_hex("")) != 0)
+    {
+        return false
+    }
+    if (!rejects_hex("0") || !rejects_hex("gg") ||
+        !rejects_hex("0 ") ||
+        !rejects_hex(encoding.decode(bytes.from_hex("3000"), "utf-8")) ||
+        !rejects_hex(text + "zz"))
+    {
+        return false
+    }
+    bytes source = bytes.from_hex("0123456789ab")
+    return bytes.to_hex_chunk(source, 1, 4, 6) == "234567"
+}
+
+def encoding_boundaries() -> bool
+{
+    str text = "你好🙂"
+    bytes value = encoding.encode(text, "utf-8")
+    text = "changed"
+    str decoded = encoding.decode(value, "utf-8")
+    bytes sliced = bytes.slice(value, 3, 10)
+    if (decoded != "你好🙂" || encoding.decode(sliced, "utf-8") != "好🙂" ||
+        encoding.decode(encoding.encode(decoded, "utf-8-sig"), "utf-8-sig") != decoded)
+    {
+        return false
+    }
+    try
+    {
+        encoding.decode(bytes.slice(value, 1, 10), "utf-8")
+    }
+    exception errors.parse_error as error
+    {
+        return error.code == "invalid_encoding" && decoded == "你好🙂"
+    }
+    return false
+}
+
+def mean_boundaries() -> bool
+{
+    vector<float> values = vector<float>()
+    values.push_back(1.0e300)
+    values.push_back(3.0)
+    values.push_back(-1.0e300)
+    if (statistics.mean(values) != 1.0 || statistics.mean(values.snapshot_iter()) != 1.0)
+    {
+        return false
+    }
+    vector<float> extremes = vector<float>()
+    extremes.push_back(1.7e308)
+    extremes.push_back(1.7e308)
+    if statistics.mean(extremes) != 1.7e308
+    {
+        return false
+    }
+    values.push_back(1.0e308 * 1.0e308)
+    values.push_back(9.0)
+    auto cursor = values.snapshot_iter()
+    try
+    {
+        statistics.mean(cursor)
+    }
+    exception errors.runtime_error as error
+    {
+        return (error.code == "non_finite" && statistics.mean(cursor) == 9.0 &&
+            cursor.next().is_none())
+    }
+    return false
+}
+
+def main() -> int
+{
+    if !hex_boundaries()
+    {
+        return 1
+    }
+    if !encoding_boundaries()
+    {
+        return 2
+    }
+    if !mean_boundaries()
+    {
+        return 3
+    }
+    auto minimum = -9223372036854775808
+    if ((minimum as str) as int != minimum ||
+        (" +123 " as int) != 123 || (2.0 as str) != "2.0")
+    {
+        return 4
+    }
+    return 0
+}

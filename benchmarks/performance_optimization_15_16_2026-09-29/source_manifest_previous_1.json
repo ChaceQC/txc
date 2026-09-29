@@ -1,0 +1,17 @@
+{
+  "src\\stdlib\\bytes.cpp": "afdebc2c45f3a84485fbc97cedca93fa13c5557f3780b776fc8e12cc4dbe2e7c",
+  "scripts\\check_performance_15_16.py": "8e22a50396ebfb40e8fb1c68d7ee63f20a6fce4b65685c321e7d0ef271344145",
+  "benchmarks\\performance_optimization_15_16_2026-09-29\\build_probe.py": "bcf049132d5ab33167e6ea09ed246ae8a56fe61df03a595e834feff517d61b91",
+  "benchmarks\\performance_optimization_15_16_2026-09-29\\inspect.py": "c8cee59b2ac23f2d9e88ed07e18bbb1cc333cbe2404020b7b428d945c474cb9b",
+  "benchmarks\\performance_optimization_15_16_2026-09-29\\measure.py": "0726da97824168f0312239357352e51d5a544141518bca7cff08acf5ae9b47fe",
+  "benchmarks\\performance_optimization_15_16_2026-09-29\\core.cpp": "9f1b78232d6dfa8578fad313ed531947d9e08e4f13054ff42b321aa5a5ee4f1d",
+  "benchmarks\\performance_optimization_15_16_2026-09-29\\paths.tx": "72cd6caa253f4bceb9ba25e717ba98dce39f872bf17f783932b2cdd33bf5105f",
+  "tests\\performance_15_16\\hex_allocations.cpp": "aad914407158bedceaeb068ccbf2370c4f60a8a89254d8ac48df0af1442b4707",
+  "tests\\performance_15_16\\libraries.tx": "514fb4f310d9573d6e7b453e30fe6790d094134eba4b1e859e5e2fb5a3919953",
+  "benchmarks\\language_features\\CMakeLists.txt": "b55368c3f42a8ecdf876cf8d228a72af97d552cd86537679245f3acf92a3ddb9",
+  "benchmarks\\language_features\\compare.tx": "88e1285edafabf7ebdf0ed09002aa61cfe27ad4209224675f4e0d8e90cde313f",
+  "benchmarks\\language_features\\workload.tx": "98322509dc151d3aa9df8158cfe10493f843150f357ddce18ae166b4ceb78919",
+  "benchmarks\\language_features\\workload.txh": "1d6bf9c492834076e1e6a85bbe54b2b6eece8b4d771d542c6df35c3aed8e6077",
+  "benchmarks\\diverse_performance.tx": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+  "benchmarks\\call_borrowing.tx": "6e77763d77f435006016519a717723d14337336312d4589a8836345d9882bfa8"
+}

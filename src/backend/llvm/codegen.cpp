@@ -115,7 +115,9 @@ llvm_code_generator::variable_slot llvm_code_generator::find_variable(
         {
             if (!classes_.at(base)->is_interface)
             {
-                return {value_type(base), scopes_.front().at("self").address};
+                auto slot = scopes_.front().at("self");
+                slot.type = value_type(base);
+                return slot;
             }
         }
     }
@@ -231,7 +233,9 @@ llvm_code_generator::ir_value llvm_code_generator::load(
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
         const auto cloned = temporary();
         write_instruction(cloned + " = load ptr, ptr " + copied);
-        return {variable.type, cloned, false, load_vector_reference(variable)};
+        ir_value loaded{variable.type, cloned, false, load_vector_reference(variable)};
+        loaded.record_view = load_record_view(variable);
+        return loaded;
     }
     ir_value loaded{variable.type, result};
     loaded.integer_range = variable.integer_range;
@@ -283,7 +287,9 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
         const auto result = temporary();
         write_instruction(result + " = load ptr, ptr " + variable.address);
         borrowed = true;
-        return {item.type, result};
+        ir_value loaded{item.type, result};
+        loaded.record_view = load_record_view(variable);
+        return loaded;
     }
     if (name && !name->function_value && (is_value_handle(item.type) ||
                  item.type == value_type::str_type))
@@ -299,7 +305,9 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
         const auto result = temporary();
         write_instruction(result + " = load ptr, ptr " + variable.address);
         borrowed = true;
-        return {item.type, result, false, load_vector_reference(variable)};
+        ir_value loaded{item.type, result, false, load_vector_reference(variable)};
+        loaded.record_view = load_record_view(variable);
+        return loaded;
     }
     borrowed = false;
     return expression_value(item);
@@ -461,6 +469,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     next_bind_ = 0;
     virtual_slot_count_ = source.virtual_slot_count;
     recoverable_errors_ = library_mode;
+    library_mode_ = library_mode;
     for (const auto& function : source.functions)
     {
         functions_[function.name].push_back(&function);
@@ -492,7 +501,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     }
     module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
             << "%tx_record_field = type { ptr, ptr, i64, i64, i64 }\n"
-            << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr }\n"
+            << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr, ptr }\n"
             << "%tx_record_view = type { ptr, ptr }\n"
             << "declare ptr @txrt_record_view(ptr)\n"
             << "declare ptr @txrt_record_struct_view(ptr)\n"

@@ -3,6 +3,7 @@
 #include "stdlib/error.hpp"
 
 #include <algorithm>
+#include <array>
 #include <limits>
 #include <stdexcept>
 
@@ -24,22 +25,23 @@ void require_size(std::size_t size)
     }
 }
 
-int hex_digit(char character)
+constexpr auto make_hex_values()
 {
-    if (character >= '0' && character <= '9')
+    std::array<int, 256> values{};
+    values.fill(-1);
+    for (int index = 0; index < 10; ++index)
     {
-        return character - '0';
+        values['0' + index] = index;
     }
-    if (character >= 'a' && character <= 'f')
+    for (int index = 0; index < 6; ++index)
     {
-        return character - 'a' + 10;
+        values['a' + index] = index + 10;
+        values['A' + index] = index + 10;
     }
-    if (character >= 'A' && character <= 'F')
-    {
-        return character - 'A' + 10;
-    }
-    return -1;
+    return values;
 }
+
+constexpr auto hex_values = make_hex_values();
 
 int base64_digit(char character)
 {
@@ -147,18 +149,24 @@ byte_value bytes_slice(const byte_value& value, std::int64_t start,
 std::string bytes_to_hex(const byte_value& value)
 {
     if (value->size() > static_cast<std::size_t>(
-            std::numeric_limits<std::int64_t>::max()) / 2)
+            std::numeric_limits<std::int64_t>::max()) / 2 ||
+        value->size() > std::string{}.max_size() / 2)
     {
         throw runtime_failure({tx::error_kind::runtime, "size_limit",
                                "十六进制文本过长"});
     }
     std::string result;
-    result.reserve(value->size() * 2);
-    for (const auto item : *value)
+    // 大小已检查；避免逐字符更新长度、检查容量以及无用的零填充。
+    result.resize_and_overwrite(value->size() * 2, [&](char* target, std::size_t)
     {
-        result.push_back(hex_digits[item >> 4]);
-        result.push_back(hex_digits[item & 15]);
-    }
+        std::size_t offset = 0;
+        for (const auto item : *value)
+        {
+            target[offset++] = hex_digits[item >> 4];
+            target[offset++] = hex_digits[item & 15];
+        }
+        return value->size() * 2;
+    });
     return result;
 }
 
@@ -170,18 +178,28 @@ byte_value bytes_from_hex(std::string_view text)
                                "十六进制文本长度必须为偶数"});
     }
     require_size(text.size() / 2);
-    std::vector<std::uint8_t> result;
-    result.reserve(text.size() / 2);
-    for (std::size_t index = 0; index < text.size(); index += 2)
+    // 在分配输出前验证全部字符，错误路径不会构造或发布部分字节值。
+    // unsigned char 索引也覆盖高位字节，不能用有符号 char 索引查表。
+    unsigned char invalid = 0;
+    for (const unsigned char character : text)
     {
-        const int high = hex_digit(text[index]);
-        const int low = hex_digit(text[index + 1]);
-        if (high < 0 || low < 0)
-        {
-            throw runtime_failure({tx::error_kind::parse, "invalid_hex",
-                                   "十六进制文本包含无效字符"});
-        }
-        result.push_back(static_cast<std::uint8_t>((high << 4) | low));
+        const auto lower = static_cast<unsigned char>(character | 0x20);
+        const bool decimal = static_cast<unsigned char>(character - '0') <= 9;
+        const bool hexadecimal = static_cast<unsigned char>(lower - 'a') <= 5;
+        // 范围比较可由编译器向量化，避免逐字节查表形成串行依赖。
+        invalid |= !decimal && !hexadecimal;
+    }
+    if (invalid != 0)
+    {
+        throw runtime_failure({tx::error_kind::parse, "invalid_hex",
+                               "十六进制文本包含无效字符"});
+    }
+    std::vector<std::uint8_t> result(text.size() / 2);
+    for (std::size_t index = 0; index < result.size(); ++index)
+    {
+        const auto high = hex_values[static_cast<unsigned char>(text[index * 2])];
+        const auto low = hex_values[static_cast<unsigned char>(text[index * 2 + 1])];
+        result[index] = static_cast<std::uint8_t>((high << 4) | low);
     }
     return make_bytes(std::move(result));
 }

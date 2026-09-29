@@ -190,6 +190,7 @@ list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hp
     "src/common/record_copy_kind.hpp"
     "src/common/text_encoding.hpp" "src/stdlib/parse.hpp" "src/stdlib/serde_direct.hpp"
     "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp" "src/stdlib/iterator.hpp")
+list(APPEND _tx_abi_files "src/stdlib/container_scalar.hpp" "src/stdlib/typed_map.hpp")
 list(SORT _tx_interface_files)
 list(SORT _tx_abi_files)
 set(TX_INTERFACE_COUNT 0)
@@ -265,6 +266,7 @@ add_executable(txc
     src/backend/llvm/codegen_sum.cpp
     src/backend/llvm/codegen_native_option.cpp
     src/backend/llvm/codegen_native_parse.cpp
+    src/backend/llvm/codegen_parse_error.cpp
     src/backend/llvm/codegen_iterator.cpp
     src/backend/llvm/codegen_closure.cpp
     src/backend/llvm/codegen_closure_internal.cpp
@@ -278,6 +280,7 @@ add_executable(txc
     src/backend/llvm/codegen_channel.cpp
     src/backend/llvm/codegen_serde.cpp
     src/backend/llvm/codegen_format.cpp
+    src/backend/llvm/codegen_format_dynamic.cpp
     src/backend/llvm/codegen_format_constant.cpp
     src/backend/llvm/codegen_encoding.cpp
     src/backend/llvm/codegen_format_plan.cpp
@@ -343,6 +346,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/log_abi.cpp
     src/backend/cpp/debug_abi.cpp
     src/backend/cpp/parse_abi.cpp
+    src/backend/cpp/parse_error_abi.cpp
     src/backend/cpp/json_abi.cpp
     src/backend/cpp/json_stream_abi.cpp
     src/backend/cpp/cbor_abi.cpp
@@ -440,6 +444,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/system_env_direct_abi.cpp
     src/backend/cpp/file_direct_abi.cpp
     src/backend/cpp/format_direct_abi.cpp
+    src/backend/cpp/format_arguments_abi.cpp
     src/backend/cpp/format_static_abi.cpp
     src/backend/cpp/io_time_direct_abi.cpp
     src/backend/cpp/value_abi.cpp
@@ -460,6 +465,8 @@ add_library(txstdlib STATIC
     src/stdlib/format_spec.cpp
     src/common/format_spec.cpp
     src/common/text_encoding.cpp
+    src/common/utf8.cpp
+    src/common/utf8_bulk.cpp
     src/stdlib/dictionary.cpp
     src/stdlib/conversion.cpp
     src/stdlib/parse.cpp
@@ -629,7 +636,7 @@ if(WIN32)
 endif()
 set(TX_TOOL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/tx")
 set_target_properties(txstdlib PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${TX_TOOL_OUTPUT_DIR}"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 set_target_properties(txc PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${TX_TOOL_OUTPUT_DIR}"
@@ -641,4 +648,12 @@ if(MSVC)
 else()
     target_compile_options(txc PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(txstdlib PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # 数字键读取的 any 恢复和哈希查找应内联进静态 ABI，避免额外短调用。
+    set_source_files_properties(
+        src/backend/cpp/map_i64_abi.cpp src/backend/cpp/map_f64_abi.cpp
+        src/backend/cpp/map_bool_abi.cpp src/backend/cpp/map_str_abi.cpp
+        PROPERTIES COMPILE_OPTIONS "-finline-limit=1000")
 endif()

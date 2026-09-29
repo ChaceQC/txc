@@ -1,0 +1,64 @@
+interface reader
+{
+    def read() -> int
+}
+
+class base
+{
+    protected:
+        value: int
+    public:
+        def init(value: int)
+        {
+            self.value = value
+        }
+        virtual def read() -> int
+        {
+            return self.value
+        }
+}
+
+class plus_one : base, reader
+{
+    public:
+        override def read() -> int
+        {
+            return super.read() + 1
+        }
+}
+
+class plus_two : base, reader
+{
+    public:
+        override def read() -> int
+        {
+            return super(base).read() + 2
+        }
+}
+
+def sum_reads(value: reader) -> int
+{
+    int result = 0
+    for repetition in 0..=3
+    {
+        result += value.read()
+    }
+    return result
+}
+
+def main() -> int
+{
+    reader value = plus_one(7)
+    if sum_reads(value) != 32
+    {
+        print(1 / 0)
+    }
+    value = plus_two(7)
+    base parent = value as base
+    if sum_reads(value) != 36 || parent.read() != 9
+    {
+        print(1 / 0)
+    }
+    print("VIRTUAL_VIEWS_OK")
+    return 0
+}

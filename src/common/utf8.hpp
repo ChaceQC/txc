@@ -6,6 +6,14 @@
 namespace tx
 {
 
+struct utf8_scan_result
+{
+    bool valid;
+    std::size_t length;
+};
+
+[[nodiscard]] utf8_scan_result scan_utf8(std::string_view text) noexcept;
+
 // 返回当前 UTF-8 标量的字节宽度；零表示无效编码。
 [[nodiscard]] inline std::size_t utf8_width(std::string_view text,
                                              std::size_t offset) noexcept

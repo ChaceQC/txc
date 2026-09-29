@@ -1,0 +1,101 @@
+import "error.txh" as errors
+import "encoding.txh" as encoding
+import "bytes.txh" as bytes
+
+def expect(condition: bool)
+{
+    if !condition
+    {
+        print(1 / 0)
+    }
+}
+
+def map_transitions()
+{
+    auto values = map<int, int>()
+    expect(values.get(7, 9) == 9)
+    values[7] = 3
+    auto alias = values
+    expect(alias[7] == 3 && values.get(8, 9) == 9)
+    alias[7] = 4
+    expect(values[7] == 4)
+    for i in 0..=4095
+    {
+        values[i] = i * 3
+    }
+    for i in 0..=4095
+    {
+        expect(alias[i] == i * 3)
+    }
+    values.clear()
+    alias[-1] = 11
+    expect(values[-1] == 11 && values.get(7, 9) == 9)
+    bool missing = false
+    try
+    {
+        print(values[7])
+    }
+    exception errors.runtime_error as error
+    {
+        missing = error.message == "map 键不存在"
+    }
+    expect(missing)
+    auto floating = map<float, int>()
+    floating[0.0] = 17
+    expect(floating[-0.0] == 17)
+    auto infinite = 1e308 * 1e308
+    auto nan = infinite - infinite
+    bool nan_rejected = false
+    try
+    {
+        print(floating.get(nan, 0))
+    }
+    exception errors.runtime_error as error
+    {
+        nan_rejected = true
+    }
+    expect(nan_rejected && floating[0.0] == 17)
+    auto text = map<str, int>()
+    text["你好🙂"] = 19
+    expect(text["你好🙂"] == 19 && text.get("other", 23) == 23)
+    text["other"] = 29
+    expect(text["other"] == 29)
+}
+
+def encoding_boundaries()
+{
+    str text = ""
+    for i in 0..=64
+    {
+        text += "a你好🙂"
+        expect(len(text) == (i + 1) * 4)
+        expect(encoding.decode(encoding.encode(text, "utf-8"), "utf-8") == text)
+        expect(encoding.decode(encoding.encode(text, "utf-8-sig"), "utf-8-sig") == text)
+    }
+    vector<str> bad = vector<str>()
+    bad.push_back("c080")
+    bad.push_back("eda080")
+    bad.push_back("f4908080")
+    bad.push_back("f09080")
+    for item in bad
+    {
+        bool rejected = false
+        try
+        {
+            print(encoding.decode(bytes.from_hex(item), "utf-8"))
+        }
+        exception errors.parse_error as error
+        {
+            rejected = error.code == "invalid_encoding"
+        }
+        expect(rejected)
+    }
+}
+
+def main() -> int
+{
+    map_transitions()
+    encoding_boundaries()
+    print("REMAINING_BEHAVIOR_OK")
+    return 0
+}
