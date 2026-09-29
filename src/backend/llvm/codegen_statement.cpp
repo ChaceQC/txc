@@ -21,6 +21,10 @@ void llvm_code_generator::emit_statements(const std::vector<stmt_ptr>& statement
 void llvm_code_generator::emit_declaration(
     const statement& item, const variable_declaration& declaration)
 {
+    if (emit_stack_record(item, declaration))
+    {
+        return;
+    }
     if (eligible_dynamic_local_array(declaration))
     {
         emit_dynamic_local_array_declaration(item, declaration);
@@ -84,6 +88,9 @@ void llvm_code_generator::emit_declaration(
     const auto array_reference = type == value_type::array_type
         ? cache_array_reference(value.text, item.position) : std::string{};
     variable_slot slot{type, address, false, array_reference};
+    slot.default_heap = default_heap_local(declaration);
+    cache_closure_local(slot, declaration, value.text);
+    cache_record_view(slot, value.text);
     if (type == value_type::str_type && immutable_format_local(declaration))
     {
         slot.constant_text = constant_format_text(*declaration.initializer);
@@ -99,6 +106,10 @@ void llvm_code_generator::emit_declaration(
 void llvm_code_generator::emit_composite_assignment(
     const statement& item, const variable_assignment& assignment)
 {
+    if (emit_record_assignment(item, assignment))
+    {
+        return;
+    }
     if (emit_local_array_assignment(item, assignment))
     {
         return;

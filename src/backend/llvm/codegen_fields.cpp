@@ -25,6 +25,32 @@ std::string llvm_code_generator::scalar_field_address(
     const auto& member = std::get<member_expression>(item.data);
     const auto& name = std::get<name_reference>(member.object->data);
     const auto variable = find_variable(name.name, item.position);
+    if (static_record_type(member.object->type))
+    {
+        const auto index = member.field_slot.value_or(classes_.contains(member.object->type.name)
+            ? 0 : field_index(member.object->type, member.field, item.position));
+        auto data = variable.stack_record;
+        if (data.empty())
+        {
+            auto view = temporary();
+            if (variable.record_view.empty())
+            {
+                const auto handle = temporary();
+                write_instruction(handle + " = load ptr, ptr " + variable.address);
+                view = record_view_value({variable.type, handle});
+            }
+            else
+            {
+                write_instruction(view + " = load ptr, ptr " + variable.record_view);
+            }
+            data = temporary();
+            write_instruction(data + " = load ptr, ptr " + view);
+        }
+        const auto address = temporary();
+        write_instruction(address + " = getelementptr inbounds i64, ptr " + data +
+                          ", i64 " + std::to_string(index));
+        return address;
+    }
     if (!variable.native_parse_ok.empty())
     {
         if (read_only)

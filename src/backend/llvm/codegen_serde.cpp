@@ -153,12 +153,13 @@ std::string llvm_code_generator::serde_schema_constant(const value_type& type)
     }
     globals_ << symbol << ".fields = private constant [" << count << " x "
              << field_layout << "] [" << fields << "]\n"
-             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64, ptr, ptr } "
+             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64, ptr, ptr, ptr } "
              << "{ ptr " << type_name << ", ptr " << display << ", i64 " << metadata.version
              << ", i64 " << policy << ", i64 " << definition.fields.size()
              << ", i64 " << unknown_index << ", ptr " << unknown << ", ptr "
              << symbol << ".fields, i64 " << count << ", ptr " << symbol
-             << ".json_order, ptr " << symbol << ".cbor_order }\n";
+             << ".json_order, ptr " << symbol << ".cbor_order, ptr "
+             << (static_record_type(type) ? "@tx_record_" + type.name : "null") << " }\n";
     return symbol;
 }
 

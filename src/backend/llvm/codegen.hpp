@@ -48,6 +48,12 @@ private:
         std::string native_parse_error;
         std::string vector_reference;
         std::optional<std::string> constant_text;
+        bool default_heap = false;
+        std::string closure_view;
+        std::string closure_target;
+        const function_decl* closure_function = nullptr;
+        std::string record_view;
+        std::string stack_record;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -111,8 +117,26 @@ private:
                                           source_pos position) const;
     [[nodiscard]] std::string scalar_field_address(
         const expression& item, bool read_only = false);
+    [[nodiscard]] bool confined_local(const variable_declaration& declaration,
+                                     bool fields_only) const;
+    [[nodiscard]] bool default_heap_local(const variable_declaration& declaration) const;
+    [[nodiscard]] bool default_heap_receiver(const call_expression& call) const;
     [[nodiscard]] bool direct_scalar_field(
         const expression& item) const;
+    [[nodiscard]] bool static_record_type(const value_type& type) const;
+    void emit_record_metadata(const value_type& type);
+    void cache_record_view(variable_slot& slot, const std::string& value);
+    void refresh_record_view(const variable_slot& slot, const std::string& value);
+    [[nodiscard]] std::string record_view_value(const ir_value& object);
+    [[nodiscard]] std::string record_field_slot(const ir_value& object, std::size_t index);
+    [[nodiscard]] ir_value read_record_field(const ir_value& object,
+        const expression& item, const member_expression& member);
+    [[nodiscard]] bool emit_stack_record(const statement& item,
+                                         const variable_declaration& declaration);
+    [[nodiscard]] bool emit_record_assignment(const statement& item,
+                                             const variable_assignment& assignment);
+    [[nodiscard]] ir_value emit_record_constructor(const expression& item,
+        const std::vector<ir_value>& arguments);
     [[nodiscard]] ir_value load(const variable_slot& variable);
     [[nodiscard]] std::string cache_array_reference(
         const std::string& handle, source_pos position);
@@ -344,7 +368,9 @@ private:
     [[nodiscard]] ir_value emit_user_call(
         const expression& item, const call_expression& call,
         const function_decl& target, const std::vector<ir_value>& arguments,
-        std::string_view symbol_override = {});
+        std::string_view symbol_override = {}, std::string_view receiver_view = {});
+    void emit_record_method_adapter(const function_decl& function,
+                                     const std::string& symbol, std::size_t index);
     [[nodiscard]] std::vector<ir_value> coerce_nullable_arguments(
         const function_decl& target,
         const std::vector<ir_value>& arguments);
@@ -447,6 +473,12 @@ private:
                                const std::string& symbol,
                                std::size_t overload);
     void write_nullable_callback_boxes(const function_decl& function);
+    void emit_native_closure_adapter(const std::string& name,
+                                     const value_type& type, bool bound);
+    void emit_typed_bind_wrapper(const std::string& name,
+                                 const value_type& parent_type, std::size_t captured);
+    void cache_closure_local(variable_slot& slot, const variable_declaration& declaration,
+                             const std::string& value);
     void write_callback_releases(const function_decl& function,
                                  bool call_completed);
     void write_external_declarations();

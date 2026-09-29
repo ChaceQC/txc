@@ -1,6 +1,7 @@
 #pragma once
 
 #include "backend/cpp/cycle_gc.hpp"
+#include "backend/cpp/record_layout.hpp"
 
 #include <any>
 #include <array>
@@ -96,18 +97,67 @@ private:
 
 struct dynamic_struct_data
 {
-    dynamic_struct_data(std::string type, std::string display,
+    dynamic_struct_data(std::string_view type, std::string_view display,
         struct_fields values, std::shared_ptr<const void> owner = {})
-        : type_name(std::move(type)), display_name(std::move(display)),
+        : owned_type_name(type), owned_display_name(display),
+          type_name(owned_type_name), display_name(owned_display_name),
           fields(std::move(values)), metadata_owner(std::move(owner))
     {
     }
 
-    std::string type_name;
-    std::string display_name;
+    explicit dynamic_struct_data(const record_type* type)
+        : type_name(type->name), display_name(type->display_name), fixed(type)
+    {
+        view = {fixed.slots.data(), type};
+    }
+    dynamic_struct_data(dynamic_struct_data&& other) noexcept
+        : owned_type_name(std::move(other.owned_type_name)),
+          owned_display_name(std::move(other.owned_display_name)),
+          type_name(other.fixed.type ? other.type_name : std::string_view(owned_type_name)),
+          display_name(other.fixed.type ? other.display_name : std::string_view(owned_display_name)),
+          fields(std::move(other.fields)), metadata_owner(std::move(other.metadata_owner)),
+          fixed(std::move(other.fixed))
+    {
+        view = {fixed.slots.data(), fixed.type};
+    }
+
+    [[nodiscard]] std::size_t field_count() const noexcept
+    {
+        return fixed.type ? fixed.slots.size() : fields.size();
+    }
+    [[nodiscard]] std::any read_field(std::size_t index) const
+    {
+        return fixed.type ? fixed.slots.read(index) : fields[index].value;
+    }
+    [[nodiscard]] const char* field_name(std::size_t index) const noexcept
+    {
+        return fixed.type ? fixed.type->fields[index].name : fields[index].name;
+    }
+    [[nodiscard]] std::any& reference_field(std::size_t index)
+    {
+        return fixed.type ? fixed.slots.reference(index) : fields[index].value;
+    }
+    void write_field(std::size_t index, std::any value)
+    {
+        if (fixed.type)
+        {
+            fixed.slots.write(index, std::move(value));
+        }
+        else
+        {
+            fields[index].value = std::move(value);
+        }
+    }
+
+    std::string owned_type_name;
+    std::string owned_display_name;
+    std::string_view type_name;
+    std::string_view display_name;
     struct_fields fields;
     // 生成的 serde 字段名由 schema 持有，结构体及其 deep_copy 均保持其寿命。
     std::shared_ptr<const void> metadata_owner;
+    record_storage fixed;
+    record_view view;
 };
 
 struct dynamic_struct
@@ -115,9 +165,19 @@ struct dynamic_struct
     explicit dynamic_struct(dynamic_struct_data value)
         : data(std::make_shared<dynamic_struct_data>(std::move(value)))
     {
+        if (data->fixed.type && data->fixed.type->scan_count == 0)
+        {
+            return;
+        }
         register_gc_node(data,
             [](const void* object, gc_visit visit, void* context)
             {
+                const auto& value = *static_cast<const dynamic_struct_data*>(object);
+                if (value.fixed.type)
+                {
+                    value.fixed.scan(visit, context);
+                    return;
+                }
                 for (const auto& field :
                      static_cast<const dynamic_struct_data*>(object)->fields)
                 {
@@ -126,7 +186,9 @@ struct dynamic_struct
             },
             [](void* object)
             {
-                static_cast<dynamic_struct_data*>(object)->fields.clear();
+                auto& value = *static_cast<dynamic_struct_data*>(object);
+                value.fields.clear();
+                value.fixed.slots.clear();
             });
     }
 
@@ -155,6 +217,8 @@ struct dynamic_class
     const void* const* destructor_targets = nullptr;
     std::size_t destructor_count = 0;
     bool destroying = false;
+    record_storage fixed;
+    record_view view;
 };
 
 class class_handle

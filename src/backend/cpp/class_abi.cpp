@@ -52,9 +52,20 @@ class_handle::~class_handle()
 
 void register_class_gc(const std::shared_ptr<dynamic_class>& object)
 {
+    // 没有向外对象边就不能形成环；最后释放仍由 class_handle 执行析构和复活。
+    if (object->fixed.type && object->fixed.type->scan_count == 0)
+    {
+        return;
+    }
     register_gc_node(object,
         [](const void* value, gc_visit visit, void* context)
         {
+            const auto& data = *static_cast<const dynamic_class*>(value);
+            if (data.fixed.type)
+            {
+                data.fixed.scan(visit, context);
+                return;
+            }
             for (const auto& field : static_cast<const dynamic_class*>(value)->fields)
             {
                 visit(field, context);
@@ -63,6 +74,7 @@ void register_class_gc(const std::shared_ptr<dynamic_class>& object)
         [](void* value)
         {
             static_cast<dynamic_class*>(value)->fields.clear();
+            static_cast<dynamic_class*>(value)->fixed.slots.clear();
         },
         [](const std::shared_ptr<void>& value)
         {
@@ -164,6 +176,14 @@ void* scalar_field_ptr(const void* value, std::size_t index,
     const auto* item = static_cast<const std::any*>(value);
     const auto* handle = item
         ? std::any_cast<tx_generated::class_handle>(item) : nullptr;
+    if (handle && *handle && (*handle)->fixed.type &&
+        index < (*handle)->fixed.slots.size() &&
+        (*handle)->fixed.slots.kind(index) == (std::is_same_v<field_type, std::int64_t>
+            ? tx_generated::slot_kind::integer : std::is_same_v<field_type, double>
+            ? tx_generated::slot_kind::floating : tx_generated::slot_kind::boolean))
+    {
+        return (*handle)->fixed.slots.data() + index;
+    }
     if (handle && *handle && index < (*handle)->fields.size())
     {
         auto& field = (*handle)->fields[index];
@@ -181,6 +201,35 @@ void* scalar_field_ptr(const void* value, std::size_t index,
 } // namespace
 
 using tx_generated::detail::invoke_checked;
+
+extern "C" int txrt_record_class_new(const tx_generated::record_type* type,
+    void** result) noexcept
+{
+    return invoke_checked([&]
+    {
+        auto object = std::make_shared<tx_generated::dynamic_class>();
+        object->type_name = type->name;
+        object->display_name = type->display_name;
+        object->ancestors = type->ancestor_names;
+        object->ancestor_count = type->ancestor_count;
+        object->virtual_targets = type->virtual_targets;
+        object->virtual_count = type->virtual_count;
+        object->destructor_targets = type->destructors;
+        object->destructor_count = type->destructor_count;
+        object->fixed = tx_generated::record_storage(type);
+        object->view = {object->fixed.slots.data(), type};
+        for (std::size_t index = 0; index < type->field_count; ++index)
+        {
+            if (type->fields[index].kind == 0 && type->fields[index].type_name)
+            {
+                object->fixed.slots.reference(index) = default_field(type->fields[index].type_name);
+            }
+        }
+        tx_generated::register_class_gc(object);
+        *result = tx_generated::detail::make_handle<std::any>(
+            tx_generated::class_handle(std::move(object)));
+    });
+}
 
 extern "C" int txrt_class_new(
     const char* type_name, const char* display_name,
@@ -219,6 +268,16 @@ extern "C" int txrt_class_field_address_index(
     return invoke_checked([&]
     {
         auto& object = as_class(value);
+        if (object.fixed.type)
+        {
+            auto& field = object.fixed.slots.reference(index);
+            if (!for_write && !field.has_value())
+            {
+                throw std::runtime_error("类字段尚未初始化");
+            }
+            *result = &field;
+            return;
+        }
         if (index >= object.fields.size())
         {
             throw std::runtime_error("类字段索引越界");

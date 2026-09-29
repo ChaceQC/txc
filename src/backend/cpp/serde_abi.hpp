@@ -20,6 +20,7 @@ enum class serde_unknown : std::int64_t
 
 struct serde_schema;
 struct serde_codec;
+struct record_type;
 
 struct serde_type
 {
@@ -61,6 +62,7 @@ struct serde_schema
     std::uint64_t field_size;
     const std::uint64_t* json_order;
     const std::uint64_t* cbor_order;
+    const record_type* layout = nullptr;
 
     [[nodiscard]] std::span<const serde_field> fields() const noexcept
     {
@@ -69,7 +71,7 @@ struct serde_schema
 };
 
 // 与编译器生成的只读 LLVM 常量一致，不依赖 C++ 容器布局。
-static_assert(std::is_standard_layout_v<serde_schema> && sizeof(serde_schema) == 88);
+static_assert(std::is_standard_layout_v<serde_schema> && sizeof(serde_schema) == 96);
 static_assert(offsetof(serde_schema, field_data) == 56);
 static_assert(sizeof(serde_type) == 40 && sizeof(serde_default) == 32);
 static_assert(sizeof(serde_field) == 96 && offsetof(serde_field, default_value) == 64);

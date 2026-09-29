@@ -6,6 +6,7 @@
 #include "stdlib/vector.hpp"
 
 #include <algorithm>
+#include <array>
 #include <any>
 #include <cstdint>
 #include <limits>
@@ -86,8 +87,17 @@ struct heap_storage final : container_model<heap_storage<element_type>>,
         }
         else
         {
-            left_less = order(left.value, right.value);
-            right_less = order(right.value, left.value);
+            if (!order.closure.has_value())
+            {
+                // 元素进入堆时已检查 NaN；默认顺序没有用户回调或再次校验。
+                left_less = scalar_value(left.value) < scalar_value(right.value);
+                right_less = scalar_value(right.value) < scalar_value(left.value);
+            }
+            else
+            {
+                left_less = order(left.value, right.value);
+                right_less = order(right.value, left.value);
+            }
         }
         if (left_less || right_less)
         {
@@ -104,8 +114,10 @@ struct heap_storage final : container_model<heap_storage<element_type>>,
         {
             throw std::overflow_error("heap 稳定序号已耗尽");
         }
-        const node pending{value, next_sequence};
-        std::vector<std::size_t> parents;
+        node pending{value, next_sequence};
+        // 二叉堆路径最多 size_t 位数层；比较全部成功后才改动已有元素。
+        std::array<std::size_t, std::numeric_limits<std::size_t>::digits> parents;
+        std::size_t parent_count = 0;
         auto slot = values.size();
         while (slot != 0)
         {
@@ -114,17 +126,18 @@ struct heap_storage final : container_model<heap_storage<element_type>>,
             {
                 break;
             }
-            parents.push_back(parent);
+            parents[parent_count++] = parent;
             slot = parent;
         }
         values.push_back(pending);
         auto current = values.size() - 1;
-        for (const auto parent : parents)
+        for (std::size_t index = 0; index < parent_count; ++index)
         {
+            const auto parent = parents[index];
             values[current] = std::move(values[parent]);
             current = parent;
         }
-        values[current] = pending;
+        values[current] = std::move(pending);
         ++next_sequence;
     }
 
@@ -150,11 +163,12 @@ struct heap_storage final : container_model<heap_storage<element_type>>,
             values.pop_back();
             return;
         }
-        const node pending = values.back();
-        std::vector<std::size_t> children;
+        node pending = values.back();
+        std::array<std::size_t, std::numeric_limits<std::size_t>::digits> children;
+        std::size_t child_count = 0;
         std::size_t slot = 0;
         const auto limit = values.size() - 1;
-        while (slot * 2 + 1 < limit)
+        while (slot < limit / 2)
         {
             auto child = slot * 2 + 1;
             if (child + 1 < limit && outranks(values[child + 1], values[child]))
@@ -165,16 +179,17 @@ struct heap_storage final : container_model<heap_storage<element_type>>,
             {
                 break;
             }
-            children.push_back(child);
+            children[child_count++] = child;
             slot = child;
         }
         slot = 0;
-        for (const auto child : children)
+        for (std::size_t index = 0; index < child_count; ++index)
         {
+            const auto child = children[index];
             values[slot] = std::move(values[child]);
             slot = child;
         }
-        values[slot] = pending;
+        values[slot] = std::move(pending);
         values.pop_back();
     }
 

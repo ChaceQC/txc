@@ -92,7 +92,7 @@ void merge_unknown(tx_dict& output, const dynamic_struct& input,
         return;
     }
     const auto* bag = std::any_cast<tx_dict>(
-        &input->fields[schema.unknown_index].value);
+        &input->reference_field(schema.unknown_index));
     if (!bag)
     {
         serde_encode_error("type_mismatch", "serde 未知字段容器必须是 dict");
@@ -143,7 +143,7 @@ std::any serde_encode_struct(const std::any& value,
     }
     const auto* input = std::any_cast<dynamic_struct>(&value);
     if (!input || (*input)->type_name != schema->type_name ||
-        (*input)->fields.size() != schema->field_count)
+        (*input)->field_count() != schema->field_count)
     {
         serde_encode_error("type_mismatch", "serde 结构体实际类型与 schema 不一致");
     }
@@ -152,7 +152,7 @@ std::any serde_encode_struct(const std::any& value,
     (void)result.emplace_back(version_key(format), schema->version);
     for (const auto& field : schema->fields())
     {
-        auto encoded = serde_encode_value((*input)->fields[field.index].value,
+        auto encoded = serde_encode_value((*input)->read_field(field.index),
             field.type, format, active, depth + 1);
         (void)result.emplace_back(wire_key(field, format), std::move(encoded));
     }
@@ -239,6 +239,15 @@ std::any serde_decode_struct(const std::any& value,
     {
         fields[schema->unknown_index] = {schema->unknown_name,
             std::move(unknown)};
+    }
+    if (schema->layout)
+    {
+        dynamic_struct result{dynamic_struct_data(schema->layout)};
+        for (std::size_t index = 0; index < fields.size(); ++index)
+        {
+            result->write_field(index, std::move(fields[index].value));
+        }
+        return result;
     }
     return dynamic_struct(dynamic_struct_data{schema->type_name,
         schema->display_name, std::move(fields)});

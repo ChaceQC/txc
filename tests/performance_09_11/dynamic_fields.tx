@@ -1,0 +1,21 @@
+import "test.txh" as test
+
+struct point
+{
+    x: int
+}
+
+def main() -> int
+{
+    point value = point(1)
+    array box = [value]
+    any exposed = box[0]
+    value.x = 9
+    test.assert_equal(9, value.x)
+    test.assert_equal(9, exposed.x as int)
+    point restored = exposed as point
+    restored.x = 11
+    test.assert_equal(11, exposed.x as int)
+    print("dynamic fields", test.failures())
+    return test.failures()
+}

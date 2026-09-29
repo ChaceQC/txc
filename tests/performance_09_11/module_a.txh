@@ -1,0 +1,6 @@
+struct point
+{
+    value: int
+}
+
+def make(value: int) -> point

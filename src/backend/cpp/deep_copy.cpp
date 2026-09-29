@@ -212,6 +212,18 @@ private:
         {
             result.data().captures.push_back(copy(capture));
         }
+        std::vector<slot_kind> kinds;
+        for (std::size_t index = 0; index < state.typed_captures.size(); ++index)
+        {
+            kinds.push_back(state.typed_captures.kind(index));
+        }
+        result.data().typed_captures = typed_slots(kinds);
+        for (std::size_t index = 0; index < kinds.size(); ++index)
+        {
+            result.data().typed_captures.write(index, copy(state.typed_captures.read(index)));
+        }
+        result.data().view.code = state.view.code;
+        result.data().refresh();
         return result;
     }
 
@@ -285,14 +297,17 @@ private:
         {
             return found->second;
         }
-        dynamic_struct result(dynamic_struct_data{
-            source->type_name, source->display_name,
-            struct_fields(source->fields.size()), source->metadata_owner});
+        dynamic_struct result(source->fixed.type ? dynamic_struct_data(source->fixed.type) :
+            dynamic_struct_data{source->type_name, source->display_name,
+                struct_fields(source->fields.size()), source->metadata_owner});
         copies_.emplace(source.identity(), result);
-        for (std::size_t index = 0; index < source->fields.size(); ++index)
+        for (std::size_t index = 0; index < source->field_count(); ++index)
         {
-            result->fields[index] = {
-                source->fields[index].name, copy(source->fields[index].value)};
+            if (!source->fixed.type)
+            {
+                result->fields[index].name = source->fields[index].name;
+            }
+            result->write_field(index, copy(source->read_field(index)));
         }
         return result;
     }
@@ -320,6 +335,11 @@ private:
         object->destructor_targets = source->destructor_targets;
         object->destructor_count = source->destructor_count;
         object->fields.resize(source->fields.size());
+        if (source->fixed.type)
+        {
+            object->fixed = record_storage(source->fixed.type);
+            object->view = {object->fixed.slots.data(), source->fixed.type};
+        }
         // 未完成的副本不应在复制失败时执行 deinit。
         object->destroying = true;
         register_class_gc(object);
@@ -329,6 +349,10 @@ private:
         for (std::size_t index = 0; index < source->fields.size(); ++index)
         {
             result->fields[index] = copy(source->fields[index]);
+        }
+        for (std::size_t index = 0; index < source->fixed.slots.size(); ++index)
+        {
+            result->fixed.slots.write(index, copy(source->fixed.slots.read(index)));
         }
         return result;
     }

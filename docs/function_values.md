@@ -36,6 +36,8 @@ def main() -> int
 
 ## 2.5 实施记录
 
+2026-09-29：TX 内部函数值调用改为显式传递 context 与稳定环境视图，原生回调在实际执行线程获取 context。标量 bind 捕获使用固定槽；已知且不重新绑定的目标可以直接调用并复用效果分析，未知目标仍保守。详见[内部契约](static_object_layout.md)及[09–11 验收](../benchmarks/performance_optimization_09_11_2026-09-29/README.md)。
+
 - **代码：** `bind` 以静态签名捕获前缀实参，生成专用 LLVM 回调包装函数；函数值统一持有带目标和环境的运行时句柄，间接调用仍使用类型明确的形参与返回值。捕获按普通赋值语义持有；简单实参的同步调用借用局部变量持有的闭包，包装函数借用父环境并直接读取标量捕获，字符串和复合捕获仍取得临时拥有型值交给回调，借用不逃逸。闭包可作为返回值、字段或 `any` 值，接入 `deep_copy` 与循环回收对象图。已有顶层 `fn` 和标准库 TX 桥接源码已按同一 ABI 重建。
 - **构建：** `scripts/build.ps1` 在 Windows x64 成功生成编译器、标准库静态库及兼容清单。
 - **定向验证：** 原[函数值示例](../examples/function_values.tx)重新编译运行，仍输出 `42`、`22`、`TX!`；[闭包示例](../examples/closures.tx)覆盖嵌套绑定、标量/字符串/复合值/函数值捕获、共享与 `deep_copy`、字段和 `any` 恢复、返回闭包。`tests/stdlib/closure_module/main.tx` 跨 `.txh` 输出 `12`，`closure_error.tx` 捕获原 `runtime_error`，`closure_cycle.tx` 对闭包与字典形成的引用环进行 `deep_copy` 并输出 `6`，错误捕获类型在源码位置报告中文诊断。未运行全量套件。

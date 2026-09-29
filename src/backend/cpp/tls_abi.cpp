@@ -260,7 +260,7 @@ extern "C" int txrt_tls_client(const void* hostname, const void* roots,
         identity_type.replace(identity_type.size() - std::string_view("client_config").size(),
             std::string_view("client_config").size(), "identity");
         *result = tx_generated::detail::make_handle<std::any>(client_struct(
-            type_name, config, roots_type.c_str(), identity_type.c_str()));
+            type_name, config, roots_type.data(), identity_type.data()));
     }, tx::error_kind::security);
 }
 
@@ -276,7 +276,7 @@ extern "C" int txrt_tls_with_client_identity(const void* config,
         const auto& roots_type = field<dynamic_struct>(original, 1)->type_name;
         const auto& identity_type = value<dynamic_struct>(identity)->type_name;
         *result = tx_generated::detail::make_handle<std::any>(client_struct(
-            type_name, selected, roots_type.c_str(), identity_type.c_str()));
+            type_name, selected, roots_type.data(), identity_type.data()));
     }, tx::error_kind::security);
 }
 
@@ -291,7 +291,7 @@ extern "C" int txrt_tls_server(const void* identity, const void* client_roots,
         struct_fields fields(3);
         fields[0] = {"identity", value<dynamic_struct>(identity)};
         fields[1] = {"client_trust", trust_struct(
-            value<dynamic_struct>(client_roots)->type_name.c_str(), roots)};
+            value<dynamic_struct>(client_roots)->type_name.data(), roots)};
         fields[2] = {"require_client_identity", require_client_identity};
         *result = make_struct(type_name, "server_config", std::move(fields));
     }, tx::error_kind::security);

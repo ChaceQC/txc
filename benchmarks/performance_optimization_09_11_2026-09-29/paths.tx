@@ -1,0 +1,113 @@
+import "time.txh" as time
+import "../language_features/workload.txh" as workload
+
+struct point
+{
+    x: int
+    y: int
+}
+
+class counter
+{
+    public:
+        value: int
+        def init(value: int)
+        {
+            self.value = value
+        }
+        def increase() -> int
+        {
+            self.value += 1
+            return self.value
+        }
+}
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - started)
+    print(checksum)
+}
+
+def double_value(value: int) -> int
+{
+    return value * 2
+}
+
+def add(base: int, value: int) -> int
+{
+    return base + value
+}
+
+def bench_fields()
+{
+    auto value = point(1, 2)
+    auto alias = value
+    auto start = time.monotonic_micros()
+    for i in 0..=999999
+    {
+        value.x += 1
+        alias.y += 2
+    }
+    report("struct_fields", start, value.x + value.y)
+    auto object = counter(0)
+    int checksum = 0
+    start = time.monotonic_micros()
+    for i in 0..=999999
+    {
+        checksum += object.increase()
+    }
+    report("class_methods", start, checksum)
+    checksum = 0
+    start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        checksum += workload.measure(workload.pair(i, 7))
+    }
+    report("module_call", start, checksum)
+}
+
+def bench_calls()
+{
+    fn(int)->int operation = double_value
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=999999
+    {
+        checksum += operation(i)
+    }
+    report("function_value", start, checksum)
+    fn(int)->int closure = bind(add, 5)
+    checksum = 0
+    start = time.monotonic_micros()
+    for i in 0..=999999
+    {
+        checksum += closure(i)
+    }
+    report("closure_bind", start, checksum)
+}
+
+def bench_heap()
+{
+    heap<int> values = heap<int>()
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        values.push(i % 1000)
+    }
+    for i in 0..=49999
+    {
+        checksum += values.top()
+        values.pop()
+    }
+    report("heap_push_pop", start, checksum)
+}
+
+def main() -> int
+{
+    bench_fields()
+    bench_calls()
+    bench_heap()
+    return 0
+}

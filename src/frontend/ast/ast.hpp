@@ -362,6 +362,7 @@ struct struct_decl
     error_kind exception_kind = error_kind::none;
     std::optional<serde_struct_metadata> serde;
     std::string source_name;
+    bool native_layout = false;
 };
 
 struct virtual_target
@@ -383,6 +384,7 @@ struct class_decl
     bool is_interface = false;
     bool is_abstract = false;
     std::string source_name;
+    bool native_layout = false;
 };
 
 [[nodiscard]] inline std::string class_method_symbol(

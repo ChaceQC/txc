@@ -244,6 +244,15 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
     source_path.replace_extension(".tx");
     if (!fs::exists(source_path))
     {
+        // 无 TX 实现的接口由原生静态库拥有布局，不与用户对象的固定槽混用。
+        for (auto& definition : header.structs)
+        {
+            definition.native_layout = true;
+        }
+        for (auto& definition : header.classes)
+        {
+            definition.native_layout = true;
+        }
         std::error_code precompiled_error;
         const bool precompiled_requests = fs::equivalent(
             header_path, standard_library_dir_ / "requests.txh",

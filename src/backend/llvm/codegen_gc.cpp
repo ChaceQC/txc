@@ -132,7 +132,30 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
     }
     if (call->indirect)
     {
-        return false;
+        // 函数摘要递归分析不借用当前调用方的局部符号环境。
+        if (!gc_visiting_.empty())
+        {
+            return false;
+        }
+        const auto& slot = find_variable(call->source_name, item.position);
+        return slot.closure_function && gc_neutral_function(*slot.closure_function) &&
+            std::all_of(call->arguments.begin(), call->arguments.end(),
+                [&](const call_argument& argument)
+                {
+                    const auto& type = argument.value->type;
+                    return (type == value_type::int_type || type == value_type::float_type ||
+                            type == value_type::bool_type) &&
+                        gc_neutral_expression(*argument.value);
+                });
+    }
+    if (gc_visiting_.empty() && default_heap_receiver(*call))
+    {
+        return std::all_of(call->arguments.begin(), call->arguments.end(),
+            [&](const call_argument& argument)
+            {
+                return stable_borrow_expression(*argument.value) &&
+                    gc_neutral_expression(*argument.value);
+            });
     }
     if (call->receiver && !gc_neutral_expression(*call->receiver))
     {

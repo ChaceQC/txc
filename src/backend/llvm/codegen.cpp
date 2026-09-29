@@ -488,6 +488,17 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
         }
     }
     module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
+            << "%tx_record_field = type { ptr, ptr, i64, i64 }\n"
+            << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr }\n"
+            << "%tx_record_view = type { ptr, ptr }\n"
+            << "declare ptr @txrt_record_view(ptr)\n"
+            << "declare ptr @txrt_record_struct_view(ptr)\n"
+            << "declare ptr @txrt_record_class_view(ptr)\n"
+            << "declare i32 @txrt_record_struct_new(ptr, ptr)\n"
+            << "declare i32 @txrt_struct_field_get(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_record_class_new(ptr, ptr)\n"
+            << "declare void @txrt_record_require_type(ptr, ptr)\n"
+            << "declare void @txrt_record_require_initialized(ptr)\n"
             << "%tx_runtime_context = type { ptr, i32 }\n"
             << "%tx_diagnostic_frame = type { ptr, ptr, i64, i64, ptr }\n"
             << "declare ptr @txrt_runtime_context()\n"
@@ -556,6 +567,10 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare i32 @txrt_value_require_type(ptr, ptr)\n"
             << "declare i32 @txrt_value_require_type_or_none(ptr, ptr)\n"
             << "declare i32 @txrt_closure_new(ptr, ptr, ptr)\n"
+            << "%tx_closure_view = type { ptr, ptr, ptr }\n"
+            << "declare ptr @txrt_closure_view(ptr)\n"
+            << "declare i32 @txrt_closure_new_internal(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_closure_bind_internal(ptr, ptr, ptr, ptr, ptr, ptr, i64, ptr)\n"
             << "declare i32 @txrt_closure_bind(ptr, ptr, ptr, ptr, i64, ptr)\n"
             << "declare ptr @txrt_closure_code(ptr)\n"
             << "declare i32 @txrt_closure_parent(ptr, ptr)\n"
@@ -655,6 +670,11 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     for (const auto& definition : source.classes)
     {
         emit_class_metadata(definition);
+        emit_record_metadata(value_type(definition.name));
+    }
+    for (const auto& definition : source.structs)
+    {
+        emit_record_metadata(value_type(definition.name));
     }
 
     for (const auto& function : source.functions)

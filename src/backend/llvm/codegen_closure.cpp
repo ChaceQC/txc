@@ -202,7 +202,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_bind_call(
     const auto& parent_type = call.arguments.front().value->type;
     const auto captured_count = call.arguments.size() - 1;
     const auto wrapper = "@tx_bind_" + std::to_string(next_bind_++);
-    emit_bind_wrapper(wrapper, parent_type, captured_count);
+    emit_typed_bind_wrapper(wrapper, parent_type, captured_count);
 
     const auto parent = expression_value(*call.arguments.front().value);
     std::vector<ir_value> captures;
@@ -213,29 +213,35 @@ llvm_code_generator::ir_value llvm_code_generator::emit_bind_call(
     {
         const auto value = expression_value(*call.arguments[index].value);
         captures.push_back(value);
-        boxes.push_back(is_value_handle(value.type)
-            ? ir_value{value_type::void_type, {}}
-            : box_any(value, item.position));
+        boxes.push_back(value.type == value_type::str_type
+            ? box_any(value, item.position)
+            : ir_value{value_type::void_type, {}});
     }
     const auto array = "%slot" + std::to_string(next_slot_++);
     allocations_ << "  " << array << " = alloca [" << captured_count
-                 << " x ptr]\n";
+                 << " x i64]\n";
+    std::string kinds;
     for (std::size_t index = 0; index < captured_count; ++index)
     {
         const auto address = temporary();
         write_instruction(address + " = getelementptr inbounds [" +
-            std::to_string(captured_count) + " x ptr], ptr " + array +
+            std::to_string(captured_count) + " x i64], ptr " + array +
             ", i64 0, i64 " + std::to_string(index));
         const auto& box = boxes[index];
-        write_instruction("store ptr " +
-            (box.type == value_type::void_type ? captures[index].text : box.text) +
+        const auto& value = captures[index];
+        kinds += value.type == value_type::int_type ? '\1' :
+            value.type == value_type::float_type ? '\2' :
+            value.type == value_type::bool_type ? '\3' : '\0';
+        write_instruction("store " + llvm_type(value.type, item.position) + " " +
+            (box.type == value_type::void_type ? value.text : box.text) +
             ", ptr " + address);
     }
     const auto output = allocate(item.type, item.position);
     const auto status = temporary();
-    write_instruction(status + " = call i32 @txrt_closure_bind(ptr " +
-        parent.text + ", ptr " + wrapper + ", ptr " +
-        global_bytes(item.type.name) + ", ptr " + array + ", i64 " +
+    write_instruction(status + " = call i32 @txrt_closure_bind_internal(ptr " +
+        parent.text + ", ptr " + wrapper + ", ptr " + wrapper + "_internal, ptr " +
+        global_bytes(item.type.name) + ", ptr " + global_bytes(kinds) +
+        ", ptr " + array + ", i64 " +
         std::to_string(captured_count) + ", ptr " + output + ")");
     write_instruction("call void @txrt_require_success(i32 " + status + ")");
     for (std::size_t index = 0; index < captured_count; ++index)

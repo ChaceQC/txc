@@ -240,6 +240,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_constructor_call(
         throw compile_error(item.position, "LLVM 后端找不到结构体：" + call.name);
     }
     const auto& fields = found->second->fields;
+    if (static_record_type(item.type))
+    {
+        return emit_record_constructor(item, arguments);
+    }
     const auto separator = call.source_name.find_last_of('.');
     const auto display_name = call.source_name.substr(
         separator == std::string::npos ? 0 : separator + 1);
@@ -352,7 +356,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_external_call(
 llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
     const expression& item, const call_expression& call,
     const function_decl& target, const std::vector<ir_value>& arguments,
-    std::string_view symbol_override)
+    std::string_view symbol_override, std::string_view receiver_view)
 {
     const auto passed = coerce_nullable_arguments(target, arguments);
     std::string arguments_text = "ptr %tx_context";
@@ -361,11 +365,16 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
         arguments_text += ", ";
         arguments_text += llvm_type(passed[index].type, item.position) +
                           " " + passed[index].text;
+        if (index == 0 && !receiver_view.empty())
+        {
+            arguments_text += ", ptr " + std::string(receiver_view);
+        }
     }
     const auto symbol = symbol_override.empty() ? call.name
         : std::string(symbol_override);
     const auto invocation = "call " + llvm_type(target.return_type, item.position) +
         " " + function_name(symbol, *call.overload_index) +
+        (receiver_view.empty() ? "" : "_record") +
         "(" + arguments_text + ")";
     transfer_call_arguments(target, passed);
     emit_stack_location();
@@ -397,10 +406,19 @@ llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
     {
         closure = load(variable);
     }
-    const auto pointer = temporary();
-    write_instruction(pointer + " = call ptr @txrt_closure_code(ptr " +
-                      closure.text + ")");
-    std::string parameters = "ptr " + closure.text;
+    auto view = variable.closure_view;
+    if (view.empty())
+    {
+        view = temporary();
+        write_instruction(view + " = call ptr @txrt_closure_view(ptr " + closure.text + ")");
+    }
+    auto pointer = variable.closure_target;
+    if (pointer.empty())
+    {
+        pointer = temporary();
+        write_instruction(pointer + " = load ptr, ptr " + view);
+    }
+    std::string parameters = "ptr %tx_context, ptr " + view;
     std::vector<ir_value> arguments;
     for (const auto& argument : call.arguments)
     {

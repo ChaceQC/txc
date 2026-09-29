@@ -31,6 +31,7 @@ void llvm_code_generator::store_variable(const variable_slot& variable,
     refresh_array_reference(variable, value.text);
     refresh_dict_reference(variable, value.text);
     refresh_vector_reference(variable, value.text);
+    refresh_record_view(variable, value.text);
     release(previous);
 }
 

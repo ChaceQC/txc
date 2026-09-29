@@ -120,8 +120,9 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
         {
             const auto output = allocate(item.type, item.position);
             const auto status = temporary();
-            write_instruction(status + " = call i32 @txrt_closure_new(ptr " +
+            write_instruction(status + " = call i32 @txrt_closure_new_internal(ptr " +
                 callback_name(name->function_symbol, 0) + ", ptr " +
+                callback_name(name->function_symbol, 0) + "_internal, ptr " +
                 global_bytes(item.type.name) + ", ptr " + output + ")");
             write_instruction("call void @txrt_require_success(i32 " + status + ")");
             const auto result = temporary();
@@ -305,6 +306,30 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
         if (!borrowed_object)
         {
             object = expression_value(*access->object);
+        }
+        if (static_record_type(access->object->type))
+        {
+            const auto result = read_record_field(object, item, *access);
+            if (!borrowed_object)
+            {
+                release(object);
+            }
+            return result;
+        }
+        if (access->object->type == value_type::any_type)
+        {
+            const auto output = allocate(value_type::any_type, item.position);
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @txrt_struct_field_get(ptr " + object.text +
+                              ", ptr " + global_bytes(access->field) + ", ptr " + output + ")");
+            write_instruction("call void @txrt_require_success(i32 " + status + ")");
+            const auto result = temporary();
+            write_instruction(result + " = load ptr, ptr " + output);
+            if (!borrowed_object)
+            {
+                release(object);
+            }
+            return {item.type, result};
         }
         const auto address = allocate(value_type::any_type, item.position, false);
         const auto status = temporary();

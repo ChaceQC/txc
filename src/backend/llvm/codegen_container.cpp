@@ -152,7 +152,8 @@ llvm_code_generator::ir_value llvm_code_generator::emit_container_call(
             });
         bool borrowed = false;
         auto receiver = container_value(*call.receiver,
-            call.properties.receiver == argument_ownership::borrowed && stable, borrowed);
+            (call.properties.receiver == argument_ownership::borrowed ||
+             default_heap_receiver(call)) && stable, borrowed);
         // 不跨可能重绑定字段的实参或用户回调借用；不安全时仍先持有接收者。
         receiver.borrowed = borrowed;
         arguments.push_back(receiver);

@@ -1,0 +1,28 @@
+import "module_a.txh" as first
+import "module_b.txh" as second
+import "error.txh" as errors
+import "test.txh" as test
+
+def main() -> int
+{
+    first.point a = first.make(3)
+    second.point b = second.make(5)
+    array box = [a, b]
+    first.point restored = box[0] as first.point
+    restored.value = 7
+    test.assert_equal(7, a.value)
+    test.assert_equal(5, b.value)
+    bool rejected = false
+    try
+    {
+        second.point invalid = box[0] as second.point
+        print(invalid.value)
+    }
+    exception errors.runtime_error as error
+    {
+        rejected = true
+    }
+    test.assert_true(rejected)
+    print("module identity", test.failures())
+    return test.failures()
+}

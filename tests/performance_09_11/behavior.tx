@@ -1,0 +1,133 @@
+import "test.txh" as test
+import "error.txh" as errors
+
+struct pair
+{
+    number: int
+    fraction: float
+}
+
+struct packet
+{
+    item: pair
+    label: str
+    enabled: bool
+    values: vector<int>
+}
+
+def local_scalar(value: int) -> int
+{
+    pair local = pair(value, 1.5)
+    local.number += 2
+    return local.number
+}
+
+def fields()
+{
+    pair first = pair(7, 2.5)
+    pair alias = first
+    first.number += 1
+    test.assert_equal(8, alias.number)
+    first = pair(12, 3.5)
+    first.number++
+    test.assert_equal(13, first.number)
+    test.assert_equal(8, alias.number)
+    packet value = packet(first, "中文", true, vector<int>([1, 2]))
+    value.item.number++
+    value.item.number += 3
+    test.assert_equal(17, first.number)
+    vector<pair> records = vector<pair>([first, alias])
+    records[1].number++
+    records[0].fraction += 0.5
+    test.assert_equal(9, alias.number)
+    test.assert_equal(4.0, first.fraction)
+    value.label += "!"
+    value.values[0] = 9
+    packet copied = deep_copy(value)
+    value.item.number = 100
+    value.values[0] = 10
+    test.assert_equal(17, copied.item.number)
+    test.assert_equal(9, copied.values[0])
+    test.assert_equal("中文!", copied.label)
+    array box = [copied]
+    any boxed = box[0]
+    packet restored = boxed as packet
+    restored.enabled = false
+    test.assert_false(copied.enabled)
+    test.assert_equal(8, local_scalar(6))
+}
+
+def add(value: int) -> int
+{
+    return value + 1
+}
+
+def subtract(value: int) -> int
+{
+    return value - 1
+}
+
+def mixed(flag: bool, fraction: float, value: int) -> int
+{
+    if flag
+    {
+        return (fraction as int) + value
+    }
+    return value
+}
+
+def functions()
+{
+    fn(int)->int operation = add
+    test.assert_equal(5, operation(4))
+    operation = subtract
+    test.assert_equal(3, operation(4))
+    fn(float, int)->int parent = bind(mixed, true)
+    fn(int)->int child = bind(parent, 2.5)
+    fn(int)->int independent = deep_copy(child)
+    test.assert_equal(9, independent(7))
+}
+
+def switch_compare(state: vector<int>, left: int, right: int) -> int
+{
+    state[1] += 1
+    if state[0] == 1 && state[1] == 3
+    {
+        return 1 / 0
+    }
+    return left - right
+}
+
+def failed_pop()
+{
+    auto state = vector<int>([0, 0])
+    auto compare = bind(switch_compare, state)
+    heap<int> values = heap<int>(vector<int>([7, 3, 5, 1, 8, 2, 9]), compare)
+    state[0] = 1
+    state[1] = 0
+    bool rejected = false
+    try
+    {
+        values.pop()
+    }
+    exception errors.runtime_error as error
+    {
+        rejected = true
+    }
+    test.assert_true(rejected)
+    test.assert_equal(7, values.size())
+    test.assert_equal(1, values.top())
+    state[0] = 0
+    auto sorted = values.to_vector()
+    test.assert_equal(1, sorted[0])
+    test.assert_equal(9, sorted[6])
+}
+
+def main() -> int
+{
+    fields()
+    functions()
+    failed_pop()
+    print("static object and closure", test.failures())
+    return test.failures()
+}

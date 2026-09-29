@@ -1,0 +1,189 @@
+{
+  "phase": "initial candidate before typed record recovery",
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "old_tx",
+      "new_tx",
+      "old_heap_core",
+      "new_heap_core"
+    ],
+    [
+      "new_heap_core",
+      "old_heap_core",
+      "new_tx",
+      "old_tx"
+    ],
+    [
+      "old_tx",
+      "new_tx",
+      "old_heap_core",
+      "new_heap_core"
+    ],
+    [
+      "new_heap_core",
+      "old_heap_core",
+      "new_tx",
+      "old_tx"
+    ],
+    [
+      "old_tx",
+      "new_tx",
+      "old_heap_core",
+      "new_heap_core"
+    ]
+  ],
+  "samples_ms": {
+    "old_tx": {
+      "struct_fields": [
+        4.929,
+        4.017,
+        4.041,
+        4.005,
+        3.993
+      ],
+      "class_methods": [
+        4.28,
+        5.754,
+        4.77,
+        4.152,
+        3.967
+      ],
+      "module_call": [
+        28.766,
+        29.038,
+        28.722,
+        27.516,
+        29.282
+      ],
+      "function_value": [
+        26.558,
+        29.188,
+        27.599,
+        26.895,
+        26.574
+      ],
+      "closure_bind": [
+        78.135,
+        79.292,
+        76.781,
+        78.375,
+        79.781
+      ],
+      "heap_push_pop": [
+        36.861,
+        37.983,
+        35.687,
+        38.425,
+        37.29
+      ]
+    },
+    "new_tx": {
+      "struct_fields": [
+        0.653,
+        0.689,
+        0.665,
+        0.685,
+        0.658
+      ],
+      "class_methods": [
+        11.39,
+        11.455,
+        11.423,
+        10.327,
+        11.179
+      ],
+      "module_call": [
+        18.149,
+        18.941,
+        19.279,
+        19.972,
+        18.509
+      ],
+      "function_value": [
+        1.435,
+        1.433,
+        2.09,
+        1.402,
+        1.456
+      ],
+      "closure_bind": [
+        2.614,
+        2.614,
+        2.672,
+        2.623,
+        2.675
+      ],
+      "heap_push_pop": [
+        8.196,
+        8.283,
+        7.269,
+        7.451,
+        8.212
+      ]
+    },
+    "old_heap_core": {
+      "heap_push_pop": [
+        17.696,
+        28.774,
+        18.033,
+        17.692,
+        20.441
+      ]
+    },
+    "new_heap_core": {
+      "heap_push_pop": [
+        6.574,
+        5.829,
+        6.663,
+        5.974,
+        5.862
+      ]
+    }
+  },
+  "medians_ms": {
+    "old_tx": {
+      "struct_fields": 4.017,
+      "class_methods": 4.28,
+      "module_call": 28.766,
+      "function_value": 26.895,
+      "closure_bind": 78.375,
+      "heap_push_pop": 37.29
+    },
+    "new_tx": {
+      "struct_fields": 0.665,
+      "class_methods": 11.39,
+      "module_call": 18.941,
+      "function_value": 1.435,
+      "closure_bind": 2.623,
+      "heap_push_pop": 8.196
+    },
+    "old_heap_core": {
+      "heap_push_pop": 18.033
+    },
+    "new_heap_core": {
+      "heap_push_pop": 5.974
+    }
+  },
+  "checksums": {
+    "struct_fields": "3000003",
+    "class_methods": "500000500000",
+    "module_call": "5000650000",
+    "function_value": "999999000000",
+    "closure_bind": "500004500000",
+    "heap_push_pop": "24975000"
+  },
+  "sha256": {
+    "tx\\txc.exe": "85ed595128f1f50f35c65d0384d3bc0f0c761baa56a1861c8b5cf9c8bae72414",
+    "tx\\libtxstdlib.a": "35c877697282b2a773210bf5b5382bb456167e2c68bfd476310e36c3ce5c49f2",
+    "tx\\package.compat": "e6086c91865e7abeee6080663d4a86c914f6d1be49eb2b63191c08567a272bb6",
+    "tx_build\\performance_09_11\\baseline\\paths.exe": "433f3a5a6b101ded133485d79ab2a22b3ddb4a76411d1936a54e22efb6aa1870",
+    "tx_build\\performance_09_11\\candidate\\paths.exe": "a1d40f1f9b4494c12166b2f55f681eef7460a8e1ce876dd2267e3073c2a43f1e",
+    "tx_build\\performance_09_11\\old_heap_core.exe": "7b8268ddc75103b7d0c74b4b5f65bb5a5eeb5209c032af5e6399b7ce29753f4f",
+    "tx_build\\performance_09_11\\new_heap_core.exe": "1aac2278c2bb92f77a09b9942c41a28faa0cac247b78eb07d0171ae1688d9857",
+    "benchmarks\\performance_optimization_09_11_2026-09-29\\paths.tx": "8234238840e9913cc6368a38cb8272bd044adb4e928cb963395e6f5dbdbba461",
+    "benchmarks\\performance_optimization_09_11_2026-09-29\\heap_core.cpp": "09aa1a994af4a1f9db76f6e6ddfd7f50232cecd3433ba4059a6c599aca3636e5",
+    "tx_build\\performance_09_11\\heap_baseline\\stdlib\\typed_heap.hpp": "3908d11170663aef400c4c531dd95540241f6ddd0b5cdcf68ebfae942e983313"
+  }
+}

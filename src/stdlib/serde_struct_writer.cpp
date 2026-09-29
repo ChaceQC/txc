@@ -21,7 +21,7 @@ const tx_dict* unknown_fields(const dynamic_struct& value, const serde_schema& s
     {
         return nullptr;
     }
-    const auto* result = std::any_cast<tx_dict>(&value->fields[schema.unknown_index].value);
+    const auto* result = std::any_cast<tx_dict>(&value->reference_field(schema.unknown_index));
     if (!result)
     {
         serde_encode_error("type_mismatch", "serde 未知字段容器必须是 dict");
@@ -64,9 +64,12 @@ void write_preserved(serde_writer& writer, const dynamic_struct& input,
     std::vector<output_field> fields;
     fields.reserve(schema.field_size + unknown.size() + 1);
     fields.push_back({"$schema", 0, nullptr, nullptr});
+    std::vector<std::any> known;
+    known.reserve(schema.field_size);
     for (const auto& field : schema.fields())
     {
-        fields.push_back({field.name, field.number, &input->fields[field.index].value, &field.type});
+        known.push_back(input->read_field(field.index));
+        fields.push_back({field.name, field.number, &known.back(), &field.type});
     }
     const bool json = writer.format == serde_format::json;
     append_unknown_fields(fields, unknown, json);
@@ -110,7 +113,7 @@ void serde_write_struct(serde_writer& writer, const std::any& value,
     depth.check(true);
     const auto* input = std::any_cast<dynamic_struct>(&value);
     if (!input || (*input)->type_name != schema.type_name ||
-        (*input)->fields.size() != schema.field_count)
+        (*input)->field_count() != schema.field_count)
     {
         serde_encode_error("type_mismatch", "serde 结构体实际类型与 schema 不一致");
     }
@@ -131,7 +134,7 @@ void serde_write_struct(serde_writer& writer, const std::any& value,
         const auto& field = schema.field_data[order[index]];
         writer.separator(index + 1);
         writer.key(field.name, field.number);
-        field.type.codec->encode(writer, (*input)->fields[field.index].value, field.type, depth.child());
+        field.type.codec->encode(writer, (*input)->read_field(field.index), field.type, depth.child());
     }
     writer.end(true);
 }

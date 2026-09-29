@@ -121,7 +121,7 @@ void llvm_code_generator::emit_callback_wrapper(
     const function_decl& function, const std::string& symbol,
     std::size_t overload)
 {
-    std::string wrapper_parameters = "ptr %environment";
+    std::string wrapper_parameters = "ptr %tx_context, ptr %environment";
     std::string wrapper_arguments = "ptr %tx_context";
     bool nullable = false;
     for (std::size_t index = 0; index < function.parameters.size(); ++index)
@@ -143,9 +143,10 @@ void llvm_code_generator::emit_callback_wrapper(
     }
     const auto result_type = llvm_type(function.return_type, function.position);
     module_ << "define " << result_type << ' '
-            << callback_name(symbol, overload) << '(' << wrapper_parameters
+            << callback_name(symbol, overload) << "_internal(" << wrapper_parameters
             << ") {\nentry:\n";
-    write_context_boundary();
+    module_ << "  %tx_error_kind = getelementptr inbounds %tx_runtime_context, "
+            << "ptr %tx_context, i32 0, i32 1\n";
     write_nullable_callback_boxes(function);
     if (function.return_type != value_type::void_type)
     {
@@ -170,6 +171,15 @@ void llvm_code_generator::emit_callback_wrapper(
                 << "  " << error_return(result_type) << '\n';
     }
     module_ << "}\n\n";
+    std::vector<value_type> signature;
+    for (const auto& parameter : function.parameters)
+    {
+        signature.push_back(parameter.type);
+    }
+    signature.push_back(function.return_type);
+    value_type callback_type;
+    callback_type.parameters = std::move(signature);
+    emit_native_closure_adapter(callback_name(symbol, overload), callback_type, false);
 }
 
 } // namespace tx

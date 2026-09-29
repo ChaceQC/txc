@@ -81,9 +81,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_cast(
     {
         if (!class_is_assignable(value.type, cast.target))
         {
-            write_instruction("call void @txrt_class_require_type_fast(ptr " +
+            write_instruction(std::string("call void @") +
+                              (static_record_type(cast.target) ? "txrt_record_require_type" :
+                               "txrt_class_require_type_fast") + "(ptr " +
                               value.text + ", ptr " +
-                              global_bytes(cast.target.name) + ")");
+                              (static_record_type(cast.target) ? "@tx_record_" + cast.target.name :
+                               global_bytes(cast.target.name)) + ")");
         }
         return {cast.target, value.text};
     }

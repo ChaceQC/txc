@@ -37,6 +37,59 @@ int scalar_capture(const void* value, std::size_t index,
 
 } // namespace
 
+extern "C" const tx_generated::closure_view* txrt_closure_view(const void* value) noexcept
+{
+    const tx_generated::closure_view* result = nullptr;
+    txrt_require_success(tx_generated::detail::invoke_leaf([&]
+    {
+        result = &state_of(value).view;
+        if (!result->code)
+        {
+            throw std::runtime_error("闭包缺少 TX 内部入口");
+        }
+    }));
+    return result;
+}
+
+extern "C" int txrt_closure_new_internal(const void* target, const void* code,
+    const char* type_name, void** result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        tx_generated::closure_state state{target, type_name, {}, {}};
+        state.view.code = code;
+        *result = tx_generated::detail::make_handle<std::any>(
+            tx_generated::closure_handle(std::move(state)));
+    });
+}
+
+extern "C" int txrt_closure_bind_internal(const void* parent, const void* target,
+    const void* code, const char* type_name, const tx_generated::slot_kind* kinds,
+    const tx_generated::typed_slot* captured, std::size_t count, void** result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        (void)state_of(parent);
+        tx_generated::closure_state state{target, type_name,
+            *static_cast<const std::any*>(parent), {}};
+        state.view.code = code;
+        state.typed_captures = tx_generated::typed_slots({kinds, count}, true);
+        for (std::size_t index = 0; index < count; ++index)
+        {
+            if (kinds[index] == tx_generated::slot_kind::reference)
+            {
+                state.typed_captures.reference(index) = *captured[index].reference;
+            }
+            else
+            {
+                state.typed_captures.data()[index] = captured[index];
+            }
+        }
+        *result = tx_generated::detail::make_handle<std::any>(
+            tx_generated::closure_handle(std::move(state)));
+    });
+}
+
 extern "C" int txrt_closure_new(const void* target, const char* type_name,
                                   void** result) noexcept
 {

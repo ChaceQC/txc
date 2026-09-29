@@ -136,6 +136,15 @@ std::any serde_read_struct(serde_reader& reader, const serde_schema& schema, ser
         fields[schema.unknown_index] = {schema.unknown_name, unknown ? std::move(*unknown) : tx_dict{}};
     }
     // 仅完整成功的槽位移入最终对象；此前所有资源均由局部 RAII 对象持有。
+    if (schema.layout)
+    {
+        dynamic_struct result{dynamic_struct_data(schema.layout)};
+        for (std::size_t index = 0; index < fields.size(); ++index)
+        {
+            result->write_field(index, std::move(fields[index].value));
+        }
+        return result;
+    }
     return dynamic_struct(dynamic_struct_data{schema.type_name, schema.display_name, std::move(fields)});
 }
 

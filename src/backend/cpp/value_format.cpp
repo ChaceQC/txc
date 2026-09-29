@@ -101,18 +101,18 @@ void append_struct(std::string& output, const dynamic_struct& item,
 {
     output += item->display_name;
     output.push_back('(');
-    for (std::size_t index = 0; index < item->fields.size(); ++index)
+    for (std::size_t index = 0; index < item->field_count(); ++index)
     {
         if (index != 0)
         {
             output += ", ";
         }
-        if (item->fields[index].name)
+        if (item->field_name(index))
         {
-            output += item->fields[index].name;
+            output += item->field_name(index);
         }
         output.push_back('=');
-        append_value(output, item->fields[index].value, true, depth + 1);
+        append_value(output, item->read_field(index), true, depth + 1);
     }
     output.push_back(')');
 }

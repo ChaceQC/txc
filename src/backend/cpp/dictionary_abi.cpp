@@ -203,6 +203,11 @@ extern "C" int txrt_dict_element_address_literal(
     {
         auto& dict = as_dict(value);
         const std::string_view text(key, length);
+        if (create)
+        {
+            // 返回通用可写槽后可能写入对象引用，与非字面量键入口保持同样的登记契约。
+            dict.prepare_write();
+        }
         if (auto* found = dict.find_value(text))
         {
             *result = found;

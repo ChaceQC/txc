@@ -1,0 +1,4 @@
+def make(value: int) -> point
+{
+    return point(value)
+}

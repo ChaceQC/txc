@@ -38,14 +38,25 @@ void llvm_code_generator::emit_function(const function_decl& function)
     push_scope();
 
     std::string parameters = "ptr %tx_context";
+    const bool fixed_method = static_record_type(value_type(function.owner_class));
     if (!function.owner_class.empty())
     {
         parameters += ", ptr %arg0";
         const auto address = allocate(value_type(function.owner_class),
                                       function.position, false);
         write_instruction("store ptr %arg0, ptr " + address);
-        scopes_.back().emplace("self",
-            variable_slot{value_type(function.owner_class), address, true});
+        variable_slot self{value_type(function.owner_class), address, true};
+        if (fixed_method)
+        {
+            parameters += ", ptr %tx_self_view";
+            self.record_view = allocate(value_type::any_type, function.position, false);
+            write_instruction("store ptr %tx_self_view, ptr " + self.record_view);
+        }
+        else
+        {
+            cache_record_view(self, "%arg0");
+        }
+        scopes_.back().emplace("self", std::move(self));
     }
     for (std::size_t i = 0; i < function.parameters.size(); ++i)
     {
@@ -69,6 +80,7 @@ void llvm_code_generator::emit_function(const function_decl& function)
             init_parameter_borrowed(function, i) ||
             ordinary_parameter_borrowed(function, i), array_reference};
         cache_vector_reference(slot, "%arg" + std::to_string(argument_index));
+        cache_record_view(slot, "%arg" + std::to_string(argument_index));
         if (abi_type == value_type::dict_type)
         {
             slot.dict_reference = cache_dict_reference(
@@ -92,10 +104,15 @@ void llvm_code_generator::emit_function(const function_decl& function)
     pop_scope();
 
     module_ << "define " << llvm_type(function.return_type, function.position)
-            << ' ' << function_name(symbol, index) << '(' << parameters
+            << ' ' << function_name(symbol, index) << (fixed_method ? "_record" : "")
+            << '(' << parameters
             << ") {\nentry:\n";
     write_stack_frame(function);
     module_ << allocations_.str() << body_.str() << "}\n\n";
+    if (fixed_method)
+    {
+        emit_record_method_adapter(function, symbol, index);
+    }
     if (function.owner_class.empty() &&
         std::all_of(function.parameters.begin(), function.parameters.end(),
             [](const parameter& item)

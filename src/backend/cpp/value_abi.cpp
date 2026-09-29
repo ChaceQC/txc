@@ -72,6 +72,13 @@ void* struct_scalar_ptr(const void* value, std::size_t index,
             return result;
         }
     }
+    if (definition && (*definition)->fixed.type && index < (*definition)->field_count() &&
+        (*definition)->fixed.slots.kind(index) == (std::is_same_v<field_type, std::int64_t>
+            ? tx_generated::slot_kind::integer : std::is_same_v<field_type, double>
+            ? tx_generated::slot_kind::floating : tx_generated::slot_kind::boolean))
+    {
+        return (*definition)->fixed.slots.data() + index;
+    }
     std::snprintf(tx_generated::detail::current_runtime_context().last_error, 256,
                   "结构体字段不是 %s 或索引无效", type_name);
     txrt_require_success(1);
@@ -432,11 +439,11 @@ extern "C" int txrt_struct_field_address_index(void* value,
 {
     return invoke_checked([&] {
         auto& definition = as_struct(value);
-        if (index >= definition->fields.size())
+        if (index >= definition->field_count())
         {
             throw std::runtime_error("结构体字段索引越界");
         }
-        *result = &definition->fields[index].value;
+        *result = &definition->reference_field(index);
     });
 }
 

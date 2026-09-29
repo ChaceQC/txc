@@ -187,7 +187,8 @@ file(GLOB _tx_abi_files CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/backend/cpp/*.hpp"
     "${CMAKE_SOURCE_DIR}/src/backend/llvm/*.cpp")
 list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hpp"
-    "src/common/text_encoding.hpp" "src/stdlib/parse.hpp" "src/stdlib/serde_direct.hpp")
+    "src/common/text_encoding.hpp" "src/stdlib/parse.hpp" "src/stdlib/serde_direct.hpp"
+    "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp")
 list(SORT _tx_interface_files)
 list(SORT _tx_abi_files)
 set(TX_INTERFACE_COUNT 0)
@@ -265,6 +266,7 @@ add_executable(txc
     src/backend/llvm/codegen_native_parse.cpp
     src/backend/llvm/codegen_iterator.cpp
     src/backend/llvm/codegen_closure.cpp
+    src/backend/llvm/codegen_closure_internal.cpp
     src/backend/llvm/codegen_vector_statement.cpp
     src/backend/llvm/codegen_vector_declarations.cpp
     src/backend/llvm/codegen_algorithm_declarations.cpp
@@ -299,6 +301,7 @@ add_executable(txc
     src/backend/llvm/codegen_local_array.cpp
     src/backend/llvm/codegen_dynamic_local_array.cpp
     src/backend/llvm/codegen_local_array_analysis.cpp
+    src/backend/llvm/codegen_local_object_analysis.cpp
     src/backend/llvm/codegen_array_assignment.cpp
     src/backend/llvm/codegen_expression.cpp
     src/backend/llvm/codegen_cast.cpp
@@ -308,6 +311,10 @@ add_executable(txc
     src/backend/llvm/codegen_expression_calls.cpp
     src/backend/llvm/codegen_class.cpp
     src/backend/llvm/codegen_fields.cpp
+    src/backend/llvm/codegen_record_metadata.cpp
+    src/backend/llvm/codegen_record.cpp
+    src/backend/llvm/codegen_record_assignment.cpp
+    src/backend/llvm/codegen_record_method.cpp
     src/backend/llvm/codegen_print.cpp
     src/backend/llvm/codegen_external_direct.cpp
     src/backend/llvm/codegen_string_literal_call.cpp
@@ -380,6 +387,9 @@ add_library(txstdlib STATIC
     src/backend/cpp/sum_abi.cpp
     src/backend/cpp/iterator_abi.cpp
     src/backend/cpp/closure_abi.cpp
+    src/backend/cpp/typed_slots.cpp
+    src/backend/cpp/record_layout.cpp
+    src/backend/cpp/record_abi.cpp
     src/backend/cpp/cancel_abi.cpp
     src/backend/cpp/thread_abi.cpp
     src/backend/cpp/task_runtime.cpp
