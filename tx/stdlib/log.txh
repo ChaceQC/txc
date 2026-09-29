@@ -1,3 +1,12 @@
 def event(level: str, message: str, fields: dict) -> void
 def event_redacted(level: str, message: str, fields: dict, secret_keys: vector<str>) -> void
 def set_context(task_id: str, thread_id: str) -> void
+def set_request_context(request_id: str) -> void
+def clear_context() -> void
+def set_file(path: str, max_bytes: int = 10485760, backups: int = 3) -> void
+def set_stderr() -> void
+def flush() -> void
+def set_level(level: str) -> void
+def enabled(level: str) -> bool
+def set_secret_keys(keys: vector<str>) -> void
+def event_lazy(level: str, message: str, fields: fn()->dict) -> void

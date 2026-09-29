@@ -27,6 +27,8 @@ struct task_error
 
 struct task_state
 {
+    std::string log_task_id;
+    std::string log_request_id;
     task_state();
     ~task_state();
 

@@ -350,6 +350,10 @@ void llvm_code_generator::emit_statement(const statement& item)
 {
     const auto* previous_position = current_statement_position_;
     current_statement_position_ = &item.position;
+    if (profile_mode_)
+    {
+        emit_stack_location();
+    }
     if (const auto* declaration = std::get_if<variable_declaration>(&item.data))
     {
         emit_declaration(item, *declaration);

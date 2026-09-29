@@ -8,6 +8,14 @@ namespace tx
 void llvm_code_generator::write_external_declarations()
 {
     write_db_declarations();
+    module_ << "declare i32 @txrt_profile_start(i64, i64)\n"
+            << "declare i32 @txrt_profile_snapshot(ptr)\n"
+            << "declare i32 @txrt_profile_stop(ptr)\n"
+            << "declare i32 @txrt_profile_begin_span(ptr, ptr)\n"
+            << "declare i32 @txrt_profile_end_span(i64, ptr)\n"
+            << "declare ptr @txrt_profile_abi_enter(ptr, ptr)\n"
+            << "declare i32 @txrt_profile_auto_start(i64)\n"
+            << "declare i32 @txrt_profile_auto_finish()\n";
     module_ << "declare void @llvm.assume(i1)\n";
     for (const auto* first : {"i64", "f64", "bool", "str"})
     {
@@ -381,10 +389,26 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_test_run_case(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_test_failures(ptr)\n"
             << "declare i32 @txrt_test_temp_directory(ptr)\n"
-            << "declare i32 @txrt_test_seed(i64)\n";
+            << "declare i32 @txrt_test_seed(i64)\n"
+            << "declare i32 @txrt_test_parameterized(ptr, i64, ptr, ptr)\n"
+            << "declare i32 @txrt_test_property(ptr, i64, i64, ptr, ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_test_fixture(ptr, ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_test_set_time_millis(i64)\n"
+            << "declare i32 @txrt_test_advance_time_millis(i64)\n"
+            << "declare i32 @txrt_test_now_millis(ptr)\n"
+            << "declare i32 @txrt_test_reset_time()\n";
     module_ << "declare i32 @txrt_log_event(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_log_event_redacted(ptr, ptr, ptr, ptr)\n"
-            << "declare i32 @txrt_log_set_context(ptr, ptr)\n";
+            << "declare i32 @txrt_log_set_context(ptr, ptr)\n"
+            << "declare i32 @txrt_log_set_request_context(ptr)\n"
+            << "declare i32 @txrt_log_clear_context()\n"
+            << "declare i32 @txrt_log_set_file(ptr, i64, i64)\n"
+            << "declare i32 @txrt_log_set_stderr()\n"
+            << "declare i32 @txrt_log_flush()\n"
+            << "declare i32 @txrt_log_set_level(ptr)\n"
+            << "declare i32 @txrt_log_enabled(ptr, ptr)\n"
+            << "declare i32 @txrt_log_set_secret_keys(ptr)\n"
+            << "declare i32 @txrt_log_event_lazy(ptr, ptr, ptr)\n";
     module_ << "declare i32 @txrt_debug_stack_trace(ptr)\n"
             << "declare i32 @txrt_debug_last_error_stack(ptr)\n"
             << "declare i32 @txrt_debug_location(ptr)\n"

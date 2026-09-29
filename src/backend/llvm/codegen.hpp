@@ -20,9 +20,11 @@ class llvm_code_generator
 {
 public:
     [[nodiscard]] std::string generate(const program& source,
-                                       bool library_mode = false);
+                                       bool library_mode = false,
+                                       int profile_interval_ms = 0);
 
 private:
+    bool profile_mode_ = false;
     using integer_interval = std::pair<std::int64_t, std::int64_t>;
     struct ir_value
     {

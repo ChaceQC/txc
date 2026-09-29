@@ -15,7 +15,7 @@ namespace
 {
 
 using tx_generated::detail::invoke_checked;
-thread_local std::int64_t registered_failures = 0;
+std::atomic<std::int64_t> registered_failures = 0;
 
 const std::string& text(const void* value)
 {
@@ -140,6 +140,16 @@ bool run_case(const void* name_value, const void* operation)
 
 } // namespace
 
+namespace tx_generated
+{
+
+void record_test_failure() noexcept
+{
+    ++registered_failures;
+}
+
+} // namespace tx_generated
+
 extern "C" int txrt_test_assert_true(bool condition,
                                       const void* message) noexcept
 {
@@ -233,12 +243,15 @@ extern "C" int txrt_test_run_case(const void* name,
 
 extern "C" int txrt_test_failures(std::int64_t* result) noexcept
 {
-    return invoke_checked([&] { *result = registered_failures; });
+    return invoke_checked([&]
+    {
+        *result = registered_failures.load();
+    });
 }
 
 extern "C" std::int64_t txrt_test_failure_total() noexcept
 {
-    return registered_failures;
+    return registered_failures.load();
 }
 
 extern "C" int txrt_test_temp_directory(void** result) noexcept

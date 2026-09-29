@@ -1,0 +1,12 @@
+import "cbor.txh" as cbor
+import "json.txh" as json
+import "test.txh" as test
+
+def main() -> int
+{
+    auto encoded = cbor.encode({"message": "跨格式数据", "count": 3}, cbor.default_limits())
+    dict decoded = cbor.decode(encoded, cbor.default_limits())
+    test.assert_equal(3, json.get_int(decoded, "count"))
+    print(json.stringify(decoded))
+    return 0
+}

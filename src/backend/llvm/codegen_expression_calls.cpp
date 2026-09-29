@@ -22,7 +22,7 @@ bool supported_external_call(std::string_view name)
            name.starts_with("public_key.") || name.starts_with("x509.") ||
            name.starts_with("tls.") ||
            name.starts_with("test.") || name.starts_with("log.") ||
-           name.starts_with("debug.") ||
+           name.starts_with("debug.") || name.starts_with("profile.") ||
            name == "error.fail_io" || name == "error.stack_trace" ||
            name.starts_with("cancel.") ||
            name.starts_with("process.") ||

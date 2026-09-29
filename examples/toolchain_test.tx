@@ -1,0 +1,16 @@
+import "test.txh" as test
+import "log.txh" as log
+import "debug.txh" as debug
+
+def square(index: int)
+{
+    test.assert_true(index * index >= 0)
+}
+
+def main() -> int
+{
+    test.parameterized("平方非负", 10, square)
+    log.set_request_context("example")
+    log.event("info", "示例完成", {"location": debug.location(), "failures": test.failures()})
+    return 0
+}

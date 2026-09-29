@@ -1,0 +1,32 @@
+import "db.txh" as db
+import "secret.txh" as secret
+import "bytes.txh" as bytes
+import "system.txh" as system
+import "parse.txh" as parse
+import "error.txh" as errors
+
+def main() -> int
+{
+    auto args = system.args()
+    auto config = db.postgres_options("127.0.0.1", "synthetic", "synthetic", args[0])
+    config.port = parse.parse_int(args[1])
+    config.connect_timeout_ms = 1000
+    config.operation_timeout_ms = 1000
+    auto password = secret.from_bytes(bytes.from_hex("74657374"))
+    try
+    {
+        auto connection = db.open_postgres(config, password)
+        db.close(connection)
+        return 1
+    }
+    exception errors.database_error as failure
+    {
+        secret.close(password)
+        if failure.code == "connection_failed" || failure.code == "timeout" || failure.code == "authentication_failed"
+        {
+            return 0
+        }
+        print(failure.code)
+        return 2
+    }
+}

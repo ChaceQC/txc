@@ -1,0 +1,32 @@
+import "thread.txh" as thread
+import "sync.txh" as sync
+import "channel.txh" as channel
+import "cancel.txh" as cancel
+import "test.txh" as test
+
+def producer(values: channel<int>, token: cancel_token) -> int
+{
+    channel.send(values, 42, 1000, token)
+    channel.close(values)
+    return 0
+}
+
+def check_total(total: mutex<int>, value: int)
+{
+    auto guard = sync.lock(total)
+    sync.guard_set(guard, value)
+    test.assert_equal(42, sync.guard_get(guard))
+}
+
+def main() -> int
+{
+    auto source = cancel.source()
+    auto token = cancel.token(source)
+    channel<int> values = channel.bounded(2)
+    auto worker = thread.spawn(bind(producer, values, token))
+    auto total = sync.new_mutex(0)
+    auto received = channel.recv(values, 1000, token)
+    check_total(total, received.value())
+    test.assert_true(channel.recv(values, 1000, token).is_none())
+    return thread.join(worker)
+}

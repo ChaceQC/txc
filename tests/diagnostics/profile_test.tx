@@ -1,0 +1,31 @@
+import "profile.txh" as profile
+import "test.txh" as test
+import "time.txh" as time
+import "json.txh" as json
+
+def main() -> int
+{
+    profile.start(2, 100000)
+    auto span = profile.begin_span("分配与计算")
+    auto values = vector<str>()
+    auto end = time.monotonic_millis() + 180
+    auto count = 0
+    while time.monotonic_millis() < end
+    {
+        values.push_back("profile-" + (count as str))
+        if len(values) > 1000
+        {
+            values.clear()
+        }
+        count += 1
+    }
+    test.assert_true(profile.end_span(span) > 0)
+    auto snapshot = json.parse_object(profile.snapshot())
+    test.assert_true(json.get_int(snapshot, "allocated_bytes") > 0)
+    test.assert_true(len(json.get_array(snapshot, "heap")) > 0)
+    auto report = json.parse_object(profile.stop())
+    test.assert_true(len(json.get_array(report, "cpu")) > 0)
+    test.assert_true(json.get_int(report, "allocation_count") > 0)
+    test.assert_equal(0, json.get_int(report, "dropped_allocations"))
+    return 0
+}

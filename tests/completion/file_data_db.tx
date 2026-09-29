@@ -1,0 +1,38 @@
+import "file.txh" as file
+import "json.txh" as json
+import "csv.txh" as csv
+import "xml.txh" as xml
+import "db.txh" as db
+import "test.txh" as test
+
+def main() -> int
+{
+    auto directory = test.temp_directory()
+    auto path = directory + "/data.json"
+    file.atomic_write_text(path, json.stringify({"name": "中文记录", "amount": 42}), "utf-8")
+    auto object = json.parse_object(file.read_text(path, "utf-8"))
+    auto rows = csv.parse("name,amount\r\n中文记录,42\r\n", csv.default_dialect())
+    auto document = xml.parse("<record>中文记录</record>", xml.limits(4096, 32, 1024, 4096, 64))
+    test.assert_true(len(rows) > 0)
+    test.assert_equal("record", xml.local_name(xml.root(document)))
+    auto connection = db.open(db.sqlite_options(directory + "/records.sqlite"))
+    auto schema = db.prepare(connection, "CREATE TABLE records(name TEXT, amount INTEGER)")
+    db.execute(schema)
+    db.close_statement(schema)
+    auto transaction = db.begin(connection, "immediate")
+    auto insert = db.prepare(connection, "INSERT INTO records VALUES(?,?)")
+    db.bind(insert, 1, db.str_value(json.get_str(object, "name")))
+    db.bind(insert, 2, db.int_value(json.get_int(object, "amount")))
+    db.execute(insert)
+    db.close_statement(insert)
+    db.commit(transaction)
+    auto query = db.prepare(connection, "SELECT name, amount FROM records")
+    auto cursor = db.query(query)
+    auto row = db.next(cursor).value()
+    test.assert_equal("中文记录", db.get_str(row, 0).value())
+    test.assert_equal(42, db.get_int(row, 1).value())
+    db.close_cursor(cursor)
+    db.close_statement(query)
+    db.close(connection)
+    return 0
+}

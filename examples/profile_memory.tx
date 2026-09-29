@@ -1,0 +1,17 @@
+import "profile.txh" as profile
+import "time.txh" as time
+
+def main() -> int
+{
+    profile.start()
+    auto segment = profile.begin_span("字符串分配")
+    auto values = vector<str>()
+    for index in 0..=99
+    {
+        values.push_back("item-" + (index as str))
+    }
+    profile.end_span(segment)
+    print(profile.snapshot())
+    print(profile.stop())
+    return 0
+}

@@ -1,0 +1,5 @@
+def start(interval_ms: int = 10, max_allocations: int = 100000) -> void
+def snapshot() -> str
+def stop() -> str
+def begin_span(name: str) -> int
+def end_span(id: int) -> int

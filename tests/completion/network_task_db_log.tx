@@ -1,0 +1,55 @@
+import "httpx.txh" as httpx
+import "task.txh" as task
+import "db.txh" as db
+import "json.txh" as json
+import "log.txh" as log
+import "test.txh" as test
+import "system.txh" as system
+
+def request(pool: db_pool, url: str, id: int) -> int
+{
+    auto response = httpx.get(url, 3000)
+    test.assert_equal(200, response.status)
+    auto payload = json.parse_object(response.body)
+    auto connection = db.acquire(pool, 3000)
+    auto insert = db.prepare(connection, "INSERT INTO events VALUES(?,?)")
+    db.bind(insert, 1, db.int_value(id))
+    db.bind(insert, 2, db.str_value(json.get_str(payload, "message")))
+    db.execute(insert)
+    db.close_statement(insert)
+    db.release(connection)
+    log.event("info", "请求已入库", {"id": id, "authorization": "synthetic-redact"})
+    return id
+}
+
+def run(pool: db_pool, url: str, scope: task_scope) -> int
+{
+    auto first = task.spawn(scope, bind(request, pool, url, 1))
+    auto second = task.spawn(scope, bind(request, pool, url, 2))
+    return task.wait(first) + task.wait(second)
+}
+
+def main() -> int
+{
+    auto args = system.args()
+    auto directory = test.temp_directory()
+    log.set_file(args[1], 65536, 2)
+    log.set_request_context("pipeline-request")
+    auto pool = db.pool(db.sqlite_options(directory + "/events.sqlite"), 2, 8)
+    auto connection = db.acquire(pool, 3000)
+    auto schema = db.prepare(connection, "CREATE TABLE events(id INTEGER PRIMARY KEY, message TEXT)")
+    db.execute(schema)
+    db.close_statement(schema)
+    db.release(connection)
+    test.assert_equal(3, task.scope(bind(run, pool, args[0]), 8, 10000))
+    connection = db.acquire(pool, 3000)
+    auto query = db.prepare(connection, "SELECT count(*) FROM events")
+    auto cursor = db.query(query)
+    test.assert_equal(2, db.get_int(db.next(cursor).value(), 0).value())
+    db.close_cursor(cursor)
+    db.close_statement(query)
+    db.release(connection)
+    db.close_pool(pool)
+    log.set_stderr()
+    return 0
+}

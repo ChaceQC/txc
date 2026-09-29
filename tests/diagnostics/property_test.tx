@@ -1,0 +1,52 @@
+import "test.txh" as test
+
+def parameter(values: vector<str>, index: int)
+{
+    test.assert_true(len(values[index]) > 0)
+}
+
+def generate(seed: int, index: int) -> int
+{
+    return seed + index
+}
+
+def predicate(value: int) -> bool
+{
+    return value + 0 == value
+}
+
+def shrink(value: int) -> int
+{
+    return value / 2
+}
+
+def setup(state: vector<int>)
+{
+    state[0] = 1
+}
+
+def operation(state: vector<int>)
+{
+    test.assert_equal(1, state[0])
+    state[0] = 2
+}
+
+def teardown(state: vector<int>)
+{
+    state[0] = 3
+}
+
+def main() -> int
+{
+    test.set_time_millis(1000)
+    test.advance_time_millis(42)
+    test.assert_equal(1042, test.now_millis())
+    test.reset_time()
+    auto state = vector<int>([0])
+    test.assert_true(test.fixture("夹具", bind(setup, state), bind(operation, state), bind(teardown, state)))
+    test.assert_equal(3, state[0])
+    auto values = vector<str>(["中文", "text", "42"])
+    test.assert_true(test.parameterized("文本参数", len(values), bind(parameter, values)))
+    test.assert_true(test.property("整数恒等式", 20260930, 20, generate, predicate, shrink))
+    return 0
+}

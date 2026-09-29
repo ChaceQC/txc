@@ -57,6 +57,11 @@ struct runtime_context
     std::uint64_t gc_owner_id = 0;
     std::mt19937_64 random_engine;
     bool random_initialized = false;
+    std::string log_task_id;
+    std::string log_thread_id;
+    std::string log_request_id;
+    const char* profile_abi = "";
+    diagnostic_frame* profile_abi_frame = nullptr;
 };
 
 // 对应 %tx_runtime_context = { ptr, i32 } 和 %tx_diagnostic_frame。

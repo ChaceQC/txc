@@ -1,0 +1,20 @@
+import "async_file.txh" as async_file
+import "task.txh" as task
+import "encoding.txh" as encoding
+import "test.txh" as test
+
+def work(directory: str, scope: task_scope) -> int
+{
+    auto path = directory + "/async.txt"
+    auto written = task.wait(async_file.write_at(path, 0,
+        encoding.encode("异步文件", "utf-8"), task.token(scope)))
+    test.assert_equal("", written.error_code)
+    auto read = task.wait(async_file.read_at(path, 0, 64, task.token(scope)))
+    test.assert_equal("异步文件", encoding.decode(read.data, "utf-8"))
+    return 0
+}
+
+def main() -> int
+{
+    return task.scope(bind(work, test.temp_directory()), 4, 5000)
+}

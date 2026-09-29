@@ -11,3 +11,10 @@ def run_case(name: str, operation: fn()->void) -> bool
 def failures() -> int
 def temp_directory() -> str
 def seed(value: int) -> void
+def parameterized(name: str, count: int, operation: fn(int)->void) -> bool
+def property(name: str, seed: int, count: int, generate: fn(int,int)->int, predicate: fn(int)->bool, shrink: fn(int)->int, max_shrinks: int = 128) -> bool
+def fixture(name: str, setup: fn()->void, operation: fn()->void, teardown: fn()->void) -> bool
+def set_time_millis(value: int) -> void
+def advance_time_millis(delta: int) -> void
+def now_millis() -> int
+def reset_time() -> void

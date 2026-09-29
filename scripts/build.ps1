@@ -345,6 +345,10 @@ foreach ($name in @('libgcc_s_seh-1.dll', 'libstdc++-6.dll',
 [System.IO.File]::WriteAllText((Join-Path $tool_dir 'package.compat'),
     $compatibility_manifest, [System.Text.UTF8Encoding]::new($false))
 
+# 示例及中文文档随工具链交付，安装后无需访问 src/ 或 tests/。
+Copy-Item -LiteralPath (Join-Path $project_root 'examples') -Destination $tool_dir -Recurse -Force
+Copy-Item -LiteralPath (Join-Path $project_root 'docs') -Destination $tool_dir -Recurse -Force
+
 $project_item = Get-Item -LiteralPath $project_root
 $build_item = Get-Item -LiteralPath $build_dir
 $resolved_root = [System.IO.Path]::GetFullPath($project_item.FullName)

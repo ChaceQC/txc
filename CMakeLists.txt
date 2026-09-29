@@ -355,6 +355,9 @@ add_executable(txc
     src/driver/module_loader_class.cpp
     src/driver/compatibility.cpp
     src/driver/test_runner.cpp
+    src/driver/child_process.cpp
+    src/driver/json_report.cpp
+    src/driver/profile_runner.cpp
     src/driver/main.cpp
 )
 
@@ -364,8 +367,11 @@ add_library(txstdlib STATIC
     src/backend/cpp/error_abi.cpp
     src/backend/cpp/runtime_context.cpp
     src/backend/cpp/test_abi.cpp
+    src/backend/cpp/test_property_abi.cpp
+    src/backend/cpp/test_fixture_abi.cpp
     src/backend/cpp/log_abi.cpp
     src/backend/cpp/debug_abi.cpp
+    src/backend/cpp/profile_abi.cpp
     src/backend/cpp/parse_abi.cpp
     src/backend/cpp/parse_error_abi.cpp
     src/backend/cpp/json_abi.cpp
@@ -533,7 +539,12 @@ add_library(txstdlib STATIC
     src/stdlib/json_skip.cpp
     src/stdlib/json_fields.cpp
     src/stdlib/log.cpp
+    src/stdlib/log_sink.cpp
     src/stdlib/test.cpp
+    src/stdlib/profile.cpp
+    src/stdlib/profile_sampler.cpp
+    src/stdlib/profile_report.cpp
+    src/stdlib/profile_allocation.cpp
     src/stdlib/io.cpp
     src/stdlib/encoding.cpp
     src/stdlib/encoding_incremental.cpp

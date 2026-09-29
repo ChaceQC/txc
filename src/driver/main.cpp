@@ -2,6 +2,7 @@
 #include "driver/compatibility.hpp"
 #include "driver/module_loader.hpp"
 #include "driver/test_runner.hpp"
+#include "driver/profile_runner.hpp"
 #include "frontend/resolver/module_resolver.hpp"
 #include "frontend/sema/sema.hpp"
 
@@ -52,12 +53,13 @@ struct command_line
 {
     enum class action
     {
-        compile, check, emit_llvm, emit_library_llvm, test
+        compile, check, emit_llvm, emit_library_llvm, test, profile
     } mode = action::compile;
     fs::path source_path;
     fs::path output_path;
     std::optional<fs::path> test_case;
-    bool json_format = false;
+    tx::test_options test_options;
+    tx::profile_options profile_options;
 
     command_line(action selected_mode, fs::path selected_source,
                  fs::path selected_output)
@@ -82,6 +84,53 @@ struct windows_arguments
 
 std::optional<command_line> parse_command_line(int argc, wchar_t* argv[])
 {
+    if (argc >= 3 && std::wstring(argv[1]) == L"profile")
+    {
+        command_line result{command_line::action::profile, argv[2], {}};
+        result.profile_options.output = executable_path().parent_path().parent_path() /
+            "tx_build" / (result.source_path.stem().wstring() + L".profile.json");
+        for (int index = 3; index < argc; ++index)
+        {
+            const std::wstring option = argv[index];
+            if (index + 1 >= argc)
+            {
+                return std::nullopt;
+            }
+            const std::wstring value = argv[++index];
+            if (option == L"-o")
+            {
+                result.profile_options.output = value;
+                continue;
+            }
+            if (value.empty() || value.size() > 8 ||
+                value.find_first_not_of(L"0123456789") != std::wstring::npos)
+            {
+                return std::nullopt;
+            }
+            const auto number = std::stoul(value);
+            if (option == L"--warmup" && number <= 100)
+            {
+                result.profile_options.warmup = number;
+            }
+            else if (option == L"--samples" && number >= 1 && number <= 100)
+            {
+                result.profile_options.samples = number;
+            }
+            else if (option == L"--interval-ms" && number >= 1 && number <= 1000)
+            {
+                result.profile_options.interval_ms = number;
+            }
+            else if (option == L"--timeout-ms" && number >= 1 && number <= 86400000)
+            {
+                result.profile_options.timeout_ms = number;
+            }
+            else
+            {
+                return std::nullopt;
+            }
+        }
+        return result;
+    }
     if (argc >= 3 && std::wstring(argv[1]) == L"test")
     {
         command_line result{command_line::action::test, argv[2], {}};
@@ -93,11 +142,37 @@ std::optional<command_line> parse_command_line(int argc, wchar_t* argv[])
                 result.test_case = fs::path(argv[++index]);
             }
             else if (std::wstring(argv[index]) == L"--format" &&
-                     !result.json_format && index + 1 < argc &&
+                     !result.test_options.json_format && index + 1 < argc &&
                      std::wstring(argv[index + 1]) == L"json")
             {
-                result.json_format = true;
+                result.test_options.json_format = true;
                 ++index;
+            }
+            else if ((std::wstring(argv[index]) == L"--jobs" ||
+                      std::wstring(argv[index]) == L"--timeout-ms") && index + 1 < argc)
+            {
+                const bool jobs = std::wstring(argv[index]) == L"--jobs";
+                const std::wstring value = argv[++index];
+                if (value.empty() || value.size() > 8 ||
+                    value.find_first_not_of(L"0123456789") != std::wstring::npos)
+                {
+                    return std::nullopt;
+                }
+                const auto number = std::stoul(value);
+                if (!number || number > (jobs ? 64u : 86400000u))
+                {
+                    return std::nullopt;
+                }
+                (jobs ? result.test_options.jobs : result.test_options.timeout_ms) = number;
+            }
+            else if (std::wstring(argv[index]) == L"--isolation" && index + 1 < argc)
+            {
+                const std::wstring value = argv[++index];
+                if (value != L"workspace" && value != L"source")
+                {
+                    return std::nullopt;
+                }
+                result.test_options.source_directory = value == L"source";
             }
             else
             {
@@ -397,7 +472,7 @@ int run_emit_llvm(const fs::path& source_path, const fs::path& output_path,
 }
 
 int run_compiler(const fs::path& source_path, const fs::path& output_path,
-                 bool quiet = false)
+                 bool quiet = false, int profile_interval_ms = 0)
 {
     if (source_path.extension() == ".txh")
     {
@@ -409,7 +484,7 @@ int run_compiler(const fs::path& source_path, const fs::path& output_path,
     }
     auto syntax = parse_and_check(source_path);
     tx::llvm_code_generator generator;
-    const auto generated_source = generator.generate(syntax);
+    const auto generated_source = generator.generate(syntax, false, profile_interval_ms);
     if (!output_path.parent_path().empty())
     {
         fs::create_directories(output_path.parent_path());
@@ -447,7 +522,10 @@ int main()
                       << "      txc check <源码.tx>\n"
                       << "      txc emit-llvm <源码.tx> [-o <输出.ll>]\n"
                       << "      txc emit-library-llvm <源码.tx> -o <输出.ll>\n"
-                      << "      txc test <目录或源码.tx> [--case <相对路径>] [--format json]\n";
+                      << "      txc test <目录或源码.tx> [--case <相对路径>] [--format json]\n"
+                      << "          [--jobs 1..64] [--timeout-ms 1..86400000] [--isolation workspace|source]\n"
+                      << "      txc profile <源码.tx> [-o 报告.json] [--warmup 次数] [--samples 次数]\n"
+                      << "          [--interval-ms 毫秒] [--timeout-ms 毫秒]\n";
             return 2;
         }
         const auto tool_dir = executable_path().parent_path();
@@ -471,10 +549,16 @@ int main()
             return run_compiler(command->source_path, command->output_path);
         case command_line::action::test:
             return tx::run_test_suite(command->source_path,
-                command->test_case, command->json_format,
+                command->test_case, command->test_options,
                 [](const fs::path& source, const fs::path& output)
                 {
                     return run_compiler(source, output, true);
+                });
+        case command_line::action::profile:
+            return tx::run_profile(command->source_path, command->profile_options,
+                [](const fs::path& source, const fs::path& output, int interval)
+                {
+                    return run_compiler(source, output, true, interval);
                 });
         }
     }

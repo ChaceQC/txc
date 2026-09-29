@@ -12,7 +12,7 @@ void llvm_code_generator::write_context_boundary()
 
 void llvm_code_generator::write_stack_frame(const function_decl& function)
 {
-    if (proven_integer_function_)
+    if (proven_integer_function_ && !profile_mode_)
     {
         // 对整个 0..256 输入域已证明无失败和用户回调，运行时无法观察此诊断帧。
         module_ << "  %tx_error_kind = getelementptr inbounds %tx_runtime_context, ptr %tx_context, i32 0, i32 1\n"
@@ -44,7 +44,7 @@ void llvm_code_generator::write_stack_frame(const function_decl& function)
 
 void llvm_code_generator::emit_stack_pop()
 {
-    if (proven_integer_function_)
+    if (proven_integer_function_ && !profile_mode_)
     {
         return;
     }
@@ -53,7 +53,7 @@ void llvm_code_generator::emit_stack_pop()
 
 void llvm_code_generator::emit_stack_location()
 {
-    if (proven_integer_function_ || !current_statement_position_)
+    if ((proven_integer_function_ && !profile_mode_) || !current_statement_position_)
     {
         return;
     }

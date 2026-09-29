@@ -1,0 +1,29 @@
+import "ipc.txh" as ipc
+import "cancel.txh" as cancel
+import "thread.txh" as thread
+import "system.txh" as system
+import "test.txh" as test
+
+def client(name: str, token: cancel_token) -> int
+{
+    auto stream = ipc.connect(name, 1024, 1000, token)
+    auto sent = ipc.send(stream, 1, 42, 1000, token)
+    test.assert_equal("sent", sent.state)
+    ipc.close(stream)
+    return 0
+}
+
+def main() -> int
+{
+    auto source = cancel.source()
+    auto token = cancel.token(source)
+    auto name = "tx_example_" + (system.process_id() as str)
+    auto listener = ipc.listen(name, 1024)
+    auto worker = thread.spawn(bind(client, name, token))
+    auto stream = ipc.accept(listener, 1000, token)
+    auto message = ipc.recv(stream, 1000, token)
+    test.assert_equal(42, message.value as int)
+    ipc.close(stream)
+    ipc.close_listener(listener)
+    return thread.join(worker)
+}

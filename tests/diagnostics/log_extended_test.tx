@@ -1,0 +1,57 @@
+import "test.txh" as test
+import "log.txh" as log
+import "thread.txh" as thread
+import "task.txh" as task
+import "file.txh" as file
+import "fs.txh" as fs
+import "string.txh" as string
+
+def forbidden() -> dict
+{
+    test.assert_true(false, "过滤掉的事件不能求值字段")
+    return {}
+}
+
+def fields() -> dict
+{
+    return {"private_key": "hidden-private", "session": "hidden-session", "safe": "保留"}
+}
+
+def worker() -> int
+{
+    for i in 0..=19
+    {
+        log.event("info", "并发记录", {"index": i})
+    }
+    return 1
+}
+
+def main() -> int
+{
+    auto directory = test.temp_directory()
+    auto path = directory + "/events.jsonl"
+    log.set_file(path, 65536, 2)
+    log.set_level("info")
+    log.set_secret_keys(vector<str>(["session"]))
+    log.set_request_context("request-13")
+    test.assert_false(log.enabled("debug"))
+    log.event_lazy("debug", "不应出现", forbidden)
+    log.event_lazy("info", "惰性字段", fields)
+    auto first = thread.spawn(worker)
+    auto second = thread.spawn(worker)
+    test.assert_equal(1, thread.join(first))
+    test.assert_equal(1, thread.join(second))
+    log.flush()
+    auto content = file.read_text(path, "utf-8")
+    test.assert_false(string.contains(content, "hidden-private"))
+    test.assert_false(string.contains(content, "hidden-session"))
+    test.assert_true(string.contains(content, "request-13"))
+    test.assert_equal(42, len(string.split(content, "\n")))
+    log.set_file(directory + "/rotate.jsonl", 512, 2)
+    worker()
+    log.set_stderr()
+    test.assert_true(fs.exists(directory + "/rotate.jsonl.1"))
+    test.assert_true(fs.exists(directory + "/rotate.jsonl.2"))
+    log.clear_context()
+    return 0
+}

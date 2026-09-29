@@ -1,4 +1,5 @@
 #include "backend/cpp/runtime_context.hpp"
+#include "stdlib/profile.hpp"
 
 #include <algorithm>
 #include <exception>
@@ -23,6 +24,8 @@ namespace
 
 void NTAPI release_runtime_context(void* value) noexcept
 {
+    profile_unregister_thread();
+    thread_context = nullptr;
     delete static_cast<runtime_context*>(value);
 }
 
@@ -56,6 +59,7 @@ runtime_context& initialize_runtime_context() noexcept
         context = pending.release();
     }
     thread_context = context;
+    profile_register_thread(&thread_context);
     return *context;
 #else
     static thread_local runtime_context context;

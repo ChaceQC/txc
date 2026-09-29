@@ -1,0 +1,22 @@
+import "test.txh" as test
+
+def generate(seed: int, index: int) -> int
+{
+    return seed + index
+}
+
+def predicate(value: int) -> bool
+{
+    return value < 10
+}
+
+def shrink(value: int) -> int
+{
+    return value / 2
+}
+
+def main() -> int
+{
+    test.property("可复现反例", 100, 4, generate, predicate, shrink)
+    return 0
+}

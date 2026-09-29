@@ -7,6 +7,7 @@
 #include "stdlib/closure.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <any>
 #include <chrono>
 #include <cstdint>
@@ -23,6 +24,9 @@ namespace tx_generated
 
 task_state::task_state()
 {
+    static std::atomic_uint64_t next_id{1};
+    log_task_id = "task-" + std::to_string(next_id.fetch_add(1));
+    log_request_id = detail::current_runtime_context().log_request_id;
 #ifdef _WIN32
     completed_event = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     if (!completed_event)
@@ -80,6 +84,8 @@ void run_callback(const std::shared_ptr<task_scope_state>& scope,
 {
     // 帮助执行嵌套任务时，每个任务必须有独立的错误栈和句柄登记链。
     detail::runtime_context context;
+    context.log_task_id = state->log_task_id;
+    context.log_request_id = state->log_request_id;
     auto* previous_context = detail::thread_context;
     // 帮助执行嵌套任务时，外层仍持有执行门，继承深度以免重复加锁。
     context.concurrent_depth = previous_context

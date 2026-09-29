@@ -1,0 +1,22 @@
+import "test.txh" as test
+
+def setup()
+{
+    test.assert_true(false, "初始化失败")
+}
+
+def operation()
+{
+    print("operation-must-not-run")
+}
+
+def teardown()
+{
+    print("teardown-ran")
+}
+
+def main() -> int
+{
+    test.assert_false(test.fixture("清理失败初始化", setup, operation, teardown))
+    return 0
+}

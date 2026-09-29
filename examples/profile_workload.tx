@@ -1,0 +1,18 @@
+import "string.txh" as string
+
+def main() -> int
+{
+    auto values = vector<str>()
+    auto count = 0
+    while count < 200000
+    {
+        values.push_back("sample-" + (count as str))
+        if len(values) > 1000
+        {
+            values.clear()
+        }
+        count += 1
+    }
+    print(count > 0)
+    return 0
+}

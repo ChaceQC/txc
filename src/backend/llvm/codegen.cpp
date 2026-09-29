@@ -408,7 +408,23 @@ void llvm_code_generator::write_instruction(const std::string& text)
     {
         track_pointer_instruction(text);
     }
+    const auto abi_at = text.find("@txrt_");
+    const bool profiled_abi = profile_mode_ && abi_at != std::string::npos &&
+        text.find("call ") != std::string::npos &&
+        !text.substr(abi_at).starts_with("@txrt_profile_");
+    std::string previous_abi;
+    if (profiled_abi)
+    {
+        previous_abi = temporary();
+        const auto name = text.substr(abi_at + 1, text.find('(', abi_at) - abi_at - 1);
+        body_ << "  " << previous_abi << " = call ptr @txrt_profile_abi_enter(ptr %tx_context, ptr "
+              << global_bytes(name) << ")\n";
+    }
     body_ << "  " << text << '\n';
+    if (profiled_abi)
+    {
+        body_ << "  call ptr @txrt_profile_abi_enter(ptr %tx_context, ptr " << previous_abi << ")\n";
+    }
     if (recoverable_errors_ && text.find("call ") != std::string::npos &&
         text.find("@llvm.") == std::string::npos &&
         text.find("call i32 @txrt_") == std::string::npos)
@@ -452,8 +468,14 @@ void llvm_code_generator::pop_scope()
     scopes_.pop_back();
 }
 
-std::string llvm_code_generator::generate(const program& source, bool library_mode)
+std::string llvm_code_generator::generate(const program& source, bool library_mode,
+                                           int profile_interval_ms)
 {
+    profile_mode_ = profile_interval_ms > 0;
+    for (const auto& function : source.functions)
+    {
+        profile_mode_ |= function.external_name.starts_with("profile.");
+    }
     gc_visiting_.clear();
     gc_neutral_cache_.clear();
     bounded_integer_results_.clear();
@@ -478,6 +500,10 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
         // 预期异常断言会从原生入口调用 TX 回调，回调必须通过状态交回错误。
         recoverable_errors_ |= function.external_name == "test.assert_throws" ||
             function.external_name == "test.assert_throws_code" ||
+            function.external_name == "test.parameterized" ||
+            function.external_name == "test.property" ||
+            function.external_name == "test.fixture" ||
+            function.external_name == "log.event_lazy" ||
             function.external_name == "test.run_case";
     }
     for (const auto& definition : source.structs)
@@ -726,6 +752,11 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
         module_ << "  call void @txrt_error_propagation(i1 true)\n";
     }
     write_context_boundary();
+    if (profile_interval_ms > 0)
+    {
+        module_ << "  %profile = call i32 @txrt_profile_auto_start(i64 " << profile_interval_ms << ")\n"
+                << "  call void @txrt_require_success(i32 %profile)\n";
+    }
     module_ << "  %result = call i64 " << function_name("main", 0)
             << "(ptr %tx_context)\n";
     if (recoverable_errors_)
@@ -733,6 +764,11 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
         module_ << "  call void @txrt_error_propagation(i1 false)\n"
                 << "  %error = load i32, ptr %tx_error_kind\n"
                 << "  call void @txrt_require_success(i32 %error)\n";
+    }
+    if (profile_interval_ms > 0)
+    {
+        module_ << "  %profile_end = call i32 @txrt_profile_auto_finish()\n"
+                << "  call void @txrt_require_success(i32 %profile_end)\n";
     }
     module_
             << "  %exit = call i32 @txrt_exit_code(i64 %result)\n"

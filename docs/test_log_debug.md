@@ -1,6 +1,6 @@
 # 测试、日志与诊断
 
-本文固定[实施清单](standard_library_plan.md)第 3 节的公开接口及失败语义。第 13 节再增加参数化/性质测试、隔离与超时、并发日志、可替换 sink 和性能分析。
+本文保留[实施清单](standard_library_plan.md)第 3 节的基础接口及历史记录。第 13 节新增的参数化/性质测试、隔离与超时、并发日志、sink 见[工具链补齐](toolchain_completion.md)，性能分析见[profile](profile.md)；下文“后续补齐”描述的是第 3 节完成时的边界，不代表当前缺口。
 
 ## 3.1 `test.txh`
 

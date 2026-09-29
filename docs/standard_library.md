@@ -2,6 +2,8 @@
 
 本文说明当前已实现的标准库接口。后续能力缺口、建议优先级和实现前提见[标准库扩展规划](standard_library_plan.md)。
 
+`test/log/debug` 与 `txc test` 已支持参数化/性质测试、失败种子和反例缩减、夹具/可控时钟、并行/超时/进程隔离及结构化轮转日志，见[工具链补齐](toolchain_completion.md)。`profile.txh` 与 `txc profile` 提供 Windows x64 CPU 采样、C++ 分配/堆快照、源码归因及基准对照，见[性能分析](profile.md)。全库公开模块、发行物和跨模块业务链的证据见[终态验收记录](standard_library_acceptance.md)。
+
 `Send/Sync`、唯一移动、跨线程释放与循环回收的 2.6 验收已完成；第 10 节的线程、同步原语和通道支持 `Send` 值，接口见[线程](thread.md)、[同步原语](synchronization.md)和[有界通道](channel.md)，类型及所有权规则见[Send/Sync](send_sync.md)。
 
 `task.txh` 提供结构化作用域、任务组、取消、截止时间和异步计时；`async def` 与 `await` 接入有界工作线程和 Windows IOCP 事件循环。静态类型与使用边界见[结构化任务与异步函数](task.md)，示例见[task_async.tx](../examples/task_async.tx)。`async_file.txh` 通过同一 IOCP 循环提供有界、可取消的文件读写，结果报告已完成的外部效果，契约见[异步文件操作](async_file.md)。

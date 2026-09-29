@@ -1,4 +1,7 @@
 #include "stdlib/log.hpp"
+#include "backend/cpp/runtime_context.hpp"
+#include <thread>
+#include <sstream>
 
 #include "stdlib/array.hpp"
 #include "stdlib/error.hpp"
@@ -17,9 +20,6 @@ namespace tx_generated
 {
 namespace
 {
-
-thread_local std::string current_task_id;
-thread_local std::string current_thread_id;
 
 std::string lower_ascii(std::string value)
 {
@@ -40,7 +40,7 @@ bool secret_name(const std::string& key,
         return true;
     }
     for (const std::string_view part : {"password", "token", "secret",
-        "api_key", "authorization", "credential", "cookie"})
+        "api_key", "apikey", "private_key", "privatekey", "authorization", "credential", "cookie"})
     {
         if (normalized.find(part) != std::string::npos)
         {
@@ -94,21 +94,28 @@ void tx_log_event(const std::string& level, const std::string& message,
                   const tx_dict& fields,
                   const std::vector<std::string>& secret_keys)
 {
-    if (level != "trace" && level != "debug" && level != "info" &&
-        level != "warn" && level != "error")
+    if (!tx_log_enabled(level))
     {
-        throw runtime_failure({tx::error_kind::runtime,
-            "invalid_level", "日志级别必须是 trace/debug/info/warn/error"});
+        return;
     }
     std::unordered_set<std::string> extra;
+    for (const auto& key : tx_log_secret_keys())
+    {
+        extra.insert(lower_ascii(key));
+    }
     for (const auto& key : secret_keys)
     {
         extra.insert(lower_ascii(key));
     }
     auto safe_fields = redact_value(std::any(fields), extra, 0);
+    const auto& current = detail::current_runtime_context();
+    std::ostringstream thread_id;
+    thread_id << std::this_thread::get_id();
     tx_dict context;
-    context.emplace_back(std::string("task_id"), current_task_id);
-    context.emplace_back(std::string("thread_id"), current_thread_id);
+    context.emplace_back(std::string("task_id"), current.log_task_id);
+    context.emplace_back(std::string("thread_id"), current.log_thread_id.empty()
+        ? thread_id.str() : current.log_thread_id);
+    context.emplace_back(std::string("request_id"), current.log_request_id);
     tx_dict event;
     event.emplace_back(std::string("timestamp_ms"), tx_fn_unix_millis());
     event.emplace_back(std::string("level"), level);
@@ -116,14 +123,15 @@ void tx_log_event(const std::string& level, const std::string& message,
     event.emplace_back(std::string("context"), context);
     event.emplace_back(std::string("fields"), std::move(safe_fields));
     // 先完成遮蔽与序列化，再一次写出完整事件。
-    tx_fn_write_error(json_stringify(std::any(event)) + "\n");
+    tx_log_write(json_stringify(std::any(event)) + "\n");
 }
 
 void tx_log_set_context(const std::string& task_id,
                         const std::string& thread_id)
 {
-    current_task_id = task_id;
-    current_thread_id = thread_id;
+    auto& current = detail::current_runtime_context();
+    current.log_task_id = task_id;
+    current.log_thread_id = thread_id;
 }
 
 } // namespace tx_generated

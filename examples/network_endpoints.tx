@@ -1,0 +1,20 @@
+import "socket.txh" as socket
+import "httpx.txh" as httpx
+import "websocket.txh" as websocket
+import "test.txh" as test
+
+def main() -> int
+{
+    auto tcp = socket.listen_tcp("127.0.0.1", 0, 8)
+    auto port = socket.listener_port(tcp)
+    test.assert_true(port > 0)
+    socket.close(tcp)
+    auto udp = socket.bind_udp("127.0.0.1", 0)
+    test.assert_true(socket.udp_port(udp) > 0)
+    socket.close(udp)
+    auto http = httpx.listen("127.0.0.1", port)
+    httpx.close(http)
+    auto ws = websocket.listen("127.0.0.1", port)
+    websocket.close(ws)
+    return 0
+}

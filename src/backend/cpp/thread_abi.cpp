@@ -32,6 +32,8 @@ struct thread_error
 
 struct thread_state
 {
+    std::string log_task_id;
+    std::string log_request_id;
     std::mutex mutex;
     tx_generated::concurrent_result result;
     thread_error error;
@@ -135,6 +137,8 @@ void run_worker(std::shared_ptr<thread_state> state, std::any callback,
                 std::int64_t kind) noexcept
 {
     auto& context = tx_generated::detail::current_runtime_context();
+    context.log_task_id = state->log_task_id;
+    context.log_request_id = state->log_request_id;
     context.propagate_errors = true;
     tx_generated::concurrent_result result;
     thread_error error;
@@ -264,6 +268,9 @@ extern "C" int txrt_thread_spawn(const void* callback, std::int64_t kind,
         (void)std::any_cast<const tx_generated::closure_handle&>(copied);
         auto control = std::make_shared<thread_control>();
         control->state = std::make_shared<thread_state>();
+        const auto& parent_context = tx_generated::detail::current_runtime_context();
+        control->state->log_task_id = parent_context.log_task_id;
+        control->state->log_request_id = parent_context.log_request_id;
         control->worker = std::thread(run_worker, control->state,
                                       std::move(copied), kind);
         *result = tx_generated::detail::make_handle<std::any>(

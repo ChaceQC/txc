@@ -1,0 +1,73 @@
+import "json.txh" as json
+import "csv.txh" as csv
+import "xml.txh" as xml
+import "cbor.txh" as cbor
+import "regex.txh" as regex
+import "db.txh" as db
+import "bytes.txh" as bytes
+import "file.txh" as file
+import "system.txh" as system
+import "error.txh" as errors
+
+def exercise(text: str, binary: bytes, connection: db_connection)
+{
+    try
+    {
+        json.parse(text)
+    }
+    exception errors.parse_error as failure
+    {
+    }
+    try
+    {
+        csv.parse(text, csv.default_dialect())
+    }
+    exception errors.parse_error as failure
+    {
+    }
+    try
+    {
+        xml.parse(text, xml.limits(4096, 32, 1024, 4096, 64))
+    }
+    exception errors.parse_error as failure
+    {
+    }
+    try
+    {
+        cbor.decode(binary, cbor.limits(4096, 2048, 32, 1024))
+    }
+    exception errors.parse_error as failure
+    {
+    }
+    try
+    {
+        auto pattern = regex.compile(text, "", 4096, 1000, 32)
+        regex.search(pattern, text, 0)
+    }
+    exception errors.parse_error as failure
+    {
+    }
+    try
+    {
+        auto statement = db.prepare(connection, text)
+        db.close_statement(statement)
+    }
+    exception errors.database_error as failure
+    {
+    }
+}
+
+def main() -> int
+{
+    auto args = system.args()
+    array corpus = json.parse(file.read_text(args[0], "utf-8"))
+    auto connection = db.open(db.sqlite_options(":memory:"))
+    for item in corpus
+    {
+        dict record = item
+        exercise(json.get_str(record, "text"), bytes.from_hex(json.get_str(record, "binary")), connection)
+    }
+    db.close(connection)
+    print(len(corpus))
+    return 0
+}
