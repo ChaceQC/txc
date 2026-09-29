@@ -1,0 +1,32 @@
+{
+  "head": "91d61780e7f77100ef185be17c09223463f5735b",
+  "compiler": "53c9609b55ce434b0cdb6f33a8c55542561c3c3e3ba4764c9b57337ba1ae84bf",
+  "stdlib": "f361b5937202f82b073f99a8e804eb02c6486ebac05eec80ca780ac7e4437dd9",
+  "clang": "clang version 23.1.2 (https://github.com/llvm/llvm-project 85ac560262434c9ccfc0c183ec22d4138ed647fb)",
+  "target": "x86_64-w64-windows-gnu",
+  "optimization": "-O3",
+  "changed_source_sha256": {
+    "src/backend/cpp/dictionary_direct_abi.cpp": "9c2fb7342d2a55b4d0dc2c7e1c375b6f5f299d2008bbd51b3978a642dd30cb0b",
+    "src/backend/cpp/external_direct_abi.hpp": "d1445a8c3efa2c032a85d1669ca73273f9172573c8fb658587474116b9f38a02",
+    "src/backend/cpp/record_abi.cpp": "c671d8a0cc16f5096c086089cecf8fcac27571d86040313a829a116ff98f70e7",
+    "src/backend/cpp/runtime_abi.hpp": "7e9f5fe87c866a57681cc92b0b96cb9f4df11b979e120e82c752b67cc6e65997",
+    "src/backend/llvm/codegen.cpp": "f074d32d2ca5200774ba4a31658bce1738606a291f03644bc3ab0a0c172e12b5",
+    "src/backend/llvm/codegen.hpp": "0855ef93061243361d1b7b1edc07f1c9fa51c3b4f37b48e2c86187617aec325b",
+    "src/backend/llvm/codegen_cast.cpp": "971a8dd9290ae4b93c016cc6874837d1f606a6d59da34d99097b5d9384951d50",
+    "src/backend/llvm/codegen_expression_calls.cpp": "a514793227e0b9e8372d352f1527b7965d88f734276395914f95f7c1c85a0d9e",
+    "src/backend/llvm/codegen_local_object_analysis.cpp": "7c0dca8bb095f35a3a3a1f0b3c5d0c9becf9d95b690de70c0b736678d74342f4",
+    "src/backend/llvm/codegen_record.cpp": "9c1d0f00a7abf5fc0d1299f7b8a4dcba3cb56a6dea97953400c77ce7aa3f52ed",
+    "src/backend/llvm/codegen_statement.cpp": "7bcf105e6cfb49a25b31f400efdabdfdf211f6016463b3a4946781e0fba23144",
+    "src/backend/llvm/codegen_string_borrow.cpp": "acabd61e92154a8037c5b6a52bb5ff49f58d35f66daf8441ef1de19075fdd495",
+    "src/frontend/sema/sema_call_properties.cpp": "1c9b6441ad43c4108d5e7270c79727e3bc85ca02fc72e6e642653c70f41fbc4a"
+  },
+  "checks": [
+    "static_borrowing",
+    "static_borrowing_lifetime",
+    "serde/behavior",
+    "serde/direct",
+    "virtual_views",
+    "embedded_nul",
+    "package_compatibility"
+  ]
+}

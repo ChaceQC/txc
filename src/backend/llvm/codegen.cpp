@@ -456,6 +456,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
 {
     gc_visiting_.clear();
     gc_neutral_cache_.clear();
+    bounded_integer_results_.clear();
     functions_.clear();
     structs_.clear();
     serde_schemas_.clear();
@@ -501,7 +502,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     }
     module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
             << "%tx_record_field = type { ptr, ptr, i64, i64, i64 }\n"
-            << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr, ptr }\n"
+            << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr, ptr, ptr }\n"
             << "%tx_record_view = type { ptr, ptr }\n"
             << "declare ptr @txrt_record_view(ptr)\n"
             << "declare ptr @txrt_record_struct_view(ptr)\n"
@@ -510,6 +511,8 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare i32 @txrt_struct_field_get(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_record_class_new(ptr, ptr)\n"
             << "declare void @txrt_record_require_type(ptr, ptr)\n"
+            << "declare i32 @txrt_record_str_len(ptr, ptr)\n"
+            << "declare ptr @txrt_record_borrow_str(ptr)\n"
             << "declare void @txrt_record_require_initialized(ptr)\n"
             << "%tx_runtime_context = type { ptr, i32 }\n"
             << "%tx_diagnostic_frame = type { ptr, ptr, i64, i64, ptr }\n"
@@ -646,6 +649,8 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare i32 @txrt_dict_element_address_literal(ptr, ptr, i64, i1, ptr)\n"
             << "declare i32 @txrt_dictionary_get(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dictionary_get_str(ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_dictionary_get_literal(ptr, ptr, i64, ptr)\n"
+            << "declare i32 @txrt_dictionary_contains_literal(ptr, ptr, i64, ptr)\n"
             << "declare i32 @txrt_dictionary_contains(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dictionary_contains_str(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dictionary_remove(ptr, ptr, ptr)\n"

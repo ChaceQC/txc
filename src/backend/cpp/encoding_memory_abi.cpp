@@ -33,9 +33,8 @@ using tx_generated::detail::make_handle;
 namespace
 {
 
-void encode_memory(const void* text, tx::text_encoding selected, void** result)
+void encode_memory(std::string_view source, tx::text_encoding selected, void** result)
 {
-    const auto& source = tx_generated::detail::text_value(text);
     if (source.size() > static_cast<std::size_t>(
             std::numeric_limits<int>::max()))
     {
@@ -54,15 +53,13 @@ void encode_memory(const void* text, tx::text_encoding selected, void** result)
     if (selected == tx_generated::detail::text_encoding::utf8 ||
         selected == tx_generated::detail::text_encoding::utf8_sig)
     {
-        std::vector<std::uint8_t> bytes;
-        bytes.reserve(source.size() + (selected ==
-            tx_generated::detail::text_encoding::utf8_sig ? 3 : 0));
-        if (selected == tx_generated::detail::text_encoding::utf8_sig)
-        {
-            bytes.insert(bytes.end(), {0xef, 0xbb, 0xbf});
-        }
-        bytes.insert(bytes.end(), source.begin(), source.end());
-        *result = make_handle<std::any>(tx_generated::make_bytes(std::move(bytes)));
+        constexpr std::uint8_t bom[]{0xef, 0xbb, 0xbf};
+        const std::span<const std::uint8_t> prefix = selected == tx::text_encoding::utf8_sig
+            ? std::span<const std::uint8_t>(bom) : std::span<const std::uint8_t>{};
+        tx_generated::byte_value bytes = std::make_shared<const tx_generated::byte_storage>(
+            std::span<const std::uint8_t>(reinterpret_cast<const std::uint8_t*>(source.data()),
+                                          source.size()), prefix);
+        *result = make_handle<std::any>(std::move(bytes));
         return;
     }
     std::string encoded;
@@ -110,7 +107,7 @@ extern "C" int txrt_encoding_encode(const void* source, const void* name, void**
 {
     return invoke_checked([&]
     {
-        encode_memory(source, selected_encoding(name), result);
+        encode_memory(tx_generated::detail::text_value(source), selected_encoding(name), result);
     });
 }
 
@@ -118,7 +115,16 @@ extern "C" int txrt_encoding_encode_known(const void* source, std::int64_t selec
 {
     return tx_generated::detail::invoke_leaf([&]
     {
-        encode_memory(source, static_cast<tx::text_encoding>(selected), result);
+        encode_memory(tx_generated::detail::text_value(source), static_cast<tx::text_encoding>(selected), result);
+    });
+}
+
+extern "C" int txrt_encoding_encode_literal(const char* source, std::uint64_t length,
+    std::int64_t selected, void** result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        encode_memory(std::string_view(source, length), static_cast<tx::text_encoding>(selected), result);
     });
 }
 

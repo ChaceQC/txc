@@ -28,14 +28,26 @@ bool finalize_class_object(const std::shared_ptr<dynamic_class>& object)
         return false;
     }
     object->destroying = true;
+    if (object->destructor_count == 0)
+    {
+        return true;
+    }
+    std::any receiver = class_handle(object);
     for (std::size_t index = 0; index < object->destructor_count; ++index)
     {
         // 析构回调借用栈上接收者；额外引用保证回调期间字段仍然有效。
-        std::any receiver = class_handle(object);
+        detail::error_cleanup_guard error_guard;
+        if (object->fixed.type && object->fixed.type->view_destructors)
+        {
+            using destructor_view_fn = void (*)(detail::runtime_context*, void*, record_view*);
+            auto callback = reinterpret_cast<destructor_view_fn>(
+                const_cast<void*>(object->fixed.type->view_destructors[index]));
+            callback(&detail::current_runtime_context(), &receiver, &object->view);
+            continue;
+        }
         using destructor_fn = void (*)(detail::runtime_context*, void*);
         auto callback = reinterpret_cast<destructor_fn>(
             const_cast<void*>(object->destructor_targets[index]));
-        detail::error_cleanup_guard error_guard;
         callback(&detail::current_runtime_context(), &receiver);
     }
     return true;

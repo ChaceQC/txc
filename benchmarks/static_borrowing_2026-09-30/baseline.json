@@ -1,0 +1,19 @@
+{
+  "head": "91d61780e7f77100ef185be17c09223463f5735b",
+  "compiler": "8c94179a85d41f91eb400b9a589256adad6ea57ce2d4f6b79720229c6c60c1da",
+  "stdlib": "4f5937ad79dcf643ea5a75358d1f856e894a3b23881845fb61e64a1403c4564f",
+  "sources": {
+    "diverse": {
+      "original": "benchmarks/diverse_performance.tx",
+      "original_sha256": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+      "source_sha256": "1cbd934096ed5848cf7db5d9da07ee304d1843b721bc91d5633d66a4a1258a20",
+      "exe_sha256": "120e5fee0b09b46e62d69781146673c4b67a18edc3b8d99d679c63904241e714"
+    },
+    "language": {
+      "original": "benchmarks/language_features/compare.tx",
+      "original_sha256": "88e1285edafabf7ebdf0ed09002aa61cfe27ad4209224675f4e0d8e90cde313f",
+      "source_sha256": "e2abd534fb16b9f8628756ad2302e32411039f212608c56e829b5205895bcadf",
+      "exe_sha256": "aa4a68eb39150acba3e4da1c704f35b35e6667972c9697d417bfc0d16045f791"
+    }
+  }
+}

@@ -6,6 +6,10 @@
 // 外部模块目标和类型已在编译期确定，句柄参数保持现有值语义。
 extern "C"
 {
+int txrt_dictionary_get_literal(const void* values, const char* key,
+                               std::size_t length, void** result) noexcept;
+int txrt_dictionary_contains_literal(const void* values, const char* key,
+                                    std::size_t length, bool* result) noexcept;
 int txrt_dictionary_get_concat(const void* values, const void* first,
                               const void* second, void** result) noexcept;
 int txrt_dictionary_contains_concat(const void* values, const void* first,

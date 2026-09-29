@@ -21,8 +21,14 @@ text_payload* payload_from(const void* value) noexcept
 
 } // namespace
 
-static_assert(alignof(text_payload) > 1);
-static_assert(alignof(text_handle_record) > 1);
+static_assert(alignof(text_payload) > 3);
+static_assert(alignof(text_handle_record) > 3);
+static_assert(alignof(std::string) > 3);
+
+const void* borrowed_string_pointer(const std::string& value) noexcept
+{
+    return reinterpret_cast<const void*>(reinterpret_cast<std::uintptr_t>(&value) | std::uintptr_t{2});
+}
 
 const void* borrowed_text_pointer(const text_payload* value) noexcept
 {
@@ -71,11 +77,20 @@ void release_text_reference(const void* value) noexcept
 
 const std::string& text_value(const void* value) noexcept
 {
+    const auto address = reinterpret_cast<std::uintptr_t>(value);
+    if ((address & 3U) == 2)
+    {
+        return *reinterpret_cast<const std::string*>(address & ~std::uintptr_t{3});
+    }
     return payload_from(value)->value;
 }
 
 text_handle_record* copy_text_handle(const void* value)
 {
+    if ((reinterpret_cast<std::uintptr_t>(value) & 3U) == 2)
+    {
+        return make_handle<std::string>(text_value(value));
+    }
     if ((reinterpret_cast<std::uintptr_t>(value) & 1U) == 0)
     {
         publish_text_builder(const_cast<void*>(value));

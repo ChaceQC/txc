@@ -218,6 +218,13 @@ llvm_code_generator::ir_value llvm_code_generator::emit_operator_call(
 llvm_code_generator::ir_value llvm_code_generator::emit_binary(
     const expression& item, const binary_operation& operation)
 {
+    if (operation.binding && !scalar_record_type(item.type))
+    {
+        if (const auto* target = native_record_target(*operation.binding))
+        {
+            return native_record_call(*target, operation.left.get(), {operation.right.get()}, item.position);
+        }
+    }
     if (operation.operation == token_kind::and_and ||
         operation.operation == token_kind::or_or)
     {

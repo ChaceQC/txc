@@ -1,6 +1,7 @@
 #include "backend/llvm/codegen.hpp"
 
 #include <limits>
+#include <algorithm>
 
 namespace tx
 {
@@ -13,10 +14,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_division(
     const auto type = integer ? "i64" : "double";
     const auto divisor = integer_range_of(right);
     const auto dividend = integer_range_of(left);
-    const bool safe = integer && (divisor.second < 0 || divisor.first > 0) &&
+    const bool range_safe = integer && (divisor.second < 0 || divisor.first > 0) &&
         (divisor.first > -1 || divisor.second < -1 ||
          dividend.first > std::numeric_limits<std::int64_t>::min());
-    if (!safe)
+    if (!range_safe && !proven_integer_function_)
     {
         const auto zero = temporary();
         write_instruction(zero + (integer ? " = icmp eq i64 " : " = fcmp oeq double ") +
@@ -48,7 +49,14 @@ llvm_code_generator::ir_value llvm_code_generator::emit_division(
     const auto result = temporary();
     write_instruction(result + (integer ? " = sdiv i64 " : " = fdiv double ") +
         left.text + ", " + right.text);
-    return {left.type, result};
+    ir_value value{left.type, result};
+    if (range_safe)
+    {
+        const auto bounds = std::minmax({dividend.first / divisor.first, dividend.first / divisor.second,
+                                        dividend.second / divisor.first, dividend.second / divisor.second});
+        value.integer_range = integer_interval{bounds.first, bounds.second};
+    }
+    return value;
 }
 
 } // namespace tx

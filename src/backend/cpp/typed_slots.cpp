@@ -1,6 +1,8 @@
 #include "backend/cpp/typed_slots.hpp"
 
 #include <stdexcept>
+#include <algorithm>
+#include <utility>
 
 namespace tx_generated
 {
@@ -11,20 +13,55 @@ typed_slots::typed_slots(std::span<const slot_kind> kinds, bool borrow_kinds)
       kinds_(borrow_kinds ? kinds : std::span<const slot_kind>(owned_kinds_)),
       slots_(kinds.size() > local_.size() ? kinds.size() : 0)
 {
+    const auto count = std::count(kinds.begin(), kinds.end(), slot_kind::reference);
+    if (count > static_cast<std::ptrdiff_t>(local_references_.size()))
+    {
+        references_.resize(count);
+    }
+    refresh_references();
     for (std::size_t index = 0; index < kinds.size(); ++index)
     {
-        if (kinds[index] == slot_kind::reference)
-        {
-            references_.push_back(std::make_unique<std::any>());
-            data()[index].reference = references_.back().get();
-        }
-        else if (kinds[index] == slot_kind::floating)
+        if (kinds[index] == slot_kind::floating)
         {
             data()[index].floating = 0.0;
         }
         else if (kinds[index] == slot_kind::boolean)
         {
             data()[index].boolean = false;
+        }
+    }
+}
+
+typed_slots::typed_slots(typed_slots&& other) noexcept
+{
+    *this = std::move(other);
+}
+
+typed_slots& typed_slots::operator=(typed_slots&& other) noexcept
+{
+    if (this != &other)
+    {
+        owned_kinds_ = std::move(other.owned_kinds_);
+        kinds_ = std::exchange(other.kinds_, {});
+        local_ = other.local_;
+        slots_ = std::move(other.slots_);
+        local_references_ = std::move(other.local_references_);
+        references_ = std::move(other.references_);
+        refresh_references();
+    }
+    return *this;
+}
+
+void typed_slots::refresh_references() noexcept
+{
+    // 仅在对象发布前移动存储；发布后的对象不搬迁，字段地址持续稳定。
+    auto* references = references_.empty() ? local_references_.data() : references_.data();
+    std::size_t next = 0;
+    for (std::size_t index = 0; index < kinds_.size(); ++index)
+    {
+        if (kinds_[index] == slot_kind::reference)
+        {
+            data()[index].reference = &references[next++];
         }
     }
 }
@@ -98,9 +135,13 @@ void typed_slots::write(std::size_t index, std::any value)
 
 void typed_slots::clear() noexcept
 {
+    for (auto& reference : local_references_)
+    {
+        reference.reset();
+    }
     for (auto& reference : references_)
     {
-        reference->reset();
+        reference.reset();
     }
 }
 

@@ -1,0 +1,43 @@
+import "format.txh" as fmt
+import "time.txh" as time
+
+def apply(template: str, value: int) -> str
+{
+    return fmt.format(template, value)
+}
+
+def report(name: str, start: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - start)
+    print(checksum)
+}
+
+def main() -> int
+{
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        str template = "item:{:04d}"
+        if i % 2 == 0
+        {
+            template = "item:{:06d}"
+        }
+        checksum += len(fmt.format(template, i))
+    }
+    report("format_alternating", started, checksum)
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        str template = "item:{:04d}"
+        if i % 2 == 0
+        {
+            template = "item:{:06d}"
+        }
+        checksum += len(apply(template, i))
+    }
+    report("format_parameter", started, checksum)
+    return 0
+}

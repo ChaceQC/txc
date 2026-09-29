@@ -130,6 +130,14 @@ void llvm_code_generator::emit_class_metadata(const class_decl& definition)
         }
     }
     write_ptrs("@tx_class_destructors_" + definition.name, destructors);
+    if (static_record_type(value_type(definition.name)))
+    {
+        for (auto& target : destructors)
+        {
+            target += "_record";
+        }
+        write_ptrs("@tx_class_view_destructors_" + definition.name, destructors);
+    }
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_class_constructor(

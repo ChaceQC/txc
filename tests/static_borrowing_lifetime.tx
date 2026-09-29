@@ -1,0 +1,84 @@
+# 不导入 test/error，使此程序使用非异常模式的清理路径。
+interface readable
+{
+    def read() -> int
+}
+
+class counter : readable
+{
+    public:
+        value: int
+        events: vector<int>
+        def init(value: int, events: vector<int>)
+        {
+            self.value = value
+            self.events = events
+        }
+        override def read() -> int
+        {
+            return self.value
+        }
+        def deinit()
+        {
+            self.events.push_back(self.value)
+        }
+}
+
+def loop_view(events: vector<int>)
+{
+    readable source = counter(7, events)
+    for i in 0..=3
+    {
+        counter view = source as counter
+        if view.read() != 7 || events.size() != 0
+        {
+            print(1 / 0)
+        }
+    }
+}
+
+def early_return(events: vector<int>) -> counter
+{
+    readable source = counter(8, events)
+    if true
+    {
+        counter view = source as counter
+        return view
+    }
+    return source as counter
+}
+
+def same_scope(events: vector<int>)
+{
+    readable source = counter(9, events)
+    counter view = source as counter
+    if view.read() != 9 || events.size() != 2
+    {
+        print(1 / 0)
+    }
+}
+
+def main() -> int
+{
+    auto events = vector<int>()
+    loop_view(events)
+    if events.size() != 1 || events[0] != 7
+    {
+        return 1
+    }
+    if true
+    {
+        counter saved = early_return(events)
+        if saved.read() != 8 || events.size() != 1
+        {
+            return 2
+        }
+    }
+    same_scope(events)
+    if events.size() != 3 || events[1] != 8 || events[2] != 9
+    {
+        return 3
+    }
+    print("STATIC_BORROWING_LIFETIME_OK")
+    return 0
+}

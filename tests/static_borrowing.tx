@@ -1,0 +1,181 @@
+import "dictionary.txh" as dictionary
+import "serde.txh" as serde
+import "error.txh" as errors
+import "test.txh" as test
+
+struct payload serde(version=1)
+{
+    id: int serde(1)
+    name: str serde(2)
+}
+
+interface readable
+{
+    def read() -> int
+}
+
+class counter : readable
+{
+    public:
+        value: int
+        name: str
+        events: vector<int>
+        def init(value: int, events: vector<int>)
+        {
+            self.value = value
+            self.name = "中文🌍"
+            self.events = events
+        }
+        override def read() -> int
+        {
+            return self.value
+        }
+        def deinit()
+        {
+            self.events.push_back(self.value)
+        }
+}
+
+class unrelated : readable
+{
+    public:
+        override def read() -> int
+        {
+            return 99
+        }
+}
+
+def make_dictionary(events: vector<int>) -> dict
+{
+    events.push_back(1)
+    return {"": 1, "中文": 2, "a\tb": 3, "seven": 7}
+}
+
+def make_key(events: vector<int>) -> str
+{
+    events.push_back(2)
+    return "seven"
+}
+
+def dictionary_cases()
+{
+    auto events = vector<int>()
+    dict values = make_dictionary(events)
+    test.assert_true(dictionary.contains(values, ""))
+    test.assert_true(dictionary.contains(values, "中文"))
+    test.assert_true(dictionary.contains(values, "a\tb"))
+    test.assert_false(dictionary.contains(values, "a"))
+    test.assert_equal(3, dictionary.get(values, "a\tb") as int)
+    test.assert_true(is_none(dictionary.get(values, "missing")))
+    str key = "seven"
+    test.assert_true(dictionary.contains(values, key))
+    test.assert_true(dictionary.contains(make_dictionary(events), "seven"))
+    test.assert_true(dictionary.contains(make_dictionary(events), make_key(events)))
+    test.assert_equal(4, events.size())
+    test.assert_equal(1, events[2])
+    test.assert_equal(2, events[3])
+}
+
+def serde_cases()
+{
+    payload value = payload(7, "中文🌍\tx")
+    test.assert_equal(len("中文🌍\tx"), len(value.name))
+    str text = serde.serialize_json(value)
+    payload decoded = serde.deserialize_json<payload>(text)
+    text = "输入已释放"
+    test.assert_equal(value.name, decoded.name)
+    auto binary = serde.serialize_cbor(value)
+    payload copied = serde.deserialize_cbor<payload>(binary)
+    test.assert_equal(value.name, copied.name)
+    payload temporary = serde.deserialize_json<payload>(serde.serialize_json(payload(8, "temporary")))
+    test.assert_equal(9, len(temporary.name))
+    test.assert_equal(7, serde.deserialize_json<payload>(serde.serialize_json(value)).id)
+    value.name = ""
+    test.assert_equal(0, len(value.name))
+    test.assert_equal(2, len(payload(1, "xy").name))
+}
+
+def borrowed_cast(events: vector<int>) -> counter
+{
+    readable source = counter(7, events)
+    if true
+    {
+        counter result = source as counter
+        test.assert_equal(7, result.read())
+        test.assert_equal(len("中文🌍"), len(result.name))
+        test.assert_equal(0, events.size())
+        return result
+    }
+    return source as counter
+}
+
+def rebound_cast(events: vector<int>)
+{
+    readable source = counter(1, events)
+    counter result = source as counter
+    source = counter(2, events)
+    test.assert_equal(1, result.read())
+    test.assert_equal(0, events.size())
+}
+
+def rebound_target(events: vector<int>)
+{
+    readable source = counter(3, events)
+    counter result = source as counter
+    result = counter(4, events)
+    test.assert_equal(3, source.read())
+    test.assert_equal(4, result.read())
+}
+
+def failed_cast()
+{
+    readable wrong = unrelated()
+    int iterations = 0
+    while iterations > 0
+    {
+        counter unused = wrong as counter
+        iterations -= 1
+    }
+    int position = 0
+    try
+    {
+        position = 1
+        counter invalid = wrong as counter
+        position = 2
+    }
+    exception errors.runtime_error as failure
+    {
+        test.assert_equal(1, position)
+        position = 3
+    }
+    test.assert_equal(3, position)
+}
+
+def cast_cases()
+{
+    auto events = vector<int>()
+    if true
+    {
+        counter saved = borrowed_cast(events)
+        test.assert_equal(7, saved.read())
+        test.assert_equal(0, events.size())
+    }
+    test.assert_equal(1, events.size())
+    events.clear()
+    rebound_cast(events)
+    test.assert_equal(2, events.size())
+    events.clear()
+    rebound_target(events)
+    test.assert_equal(2, events.size())
+    failed_cast()
+}
+
+def main() -> int
+{
+    dictionary_cases()
+    serde_cases()
+    cast_cases()
+    test.assert_equal(0, test.failures())
+    print("STATIC_BORROWING_OK")
+    return test.failures()
+}

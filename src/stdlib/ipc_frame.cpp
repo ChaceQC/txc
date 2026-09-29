@@ -15,7 +15,7 @@ namespace
 
 constexpr std::size_t header_size = 20;
 
-std::uint64_t read_le(const std::vector<std::uint8_t>& input,
+std::uint64_t read_le(std::span<const std::uint8_t> input,
                       std::size_t start, std::size_t count) noexcept
 {
     std::uint64_t value = 0;

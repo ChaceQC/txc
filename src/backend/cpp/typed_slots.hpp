@@ -35,8 +35,8 @@ class typed_slots
 public:
     typed_slots() = default;
     explicit typed_slots(std::span<const slot_kind> kinds, bool borrow_kinds = false);
-    typed_slots(typed_slots&&) noexcept = default;
-    typed_slots& operator=(typed_slots&&) noexcept = default;
+    typed_slots(typed_slots&& other) noexcept;
+    typed_slots& operator=(typed_slots&& other) noexcept;
     typed_slots(const typed_slots&) = delete;
     typed_slots& operator=(const typed_slots&) = delete;
 
@@ -50,11 +50,13 @@ public:
     void clear() noexcept;
 
 private:
+    void refresh_references() noexcept;
     std::vector<slot_kind> owned_kinds_;
     std::span<const slot_kind> kinds_;
     std::array<typed_slot, 2> local_{};
     std::vector<typed_slot> slots_;
-    std::vector<std::unique_ptr<std::any>> references_;
+    std::array<std::any, 2> local_references_;
+    std::vector<std::any> references_;
 };
 
 } // namespace tx_generated

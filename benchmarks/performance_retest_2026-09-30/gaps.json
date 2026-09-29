@@ -1,0 +1,578 @@
+[
+  {
+    "group": "audit/compute",
+    "name": "test_assert",
+    "tx_ms": 6.401,
+    "reference_ms": 0.246,
+    "reference": "Java",
+    "ratio": 26.020325203252032,
+    "note": "参考循环可被优化消除，不作为有效热点排名"
+  },
+  {
+    "group": "语言特性",
+    "name": "deinit",
+    "tx_ms": 14.486,
+    "reference_ms": 0.7086,
+    "reference": "CPP",
+    "ratio": 20.443127293254307,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "cycle_gc",
+    "tx_ms": 1.465,
+    "reference_ms": 0.0724,
+    "reference": "CPP",
+    "ratio": 20.234806629834253,
+    "note": ""
+  },
+  {
+    "group": "audit/compute",
+    "name": "statistics_mean",
+    "tx_ms": 9.203,
+    "reference_ms": 0.535,
+    "reference": "C++",
+    "ratio": 17.2018691588785,
+    "note": "旧参考为普通求和；优先看校准补偿统计"
+  },
+  {
+    "group": "综合",
+    "name": "serde_short_text",
+    "tx_ms": 11.316,
+    "reference_ms": 0.959,
+    "reference": "C++",
+    "ratio": 11.799791449426488,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "variadic_unpack",
+    "tx_ms": 8.807,
+    "reference_ms": 0.8879,
+    "reference": "Java",
+    "ratio": 9.918909787138192,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "serde_short_text",
+    "tx_ms": 10.06,
+    "reference_ms": 1.024,
+    "reference": "clang C++",
+    "ratio": 9.82421875,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "deep_copy",
+    "tx_ms": 22.996000000000002,
+    "reference_ms": 2.3697,
+    "reference": "CPP",
+    "ratio": 9.704181963961684,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse",
+    "name": "format_literal",
+    "tx_ms": 7.2,
+    "reference_ms": 0.787,
+    "reference": "GCC C++",
+    "ratio": 9.148665819567979,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "recursion",
+    "tx_ms": 0.607,
+    "reference_ms": 0.0673,
+    "reference": "CPP",
+    "ratio": 9.019316493313521,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "deinit",
+    "tx_ms": 14.486,
+    "reference_ms": 1.6146,
+    "reference": "Java",
+    "ratio": 8.971881580577232,
+    "note": ""
+  },
+  {
+    "group": "综合",
+    "name": "format_literal",
+    "tx_ms": 6.302,
+    "reference_ms": 0.729,
+    "reference": "C++",
+    "ratio": 8.644718792866941,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "runtime_cast",
+    "tx_ms": 15.81,
+    "reference_ms": 1.8665,
+    "reference": "CPP",
+    "ratio": 8.470399142780606,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse",
+    "name": "serde_short_text",
+    "tx_ms": 10.439,
+    "reference_ms": 1.404,
+    "reference": "GCC C++",
+    "ratio": 7.435185185185186,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "format_literal",
+    "tx_ms": 6.421,
+    "reference_ms": 0.884,
+    "reference": "clang C++",
+    "ratio": 7.263574660633484,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse",
+    "name": "format_dynamic",
+    "tx_ms": 6.851,
+    "reference_ms": 1.032,
+    "reference": "GCC C++",
+    "ratio": 6.638565891472868,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "runtime_cast",
+    "tx_ms": 15.81,
+    "reference_ms": 2.3952,
+    "reference": "Java",
+    "ratio": 6.600701402805611,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "encoding_dynamic",
+    "tx_ms": 19.579,
+    "reference_ms": 3.071,
+    "reference": "clang C++",
+    "ratio": 6.37544773689352,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "struct_operators",
+    "tx_ms": 75.968,
+    "reference_ms": 12.1628,
+    "reference": "Java",
+    "ratio": 6.2459302134376955,
+    "note": ""
+  },
+  {
+    "group": "综合",
+    "name": "format_dynamic",
+    "tx_ms": 6.37,
+    "reference_ms": 1.045,
+    "reference": "C++",
+    "ratio": 6.095693779904307,
+    "note": ""
+  },
+  {
+    "group": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "tx_ms": 9.848,
+    "reference_ms": 1.657,
+    "reference": "C++",
+    "ratio": 5.943270971635486,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "variadic_unpack",
+    "tx_ms": 8.807,
+    "reference_ms": 1.5325,
+    "reference": "CPP",
+    "ratio": 5.746818923327896,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "struct_operators",
+    "tx_ms": 75.968,
+    "reference_ms": 13.2647,
+    "reference": "CPP",
+    "ratio": 5.727080145046628,
+    "note": ""
+  },
+  {
+    "group": "综合",
+    "name": "serde_long_text",
+    "tx_ms": 28.168,
+    "reference_ms": 4.995,
+    "reference": "C++",
+    "ratio": 5.639239239239239,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "serde_long_text",
+    "tx_ms": 31.405,
+    "reference_ms": 5.593,
+    "reference": "clang C++",
+    "ratio": 5.615054532451278,
+    "note": ""
+  },
+  {
+    "group": "综合",
+    "name": "encoding_literal",
+    "tx_ms": 15.706,
+    "reference_ms": 2.816,
+    "reference": "C++",
+    "ratio": 5.5774147727272725,
+    "note": ""
+  },
+  {
+    "group": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "tx_ms": 5.252,
+    "reference_ms": 0.943,
+    "reference": "C++",
+    "ratio": 5.569459172852598,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse",
+    "name": "serde_long_text",
+    "tx_ms": 28.494,
+    "reference_ms": 5.136,
+    "reference": "GCC C++",
+    "ratio": 5.547897196261682,
+    "note": ""
+  },
+  {
+    "group": "综合",
+    "name": "dictionary_text_hit",
+    "tx_ms": 19.257,
+    "reference_ms": 3.485,
+    "reference": "Java",
+    "ratio": 5.525681492109039,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse",
+    "name": "encoding_dynamic",
+    "tx_ms": 15.731,
+    "reference_ms": 2.896,
+    "reference": "GCC C++",
+    "ratio": 5.4319751381215475,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "encoding_literal",
+    "tx_ms": 18.399,
+    "reference_ms": 3.396,
+    "reference": "clang C++",
+    "ratio": 5.417844522968198,
+    "note": ""
+  },
+  {
+    "group": "综合",
+    "name": "encoding_dynamic",
+    "tx_ms": 15.69,
+    "reference_ms": 2.897,
+    "reference": "C++",
+    "ratio": 5.415947531929582,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse",
+    "name": "encoding_literal",
+    "tx_ms": 16.011,
+    "reference_ms": 2.973,
+    "reference": "GCC C++",
+    "ratio": 5.385469223007064,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "module_call",
+    "tx_ms": 17.639,
+    "reference_ms": 3.2846,
+    "reference": "CPP",
+    "ratio": 5.370212506850149,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "copy_cycle",
+    "tx_ms": 10.677,
+    "reference_ms": 2.0492,
+    "reference": "CPP",
+    "ratio": 5.210325980870584,
+    "note": ""
+  },
+  {
+    "group": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "tx_ms": 4.738,
+    "reference_ms": 0.964,
+    "reference": "C++",
+    "ratio": 4.9149377593361,
+    "note": ""
+  },
+  {
+    "group": "audit/features",
+    "name": "queue_push_pop",
+    "tx_ms": 1.352,
+    "reference_ms": 0.294,
+    "reference": "C++",
+    "ratio": 4.598639455782314,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "format_dynamic",
+    "tx_ms": 7.545,
+    "reference_ms": 1.675,
+    "reference": "clang C++",
+    "ratio": 4.504477611940298,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "dictionary_text_hit",
+    "tx_ms": 19.571,
+    "reference_ms": 4.428,
+    "reference": "clang C++",
+    "ratio": 4.419828364950317,
+    "note": ""
+  },
+  {
+    "group": "audit/compute",
+    "name": "regex_search",
+    "tx_ms": 38.285,
+    "reference_ms": 8.747,
+    "reference": "Java",
+    "ratio": 4.376929232879844,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "map_hit_128",
+    "tx_ms": 1.71,
+    "reference_ms": 0.391,
+    "reference": "clang C++",
+    "ratio": 4.373401534526854,
+    "note": ""
+  },
+  {
+    "group": "综合",
+    "name": "dictionary_text_hit",
+    "tx_ms": 19.257,
+    "reference_ms": 4.428,
+    "reference": "C++",
+    "ratio": 4.348915989159892,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "class_methods",
+    "tx_ms": 0.669,
+    "reference_ms": 0.1612,
+    "reference": "CPP",
+    "ratio": 4.150124069478908,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "vector_scan_1k",
+    "tx_ms": 0.265,
+    "reference_ms": 0.066,
+    "reference": "clang C++",
+    "ratio": 4.015151515151516,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse",
+    "name": "dictionary_text_hit",
+    "tx_ms": 18.25,
+    "reference_ms": 4.569,
+    "reference": "GCC C++",
+    "ratio": 3.994309476909608,
+    "note": ""
+  },
+  {
+    "group": "audit/compute",
+    "name": "random_int",
+    "tx_ms": 1.314,
+    "reference_ms": 0.33,
+    "reference": "C++",
+    "ratio": 3.981818181818182,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "string_conversion",
+    "tx_ms": 12.683,
+    "reference_ms": 3.1863,
+    "reference": "CPP",
+    "ratio": 3.9804789253993658,
+    "note": ""
+  },
+  {
+    "group": "长随机数",
+    "name": "random_long",
+    "tx_ms": 35.0,
+    "reference_ms": 8.8388,
+    "reference": "C++",
+    "ratio": 3.9598135493505904,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "deep_copy",
+    "tx_ms": 22.996000000000002,
+    "reference_ms": 6.2232,
+    "reference": "Java",
+    "ratio": 3.695205039208125,
+    "note": ""
+  },
+  {
+    "group": "校准/diverse_clang",
+    "name": "map_hit_8192",
+    "tx_ms": 2.274,
+    "reference_ms": 0.617,
+    "reference": "clang C++",
+    "ratio": 3.685575364667747,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "deinit",
+    "tx_ms": 14.486,
+    "reference_ms": 4.0292,
+    "reference": "Python",
+    "ratio": 3.595254641119825,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "class_operator",
+    "tx_ms": 0.856,
+    "reference_ms": 0.2388,
+    "reference": "CPP",
+    "ratio": 3.584589614740368,
+    "note": ""
+  },
+  {
+    "group": "audit/compute",
+    "name": "decimal_add",
+    "tx_ms": 12.081,
+    "reference_ms": 3.42,
+    "reference": "Java",
+    "ratio": 3.532456140350877,
+    "note": ""
+  },
+  {
+    "group": "audit/features",
+    "name": "iterator_snapshot",
+    "tx_ms": 0.155,
+    "reference_ms": 0.044,
+    "reference": "C++",
+    "ratio": 3.522727272727273,
+    "note": ""
+  },
+  {
+    "group": "audit/compute",
+    "name": "regex_search",
+    "tx_ms": 38.285,
+    "reference_ms": 10.983,
+    "reference": "C++",
+    "ratio": 3.4858417554402252,
+    "note": ""
+  },
+  {
+    "group": "audit/compute",
+    "name": "bytes_hex",
+    "tx_ms": 6.394,
+    "reference_ms": 1.846,
+    "reference": "C++",
+    "ratio": 3.4637053087757312,
+    "note": ""
+  },
+  {
+    "group": "audit/features",
+    "name": "vector_push",
+    "tx_ms": 1.941,
+    "reference_ms": 0.569,
+    "reference": "C++",
+    "ratio": 3.411247803163445,
+    "note": ""
+  },
+  {
+    "group": "校准/statistics",
+    "name": "statistics_mean",
+    "tx_ms": 9.707,
+    "reference_ms": 2.925,
+    "reference": "GCC C++",
+    "ratio": 3.318632478632479,
+    "note": ""
+  },
+  {
+    "group": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "tx_ms": 4.863,
+    "reference_ms": 1.472,
+    "reference": "C++",
+    "ratio": 3.30366847826087,
+    "note": ""
+  },
+  {
+    "group": "audit/compute",
+    "name": "regex_search",
+    "tx_ms": 38.285,
+    "reference_ms": 12.011,
+    "reference": "Python",
+    "ratio": 3.1874947964366,
+    "note": ""
+  },
+  {
+    "group": "综合",
+    "name": "encoding_dynamic",
+    "tx_ms": 15.69,
+    "reference_ms": 4.958,
+    "reference": "Java",
+    "ratio": 3.164582492940702,
+    "note": ""
+  },
+  {
+    "group": "audit/compute",
+    "name": "env_get",
+    "tx_ms": 9.052,
+    "reference_ms": 2.906,
+    "reference": "Java",
+    "ratio": 3.114934618031658,
+    "note": ""
+  },
+  {
+    "group": "语言特性",
+    "name": "copy_cycle",
+    "tx_ms": 10.677,
+    "reference_ms": 3.4406,
+    "reference": "Java",
+    "ratio": 3.1032378073591813,
+    "note": ""
+  },
+  {
+    "group": "library/组合",
+    "name": "random",
+    "tx_ms": 1.0,
+    "reference_ms": 0.3315,
+    "reference": "C++",
+    "ratio": 3.0165912518853695,
+    "note": "整数毫秒短项，倍率精度有限"
+  }
+]

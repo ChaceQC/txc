@@ -191,6 +191,8 @@ list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hp
     "src/common/text_encoding.hpp" "src/stdlib/parse.hpp" "src/stdlib/serde_direct.hpp"
     "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp" "src/stdlib/iterator.hpp")
 list(APPEND _tx_abi_files "src/stdlib/container_scalar.hpp" "src/stdlib/typed_map.hpp")
+list(APPEND _tx_abi_files "src/stdlib/byte_storage.hpp" "src/stdlib/vector.hpp"
+    "src/stdlib/serde_scalar.hpp" "src/stdlib/json_parser.hpp")
 list(SORT _tx_interface_files)
 list(SORT _tx_abi_files)
 set(TX_INTERFACE_COUNT 0)
@@ -280,6 +282,7 @@ add_executable(txc
     src/backend/llvm/codegen_channel.cpp
     src/backend/llvm/codegen_serde.cpp
     src/backend/llvm/codegen_format.cpp
+    src/backend/llvm/codegen_format_execute.cpp
     src/backend/llvm/codegen_format_dynamic.cpp
     src/backend/llvm/codegen_format_constant.cpp
     src/backend/llvm/codegen_encoding.cpp
@@ -313,12 +316,15 @@ add_executable(txc
     src/backend/llvm/codegen_expression_ops.cpp
     src/backend/llvm/codegen_division.cpp
     src/backend/llvm/codegen_integer_range.cpp
+    src/backend/llvm/codegen_pure_integer.cpp
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
     src/backend/llvm/codegen_class.cpp
     src/backend/llvm/codegen_fields.cpp
     src/backend/llvm/codegen_record_metadata.cpp
     src/backend/llvm/codegen_record.cpp
+    src/backend/llvm/codegen_record_analysis.cpp
+    src/backend/llvm/codegen_record_calls.cpp
     src/backend/llvm/codegen_record_assignment.cpp
     src/backend/llvm/codegen_record_method.cpp
     src/backend/llvm/codegen_print.cpp
@@ -486,6 +492,8 @@ add_library(txstdlib STATIC
     src/stdlib/serde_codecs.cpp
     src/stdlib/serde_vector.cpp
     src/stdlib/serde_struct_reader.cpp
+    src/stdlib/serde_scalar_reader.cpp
+    src/stdlib/serde_pair.cpp
     src/stdlib/serde_struct_writer.cpp
     src/stdlib/cbor_stream.cpp
     src/stdlib/format_stream.cpp

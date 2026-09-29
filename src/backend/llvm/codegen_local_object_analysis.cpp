@@ -1,6 +1,7 @@
 #include "backend/llvm/codegen.hpp"
 
 #include <algorithm>
+#include <functional>
 
 namespace tx
 {
@@ -16,6 +17,10 @@ public:
     bool scalar_reads = false;
     bool read_only_fields = false;
     const variable_declaration* allowed_alias = nullptr;
+    bool reject_returns = false;
+    std::function<bool(const call_expression&)> native_call = {};
+    std::function<bool(const operator_binding&)> native_operator = {};
+    std::function<bool(const expression&)> native_result = {};
 
     bool field_owner(const expression& item) const
     {
@@ -50,6 +55,23 @@ public:
         }
         if (const auto* call = std::get_if<call_expression>(&item.data))
         {
+            if (native_call && native_call(*call))
+            {
+                return (!call->receiver || named(*call->receiver) || expression_safe(*call->receiver)) &&
+                    std::all_of(call->arguments.begin(), call->arguments.end(), [&](const call_argument& argument)
+                    {
+                        return named(*argument.value) || expression_safe(*argument.value);
+                    });
+            }
+            if (scalar_reads && call->name == "move" &&
+                std::any_of(call->arguments.begin(), call->arguments.end(),
+                    [&](const call_argument& argument)
+                    {
+                        return named(*argument.value);
+                    }))
+            {
+                return false;
+            }
             if (call->receiver && !(!fields_only && named(*call->receiver)) &&
                 !expression_safe(*call->receiver))
             {
@@ -63,6 +85,11 @@ public:
         }
         if (const auto* binary = std::get_if<binary_operation>(&item.data))
         {
+            if (binary->binding && native_operator && native_operator(*binary->binding))
+            {
+                return (named(*binary->left) || expression_safe(*binary->left)) &&
+                    (named(*binary->right) || expression_safe(*binary->right));
+            }
             return expression_safe(*binary->left) && expression_safe(*binary->right);
         }
         if (const auto* unary = std::get_if<unary_operation>(&item.data))
@@ -123,6 +150,12 @@ public:
         }
         if (const auto* assignment = std::get_if<variable_assignment>(&item.data))
         {
+            if (native_result && named(*assignment->target))
+            {
+                return (assignment->binding ? native_operator(*assignment->binding)
+                    : assignment->operation == token_kind::equal && native_result(*assignment->value)) &&
+                    (named(*assignment->value) || expression_safe(*assignment->value));
+            }
             if (read_only_fields && field_owner(*assignment->target))
             {
                 return false;
@@ -165,7 +198,7 @@ public:
         }
         if (const auto* result = std::get_if<return_statement>(&item.data))
         {
-            return !result->value || expression_safe(*result->value);
+            return !reject_returns && (!result->value || expression_safe(*result->value));
         }
         return expression_safe(*std::get<expression_statement>(item.data).value);
     }
@@ -176,8 +209,31 @@ public:
 bool llvm_code_generator::confined_local(
     const variable_declaration& declaration, bool fields_only) const
 {
-    return current_function_body_ &&
-        local_use_checker{declaration, fields_only}.body_safe(*current_function_body_);
+    auto checker = local_use_checker{declaration, fields_only};
+    if (fields_only && declaration.initializer && scalar_record_type(declaration.initializer->type))
+    {
+        checker.native_call = [this](const call_expression& call)
+        {
+            return native_record_target(call) != nullptr;
+        };
+        checker.native_operator = [this](const operator_binding& binding)
+        {
+            return native_record_target(binding) != nullptr;
+        };
+        checker.native_result = [this](const expression& value)
+        {
+            return native_record_expression(value);
+        };
+    }
+    return current_function_body_ && checker.body_safe(*current_function_body_);
+}
+
+bool llvm_code_generator::borrowed_class_local(const variable_declaration& declaration) const
+{
+    auto checker = local_use_checker{declaration, false, true};
+    // 非异常模式的显式 return 从外层开始清理；此时保留拥有的转换结果。
+    checker.reject_returns = !recoverable_errors_;
+    return current_function_body_ && checker.body_safe(*current_function_body_);
 }
 
 bool llvm_code_generator::scalar_local_unchanged(const std::string& name,

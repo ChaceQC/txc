@@ -2,6 +2,7 @@
 
 #include "stdlib/format_stream.hpp"
 #include "stdlib/json.hpp"
+#include <variant>
 
 namespace tx_generated
 {
@@ -16,6 +17,7 @@ public:
     void skip_space();
     void require_end();
     std::string parse_string();
+    std::variant<std::int64_t, double> parse_numeric();
     void skip_value(std::size_t depth);
 
 private:

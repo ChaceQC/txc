@@ -60,7 +60,7 @@ int base64_digit(char character)
 byte_value make_bytes(std::vector<std::uint8_t> data)
 {
     require_size(data.size());
-    return std::make_shared<const std::vector<std::uint8_t>>(std::move(data));
+    return std::make_shared<const byte_storage>(std::move(data));
 }
 
 const byte_value& bytes_of(const std::any& value)

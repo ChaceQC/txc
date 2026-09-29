@@ -15,15 +15,15 @@ std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_constant_
     {
         return std::nullopt;
     }
-    const auto* literal = std::get_if<string_literal>(&call.arguments[1].value->data);
-    if (!literal)
+    const auto encoding_name = constant_format_text(*call.arguments[1].value);
+    if (!encoding_name)
     {
         return std::nullopt;
     }
     text_encoding encoding;
     try
     {
-        encoding = parse_encoding(decode_string_literal(literal->text));
+        encoding = parse_encoding(*encoding_name);
     }
     catch (const std::runtime_error&)
     {
@@ -31,6 +31,22 @@ std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_constant_
     }
     bool borrowed = false;
     const auto& input = *call.arguments[0].value;
+    if (target.external_name == "encoding.encode")
+    {
+        if (const auto* text = std::get_if<string_literal>(&input.data))
+        {
+            const auto bytes = decode_string_literal(text->text);
+            const auto output = allocate(item.type, item.position);
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @txrt_encoding_encode_literal(ptr " +
+                global_bytes(bytes) + ", i64 " + std::to_string(bytes.size()) + ", i64 " +
+                std::to_string(static_cast<std::int64_t>(encoding)) + ", ptr " + output + ")");
+            write_instruction("call void @txrt_require_success(i32 " + status + ")");
+            const auto result = temporary();
+            write_instruction(result + " = load ptr, ptr " + output);
+            return ir_value{item.type, result};
+        }
+    }
     const auto source = input.type == value_type::str_type
         ? read_only_string_value(input, borrowed) : expression_value_or_borrow(input, borrowed);
     const auto output = allocate(item.type, item.position);

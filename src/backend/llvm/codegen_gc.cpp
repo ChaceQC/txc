@@ -52,6 +52,10 @@ bool llvm_code_generator::gc_neutral_binding(const operator_binding& binding)
 
 bool llvm_code_generator::gc_neutral_expression(const expression& item)
 {
+    if (gc_visiting_.empty() && emitted_bounded_calls_.contains(&item))
+    {
+        return true;
+    }
     if (std::holds_alternative<integer_literal>(item.data) ||
         std::holds_alternative<floating_literal>(item.data) ||
         std::holds_alternative<boolean_literal>(item.data))
@@ -126,12 +130,24 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
     }
     if (const auto* binary = std::get_if<binary_operation>(&item.data))
     {
+        if (binary->binding && native_record_target(*binary->binding) && !scalar_record_type(item.type))
+        {
+            return native_record_gc_neutral(*binary->left) && native_record_gc_neutral(*binary->right);
+        }
         return item.type != value_type::str_type &&
                gc_neutral_expression(*binary->left) &&
                gc_neutral_expression(*binary->right) &&
                (!binary->binding || gc_neutral_binding(*binary->binding));
     }
     const auto* call = std::get_if<call_expression>(&item.data);
+    if (call && native_record_target(*call) && !scalar_record_type(item.type))
+    {
+        return (!call->receiver || native_record_gc_neutral(*call->receiver)) &&
+            std::all_of(call->arguments.begin(), call->arguments.end(), [&](const call_argument& argument)
+            {
+                return native_record_gc_neutral(*argument.value);
+            });
+    }
     if (!call || call->is_constructor)
     {
         return false;

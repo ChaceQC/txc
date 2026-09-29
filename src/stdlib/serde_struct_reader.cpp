@@ -99,6 +99,10 @@ void read_unknown(serde_reader& reader, const serde_schema& schema, const serde_
 
 std::any serde_read_struct(serde_reader& reader, const serde_schema& schema, serde_depth depth)
 {
+    if (schema.specialized && schema.layout)
+    {
+        return schema.specialized->read(reader, schema, depth);
+    }
     auto sequence = reader.begin(true, depth);
     struct_fields fields(schema.layout ? 0 : schema.field_count);
     std::optional<dynamic_struct> fixed;
@@ -138,8 +142,16 @@ std::any serde_read_struct(serde_reader& reader, const serde_schema& schema, ser
             {
                 serde_decode_error("duplicate_key", "serde JSON 对象包含重复字段名");
             }
-            store_field(fields, fixed, field->index, field->name,
-                field->type.codec->decode(reader, field->type, depth.child()));
+            if (fixed && field->type.codec->decode_slot)
+            {
+                field->type.codec->decode_slot(reader, (*fixed)->view.data[field->index],
+                                               field->type, depth.child());
+            }
+            else
+            {
+                store_field(fields, fixed, field->index, field->name,
+                    field->type.codec->decode(reader, field->type, depth.child()));
+            }
             seen[field->index] = 1;
         }
         else

@@ -1,0 +1,84 @@
+import "test.txh" as test
+
+class node
+{
+    public:
+        links: array
+        totals: array
+        saved: array
+        revive: bool
+        def init(totals: array, saved: array, revive: bool)
+        {
+            self.links = []
+            self.totals = totals
+            self.saved = saved
+            self.revive = revive
+        }
+        def deinit()
+        {
+            self.totals[0] = (self.totals[0] as int) + 1
+            if self.revive
+            {
+                self.saved[0] = self
+                self.revive = false
+            }
+        }
+}
+
+def create_graph(totals: array, saved: array, revive: bool)
+{
+    node a = node(totals, saved, revive)
+    node b = node(totals, saved, false)
+    node c = node(totals, saved, false)
+    a.links = [b, b, c]
+    b.links = [c]
+    c.links = [a]
+}
+
+def padding() -> array
+{
+    return [none]
+}
+
+def drain(totals: array, count: int)
+{
+    int attempts = 0
+    while (totals[0] as int) < count && attempts < 4096
+    {
+        array temporary = padding()
+        attempts++
+    }
+}
+
+def main() -> int
+{
+    array totals = [0]
+    array saved = [none]
+    for i in 1..=20
+    {
+        create_graph(totals, saved, false)
+    }
+    drain(totals, 60)
+    test.assert_equal(60, totals[0] as int)
+    create_graph(totals, saved, true)
+    drain(totals, 63)
+    test.assert_equal(63, totals[0] as int)
+    if true
+    {
+        node alive = saved[0] as node
+        test.assert_equal(3, len(alive.links))
+        node duplicate_a = alive.links[0] as node
+        node duplicate_b = alive.links[1] as node
+        duplicate_a.revive = true
+        test.assert_true(duplicate_b.revive)
+        duplicate_a.revive = false
+    }
+    saved[0] = none
+    for i in 1..=128
+    {
+        array temporary = padding()
+    }
+    test.assert_equal(63, totals[0] as int)
+    print("GC_GRAPH_RESURRECTION_OK")
+    return test.failures()
+}

@@ -1,0 +1,1184 @@
+{
+  "measured_at_utc": "2026-09-29T17:30:46.892331+00:00",
+  "toolchain_and_source_sha256": {
+    "tx\\txc.exe": "8c94179a85d41f91eb400b9a589256adad6ea57ce2d4f6b79720229c6c60c1da",
+    "tx\\libtxstdlib.a": "4f5937ad79dcf643ea5a75358d1f856e894a3b23881845fb61e64a1403c4564f",
+    "benchmarks\\diverse_performance.tx": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+    "benchmarks\\diverse_performance.cpp": "28e78f25705d63f07a795d836ed0c2efff56764e59093d4dae44f9f86a103211",
+    "benchmarks\\performance_equivalence\\parse_contract.cpp": "b73ad456b870b5299774d0ae72d9893383c2e57cd6f933fbe034dc9351362f9b",
+    "benchmarks\\performance_equivalence\\parse_contract.hpp": "5fbf8540f83edf54fc15ea5753df8709794ae991615c89a2a712618d48c3d401",
+    "benchmarks\\performance_equivalence\\serde_payload.cpp": "6d81a1cecb4c99443d808bba2e2df8d2c5c4039712db7fdc36acb15a022f67be",
+    "benchmarks\\performance_equivalence\\serde_payload.hpp": "bebe07586a04bf7e91337cbbc04fa5d7def9ea1861902ac34b14e04fd3661a17",
+    "benchmarks\\diverse_performance.py": "d3071763daca745f33653d4fd437bdc2acfc2240084f39f3f682c18b78d15845",
+    "benchmarks\\diverse_performance_java.java": "617f021a55b261c026ef4e81b87feaf3edc6cdb96795344aaf0a53fb908e1c16",
+    "benchmarks\\minimal_startup.tx": "4739658ac6f9f2f77140b794570ab3f8dc9d53985bef66680829550916def8bb",
+    "benchmarks\\minimal_startup.cpp": "89368ca7b977ca12d41c1e01bfd04a716268de28ee89058c28f46405882dc789",
+    "benchmarks\\minimal_startup.py": "f86aa87ed34409906d0bc17cd8a589add483d3905c281aeb2f41251c41141f29",
+    "benchmarks\\minimal_startup_java.java": "4e2154ac6ad81b0977a7bcb8bf223871b748a9f83f820a7215d36bdadc3c0964"
+  },
+  "platform": "Windows x64",
+  "peak_memory_note": "2 ms polling of process-tree working set; approximate",
+  "diverse": {
+    "warmups": 1,
+    "rounds": 5,
+    "cases": {
+      "vector_scan_1k": {
+        "TX": {
+          "median_ms": 0.277,
+          "samples_us": [
+            265,
+            277,
+            466,
+            262,
+            567
+          ],
+          "checksum": 3000000
+        },
+        "C++": {
+          "median_ms": 0.119,
+          "samples_us": [
+            118,
+            120,
+            121,
+            118,
+            119
+          ],
+          "checksum": 3000000
+        },
+        "Python": {
+          "median_ms": 24.351,
+          "samples_us": [
+            23625,
+            23453,
+            24351,
+            31267,
+            35872
+          ],
+          "checksum": 3000000
+        },
+        "Java": {
+          "median_ms": 2.359,
+          "samples_us": [
+            2163,
+            3565,
+            3196,
+            2353,
+            2359
+          ],
+          "checksum": 3000000
+        }
+      },
+      "vector_scan_100k": {
+        "TX": {
+          "median_ms": 2.503,
+          "samples_us": [
+            2427,
+            2503,
+            3329,
+            2450,
+            4312
+          ],
+          "checksum": 30000000
+        },
+        "C++": {
+          "median_ms": 1.204,
+          "samples_us": [
+            1193,
+            1204,
+            1289,
+            1192,
+            1213
+          ],
+          "checksum": 30000000
+        },
+        "Python": {
+          "median_ms": 248.136,
+          "samples_us": [
+            248136,
+            242662,
+            233665,
+            260151,
+            270151
+          ],
+          "checksum": 30000000
+        },
+        "Java": {
+          "median_ms": 9.306,
+          "samples_us": [
+            9306,
+            12799,
+            9723,
+            9064,
+            9032
+          ],
+          "checksum": 30000000
+        }
+      },
+      "vector_index_sequential": {
+        "TX": {
+          "median_ms": 0.303,
+          "samples_us": [
+            298,
+            303,
+            298,
+            874,
+            343
+          ],
+          "checksum": 47857475
+        },
+        "C++": {
+          "median_ms": 0.36,
+          "samples_us": [
+            632,
+            360,
+            496,
+            311,
+            327
+          ],
+          "checksum": 47857475
+        },
+        "Python": {
+          "median_ms": 71.461,
+          "samples_us": [
+            76513,
+            68315,
+            68658,
+            73132,
+            71461
+          ],
+          "checksum": 47857475
+        },
+        "Java": {
+          "median_ms": 3.329,
+          "samples_us": [
+            2870,
+            5945,
+            4735,
+            3329,
+            2856
+          ],
+          "checksum": 47857475
+        }
+      },
+      "vector_index_strided": {
+        "TX": {
+          "median_ms": 0.439,
+          "samples_us": [
+            490,
+            363,
+            357,
+            625,
+            439
+          ],
+          "checksum": 47857965
+        },
+        "C++": {
+          "median_ms": 0.382,
+          "samples_us": [
+            499,
+            382,
+            498,
+            298,
+            304
+          ],
+          "checksum": 47857965
+        },
+        "Python": {
+          "median_ms": 70.603,
+          "samples_us": [
+            75862,
+            70603,
+            65802,
+            76595,
+            70385
+          ],
+          "checksum": 47857965
+        },
+        "Java": {
+          "median_ms": 3.186,
+          "samples_us": [
+            3133,
+            5901,
+            3191,
+            3133,
+            3186
+          ],
+          "checksum": 47857965
+        }
+      },
+      "map_hit_128": {
+        "TX": {
+          "median_ms": 2.362,
+          "samples_us": [
+            2431,
+            2019,
+            1999,
+            2772,
+            2362
+          ],
+          "checksum": 31748464
+        },
+        "C++": {
+          "median_ms": 0.841,
+          "samples_us": [
+            990,
+            837,
+            1025,
+            841,
+            835
+          ],
+          "checksum": 31748464
+        },
+        "Python": {
+          "median_ms": 33.028,
+          "samples_us": [
+            33838,
+            32909,
+            31037,
+            33028,
+            38647
+          ],
+          "checksum": 31748464
+        },
+        "Java": {
+          "median_ms": 12.638,
+          "samples_us": [
+            11456,
+            11847,
+            12916,
+            12638,
+            12994
+          ],
+          "checksum": 31748464
+        }
+      },
+      "map_hit_8192": {
+        "TX": {
+          "median_ms": 2.372,
+          "samples_us": [
+            2367,
+            2372,
+            2637,
+            4748,
+            2282
+          ],
+          "checksum": 2047690384
+        },
+        "C++": {
+          "median_ms": 0.853,
+          "samples_us": [
+            1292,
+            835,
+            2224,
+            839,
+            853
+          ],
+          "checksum": 2047690384
+        },
+        "Python": {
+          "median_ms": 44.681,
+          "samples_us": [
+            47381,
+            44681,
+            40249,
+            42428,
+            52269
+          ],
+          "checksum": 2047690384
+        },
+        "Java": {
+          "median_ms": 13.401,
+          "samples_us": [
+            13401,
+            12399,
+            13427,
+            13495,
+            13125
+          ],
+          "checksum": 2047690384
+        }
+      },
+      "map_hit_10_percent": {
+        "TX": {
+          "median_ms": 2.359,
+          "samples_us": [
+            2203,
+            2247,
+            2359,
+            4131,
+            2401
+          ],
+          "checksum": 50000
+        },
+        "C++": {
+          "median_ms": 1.544,
+          "samples_us": [
+            1542,
+            1514,
+            1799,
+            1598,
+            1544
+          ],
+          "checksum": 50000
+        },
+        "Python": {
+          "median_ms": 50.345,
+          "samples_us": [
+            53579,
+            53063,
+            45609,
+            47342,
+            50345
+          ],
+          "checksum": 50000
+        },
+        "Java": {
+          "median_ms": 10.946,
+          "samples_us": [
+            10946,
+            9460,
+            11106,
+            10568,
+            11657
+          ],
+          "checksum": 50000
+        }
+      },
+      "dictionary_int_hit": {
+        "TX": {
+          "median_ms": 1.237,
+          "samples_us": [
+            2370,
+            1182,
+            1173,
+            1323,
+            1237
+          ],
+          "checksum": 200000
+        },
+        "C++": {
+          "median_ms": 0.848,
+          "samples_us": [
+            981,
+            750,
+            775,
+            1290,
+            848
+          ],
+          "checksum": 200000
+        },
+        "Python": {
+          "median_ms": 15.029,
+          "samples_us": [
+            15029,
+            14865,
+            14611,
+            15487,
+            15137
+          ],
+          "checksum": 200000
+        },
+        "Java": {
+          "median_ms": 4.486,
+          "samples_us": [
+            4581,
+            4230,
+            4486,
+            4963,
+            4327
+          ],
+          "checksum": 200000
+        }
+      },
+      "dictionary_text_hit": {
+        "TX": {
+          "median_ms": 19.257,
+          "samples_us": [
+            20330,
+            17815,
+            19257,
+            17847,
+            25445
+          ],
+          "checksum": 200000
+        },
+        "C++": {
+          "median_ms": 4.428,
+          "samples_us": [
+            4731,
+            4379,
+            4428,
+            4393,
+            4597
+          ],
+          "checksum": 200000
+        },
+        "Python": {
+          "median_ms": 13.873,
+          "samples_us": [
+            14535,
+            14492,
+            13750,
+            13873,
+            13580
+          ],
+          "checksum": 200000
+        },
+        "Java": {
+          "median_ms": 3.485,
+          "samples_us": [
+            3811,
+            3485,
+            3230,
+            3220,
+            4007
+          ],
+          "checksum": 200000
+        }
+      },
+      "dictionary_mostly_miss": {
+        "TX": {
+          "median_ms": 1.033,
+          "samples_us": [
+            1277,
+            992,
+            917,
+            1033,
+            1508
+          ],
+          "checksum": 1
+        },
+        "C++": {
+          "median_ms": 0.753,
+          "samples_us": [
+            3478,
+            752,
+            912,
+            749,
+            753
+          ],
+          "checksum": 1
+        },
+        "Python": {
+          "median_ms": 15.851,
+          "samples_us": [
+            16227,
+            15292,
+            17095,
+            15521,
+            15851
+          ],
+          "checksum": 1
+        },
+        "Java": {
+          "median_ms": 5.638,
+          "samples_us": [
+            5365,
+            5597,
+            6128,
+            5878,
+            5638
+          ],
+          "checksum": 1
+        }
+      },
+      "format_literal": {
+        "TX": {
+          "median_ms": 6.302,
+          "samples_us": [
+            6302,
+            7074,
+            6192,
+            5822,
+            10426
+          ],
+          "checksum": 488890
+        },
+        "C++": {
+          "median_ms": 0.729,
+          "samples_us": [
+            1160,
+            773,
+            728,
+            729,
+            721
+          ],
+          "checksum": 488890
+        },
+        "Python": {
+          "median_ms": 5.429,
+          "samples_us": [
+            6159,
+            5157,
+            7471,
+            5429,
+            5406
+          ],
+          "checksum": 488890
+        },
+        "Java": {
+          "median_ms": 18.917,
+          "samples_us": [
+            18917,
+            18053,
+            19468,
+            17955,
+            21520
+          ],
+          "checksum": 488890
+        }
+      },
+      "format_dynamic": {
+        "TX": {
+          "median_ms": 6.37,
+          "samples_us": [
+            6370,
+            5590,
+            6158,
+            6872,
+            7924
+          ],
+          "checksum": 488890
+        },
+        "C++": {
+          "median_ms": 1.045,
+          "samples_us": [
+            2054,
+            1020,
+            1052,
+            1045,
+            1036
+          ],
+          "checksum": 488890
+        },
+        "Python": {
+          "median_ms": 11.379,
+          "samples_us": [
+            11302,
+            10427,
+            11379,
+            13116,
+            11816
+          ],
+          "checksum": 488890
+        },
+        "Java": {
+          "median_ms": 33.269,
+          "samples_us": [
+            34537,
+            33199,
+            33269,
+            32132,
+            37099
+          ],
+          "checksum": 488890
+        }
+      },
+      "encoding_literal": {
+        "TX": {
+          "median_ms": 15.706,
+          "samples_us": [
+            15706,
+            14681,
+            16159,
+            15397,
+            16385
+          ],
+          "checksum": 900000
+        },
+        "C++": {
+          "median_ms": 2.816,
+          "samples_us": [
+            4897,
+            2714,
+            2816,
+            2751,
+            4142
+          ],
+          "checksum": 900000
+        },
+        "Python": {
+          "median_ms": 5.533,
+          "samples_us": [
+            5533,
+            5079,
+            6559,
+            4906,
+            5681
+          ],
+          "checksum": 900000
+        },
+        "Java": {
+          "median_ms": 7.304,
+          "samples_us": [
+            5990,
+            8311,
+            7304,
+            6149,
+            7693
+          ],
+          "checksum": 900000
+        }
+      },
+      "encoding_dynamic": {
+        "TX": {
+          "median_ms": 15.69,
+          "samples_us": [
+            15690,
+            15119,
+            45386,
+            15367,
+            16443
+          ],
+          "checksum": 900000
+        },
+        "C++": {
+          "median_ms": 2.897,
+          "samples_us": [
+            4908,
+            2670,
+            4139,
+            2828,
+            2897
+          ],
+          "checksum": 900000
+        },
+        "Python": {
+          "median_ms": 5.392,
+          "samples_us": [
+            5256,
+            5178,
+            6924,
+            5392,
+            5688
+          ],
+          "checksum": 900000
+        },
+        "Java": {
+          "median_ms": 4.958,
+          "samples_us": [
+            4958,
+            4261,
+            6009,
+            6164,
+            4387
+          ],
+          "checksum": 900000
+        }
+      },
+      "serde_short_text": {
+        "TX": {
+          "median_ms": 11.316,
+          "samples_us": [
+            9857,
+            11328,
+            12415,
+            10188,
+            11316
+          ],
+          "checksum": 40000
+        },
+        "C++": {
+          "median_ms": 0.959,
+          "samples_us": [
+            1568,
+            909,
+            1114,
+            939,
+            959
+          ],
+          "checksum": 40000
+        },
+        "Python": {
+          "median_ms": 17.826,
+          "samples_us": [
+            17826,
+            16842,
+            21428,
+            20906,
+            17477
+          ],
+          "checksum": 40000
+        },
+        "Java": {
+          "median_ms": 22.457,
+          "samples_us": [
+            16619,
+            20913,
+            26412,
+            59579,
+            22457
+          ],
+          "checksum": 40000
+        }
+      },
+      "serde_long_text": {
+        "TX": {
+          "median_ms": 28.168,
+          "samples_us": [
+            27984,
+            28168,
+            34159,
+            27200,
+            31838
+          ],
+          "checksum": 655000
+        },
+        "C++": {
+          "median_ms": 4.995,
+          "samples_us": [
+            9940,
+            4320,
+            6682,
+            4995,
+            4829
+          ],
+          "checksum": 655000
+        },
+        "Python": {
+          "median_ms": 21.078,
+          "samples_us": [
+            23087,
+            18976,
+            28357,
+            21078,
+            19684
+          ],
+          "checksum": 655000
+        },
+        "Java": {
+          "median_ms": 22.88,
+          "samples_us": [
+            19371,
+            18619,
+            27960,
+            22880,
+            24517
+          ],
+          "checksum": 655000
+        }
+      },
+      "parse_valid": {
+        "TX": {
+          "median_ms": 1.115,
+          "samples_us": [
+            1136,
+            1318,
+            987,
+            1115,
+            1082
+          ],
+          "checksum": 100000
+        },
+        "C++": {
+          "median_ms": 1.757,
+          "samples_us": [
+            2628,
+            1757,
+            2210,
+            1754,
+            1730
+          ],
+          "checksum": 100000
+        },
+        "Python": {
+          "median_ms": 15.272,
+          "samples_us": [
+            20238,
+            12913,
+            23920,
+            15272,
+            13773
+          ],
+          "checksum": 100000
+        },
+        "Java": {
+          "median_ms": 12.186,
+          "samples_us": [
+            12089,
+            11029,
+            13256,
+            52432,
+            12186
+          ],
+          "checksum": 100000
+        }
+      },
+      "parse_invalid": {
+        "TX": {
+          "median_ms": 1.047,
+          "samples_us": [
+            1201,
+            1005,
+            1047,
+            1027,
+            1108
+          ],
+          "checksum": 100000
+        },
+        "C++": {
+          "median_ms": 6.237,
+          "samples_us": [
+            12660,
+            6003,
+            7224,
+            6116,
+            6237
+          ],
+          "checksum": 100000
+        },
+        "Python": {
+          "median_ms": 83.696,
+          "samples_us": [
+            91890,
+            76680,
+            104428,
+            81066,
+            83696
+          ],
+          "checksum": 100000
+        },
+        "Java": {
+          "median_ms": 220.797,
+          "samples_us": [
+            178982,
+            157474,
+            239802,
+            286473,
+            220797
+          ],
+          "checksum": 100000
+        }
+      }
+    },
+    "processes": {
+      "TX": {
+        "wall_ms": {
+          "median": 179.75719994865358,
+          "samples": [
+            169.9825000250712,
+            156.03219997137785,
+            188.16130002960563,
+            179.75719994865358,
+            198.11689999187365
+          ]
+        },
+        "sampled_tree_peak_mib": {
+          "median": 8.0703125,
+          "samples": [
+            7.9921875,
+            8.0703125,
+            8.0703125,
+            8.3203125,
+            8.41796875
+          ]
+        }
+      },
+      "C++": {
+        "wall_ms": {
+          "median": 76.96799997938797,
+          "samples": [
+            92.04830002272502,
+            66.04409997817129,
+            82.61189999757335,
+            76.00200001616031,
+            76.96799997938797
+          ]
+        },
+        "sampled_tree_peak_mib": {
+          "median": 5.21484375,
+          "samples": [
+            5.21484375,
+            5.22265625,
+            5.21875,
+            5.12109375,
+            5.12109375
+          ]
+        }
+      },
+      "Python": {
+        "wall_ms": {
+          "median": 880.8193000149913,
+          "samples": [
+            890.8819999778643,
+            809.0946999727748,
+            846.399299975019,
+            880.8193000149913,
+            886.4238999667577
+          ]
+        },
+        "sampled_tree_peak_mib": {
+          "median": 13.93359375,
+          "samples": [
+            14.00390625,
+            13.93359375,
+            13.91015625,
+            13.9453125,
+            13.72265625
+          ]
+        }
+      },
+      "Java": {
+        "wall_ms": {
+          "median": 1144.3345000152476,
+          "samples": [
+            1020.9865999640897,
+            982.9706999589689,
+            1144.3345000152476,
+            1351.505399972666,
+            1144.683399994392
+          ]
+        },
+        "sampled_tree_peak_mib": {
+          "median": 184.484375,
+          "samples": [
+            182.5625,
+            184.484375,
+            179.01953125,
+            190.7578125,
+            188.79296875
+          ]
+        }
+      }
+    }
+  },
+  "cpp_parse_core": {
+    "parse_core_valid": {
+      "checksum": 100000,
+      "samples_us": [
+        405,
+        420,
+        514,
+        393,
+        394
+      ],
+      "median_ms": 0.405
+    },
+    "parse_core_invalid": {
+      "checksum": 100000,
+      "samples_us": [
+        447,
+        567,
+        456,
+        452,
+        440
+      ],
+      "median_ms": 0.452
+    }
+  },
+  "comparison_note": "parse_valid/invalid and serde_* use full C++ payload contracts; 2026-09-29 archived C++ samples used simplified references",
+  "startup": {
+    "TX": {
+      "wall_ms": {
+        "median": 31.563399999868125,
+        "samples": [
+          31.563399999868125,
+          27.41989999776706,
+          29.48409999953583,
+          40.593599958810955,
+          34.470099955797195,
+          26.601399993523955,
+          35.70930002024397
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": null,
+        "samples": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "C++": {
+      "wall_ms": {
+        "median": 27.398500009439886,
+        "samples": [
+          25.534700020216405,
+          27.398500009439886,
+          26.716899999883026,
+          38.6583999497816,
+          34.39210000215098,
+          29.98769999248907,
+          25.9016000200063
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": null,
+        "samples": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "Python": {
+      "wall_ms": {
+        "median": 69.3189000012353,
+        "samples": [
+          69.00139997014776,
+          71.15430000703782,
+          69.15769999613985,
+          92.41879999171942,
+          72.7451000129804,
+          56.365299969911575,
+          69.3189000012353
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": 10.765625,
+        "samples": [
+          10.66796875,
+          10.77734375,
+          10.765625,
+          11.0703125,
+          10.765625,
+          9.86328125,
+          10.76953125
+        ]
+      }
+    },
+    "Java": {
+      "wall_ms": {
+        "median": 212.1035999734886,
+        "samples": [
+          212.43499999400228,
+          200.02270000986755,
+          183.89109999407083,
+          232.053600018844,
+          212.1035999734886,
+          185.5500999954529,
+          234.69470004783943
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": 50.53125,
+        "samples": [
+          50.5,
+          50.5859375,
+          50.953125,
+          50.375,
+          50.47265625,
+          50.53125,
+          50.69140625
+        ]
+      }
+    }
+  },
+  "compilation": {
+    "TX check": {
+      "warmups": 1,
+      "rounds": 3,
+      "wall_ms": {
+        "median": 170.86230003042147,
+        "samples": [
+          166.7009000084363,
+          170.86230003042147,
+          178.32659999839962
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": 9.76953125,
+        "samples": [
+          10.25,
+          9.76171875,
+          9.76953125
+        ]
+      }
+    },
+    "TX full": {
+      "warmups": 1,
+      "rounds": 3,
+      "wall_ms": {
+        "median": 978.4156999667175,
+        "samples": [
+          970.8971999934874,
+          978.4156999667175,
+          984.0265000239015
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": 81.57421875,
+        "samples": [
+          81.59375,
+          81.57421875,
+          81.55078125
+        ]
+      }
+    },
+    "C++ full": {
+      "warmups": 1,
+      "rounds": 3,
+      "wall_ms": {
+        "median": 5268.202000006568,
+        "samples": [
+          5483.704499958549,
+          5268.202000006568,
+          4994.0011000144295
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": 229.51171875,
+        "samples": [
+          229.51171875,
+          229.3671875,
+          229.796875
+        ]
+      }
+    },
+    "Python bytecode": {
+      "warmups": 1,
+      "rounds": 3,
+      "wall_ms": {
+        "median": 95.79349996056408,
+        "samples": [
+          98.54470001300797,
+          92.03050000360236,
+          95.79349996056408
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": 13.6015625,
+        "samples": [
+          13.1796875,
+          13.6015625,
+          14.09765625
+        ]
+      }
+    },
+    "Java full": {
+      "warmups": 1,
+      "rounds": 3,
+      "wall_ms": {
+        "median": 1366.7658000485972,
+        "samples": [
+          1376.9003999768756,
+          1357.9273999785073,
+          1366.7658000485972
+        ]
+      },
+      "sampled_tree_peak_mib": {
+        "median": 143.76953125,
+        "samples": [
+          143.76953125,
+          143.3046875,
+          148.33984375
+        ]
+      }
+    }
+  },
+  "program_bytes": {
+    "TX": 1546179,
+    "C++": 120668,
+    "Python source": 4731,
+    "Java class": 9552
+  }
+}

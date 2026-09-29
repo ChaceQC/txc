@@ -39,39 +39,6 @@ std::uint64_t format_capacity(const std::vector<static_format_part>& plan,
 
 } // namespace
 
-void llvm_code_generator::emit_format_field(const ir_value& argument,
-    const std::optional<std::string>& bytes, const static_format_part& part,
-    const std::string& result, source_pos position)
-{
-    const bool plain = plain_format_part(part, argument.type);
-    std::string parameters = "ptr " + result + ", ";
-    const auto suffix = bytes ? "bytes" : argument.type == value_type::int_type ? "i64" :
-        argument.type == value_type::float_type ? "f64" :
-        argument.type == value_type::bool_type ? "bool" : "str";
-    if (bytes)
-    {
-        parameters += "ptr " + global_bytes(*bytes) + ", i64 " + std::to_string(bytes->size());
-    }
-    else
-    {
-        parameters += llvm_type(argument.type, position) + " " + argument.text;
-    }
-    if (!plain)
-    {
-        const auto spec = "@.format_spec." + std::to_string(next_string_++);
-        const auto& value = part.spec;
-        globals_ << spec << " = private constant [7 x i64] [i64 " << value.fill
-            << ", i64 " << value.align << ", i64 " << value.sign << ", i64 " << value.type
-            << ", i64 " << value.zero << ", i64 " << value.width << ", i64 " << value.precision << "]\n";
-        parameters += ", ptr " + spec + ", i8 " + std::to_string(part.conversion);
-    }
-    parameters += ", ptr " + global_bytes(part.tail) + ", i64 " + std::to_string(part.tail.size());
-    const auto status = temporary();
-    write_instruction(status + " = call i32 @txrt_format_" +
-        (plain ? "plain_" : "append_") + suffix + "(" + parameters + ")");
-    write_instruction("call void @txrt_require_success(i32 " + status + ")");
-}
-
 std::vector<llvm_code_generator::ir_value> llvm_code_generator::emit_format_arguments(
     const call_expression& call, const std::vector<static_format_part>& plan,
     std::vector<std::optional<std::string>>& bytes)
@@ -140,20 +107,19 @@ std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_static_fo
     const auto created = temporary();
     const auto capacity = format_capacity(*plan, call, bytes, item.position);
     const std::string prefix = !plan->empty() && !plan->front().argument ? plan->front().literal : "";
-    write_instruction(created + " = call i32 @txrt_format_begin(ptr " + output +
-        ", i64 " + std::to_string(capacity) + ", ptr " + global_bytes(prefix) +
-        ", i64 " + std::to_string(prefix.size()) + ")");
+    const auto steps = static_format_steps(call, *plan, bytes);
+    const auto arguments = static_format_arguments(values, bytes);
+    const auto count = std::count_if(plan->begin(), plan->end(), [](const static_format_part& part)
+    {
+        return part.argument.has_value();
+    });
+    write_instruction(created + " = call i32 @txrt_format_execute(ptr " + steps +
+        ", i64 " + std::to_string(count) + ", ptr " + arguments + ", ptr " + global_bytes(prefix) +
+        ", i64 " + std::to_string(prefix.size()) + ", i64 " + std::to_string(capacity) +
+        ", ptr " + output + ")");
     write_instruction("call void @txrt_require_success(i32 " + created + ")");
     const auto result = temporary();
     write_instruction(result + " = load ptr, ptr " + output);
-    for (const auto& part : *plan)
-    {
-        if (part.argument)
-        {
-            emit_format_field(values[*part.argument], bytes[*part.argument], part, result, item.position);
-        }
-    }
-    write_instruction("call void @txrt_format_finish(ptr " + result + ")");
     for (std::size_t index = 1; index < values.size(); ++index)
     {
         if (!bytes[index])

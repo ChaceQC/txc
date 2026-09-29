@@ -151,15 +151,36 @@ std::string llvm_code_generator::serde_schema_constant(const value_type& type)
         }
         globals_ << "]\n";
     }
+    std::string specialized = "null";
+    if (static_record_type(type) && definition.fields.size() == 2 && count == 2 && policy == 0)
+    {
+        std::string suffix;
+        for (const auto& field : definition.fields)
+        {
+            const auto* kind = field.type == value_type::int_type ? "i64" :
+                field.type == value_type::float_type ? "f64" : field.type == value_type::bool_type ? "bool" :
+                field.type == value_type::str_type ? "str" : nullptr;
+            if (!kind)
+            {
+                suffix.clear();
+                break;
+            }
+            suffix += (suffix.empty() ? "" : "_") + std::string(kind);
+        }
+        if (!suffix.empty())
+        {
+            specialized = "@tx_serde_pair_" + suffix;
+        }
+    }
     globals_ << symbol << ".fields = private constant [" << count << " x "
              << field_layout << "] [" << fields << "]\n"
-             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64, ptr, ptr, ptr } "
+             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64, ptr, ptr, ptr, ptr } "
              << "{ ptr " << type_name << ", ptr " << display << ", i64 " << metadata.version
              << ", i64 " << policy << ", i64 " << definition.fields.size()
              << ", i64 " << unknown_index << ", ptr " << unknown << ", ptr "
              << symbol << ".fields, i64 " << count << ", ptr " << symbol
              << ".json_order, ptr " << symbol << ".cbor_order, ptr "
-             << (static_record_type(type) ? "@tx_record_" + type.name : "null") << " }\n";
+             << (static_record_type(type) ? "@tx_record_" + type.name : "null") << ", ptr " << specialized << " }\n";
     return symbol;
 }
 

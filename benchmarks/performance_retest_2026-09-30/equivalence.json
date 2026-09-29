@@ -1,0 +1,1015 @@
+{
+  "measured_at_utc": "2026-09-29T17:31:11.566933+00:00",
+  "toolchain_and_source_sha256": {
+    "tx\\txc.exe": "8c94179a85d41f91eb400b9a589256adad6ea57ce2d4f6b79720229c6c60c1da",
+    "tx\\libtxstdlib.a": "4f5937ad79dcf643ea5a75358d1f856e894a3b23881845fb61e64a1403c4564f",
+    "tx\\clang.exe": "e7956e325bc32a1a96838a19a14c58a18916e710f202776c62f27c621ec79411",
+    "benchmarks\\diverse_performance.tx": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+    "benchmarks\\diverse_performance.cpp": "28e78f25705d63f07a795d836ed0c2efff56764e59093d4dae44f9f86a103211",
+    "benchmarks\\performance_equivalence\\parse_contract.cpp": "b73ad456b870b5299774d0ae72d9893383c2e57cd6f933fbe034dc9351362f9b",
+    "benchmarks\\performance_equivalence\\parse_contract.hpp": "5fbf8540f83edf54fc15ea5753df8709794ae991615c89a2a712618d48c3d401",
+    "benchmarks\\performance_equivalence\\serde_payload.cpp": "6d81a1cecb4c99443d808bba2e2df8d2c5c4039712db7fdc36acb15a022f67be",
+    "benchmarks\\performance_equivalence\\serde_payload.hpp": "bebe07586a04bf7e91337cbbc04fa5d7def9ea1861902ac34b14e04fd3661a17",
+    "benchmarks\\performance_equivalence\\feature_contracts.cpp": "fd166cd0d37d354db5b7e584d5008360fb4169f7aa759605bfac3faa33fb26b2",
+    "benchmarks\\performance_baseline_2026-09-29\\audit\\features.tx": "f1f14992e0941af360a01d483cbb6fb02cc69d795c35e95985d76591637035a2",
+    "benchmarks\\performance_baseline_2026-09-29\\audit\\compute.tx": "12c52e58edf98d340cdda497dc2937aac3e834450004e9eff20570f4083d6951",
+    "benchmarks\\performance_baseline_2026-09-29\\samples\\diverse_performance_results_20260929.json": "c3c14473c26c1393fe161a158a90d898b6be74105b7ed17a725e561e893aecf9"
+  },
+  "program_sha256": {
+    "diverse_tx": "7dad45428ee3866c678afcb8ae85683613208476d98874d81dfc2237ea435a26",
+    "diverse_cpp": "7154cec1c30f5120ac9aee5a820384308cfbb4a85ee98b45d3390204e92a5216",
+    "diverse_cpp_clang": "37c41fb9e0ae79b5642958a3c12156b131417e8741640047cecb7d6a7cd437c3",
+    "features_tx": "5c7a23f346b5ae605ab4346b818dd3588ef4340f33cd1de7db19fae69c253226",
+    "compute_tx": "c2a4c00e3ae8d993f25581d28f5f5911537de05163a64cb360082aad1faa2891",
+    "feature_cpp": "96ce6dbc3df0972fedb28f01d8482dde6420b823f05215e2129c8baf507c1a3d",
+    "feature_cpp_clang": "f280da7f1702fc37d9caba5443c57c8a166258f3c18be2dedfdc28adcb09fd0b"
+  },
+  "cpp_flags": {
+    "gcc": "g++ -std=c++23 -O3 -DNDEBUG",
+    "clang": "bundled clang -target x86_64-w64-windows-gnu -std=c++23 -O3 -DNDEBUG with GCC 13.1 MinGW headers/libs"
+  },
+  "results": {
+    "diverse": {
+      "warmups": 1,
+      "rounds": 5,
+      "order_by_round": [
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ]
+      ],
+      "timing": "program internal microseconds converted to milliseconds",
+      "cases": {
+        "vector_scan_1k": {
+          "checksum": "3000000",
+          "TX_samples_ms": [
+            0.26,
+            0.535,
+            0.264,
+            0.339,
+            0.262
+          ],
+          "CPP_samples_ms": [
+            0.118,
+            0.123,
+            0.12,
+            0.119,
+            0.12
+          ],
+          "TX_median_ms": 0.264,
+          "CPP_median_ms": 0.12
+        },
+        "vector_scan_100k": {
+          "checksum": "30000000",
+          "TX_samples_ms": [
+            2.364,
+            2.571,
+            3.411,
+            2.472,
+            2.698
+          ],
+          "CPP_samples_ms": [
+            1.314,
+            1.25,
+            1.226,
+            1.31,
+            1.208
+          ],
+          "TX_median_ms": 2.571,
+          "CPP_median_ms": 1.25
+        },
+        "vector_index_sequential": {
+          "checksum": "47857475",
+          "TX_samples_ms": [
+            0.299,
+            0.301,
+            0.305,
+            0.305,
+            0.574
+          ],
+          "CPP_samples_ms": [
+            0.313,
+            0.464,
+            0.313,
+            0.325,
+            0.318
+          ],
+          "TX_median_ms": 0.305,
+          "CPP_median_ms": 0.318
+        },
+        "vector_index_strided": {
+          "checksum": "47857965",
+          "TX_samples_ms": [
+            0.352,
+            0.374,
+            0.359,
+            0.387,
+            0.502
+          ],
+          "CPP_samples_ms": [
+            0.313,
+            0.303,
+            0.323,
+            0.304,
+            0.308
+          ],
+          "TX_median_ms": 0.374,
+          "CPP_median_ms": 0.308
+        },
+        "map_hit_128": {
+          "checksum": "31748464",
+          "TX_samples_ms": [
+            1.687,
+            1.678,
+            1.693,
+            2.288,
+            1.748
+          ],
+          "CPP_samples_ms": [
+            0.83,
+            0.988,
+            1.013,
+            0.872,
+            0.855
+          ],
+          "TX_median_ms": 1.693,
+          "CPP_median_ms": 0.872
+        },
+        "map_hit_8192": {
+          "checksum": "2047690384",
+          "TX_samples_ms": [
+            2.145,
+            2.354,
+            2.315,
+            2.345,
+            2.112
+          ],
+          "CPP_samples_ms": [
+            0.85,
+            0.863,
+            1.0,
+            0.865,
+            0.846
+          ],
+          "TX_median_ms": 2.315,
+          "CPP_median_ms": 0.863
+        },
+        "map_hit_10_percent": {
+          "checksum": "50000",
+          "TX_samples_ms": [
+            2.195,
+            2.559,
+            2.577,
+            2.236,
+            2.271
+          ],
+          "CPP_samples_ms": [
+            1.541,
+            1.531,
+            1.54,
+            1.59,
+            1.576
+          ],
+          "TX_median_ms": 2.271,
+          "CPP_median_ms": 1.541
+        },
+        "dictionary_int_hit": {
+          "checksum": "200000",
+          "TX_samples_ms": [
+            1.313,
+            1.197,
+            1.169,
+            1.281,
+            1.628
+          ],
+          "CPP_samples_ms": [
+            0.768,
+            0.759,
+            0.763,
+            1.298,
+            0.864
+          ],
+          "TX_median_ms": 1.281,
+          "CPP_median_ms": 0.768
+        },
+        "dictionary_text_hit": {
+          "checksum": "200000",
+          "TX_samples_ms": [
+            17.312,
+            18.302,
+            22.78,
+            18.25,
+            18.152
+          ],
+          "CPP_samples_ms": [
+            4.569,
+            4.442,
+            4.393,
+            5.342,
+            4.932
+          ],
+          "TX_median_ms": 18.25,
+          "CPP_median_ms": 4.569
+        },
+        "dictionary_mostly_miss": {
+          "checksum": "1",
+          "TX_samples_ms": [
+            0.948,
+            1.042,
+            1.371,
+            1.526,
+            0.922
+          ],
+          "CPP_samples_ms": [
+            1.231,
+            0.754,
+            0.785,
+            0.749,
+            0.759
+          ],
+          "TX_median_ms": 1.042,
+          "CPP_median_ms": 0.759
+        },
+        "format_literal": {
+          "checksum": "488890",
+          "TX_samples_ms": [
+            5.579,
+            6.424,
+            7.2,
+            7.236,
+            7.41
+          ],
+          "CPP_samples_ms": [
+            1.33,
+            0.786,
+            0.785,
+            0.997,
+            0.787
+          ],
+          "TX_median_ms": 7.2,
+          "CPP_median_ms": 0.787
+        },
+        "format_dynamic": {
+          "checksum": "488890",
+          "TX_samples_ms": [
+            5.651,
+            6.86,
+            6.851,
+            6.341,
+            18.986
+          ],
+          "CPP_samples_ms": [
+            1.023,
+            1.023,
+            1.032,
+            1.764,
+            1.527
+          ],
+          "TX_median_ms": 6.851,
+          "CPP_median_ms": 1.032
+        },
+        "encoding_literal": {
+          "checksum": "900000",
+          "TX_samples_ms": [
+            14.714,
+            16.011,
+            15.347,
+            20.288,
+            37.367
+          ],
+          "CPP_samples_ms": [
+            4.198,
+            2.762,
+            2.835,
+            2.982,
+            2.973
+          ],
+          "TX_median_ms": 16.011,
+          "CPP_median_ms": 2.973
+        },
+        "encoding_dynamic": {
+          "checksum": "900000",
+          "TX_samples_ms": [
+            15.348,
+            15.731,
+            14.63,
+            16.953,
+            16.6
+          ],
+          "CPP_samples_ms": [
+            4.878,
+            2.896,
+            3.395,
+            2.823,
+            2.622
+          ],
+          "TX_median_ms": 15.731,
+          "CPP_median_ms": 2.896
+        },
+        "serde_short_text": {
+          "checksum": "40000",
+          "TX_samples_ms": [
+            10.24,
+            10.439,
+            9.441,
+            16.395,
+            10.803
+          ],
+          "CPP_samples_ms": [
+            1.524,
+            0.904,
+            1.728,
+            1.404,
+            0.873
+          ],
+          "TX_median_ms": 10.439,
+          "CPP_median_ms": 1.404
+        },
+        "serde_long_text": {
+          "checksum": "655000",
+          "TX_samples_ms": [
+            30.035,
+            28.227,
+            28.494,
+            31.152,
+            26.762
+          ],
+          "CPP_samples_ms": [
+            5.136,
+            4.294,
+            6.898,
+            5.203,
+            5.044
+          ],
+          "TX_median_ms": 28.494,
+          "CPP_median_ms": 5.136
+        },
+        "parse_valid": {
+          "checksum": "100000",
+          "TX_samples_ms": [
+            0.965,
+            1.435,
+            1.742,
+            0.989,
+            1.04
+          ],
+          "CPP_samples_ms": [
+            1.708,
+            1.835,
+            1.857,
+            1.719,
+            1.733
+          ],
+          "TX_median_ms": 1.04,
+          "CPP_median_ms": 1.733
+        },
+        "parse_invalid": {
+          "checksum": "100000",
+          "TX_samples_ms": [
+            1.025,
+            1.185,
+            1.109,
+            1.008,
+            1.034
+          ],
+          "CPP_samples_ms": [
+            9.544,
+            6.199,
+            6.295,
+            9.925,
+            6.717
+          ],
+          "TX_median_ms": 1.034,
+          "CPP_median_ms": 6.717
+        }
+      }
+    },
+    "diverse_clang": {
+      "warmups": 1,
+      "rounds": 5,
+      "order_by_round": [
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ]
+      ],
+      "timing": "program internal microseconds converted to milliseconds",
+      "cases": {
+        "vector_scan_1k": {
+          "checksum": "3000000",
+          "TX_samples_ms": [
+            0.265,
+            0.265,
+            0.264,
+            0.3,
+            0.274
+          ],
+          "CPP_samples_ms": [
+            0.065,
+            0.065,
+            0.066,
+            0.066,
+            0.067
+          ],
+          "TX_median_ms": 0.265,
+          "CPP_median_ms": 0.066
+        },
+        "vector_scan_100k": {
+          "checksum": "30000000",
+          "TX_samples_ms": [
+            2.501,
+            2.491,
+            2.414,
+            2.562,
+            3.227
+          ],
+          "CPP_samples_ms": [
+            0.855,
+            0.869,
+            0.841,
+            0.887,
+            1.517
+          ],
+          "TX_median_ms": 2.501,
+          "CPP_median_ms": 0.869
+        },
+        "vector_index_sequential": {
+          "checksum": "47857475",
+          "TX_samples_ms": [
+            0.411,
+            0.299,
+            0.299,
+            0.536,
+            0.305
+          ],
+          "CPP_samples_ms": [
+            0.235,
+            0.238,
+            0.237,
+            0.253,
+            0.324
+          ],
+          "TX_median_ms": 0.305,
+          "CPP_median_ms": 0.238
+        },
+        "vector_index_strided": {
+          "checksum": "47857965",
+          "TX_samples_ms": [
+            0.355,
+            0.359,
+            0.562,
+            0.576,
+            0.362
+          ],
+          "CPP_samples_ms": [
+            0.235,
+            0.238,
+            0.237,
+            0.311,
+            0.293
+          ],
+          "TX_median_ms": 0.362,
+          "CPP_median_ms": 0.238
+        },
+        "map_hit_128": {
+          "checksum": "31748464",
+          "TX_samples_ms": [
+            1.663,
+            1.686,
+            3.166,
+            1.71,
+            2.261
+          ],
+          "CPP_samples_ms": [
+            0.477,
+            0.359,
+            0.391,
+            0.449,
+            0.368
+          ],
+          "TX_median_ms": 1.71,
+          "CPP_median_ms": 0.391
+        },
+        "map_hit_8192": {
+          "checksum": "2047690384",
+          "TX_samples_ms": [
+            2.097,
+            2.182,
+            2.483,
+            2.274,
+            2.294
+          ],
+          "CPP_samples_ms": [
+            0.714,
+            0.57,
+            0.617,
+            0.769,
+            0.545
+          ],
+          "TX_median_ms": 2.274,
+          "CPP_median_ms": 0.617
+        },
+        "map_hit_10_percent": {
+          "checksum": "50000",
+          "TX_samples_ms": [
+            2.37,
+            2.267,
+            2.439,
+            3.537,
+            2.22
+          ],
+          "CPP_samples_ms": [
+            1.453,
+            1.269,
+            1.467,
+            1.429,
+            1.283
+          ],
+          "TX_median_ms": 2.37,
+          "CPP_median_ms": 1.429
+        },
+        "dictionary_int_hit": {
+          "checksum": "200000",
+          "TX_samples_ms": [
+            1.517,
+            1.197,
+            1.201,
+            1.614,
+            1.296
+          ],
+          "CPP_samples_ms": [
+            0.868,
+            0.864,
+            0.859,
+            0.881,
+            0.861
+          ],
+          "TX_median_ms": 1.296,
+          "CPP_median_ms": 0.864
+        },
+        "dictionary_text_hit": {
+          "checksum": "200000",
+          "TX_samples_ms": [
+            19.884,
+            18.089,
+            18.203,
+            19.927,
+            19.571
+          ],
+          "CPP_samples_ms": [
+            4.324,
+            4.428,
+            4.356,
+            4.436,
+            4.496
+          ],
+          "TX_median_ms": 19.571,
+          "CPP_median_ms": 4.428
+        },
+        "dictionary_mostly_miss": {
+          "checksum": "1",
+          "TX_samples_ms": [
+            1.357,
+            1.583,
+            0.902,
+            0.907,
+            0.959
+          ],
+          "CPP_samples_ms": [
+            1.048,
+            0.878,
+            0.886,
+            1.556,
+            1.382
+          ],
+          "TX_median_ms": 0.959,
+          "CPP_median_ms": 1.048
+        },
+        "format_literal": {
+          "checksum": "488890",
+          "TX_samples_ms": [
+            5.915,
+            6.321,
+            6.421,
+            6.555,
+            6.92
+          ],
+          "CPP_samples_ms": [
+            1.122,
+            0.648,
+            0.713,
+            0.884,
+            0.939
+          ],
+          "TX_median_ms": 6.421,
+          "CPP_median_ms": 0.884
+        },
+        "format_dynamic": {
+          "checksum": "488890",
+          "TX_samples_ms": [
+            5.845,
+            9.567,
+            6.216,
+            7.684,
+            7.545
+          ],
+          "CPP_samples_ms": [
+            1.848,
+            0.911,
+            1.675,
+            1.107,
+            1.763
+          ],
+          "TX_median_ms": 7.545,
+          "CPP_median_ms": 1.675
+        },
+        "encoding_literal": {
+          "checksum": "900000",
+          "TX_samples_ms": [
+            21.343,
+            21.623,
+            17.096,
+            16.397,
+            18.399
+          ],
+          "CPP_samples_ms": [
+            3.114,
+            3.396,
+            3.506,
+            3.246,
+            4.213
+          ],
+          "TX_median_ms": 18.399,
+          "CPP_median_ms": 3.396
+        },
+        "encoding_dynamic": {
+          "checksum": "900000",
+          "TX_samples_ms": [
+            20.427,
+            22.789,
+            15.061,
+            19.579,
+            16.976
+          ],
+          "CPP_samples_ms": [
+            3.675,
+            2.945,
+            3.071,
+            3.856,
+            2.986
+          ],
+          "TX_median_ms": 19.579,
+          "CPP_median_ms": 3.071
+        },
+        "serde_short_text": {
+          "checksum": "40000",
+          "TX_samples_ms": [
+            10.06,
+            9.934,
+            9.825,
+            11.283,
+            10.289
+          ],
+          "CPP_samples_ms": [
+            1.791,
+            0.938,
+            1.189,
+            1.024,
+            0.945
+          ],
+          "TX_median_ms": 10.06,
+          "CPP_median_ms": 1.024
+        },
+        "serde_long_text": {
+          "checksum": "655000",
+          "TX_samples_ms": [
+            30.301,
+            29.782,
+            39.588,
+            34.775,
+            31.405
+          ],
+          "CPP_samples_ms": [
+            8.058,
+            5.595,
+            5.095,
+            4.777,
+            5.593
+          ],
+          "TX_median_ms": 31.405,
+          "CPP_median_ms": 5.593
+        },
+        "parse_valid": {
+          "checksum": "100000",
+          "TX_samples_ms": [
+            1.06,
+            1.007,
+            1.147,
+            1.004,
+            1.016
+          ],
+          "CPP_samples_ms": [
+            1.032,
+            0.991,
+            0.978,
+            1.572,
+            1.124
+          ],
+          "TX_median_ms": 1.016,
+          "CPP_median_ms": 1.032
+        },
+        "parse_invalid": {
+          "checksum": "100000",
+          "TX_samples_ms": [
+            0.981,
+            1.023,
+            1.002,
+            1.316,
+            1.015
+          ],
+          "CPP_samples_ms": [
+            6.019,
+            5.62,
+            6.154,
+            9.344,
+            6.366
+          ],
+          "TX_median_ms": 1.015,
+          "CPP_median_ms": 6.154
+        }
+      }
+    },
+    "heap": {
+      "warmups": 1,
+      "rounds": 5,
+      "order_by_round": [
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ]
+      ],
+      "timing": "program internal microseconds converted to milliseconds",
+      "cases": {
+        "heap_push_pop": {
+          "checksum": "24975000",
+          "TX_samples_ms": [
+            9.053,
+            7.982,
+            7.927,
+            8.442,
+            7.508
+          ],
+          "CPP_samples_ms": [
+            3.765,
+            4.808,
+            4.411,
+            4.268,
+            3.734
+          ],
+          "TX_median_ms": 7.982,
+          "CPP_median_ms": 4.268
+        }
+      }
+    },
+    "heap_clang": {
+      "warmups": 1,
+      "rounds": 5,
+      "order_by_round": [
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ]
+      ],
+      "timing": "program internal microseconds converted to milliseconds",
+      "cases": {
+        "heap_push_pop": {
+          "checksum": "24975000",
+          "TX_samples_ms": [
+            7.48,
+            7.552,
+            7.67,
+            7.695,
+            8.539
+          ],
+          "CPP_samples_ms": [
+            4.59,
+            4.355,
+            4.491,
+            5.184,
+            5.029
+          ],
+          "TX_median_ms": 7.67,
+          "CPP_median_ms": 4.59
+        }
+      }
+    },
+    "statistics": {
+      "warmups": 1,
+      "rounds": 5,
+      "order_by_round": [
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ]
+      ],
+      "timing": "program internal microseconds converted to milliseconds",
+      "cases": {
+        "statistics_mean": {
+          "checksum": "630000",
+          "TX_samples_ms": [
+            9.707,
+            9.931,
+            9.393,
+            9.462,
+            9.918
+          ],
+          "CPP_samples_ms": [
+            2.925,
+            3.178,
+            2.913,
+            2.897,
+            2.972
+          ],
+          "TX_median_ms": 9.707,
+          "CPP_median_ms": 2.925
+        }
+      }
+    },
+    "statistics_clang": {
+      "warmups": 1,
+      "rounds": 5,
+      "order_by_round": [
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ],
+        [
+          "C++",
+          "TX"
+        ],
+        [
+          "TX",
+          "C++"
+        ]
+      ],
+      "timing": "program internal microseconds converted to milliseconds",
+      "cases": {
+        "statistics_mean": {
+          "checksum": "630000",
+          "TX_samples_ms": [
+            9.853,
+            9.313,
+            9.124,
+            10.145,
+            9.812
+          ],
+          "CPP_samples_ms": [
+            4.148,
+            4.128,
+            4.174,
+            4.178,
+            4.524
+          ],
+          "TX_median_ms": 9.812,
+          "CPP_median_ms": 4.174
+        }
+      }
+    },
+    "cpp_parse_core": {
+      "parse_core_valid": {
+        "checksum": "100000",
+        "samples_ms": [
+          0.448,
+          0.417,
+          0.426,
+          0.417,
+          0.404
+        ],
+        "median_ms": 0.417
+      },
+      "parse_core_invalid": {
+        "checksum": "100000",
+        "samples_ms": [
+          0.467,
+          0.477,
+          0.504,
+          0.462,
+          0.464
+        ],
+        "median_ms": 0.467
+      }
+    },
+    "cpp_parse_core_clang": {
+      "parse_core_valid": {
+        "checksum": "100000",
+        "samples_ms": [
+          0.608,
+          0.482,
+          0.488,
+          0.493,
+          0.766
+        ],
+        "median_ms": 0.493
+      },
+      "parse_core_invalid": {
+        "checksum": "100000",
+        "samples_ms": [
+          0.517,
+          0.538,
+          0.61,
+          0.527,
+          0.734
+        ],
+        "median_ms": 0.538
+      }
+    }
+  }
+}

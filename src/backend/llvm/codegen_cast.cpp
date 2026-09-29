@@ -3,6 +3,76 @@
 namespace tx
 {
 
+bool llvm_code_generator::emit_borrowed_class_cast(
+    const statement& item, const variable_declaration& declaration)
+{
+    const auto* cast = declaration.initializer
+        ? std::get_if<cast_expression>(&declaration.initializer->data) : nullptr;
+    const auto* name = cast ? std::get_if<name_reference>(&cast->value->data) : nullptr;
+    if (!name || name->function_value || declaration.array_length ||
+        !classes_.contains(cast->target.name) || scopes_.back().contains(name->name) ||
+        !borrowed_class_local(declaration))
+    {
+        return false;
+    }
+    const auto source = find_variable(name->name, cast->value->position);
+    if (!source.stable_class_owner)
+    {
+        return false;
+    }
+    // 源局部位于外层且不会移动/重新绑定；逃逸读取仍由 load 克隆。
+    bool borrowed = false;
+    const auto value = expression_value_or_borrow(*cast->value, borrowed);
+    if (!class_is_assignable(value.type, cast->target))
+    {
+        std::string cache;
+        std::string actual_type;
+        std::string ready;
+        if (static_record_type(cast->target) && !source.record_view.empty())
+        {
+            // 只记成功检查的实际类型；首次执行才验证，零次循环和失败时机不变。
+            cache = allocate(value_type::any_type, item.position, false);
+            allocations_ << "  store ptr null, ptr " << cache << '\n';
+            const auto view = load_record_view(source);
+            const auto type_slot = temporary();
+            actual_type = temporary();
+            const auto previous = temporary();
+            const auto hit = temporary();
+            write_instruction(type_slot + " = getelementptr %tx_record_view, ptr " + view + ", i32 0, i32 1");
+            write_instruction(actual_type + " = load ptr, ptr " + type_slot);
+            write_instruction(previous + " = load ptr, ptr " + cache);
+            write_instruction(hit + " = icmp eq ptr " + previous + ", " + actual_type);
+            ready = label();
+            const auto check = label();
+            write_instruction("br i1 " + hit + ", label %" + ready + ", label %" + check);
+            start_block(check);
+        }
+        write_instruction(std::string("call void @") +
+            (static_record_type(cast->target) ? "txrt_record_require_type" :
+             "txrt_class_require_type_fast") + "(ptr " + value.text + ", ptr " +
+            (static_record_type(cast->target) ? "@tx_record_" + cast->target.name :
+             global_bytes(cast->target.name)) + ")");
+        if (!cache.empty())
+        {
+            write_instruction("store ptr " + actual_type + ", ptr " + cache);
+            write_instruction("br label %" + ready);
+            start_block(ready);
+        }
+    }
+    const auto type = declaration.declared_type.value_or(cast->target);
+    const auto address = allocate(type, item.position, false);
+    write_instruction("store ptr " + value.text + ", ptr " + address);
+    variable_slot slot{type, address, true};
+    slot.stable_class_owner = true;
+    slot.record_view = source.record_view;
+    if (slot.record_view.empty())
+    {
+        cache_record_view(slot, value.text);
+    }
+    scopes_.back().emplace(declaration.name, std::move(slot));
+    return true;
+}
+
 llvm_code_generator::ir_value llvm_code_generator::emit_cast(
     const expression& item, const cast_expression& cast)
 {

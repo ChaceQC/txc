@@ -46,6 +46,18 @@ void semantic_analyzer::annotate_call_properties(call_expression& call) const
         return;
     }
     const auto& name = signature.external_name;
+    if (name == "serde.serialize_json" || name == "serde.serialize_cbor" ||
+        name == "serde.deserialize_json" || name == "serde.deserialize_cbor")
+    {
+        // 解码可以登记新对象；借用输入与是否需要 GC 安全点分别描述。
+        properties.effects = {true, name.starts_with("serde.deserialize_"),
+                              false, false, false, false};
+        for (auto& ownership : properties.arguments)
+        {
+            ownership = argument_ownership::borrowed;
+        }
+        return;
+    }
     // 这些原生入口只在调用期间读取参数；结果/错误仍可分配，但不保存借用地址。
     const bool read_only_input = name == "parse.try_parse_int" ||
         name == "parse.try_parse_float" || name == "parse.parse_int" ||

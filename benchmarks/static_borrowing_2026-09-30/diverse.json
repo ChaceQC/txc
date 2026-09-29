@@ -1,0 +1,135 @@
+{
+  "measured_at_utc": "2026-09-29T18:03:58.143018+00:00",
+  "source_and_program_sha256": {
+    "old": "120e5fee0b09b46e62d69781146673c4b67a18edc3b8d99d679c63904241e714",
+    "new": "8065fc0b19e5f14b2d2c38dfb9c6a756247ad50a55042382a7c212cb7012900a",
+    "source": "1cbd934096ed5848cf7db5d9da07ee304d1843b721bc91d5633d66a4a1258a20"
+  },
+  "paths": {
+    "old": "E:\\Project\\other\\Compilation\\tx_build\\static_borrowing\\diverse_old.exe",
+    "new": "E:\\Project\\other\\Compilation\\tx_build\\static_borrowing\\diverse_new.exe",
+    "source": "E:\\Project\\other\\Compilation\\tx_build\\static_borrowing\\diverse.tx"
+  },
+  "warmups": 1,
+  "rounds": 5,
+  "order_by_round": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "timing": "program internal microseconds, converted to milliseconds",
+  "results": {
+    "dictionary_int_hit": {
+      "checksum": "200000",
+      "old_samples_ms": [
+        1.164,
+        1.184,
+        1.193,
+        1.171,
+        1.18
+      ],
+      "new_samples_ms": [
+        1.154,
+        1.176,
+        1.54,
+        1.183,
+        1.4
+      ],
+      "old_median_ms": 1.18,
+      "new_median_ms": 1.183
+    },
+    "dictionary_text_hit": {
+      "checksum": "200000",
+      "old_samples_ms": [
+        16.723,
+        16.81,
+        23.474,
+        17.468,
+        17.27
+      ],
+      "new_samples_ms": [
+        5.093,
+        5.069,
+        5.149,
+        5.118,
+        5.193
+      ],
+      "old_median_ms": 17.27,
+      "new_median_ms": 5.118
+    },
+    "dictionary_mostly_miss": {
+      "checksum": "1",
+      "old_samples_ms": [
+        0.882,
+        0.879,
+        0.897,
+        0.907,
+        0.895
+      ],
+      "new_samples_ms": [
+        0.873,
+        0.876,
+        0.886,
+        0.895,
+        1.367
+      ],
+      "old_median_ms": 0.895,
+      "new_median_ms": 0.886
+    },
+    "serde_short_text": {
+      "checksum": "40000",
+      "old_samples_ms": [
+        9.715,
+        9.379,
+        9.874,
+        9.855,
+        10.583
+      ],
+      "new_samples_ms": [
+        7.766,
+        7.824,
+        8.154,
+        8.875,
+        10.584
+      ],
+      "old_median_ms": 9.855,
+      "new_median_ms": 8.154
+    },
+    "serde_long_text": {
+      "checksum": "655000",
+      "old_samples_ms": [
+        26.404,
+        26.749,
+        27.326,
+        26.085,
+        27.937
+      ],
+      "new_samples_ms": [
+        24.79,
+        25.196,
+        29.272,
+        25.463,
+        30.415
+      ],
+      "old_median_ms": 26.749,
+      "new_median_ms": 25.463
+    }
+  }
+}

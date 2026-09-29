@@ -1,0 +1,9 @@
+{
+  "compiler": "a6b510b49bbba9a6f398328f8d106fd3ba291fb007c768f6285ad92d2b9a1306",
+  "stdlib": "1ec3232d2a65e4e97785c56408b86abceaf740d2cfb5d5b42dd1561ab6d53a80",
+  "package": "a6491542ec096c1c51922580036653604b57c190a30e19496e4c258d208f9406",
+  "measured_stdlib": "50bb7ec23aa5f4249fb202a7baca7c597eafd2ae936aa620e9c81355f64250a7",
+  "source_fingerprints_match": true,
+  "build_removed": true,
+  "note": "Final packaging rebuilt the three bridge objects; measured candidate fingerprints are preserved separately."
+}

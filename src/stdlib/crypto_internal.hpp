@@ -57,8 +57,7 @@ public:
     [[nodiscard]] byte_value release()
     {
         // make_shared 先分配控制块；分配失败时仍由析构函数清零原缓冲。
-        return std::make_shared<const std::vector<std::uint8_t>>(
-            std::move(data_));
+        return std::make_shared<const byte_storage>(std::move(data_), true);
     }
 
 private:

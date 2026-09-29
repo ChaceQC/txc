@@ -1,0 +1,17 @@
+{
+  "head": "91d61780e7f77100ef185be17c09223463f5735b",
+  "files": {
+    "diverse": {
+      "source": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+      "executable": "98a0d548de21027db822ffd60a57ffd03cfc0da7b3bf4594076fa7c40a586352",
+      "ir": "799095d83ac293be35f47172e529446c4278aad7b303924e4ea615ea6e4808dd"
+    },
+    "language": {
+      "source": "88e1285edafabf7ebdf0ed09002aa61cfe27ad4209224675f4e0d8e90cde313f",
+      "executable": "8900c2fa6c901a95d80a221a6bacf048ea1452ce36b78d1f168eb75c4fe1fd71",
+      "ir": "862e85bf280dcdd87445d5108da108e305f4949621154c25e96bcebae395df9d"
+    }
+  },
+  "compiler": "a6b510b49bbba9a6f398328f8d106fd3ba291fb007c768f6285ad92d2b9a1306",
+  "stdlib": "50bb7ec23aa5f4249fb202a7baca7c597eafd2ae936aa620e9c81355f64250a7"
+}

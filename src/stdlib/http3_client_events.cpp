@@ -97,9 +97,8 @@ void client_connection::validate_peer(QUIC_CONNECTION_EVENT* event)
     }
     auto copy_der = [](PCCERT_CONTEXT source) -> byte_value
     {
-        return std::make_shared<const std::vector<std::uint8_t>>(
-            source->pbCertEncoded,
-            source->pbCertEncoded + source->cbCertEncoded);
+        return std::make_shared<const byte_storage>(
+            std::span<const std::uint8_t>(source->pbCertEncoded, source->cbCertEncoded));
     };
     auto leaf = copy_der(certificate);
     std::vector<byte_value> intermediates;

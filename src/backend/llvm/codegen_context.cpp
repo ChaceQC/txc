@@ -12,6 +12,14 @@ void llvm_code_generator::write_context_boundary()
 
 void llvm_code_generator::write_stack_frame(const function_decl& function)
 {
+    if (proven_integer_function_)
+    {
+        // 对整个 0..256 输入域已证明无失败和用户回调，运行时无法观察此诊断帧。
+        module_ << "  %tx_error_kind = getelementptr inbounds %tx_runtime_context, ptr %tx_context, i32 0, i32 1\n"
+                << "  %tx_bounded_input = icmp ule i64 %arg0, 256\n"
+                << "  call void @llvm.assume(i1 %tx_bounded_input)\n";
+        return;
+    }
     const auto& position = function.position;
     const auto& name = function.source_name.empty() ? function.name : function.source_name;
     module_ << "  %tx_frame = alloca %tx_diagnostic_frame\n"
@@ -36,12 +44,16 @@ void llvm_code_generator::write_stack_frame(const function_decl& function)
 
 void llvm_code_generator::emit_stack_pop()
 {
+    if (proven_integer_function_)
+    {
+        return;
+    }
     body_ << "  store ptr %tx_parent_frame, ptr %tx_context\n";
 }
 
 void llvm_code_generator::emit_stack_location()
 {
-    if (!current_statement_position_)
+    if (proven_integer_function_ || !current_statement_position_)
     {
         return;
     }

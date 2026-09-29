@@ -71,6 +71,12 @@ std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_proven_ar
     {
         return std::nullopt;
     }
+    if (proven_integer_function_)
+    {
+        const auto result = temporary();
+        write_instruction(result + " = " + instruction + " nsw i64 " + left.text + ", " + right.text);
+        return ir_value{value_type::int_type, result};
+    }
     const auto a = integer_range_of(left);
     const auto b = integer_range_of(right);
     integer_interval bounds{maximum, minimum};

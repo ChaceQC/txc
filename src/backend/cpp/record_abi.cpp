@@ -1,6 +1,8 @@
 #include "backend/cpp/value_format.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/runtime_abi.hpp"
+#include "backend/cpp/text_reference.hpp"
+#include "stdlib/stdlib.hpp"
 
 #include <stdexcept>
 
@@ -68,6 +70,27 @@ extern "C" int txrt_record_struct_new(const tx_generated::record_type* type,
         *result = tx_generated::detail::make_handle<std::any>(
             tx_generated::dynamic_struct(tx_generated::dynamic_struct_data(type)));
     });
+}
+
+extern "C" int txrt_record_str_len(const void* field, std::int64_t* result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        // 字段类型由静态描述保证，只借用槽位内容，不创建文本根句柄。
+        *result = tx_generated::tx_len(std::any_cast<const std::string&>(
+            *static_cast<const std::any*>(field)));
+    });
+}
+
+extern "C" const void* txrt_record_borrow_str(const void* field) noexcept
+{
+    const void* result = nullptr;
+    txrt_require_success(tx_generated::detail::invoke_leaf([&]
+    {
+        result = tx_generated::detail::borrowed_string_pointer(
+            std::any_cast<const std::string&>(*static_cast<const std::any*>(field)));
+    }));
+    return result;
 }
 
 extern "C" int txrt_struct_field_get(const void* value, const char* name, void** result) noexcept

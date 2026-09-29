@@ -1,0 +1,17 @@
+{
+  "static_borrowing": "STATIC_BORROWING_OK",
+  "static_borrowing_lifetime": "STATIC_BORROWING_LIFETIME_OK",
+  "performance_completion": "PERFORMANCE_COMPLETION_OK",
+  "performance_completion_gc": "GC_GRAPH_RESURRECTION_OK",
+  "strings/format_optimized": "FORMAT_OPTIMIZED_OK",
+  "serde/behavior": "SERDE_TX_OK",
+  "serde/direct": "SERDE_DIRECT_TX_OK",
+  "performance_12_14/graphs": "graphs ok",
+  "performance_12_14/arithmetic": "arithmetic ok",
+  "performance_hotspots/virtual_views": "VIRTUAL_VIEWS_OK",
+  "performance_hotspots/serde_wide": "SERDE_WIDE_OK",
+  "bytes_file_stream/encodings": "七种编码的内存转换和增量文本流通过",
+  "crypto/behavior": "CRYPTO_OK",
+  "package": "兼容指纹正常与 4 种错配场景通过\n",
+  "native_storage": "NATIVE_STORAGE_OK"
+}

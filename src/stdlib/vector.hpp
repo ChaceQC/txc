@@ -1,4 +1,5 @@
 #pragma once
+#include "stdlib/byte_storage.hpp"
 
 #include "backend/cpp/cycle_gc.hpp"
 #include "backend/cpp/text_reference.hpp"
@@ -90,7 +91,7 @@ using int_vector = tx_vector<std::int64_t>;
 using float_vector = tx_vector<double>;
 using bool_vector = tx_vector<std::uint8_t>;
 using string_vector = tx_vector<text_reference>;
-using byte_value = std::shared_ptr<const std::vector<std::uint8_t>>;
+using byte_value = std::shared_ptr<const byte_storage>;
 using bytes_vector = tx_vector<byte_value>;
 using object_vector = tx_vector<std::any>;
 

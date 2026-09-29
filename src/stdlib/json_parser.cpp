@@ -156,6 +156,14 @@ tx_dict json_parser::parse_object(std::size_t depth)
 
 std::any json_parser::parse_number()
 {
+    return std::visit([](auto value) -> std::any
+    {
+        return value;
+    }, parse_numeric());
+}
+
+std::variant<std::int64_t, double> json_parser::parse_numeric()
+{
     std::string token;
     if (input_.take('-'))
     {

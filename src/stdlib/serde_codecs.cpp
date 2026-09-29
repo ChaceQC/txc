@@ -1,4 +1,5 @@
 #include "stdlib/serde_direct.hpp"
+#include "stdlib/serde_scalar.hpp"
 
 namespace tx_generated
 {
@@ -114,15 +115,16 @@ using namespace tx_generated;
 
 extern "C" const serde_codec tx_serde_integer{
     encode_scalar<std::int64_t, &serde_writer::integer>, decode_scalar<std::int64_t>,
-    encode_scalar_slot<std::int64_t, &serde_writer::integer>};
+    encode_scalar_slot<std::int64_t, &serde_writer::integer>, serde_decode_scalar_slot<std::int64_t>};
 extern "C" const serde_codec tx_serde_floating{
     encode_scalar<double, &serde_writer::floating>, decode_scalar<double>,
-    encode_scalar_slot<double, &serde_writer::floating>};
+    encode_scalar_slot<double, &serde_writer::floating>, serde_decode_scalar_slot<double>};
 extern "C" const serde_codec tx_serde_boolean{
     encode_scalar<bool, &serde_writer::boolean>, decode_scalar<bool>,
-    encode_scalar_slot<bool, &serde_writer::boolean>};
+    encode_scalar_slot<bool, &serde_writer::boolean>, serde_decode_scalar_slot<bool>};
 extern "C" const serde_codec tx_serde_text{
-    encode_scalar<std::string, &serde_writer::text>, decode_scalar<std::string>};
+    encode_scalar<std::string, &serde_writer::text>, decode_scalar<std::string>, nullptr,
+    serde_decode_scalar_slot<std::string>};
 extern "C" const serde_codec tx_serde_bytes{
     encode_scalar<byte_value, &serde_writer::bytes>, decode_scalar<byte_value>};
 extern "C" const serde_codec tx_serde_option{encode_option, decode_option};

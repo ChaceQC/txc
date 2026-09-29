@@ -1,0 +1,170 @@
+{
+  "bench_struct_operators": {
+    "old": {
+      "txrt_record_struct_new": 4,
+      "txrt_value_clone": 1,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 5
+    },
+    "new": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 2
+    }
+  },
+  "bench_module_call": {
+    "old": {
+      "txrt_record_struct_new": 1,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 4
+    },
+    "new": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 2
+    }
+  },
+  "bench_recursion": {
+    "old": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 4
+    },
+    "new": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 3
+    }
+  },
+  "bench_runtime_cast": {
+    "old": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 2,
+      "txrt_record_require_type": 1,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 3
+    },
+    "new": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 2,
+      "txrt_record_require_type": 1,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 3
+    }
+  },
+  "bench_format_paths": {
+    "old": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 4,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 7
+    },
+    "new": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 4,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 7
+    }
+  },
+  "bench_encoding_paths": {
+    "old": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 7
+    },
+    "new": {
+      "txrt_record_struct_new": 0,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 4,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 7
+    }
+  },
+  "bench_serde_size": {
+    "old": {
+      "txrt_record_struct_new": 2,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 10
+    },
+    "new": {
+      "txrt_record_struct_new": 2,
+      "txrt_value_clone": 0,
+      "txrt_record_class_view": 0,
+      "txrt_record_require_type": 0,
+      "txrt_format_begin": 0,
+      "txrt_format_execute": 0,
+      "txrt_encoding_encode_literal": 0,
+      "txrt_value_to_str": 0,
+      "txrt_gc_safepoint_context": 10
+    }
+  }
+}

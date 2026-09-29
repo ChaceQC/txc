@@ -7,6 +7,14 @@ namespace tx
 
 void llvm_code_generator::write_external_declarations()
 {
+    module_ << "declare void @llvm.assume(i1)\n";
+    for (const auto* first : {"i64", "f64", "bool", "str"})
+    {
+        for (const auto* second : {"i64", "f64", "bool", "str"})
+        {
+            module_ << "@tx_serde_pair_" << first << '_' << second << " = external constant { ptr, ptr }\n";
+        }
+    }
     for (const auto* codec : {"integer", "floating", "boolean", "text", "bytes",
         "option", "structure", "vector_integer", "vector_floating", "vector_boolean",
         "vector_text", "vector_bytes", "vector_object"})
@@ -123,7 +131,13 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_json_validate(ptr, ptr)\n"
             << "declare i32 @txrt_serde_serialize_json(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_format_begin(ptr, i64, ptr, i64)\n"
+            << "declare i32 @txrt_format_execute(ptr, i64, ptr, ptr, i64, i64, ptr)\n"
+            << "declare void @tx_format_fast_i64(ptr, i64, ptr, i8)\n"
+            << "declare void @tx_format_fast_bool(ptr, i64, ptr, i8)\n"
+            << "declare void @tx_format_fast_str(ptr, i64, ptr, i8)\n"
+            << "declare void @tx_format_fast_literal(ptr, i64, ptr, i8)\n"
             << "declare i32 @txrt_encoding_encode_known(ptr, i64, ptr)\n"
+            << "declare i32 @txrt_encoding_encode_literal(ptr, i64, i64, ptr)\n"
             << "declare i32 @txrt_encoding_decode_known(ptr, i64, ptr)\n"
             << "declare i32 @txrt_format_append_i64(ptr, i64, ptr, i8, ptr, i64)\n"
             << "declare i32 @txrt_format_append_f64(ptr, double, ptr, i8, ptr, i64)\n"

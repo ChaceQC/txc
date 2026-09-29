@@ -15,6 +15,8 @@ void release_text_payload(text_payload* value) noexcept;
 void release_text_reference(const void* value) noexcept;
 const std::string& text_value(const void* value) noexcept;
 const void* borrowed_text_pointer(const text_payload* value) noexcept;
+// 仅供无回调、不保存参数的只读 ABI；不能作为容器持有的 text_reference 使用。
+const void* borrowed_string_pointer(const std::string& value) noexcept;
 }
 
 // 只持有文本载荷，不登记为错误退出时独立清理的根句柄。

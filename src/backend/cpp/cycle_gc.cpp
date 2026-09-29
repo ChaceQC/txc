@@ -1,4 +1,5 @@
 #include "backend/cpp/cycle_gc.hpp"
+#include "backend/cpp/identity_table.hpp"
 
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/runtime_context.hpp"
@@ -40,7 +41,7 @@ struct live_node
 struct object_graph
 {
     std::vector<live_node> nodes;
-    std::unordered_map<const void*, std::size_t> positions;
+    identity_table<std::size_t, 64> positions;
     std::vector<std::size_t> edges;
     std::vector<std::size_t> edge_offsets;
     std::vector<std::int64_t> external_refs;

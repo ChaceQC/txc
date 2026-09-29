@@ -154,6 +154,11 @@ void serde_write_struct(serde_writer& writer, const std::any& value,
         write_preserved(writer, *input, schema, *unknown, depth);
         return;
     }
+    if (schema.specialized && (*input)->fixed.type == schema.layout)
+    {
+        schema.specialized->write(writer, *input, schema, depth);
+        return;
+    }
     writer.begin(true, schema.field_size + 1, depth);
     writer.key("$schema", 0);
     depth.child(0, 1).check(true);

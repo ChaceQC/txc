@@ -372,9 +372,13 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
     }
     const auto symbol = symbol_override.empty() ? call.name
         : std::string(symbol_override);
+    const auto proven_result = bounded_integer_result(target);
+    const auto argument_range = passed.size() == 1 ? integer_range_of(passed.front()) : integer_interval{-1, -1};
+    const bool bounded = proven_result && passed.size() == 1 &&
+        (proven_integer_function_ == &target || (argument_range.first >= 0 && argument_range.second <= 256));
     const auto invocation = "call " + llvm_type(target.return_type, item.position) +
         " " + function_name(symbol, *call.overload_index) +
-        (receiver_view.empty() ? "" : "_record") +
+        (bounded ? "_bounded" : receiver_view.empty() ? "" : "_record") +
         "(" + arguments_text + ")";
     transfer_call_arguments(target, passed);
     emit_stack_location();
@@ -384,8 +388,18 @@ llvm_code_generator::ir_value llvm_code_generator::emit_user_call(
         return {value_type::void_type, {}};
     }
     const auto result = temporary();
-    write_instruction(result + " = " + invocation);
-    return own_direct_value({item.type, result});
+    if (bounded)
+    {
+        emitted_bounded_calls_.insert(&item);
+        body_ << "  " << result << " = " << invocation << '\n';
+    }
+    else
+    {
+        write_instruction(result + " = " + invocation);
+    }
+    auto value = own_direct_value({item.type, result});
+    value.integer_range = bounded ? proven_result : constant_integer_result(target);
+    return value;
 }
 
 llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
@@ -454,6 +468,18 @@ llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
 llvm_code_generator::ir_value llvm_code_generator::emit_call(
     const expression& item, const call_expression& call)
 {
+    if (!scalar_record_type(item.type))
+    {
+        if (const auto* target = native_record_target(call))
+        {
+            std::vector<const expression*> arguments;
+            for (const auto& argument : call.arguments)
+            {
+                arguments.push_back(argument.value.get());
+            }
+            return native_record_call(*target, call.receiver.get(), arguments, item.position);
+        }
+    }
     if ((call.container_type && call.container_type->is_sum_type()) ||
         (call.receiver && call.receiver->type.is_sum_type()))
     {
@@ -553,6 +579,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
             if (call.name == "len")
             {
                 if (auto length = emit_parse_error_field(input, true))
+                {
+                    return *length;
+                }
+                if (auto length = emit_record_string_length(input))
                 {
                     return *length;
                 }

@@ -30,6 +30,8 @@ int txrt_str_concat_literal(const void* value, const char* bytes,
 int txrt_str_compare(const void* left, const void* right,
                      int* result) noexcept;
 int txrt_str_len(const void* value, std::int64_t* result) noexcept;
+int txrt_record_str_len(const void* field, std::int64_t* result) noexcept;
+const void* txrt_record_borrow_str(const void* field) noexcept;
 int txrt_print_str(const void* value, bool newline) noexcept;
 int txrt_input(const void* prompt, void** result) noexcept;
 int txrt_input_or_none(const void* prompt, void** result) noexcept;

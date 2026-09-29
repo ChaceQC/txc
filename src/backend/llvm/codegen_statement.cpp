@@ -21,7 +21,7 @@ void llvm_code_generator::emit_statements(const std::vector<stmt_ptr>& statement
 void llvm_code_generator::emit_declaration(
     const statement& item, const variable_declaration& declaration)
 {
-    if (emit_stack_record(item, declaration))
+    if (emit_borrowed_class_cast(item, declaration) || emit_stack_record(item, declaration))
     {
         return;
     }
@@ -89,6 +89,8 @@ void llvm_code_generator::emit_declaration(
     const auto array_reference = type == value_type::array_type
         ? cache_array_reference(value.text, item.position) : std::string{};
     variable_slot slot{type, address, false, array_reference};
+    slot.stable_class_owner = classes_.contains(type.name) && current_function_body_ &&
+        scalar_local_unchanged(declaration.name, *current_function_body_, &declaration);
     if (type == value_type::int_type && current_function_body_ &&
         scalar_local_unchanged(declaration.name, *current_function_body_, &declaration))
     {
@@ -227,6 +229,10 @@ void llvm_code_generator::emit_name_assignment(
     const statement& item, const variable_assignment& assignment,
     const name_reference& name)
 {
+    if (emit_native_record_assignment(assignment))
+    {
+        return;
+    }
     const auto variable = find_variable(name.name, item.position);
     ir_value old{value_type::void_type, {}};
     if (assignment.binding)
@@ -303,6 +309,16 @@ void llvm_code_generator::emit_assignment(
 void llvm_code_generator::emit_return(const statement& item,
                                       const return_statement& result)
 {
+    if (native_result_type_ != value_type::void_type)
+    {
+        std::vector<ir_value> owned;
+        const auto data = native_record_data(*result.value, owned);
+        copy_record_data(native_result_type_, data, "%tx_result");
+        emit_stack_pop();
+        write_instruction("ret void");
+        terminated_ = true;
+        return;
+    }
     ir_value value{value_type::void_type, {}};
     if (result.value)
     {
@@ -380,7 +396,12 @@ void llvm_code_generator::emit_statement(const statement& item)
             std::get_if<variable_declaration>(&item.data))
     {
         const auto slot = find_variable(declaration->name, item.position);
-        local_scalar_only = !slot.readonly_parse_error.empty();
+        local_scalar_only = !slot.readonly_parse_error.empty() ||
+            (slot.borrowed && slot.stable_class_owner);
+        if (!slot.stack_record.empty())
+        {
+            local_scalar_only = native_record_gc_neutral(*declaration->initializer);
+        }
         if (slot.local_array_length)
         {
             const auto* literal = declaration->initializer
@@ -397,6 +418,11 @@ void llvm_code_generator::emit_statement(const statement& item)
     if (const auto* assignment =
             std::get_if<variable_assignment>(&item.data))
     {
+        if (const auto* name = std::get_if<name_reference>(&assignment->target->data);
+            name && !find_variable(name->name, item.position).stack_record.empty())
+        {
+            local_scalar_only = native_record_gc_neutral(*assignment->value);
+        }
         if (const auto* index =
                 std::get_if<index_expression>(&assignment->target->data))
         {

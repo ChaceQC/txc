@@ -1,0 +1,458 @@
+{
+  "measured_at_utc": "2026-09-29T18:45:06.722821+00:00",
+  "source_and_program_sha256": {
+    "old": "1b8342cd35f8d44f4913d41d8097f6040168f1b9ac28edb61dc42b6499bfa149",
+    "new": "8900c2fa6c901a95d80a221a6bacf048ea1452ce36b78d1f168eb75c4fe1fd71",
+    "source": "88e1285edafabf7ebdf0ed09002aa61cfe27ad4209224675f4e0d8e90cde313f"
+  },
+  "paths": {
+    "old": "E:\\Project\\other\\Compilation\\tx_build\\performance_completion\\language_old.exe",
+    "new": "E:\\Project\\other\\Compilation\\tx_build\\performance_completion\\language_new.exe",
+    "source": "E:\\Project\\other\\Compilation\\benchmarks\\language_features\\compare.tx"
+  },
+  "warmups": 1,
+  "rounds": 5,
+  "order_by_round": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "timing": "program internal microseconds, converted to milliseconds",
+  "results": {
+    "scalar_control": {
+      "checksum": "-62500000000",
+      "old_samples_ms": [
+        0.171,
+        0.167,
+        0.173,
+        0.168,
+        0.207
+      ],
+      "new_samples_ms": [
+        0.162,
+        0.162,
+        0.167,
+        0.302,
+        0.167
+      ],
+      "old_median_ms": 0.171,
+      "new_median_ms": 0.167
+    },
+    "updates": {
+      "checksum": "391096443253",
+      "old_samples_ms": [
+        1.413,
+        1.365,
+        1.418,
+        1.389,
+        1.382
+      ],
+      "new_samples_ms": [
+        1.402,
+        1.38,
+        1.405,
+        1.42,
+        1.427
+      ],
+      "old_median_ms": 1.389,
+      "new_median_ms": 1.405
+    },
+    "while_logic": {
+      "checksum": "-62500000000",
+      "old_samples_ms": [
+        0.174,
+        0.173,
+        0.175,
+        0.173,
+        0.173
+      ],
+      "new_samples_ms": [
+        0.171,
+        0.173,
+        0.176,
+        0.177,
+        0.177
+      ],
+      "old_median_ms": 0.173,
+      "new_median_ms": 0.176
+    },
+    "float_arithmetic": {
+      "checksum": "62500125000",
+      "old_samples_ms": [
+        0.356,
+        0.347,
+        0.372,
+        0.349,
+        0.354
+      ],
+      "new_samples_ms": [
+        0.35,
+        0.348,
+        0.355,
+        0.36,
+        0.361
+      ],
+      "old_median_ms": 0.354,
+      "new_median_ms": 0.355
+    },
+    "overloads": {
+      "checksum": "4838081397",
+      "old_samples_ms": [
+        0.186,
+        0.183,
+        0.186,
+        0.185,
+        0.185
+      ],
+      "new_samples_ms": [
+        0.183,
+        0.183,
+        0.187,
+        0.188,
+        0.189
+      ],
+      "old_median_ms": 0.185,
+      "new_median_ms": 0.187
+    },
+    "named_arguments": {
+      "checksum": "18731467920",
+      "old_samples_ms": [
+        0.417,
+        0.413,
+        0.443,
+        0.416,
+        0.415
+      ],
+      "new_samples_ms": [
+        0.412,
+        0.41,
+        0.42,
+        0.422,
+        0.425
+      ],
+      "old_median_ms": 0.416,
+      "new_median_ms": 0.42
+    },
+    "recursion": {
+      "checksum": "3420000",
+      "old_samples_ms": [
+        0.649,
+        0.582,
+        0.6,
+        0.594,
+        0.592
+      ],
+      "new_samples_ms": [
+        0.041,
+        0.04,
+        0.041,
+        0.041,
+        0.042
+      ],
+      "old_median_ms": 0.594,
+      "new_median_ms": 0.041
+    },
+    "variadic_unpack": {
+      "checksum": "50095000",
+      "old_samples_ms": [
+        8.51,
+        8.328,
+        8.621,
+        8.423,
+        8.563
+      ],
+      "new_samples_ms": [
+        8.418,
+        8.322,
+        8.555,
+        8.85,
+        8.595
+      ],
+      "old_median_ms": 8.51,
+      "new_median_ms": 8.555
+    },
+    "array_destructure": {
+      "checksum": "400060000",
+      "old_samples_ms": [
+        2.955,
+        3.05,
+        2.93,
+        2.897,
+        2.938
+      ],
+      "new_samples_ms": [
+        2.893,
+        2.845,
+        2.945,
+        3.12,
+        2.961
+      ],
+      "old_median_ms": 2.938,
+      "new_median_ms": 2.945
+    },
+    "array_padded": {
+      "checksum": "1250225000",
+      "old_samples_ms": [
+        0.024,
+        0.024,
+        0.024,
+        0.024,
+        0.023
+      ],
+      "new_samples_ms": [
+        0.024,
+        0.024,
+        0.024,
+        0.024,
+        0.024
+      ],
+      "old_median_ms": 0.024,
+      "new_median_ms": 0.024
+    },
+    "dict_iteration": {
+      "checksum": "5000350000",
+      "old_samples_ms": [
+        9.595,
+        9.295,
+        9.694,
+        9.758,
+        9.479
+      ],
+      "new_samples_ms": [
+        9.857,
+        9.337,
+        9.738,
+        9.652,
+        9.801
+      ],
+      "old_median_ms": 9.595,
+      "new_median_ms": 9.738
+    },
+    "struct_operators": {
+      "checksum": "5000350000",
+      "old_samples_ms": [
+        74.253,
+        74.25,
+        79.072,
+        74.287,
+        75.156
+      ],
+      "new_samples_ms": [
+        0.514,
+        0.507,
+        0.536,
+        0.524,
+        0.523
+      ],
+      "old_median_ms": 74.287,
+      "new_median_ms": 0.523
+    },
+    "class_methods": {
+      "checksum": "2726759900400",
+      "old_samples_ms": [
+        0.665,
+        0.658,
+        0.681,
+        0.71,
+        0.732
+      ],
+      "new_samples_ms": [
+        0.599,
+        0.644,
+        0.676,
+        0.724,
+        0.665
+      ],
+      "old_median_ms": 0.681,
+      "new_median_ms": 0.665
+    },
+    "virtual_interface": {
+      "checksum": "3200000",
+      "old_samples_ms": [
+        0.917,
+        0.896,
+        0.92,
+        0.948,
+        0.923
+      ],
+      "new_samples_ms": [
+        0.885,
+        0.875,
+        0.908,
+        0.9,
+        0.897
+      ],
+      "old_median_ms": 0.92,
+      "new_median_ms": 0.897
+    },
+    "class_operator": {
+      "checksum": "1000000",
+      "old_samples_ms": [
+        0.807,
+        0.787,
+        0.819,
+        0.806,
+        0.793
+      ],
+      "new_samples_ms": [
+        0.796,
+        0.779,
+        0.802,
+        0.794,
+        0.792
+      ],
+      "old_median_ms": 0.806,
+      "new_median_ms": 0.794
+    },
+    "runtime_cast": {
+      "checksum": "800000",
+      "old_samples_ms": [
+        1.202,
+        1.152,
+        1.211,
+        1.202,
+        1.167
+      ],
+      "new_samples_ms": [
+        0.255,
+        0.254,
+        0.261,
+        0.26,
+        0.262
+      ],
+      "old_median_ms": 1.202,
+      "new_median_ms": 0.26
+    },
+    "module_call": {
+      "checksum": "15000950000",
+      "old_samples_ms": [
+        17.472,
+        17.284,
+        19.234,
+        18.026,
+        17.907
+      ],
+      "new_samples_ms": [
+        0.023,
+        0.023,
+        0.025,
+        0.024,
+        0.024
+      ],
+      "old_median_ms": 17.907,
+      "new_median_ms": 0.024
+    },
+    "string_conversion": {
+      "checksum": "1250413894",
+      "old_samples_ms": [
+        12.112,
+        12.213,
+        12.971,
+        12.378,
+        12.565
+      ],
+      "new_samples_ms": [
+        12.576,
+        12.216,
+        12.657,
+        12.835,
+        13.067
+      ],
+      "old_median_ms": 12.378,
+      "new_median_ms": 12.657
+    },
+    "deep_copy": {
+      "checksum": "50005001",
+      "old_samples_ms": [
+        21.925,
+        22.197,
+        23.261,
+        22.343,
+        39.768
+      ],
+      "new_samples_ms": [
+        20.114,
+        20.337,
+        20.624,
+        20.209,
+        20.208
+      ],
+      "old_median_ms": 22.343,
+      "new_median_ms": 20.209
+    },
+    "copy_cycle": {
+      "checksum": "50005007",
+      "old_samples_ms": [
+        10.132,
+        10.249,
+        11.082,
+        10.395,
+        13.118
+      ],
+      "new_samples_ms": [
+        9.522,
+        9.611,
+        10.058,
+        9.452,
+        9.522
+      ],
+      "old_median_ms": 10.395,
+      "new_median_ms": 9.522
+    },
+    "deinit": {
+      "checksum": "20000",
+      "old_samples_ms": [
+        13.975,
+        13.996,
+        14.352,
+        14.602,
+        14.897
+      ],
+      "new_samples_ms": [
+        11.929,
+        11.501,
+        11.783,
+        17.472,
+        12.324
+      ],
+      "old_median_ms": 14.352,
+      "new_median_ms": 11.929
+    },
+    "cycle_gc": {
+      "checksum": "1000",
+      "old_samples_ms": [
+        1.424,
+        1.464,
+        1.729,
+        1.533,
+        1.413
+      ],
+      "new_samples_ms": [
+        1.159,
+        1.131,
+        1.146,
+        1.229,
+        1.133
+      ],
+      "old_median_ms": 1.464,
+      "new_median_ms": 1.146
+    }
+  }
+}

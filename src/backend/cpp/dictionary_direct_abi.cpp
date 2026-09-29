@@ -71,6 +71,27 @@ extern "C" int txrt_dictionary_contains_str(const void* values,
     });
 }
 
+extern "C" int txrt_dictionary_get_literal(const void* values,
+    const char* key, std::size_t length, void** result) noexcept
+{
+    return invoke_leaf([&]
+    {
+        const auto* found = dictionary_value(values).find_value(
+            std::string_view(key, length));
+        *result = make_handle<std::any>(found ? *found : std::any{});
+    });
+}
+
+extern "C" int txrt_dictionary_contains_literal(const void* values,
+    const char* key, std::size_t length, bool* result) noexcept
+{
+    return invoke_leaf([&]
+    {
+        *result = dictionary_value(values).find_value(
+            std::string_view(key, length)) != nullptr;
+    });
+}
+
 extern "C" int txrt_dictionary_remove(void* values, const void* key,
                                         bool* result) noexcept
 {

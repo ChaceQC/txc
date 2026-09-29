@@ -14,6 +14,8 @@
 namespace tx
 {
 
+struct static_format_part;
+
 class llvm_code_generator
 {
 public:
@@ -61,6 +63,7 @@ private:
         std::optional<integer_interval> integer_range;
         const variable_declaration* parse_declaration = nullptr;
         std::string readonly_parse_error;
+        bool stable_class_owner = false;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -146,8 +149,27 @@ private:
     [[nodiscard]] std::string record_field_slot(const ir_value& object, std::size_t index);
     [[nodiscard]] ir_value read_record_field(const ir_value& object,
         const expression& item, const member_expression& member);
+    [[nodiscard]] std::optional<ir_value> emit_record_string_length(const expression& item);
+    [[nodiscard]] bool emit_borrowed_class_cast(const statement& item,
+                                               const variable_declaration& declaration);
+    [[nodiscard]] bool borrowed_class_local(const variable_declaration& declaration) const;
     [[nodiscard]] bool emit_stack_record(const statement& item,
                                          const variable_declaration& declaration);
+    [[nodiscard]] bool scalar_record_type(const value_type& type) const;
+    [[nodiscard]] bool native_record_function(const function_decl& function) const;
+    [[nodiscard]] const function_decl* native_record_target(const call_expression& call) const;
+    [[nodiscard]] const function_decl* native_record_target(const operator_binding& binding) const;
+    [[nodiscard]] bool native_record_expression(const expression& item) const;
+    [[nodiscard]] bool native_record_gc_neutral(const expression& item);
+    [[nodiscard]] std::string native_record_data(const expression& item,
+                                                std::vector<ir_value>& owned);
+    [[nodiscard]] std::string allocate_record_data(const value_type& type);
+    void copy_record_data(const value_type& type, const std::string& source,
+                          const std::string& target);
+    [[nodiscard]] ir_value native_record_call(const function_decl& function,
+        const expression* receiver, const std::vector<const expression*>& arguments,
+        source_pos position);
+    [[nodiscard]] bool emit_native_record_assignment(const variable_assignment& assignment);
     [[nodiscard]] bool emit_record_assignment(const statement& item,
                                              const variable_assignment& assignment);
     [[nodiscard]] ir_value emit_record_constructor(const expression& item,
@@ -298,8 +320,6 @@ private:
         const expression& item, const call_expression& call, const function_decl& target);
     [[nodiscard]] std::optional<std::string> constant_format_text(const expression& item) const;
     [[nodiscard]] bool immutable_format_local(const variable_declaration& declaration) const;
-    void emit_format_field(const ir_value& value, const std::optional<std::string>& bytes,
-        const struct static_format_part& part, const std::string& result, source_pos position);
     [[nodiscard]] std::vector<ir_value> emit_format_arguments(const call_expression& call,
         const std::vector<static_format_part>& plan, std::vector<std::optional<std::string>>& bytes);
     [[nodiscard]] std::optional<ir_value> emit_constant_encoding(
@@ -307,6 +327,11 @@ private:
     [[nodiscard]] std::string serde_schema_constant(const value_type& type);
     [[nodiscard]] std::string serde_type_constant(const value_type& type);
     [[nodiscard]] std::string serde_default_constant(const struct_field& field);
+    [[nodiscard]] std::string static_format_steps(const call_expression& call,
+        const std::vector<struct static_format_part>& plan,
+        const std::vector<std::optional<std::string>>& bytes);
+    [[nodiscard]] std::string static_format_arguments(const std::vector<ir_value>& values,
+        const std::vector<std::optional<std::string>>& bytes);
     [[nodiscard]] static std::string container_symbol(const value_type& type,
                                                       std::string_view operation);
     [[nodiscard]] ir_value container_operation(const value_type& type,
@@ -504,7 +529,13 @@ private:
     void emit_while(const while_statement& loop);
     void emit_for(const for_loop& loop);
     void emit_for_each(const for_each& loop);
-    void emit_function(const function_decl& function);
+    void emit_function(const function_decl& function, bool native = false);
+    [[nodiscard]] std::optional<integer_interval> constant_integer_result(const function_decl& function) const;
+    [[nodiscard]] std::optional<integer_interval> bounded_integer_result(const function_decl& function);
+    const function_decl* proven_integer_function_ = nullptr;
+    bool generating_bounded_integer_ = false;
+    std::unordered_map<const function_decl*, std::optional<integer_interval>> bounded_integer_results_;
+    std::unordered_set<const expression*> emitted_bounded_calls_;
     void emit_callback_wrapper(const function_decl& function,
                                const std::string& symbol,
                                std::size_t overload);
@@ -541,6 +572,7 @@ private:
     std::ostringstream allocations_;
     std::ostringstream body_;
     value_type return_type_ = value_type::void_type;
+    value_type native_result_type_ = value_type::void_type;
     std::size_t next_value_ = 0;
     std::size_t next_slot_ = 0;
     std::size_t next_label_ = 0;

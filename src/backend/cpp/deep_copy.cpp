@@ -1,5 +1,6 @@
 #include "backend/cpp/value_abi.hpp"
 #include "backend/cpp/deep_copy.hpp"
+#include "backend/cpp/identity_table.hpp"
 
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/value_format.hpp"
@@ -354,7 +355,7 @@ private:
         }
     }
 
-    std::unordered_map<const void*, std::any> copies_;
+    identity_table<std::any> copies_;
     std::vector<std::shared_ptr<dynamic_class>> classes_;
 };
 

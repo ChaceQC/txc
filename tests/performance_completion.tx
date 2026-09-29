@@ -1,0 +1,206 @@
+import "test.txh" as test
+import "format.txh" as fmt
+import "encoding.txh" as encoding
+import "bytes.txh" as bytes
+import "serde.txh" as serde
+import "error.txh" as errors
+
+struct point
+{
+    x: int
+    y: int
+    def operator +(other: point) -> point
+    {
+        return point(self.x + other.x, self.y + other.y)
+    }
+    def operator ==(other: point) -> bool
+    {
+        return self.x == other.x && self.y == other.y
+    }
+}
+
+def measure(value: point) -> int
+{
+    return value.x + value.y
+}
+
+def measure(value: point, scale: int) -> int
+{
+    return (value.x + value.y) * scale
+}
+
+def produce(value: int) -> point
+{
+    return point(value, value + 1)
+}
+
+def alias(value: point) -> point
+{
+    return value
+}
+
+def modify(value: point)
+{
+    value.x = 99
+}
+
+def scalar_records()
+{
+    point current = point(y=2, x=1)
+    current += point(3, 4)
+    test.assert_true(current == point(4, 6))
+    test.assert_equal(10, measure(current))
+    test.assert_equal(30, measure(current, 3))
+    point returned = produce(8)
+    test.assert_equal(17, measure(returned))
+    point shared = point(1, 2)
+    point reference = alias(shared)
+    modify(reference)
+    test.assert_equal(99, shared.x)
+    bool failed = false
+    try
+    {
+        point bad = produce(9223372036854775807)
+        print(bad.x)
+    }
+    exception errors.runtime_error as failure
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+}
+
+struct pair_text serde(version=3)
+{
+    z: str serde(2, default="默认")
+    a: int serde(1)
+}
+
+struct pair_float serde(version=1)
+{
+    a: float serde(1)
+    b: bool serde(2)
+}
+
+struct references
+{
+    a: str
+    b: str
+    c: str
+    d: vector<int>
+}
+
+def serialization()
+{
+    pair_text input = pair_text("中文🌍", 7)
+    auto decoded = serde.deserialize_json<pair_text>(serde.serialize_json(input))
+    test.assert_equal(input.z, decoded.z)
+    test.assert_equal(7, decoded.a)
+    test.assert_equal("默认", serde.deserialize_json<pair_text>("{\"$schema\":3,\"a\":7}").z)
+    test.assert_equal(7, serde.deserialize_cbor<pair_text>(serde.serialize_cbor(input)).a)
+    pair_float numbers = pair_float(1.25, true)
+    auto copied = serde.deserialize_json<pair_float>(serde.serialize_json(numbers))
+    test.assert_equal(1.25, copied.a)
+    test.assert_true(copied.b)
+    bool duplicate = false
+    try
+    {
+        serde.deserialize_json<pair_text>("{\"$schema\":3,\"a\":1,\"a\":2,\"z\":\"x\"}")
+    }
+    exception errors.parse_error as failure
+    {
+        duplicate = failure.code == "duplicate_key"
+    }
+    test.assert_true(duplicate)
+    references fields = references("a", "b", "c", vector<int>([7]))
+    auto clone = deep_copy(fields)
+    clone.d[0] = 9
+    test.assert_equal(7, fields.d[0])
+    test.assert_equal("abc", clone.a + clone.b + clone.c)
+    test.assert_equal("a:b", fmt.format("{}:{}", fields.a, fields.b))
+    bytes encoded = encoding.encode(fields.a, "utf-8")
+    fields.a = "changed"
+    test.assert_equal("a", encoding.decode(encoded, "utf-8"))
+}
+
+def graph_copy()
+{
+    array leaf = [7]
+    array nodes = [leaf, leaf]
+    for i in 1..=32
+    {
+        array next = [nodes, i]
+        nodes = next
+    }
+    array copied = deep_copy(nodes)
+    for i in 1..=32
+    {
+        copied = copied[0]
+    }
+    array a = copied[0]
+    array b = copied[1]
+    a[0] = 9
+    test.assert_equal(9, b[0] as int)
+    test.assert_equal(7, leaf[0] as int)
+}
+
+def recursive_sum(value: int) -> int
+{
+    if value == 0
+    {
+        return 0
+    }
+    return value + recursive_sum(value - 1)
+}
+
+def recursive_overflow(value: int) -> int
+{
+    if value == 0
+    {
+        return 9223372036854775807
+    }
+    return value + recursive_overflow(value - 1)
+}
+
+def integer_calls()
+{
+    test.assert_equal(0, recursive_sum(0))
+    test.assert_equal(32896, recursive_sum(256))
+    test.assert_equal(33153, recursive_sum(257))
+    bool failed = false
+    try
+    {
+        recursive_overflow(1)
+    }
+    exception errors.runtime_error as failure
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+}
+
+def text_and_bytes()
+{
+    test.assert_equal("a:0007:中:true", fmt.format("a:{:04d}:{}:{}", 7, "中", true))
+    test.assert_equal("1.25", fmt.format("{:.2f}", 1.25))
+    str codec = "UTF-8"
+    bytes first = encoding.encode("中文🌍", codec)
+    bytes retained = first
+    first = encoding.encode("x", codec)
+    test.assert_equal("中文🌍", encoding.decode(retained, codec))
+    test.assert_equal("efbbbf78", bytes.to_hex(encoding.encode("x", "utf-8-sig")))
+    test.assert_equal("", encoding.decode(encoding.encode("", codec), codec))
+    str long_text = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    test.assert_equal(long_text, encoding.decode(encoding.encode(long_text, codec), codec))
+}
+
+def main() -> int
+{
+    scalar_records()
+    serialization()
+    graph_copy()
+    integer_calls()
+    text_and_bytes()
+    print("PERFORMANCE_COMPLETION_OK")
+    return test.failures()
+}

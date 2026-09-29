@@ -1,0 +1,59 @@
+{
+  "measured_at_utc": "2026-09-29T18:03:58.734753+00:00",
+  "source_and_program_sha256": {
+    "old": "aa4a68eb39150acba3e4da1c704f35b35e6667972c9697d417bfc0d16045f791",
+    "new": "b483ff377b1d20960137cfe75641fc222784d0b779c025c92812fb8eba513dc7",
+    "source": "e2abd534fb16b9f8628756ad2302e32411039f212608c56e829b5205895bcadf"
+  },
+  "paths": {
+    "old": "E:\\Project\\other\\Compilation\\tx_build\\static_borrowing\\language_old.exe",
+    "new": "E:\\Project\\other\\Compilation\\tx_build\\static_borrowing\\language_new.exe",
+    "source": "E:\\Project\\other\\Compilation\\tx_build\\static_borrowing\\language.tx"
+  },
+  "warmups": 1,
+  "rounds": 5,
+  "order_by_round": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "timing": "program internal microseconds, converted to milliseconds",
+  "results": {
+    "runtime_cast": {
+      "checksum": "800000",
+      "old_samples_ms": [
+        18.9,
+        23.019,
+        18.815,
+        16.306,
+        17.369
+      ],
+      "new_samples_ms": [
+        1.139,
+        1.144,
+        1.36,
+        1.383,
+        1.132
+      ],
+      "old_median_ms": 18.815,
+      "new_median_ms": 1.144
+    }
+  }
+}

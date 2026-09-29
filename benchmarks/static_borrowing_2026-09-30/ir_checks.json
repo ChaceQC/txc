@@ -1,0 +1,68 @@
+{
+  "bench_dictionary_keys": {
+    "old": {
+      "txrt_str_new": 6,
+      "txrt_value_clone": 0,
+      "txrt_value_to_str": 0,
+      "txrt_record_class_view": 0,
+      "txrt_dictionary_contains_literal": 0,
+      "txrt_record_str_len": 0,
+      "txrt_record_require_type": 0,
+      "txrt_gc_safepoint_context": 8
+    },
+    "new": {
+      "txrt_str_new": 4,
+      "txrt_value_clone": 0,
+      "txrt_value_to_str": 0,
+      "txrt_record_class_view": 0,
+      "txrt_dictionary_contains_literal": 2,
+      "txrt_record_str_len": 0,
+      "txrt_record_require_type": 0,
+      "txrt_gc_safepoint_context": 8
+    }
+  },
+  "bench_serde_size": {
+    "old": {
+      "txrt_str_new": 4,
+      "txrt_value_clone": 4,
+      "txrt_value_to_str": 2,
+      "txrt_record_class_view": 0,
+      "txrt_dictionary_contains_literal": 0,
+      "txrt_record_str_len": 0,
+      "txrt_record_require_type": 0,
+      "txrt_gc_safepoint_context": 10
+    },
+    "new": {
+      "txrt_str_new": 4,
+      "txrt_value_clone": 0,
+      "txrt_value_to_str": 0,
+      "txrt_record_class_view": 0,
+      "txrt_dictionary_contains_literal": 0,
+      "txrt_record_str_len": 2,
+      "txrt_record_require_type": 0,
+      "txrt_gc_safepoint_context": 10
+    }
+  },
+  "bench_runtime_cast": {
+    "old": {
+      "txrt_str_new": 1,
+      "txrt_value_clone": 2,
+      "txrt_value_to_str": 0,
+      "txrt_record_class_view": 3,
+      "txrt_dictionary_contains_literal": 0,
+      "txrt_record_str_len": 0,
+      "txrt_record_require_type": 1,
+      "txrt_gc_safepoint_context": 4
+    },
+    "new": {
+      "txrt_str_new": 1,
+      "txrt_value_clone": 0,
+      "txrt_value_to_str": 0,
+      "txrt_record_class_view": 2,
+      "txrt_dictionary_contains_literal": 0,
+      "txrt_record_str_len": 0,
+      "txrt_record_require_type": 1,
+      "txrt_gc_safepoint_context": 3
+    }
+  }
+}

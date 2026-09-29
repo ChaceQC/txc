@@ -107,6 +107,40 @@ llvm_code_generator::ir_value llvm_code_generator::read_record_field(
     return {item.type, result};
 }
 
+std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_record_string_length(
+    const expression& item)
+{
+    const auto* member = std::get_if<member_expression>(&item.data);
+    if (!member || item.type != value_type::str_type ||
+        !static_record_type(member->object->type) ||
+        !std::holds_alternative<name_reference>(member->object->data))
+    {
+        return std::nullopt;
+    }
+    bool borrowed = false;
+    const auto owner = expression_value_or_borrow(*member->object, borrowed);
+    const bool class_field = classes_.contains(owner.type.name);
+    const auto index = class_field ? *member->field_slot
+        : field_index(owner.type, member->field, item.position);
+    const auto slot = record_field_slot(owner, index);
+    const auto field = temporary();
+    write_instruction(field + " = load ptr, ptr " + slot);
+    if (class_field)
+    {
+        write_instruction("call void @txrt_record_require_initialized(ptr " + field + ")");
+    }
+    const auto output = allocate(value_type::int_type, item.position);
+    const auto status = temporary();
+    write_instruction(status + " = call i32 @txrt_record_str_len(ptr " + field +
+                      ", ptr " + output + ")");
+    write_instruction("call void @txrt_require_success(i32 " + status + ")");
+    if (!borrowed)
+    {
+        release(owner);
+    }
+    return load({value_type::int_type, output});
+}
+
 llvm_code_generator::ir_value llvm_code_generator::emit_record_constructor(
     const expression& item, const std::vector<ir_value>& arguments)
 {
@@ -146,41 +180,21 @@ llvm_code_generator::ir_value llvm_code_generator::emit_record_constructor(
 bool llvm_code_generator::emit_stack_record(const statement& item,
     const variable_declaration& declaration)
 {
-    const auto* call = declaration.initializer
-        ? std::get_if<call_expression>(&declaration.initializer->data) : nullptr;
-    if (!call || !call->is_constructor || !structs_.contains(call->name) ||
-        !static_record_type(value_type(call->name)) || !confined_local(declaration, true))
+    if (!declaration.initializer || !native_record_expression(*declaration.initializer) ||
+        !confined_local(declaration, true))
     {
         return false;
     }
-    const auto& fields = structs_.at(call->name)->fields;
-    if (call->arguments.size() != fields.size() || !std::all_of(
-        call->arguments.begin(), call->arguments.end(), [](const call_argument& argument)
-        {
-            return argument.kind == argument_kind::positional;
-        }) || !std::all_of(fields.begin(), fields.end(),
-        [](const struct_field& field)
-        {
-            return field.type == value_type::int_type || field.type == value_type::float_type ||
-                field.type == value_type::bool_type;
-        }))
+    std::vector<ir_value> owned;
+    const auto data = native_record_data(*declaration.initializer, owned);
+    for (const auto& value : owned)
     {
-        return false;
+        release(value);
     }
-    const auto data = "%slot" + std::to_string(next_slot_++);
-    allocations_ << "  " << data << " = alloca [" << fields.size() << " x i64], align 8\n";
-    for (std::size_t index = 0; index < call->arguments.size(); ++index)
-    {
-        const auto value = expression_value(*call->arguments[index].value);
-        const auto address = temporary();
-        write_instruction(address + " = getelementptr inbounds i64, ptr " + data +
-                          ", i64 " + std::to_string(index));
-        write_instruction("store " + llvm_type(value.type, item.position) + " " + value.text +
-                          ", ptr " + address);
-    }
-    variable_slot slot{value_type(call->name), data, true};
+    variable_slot slot{declaration.initializer->type, data, true};
     slot.stack_record = data;
     scopes_.back().emplace(declaration.name, std::move(slot));
+    (void)item;
     return true;
 }
 
