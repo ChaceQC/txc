@@ -506,6 +506,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
                 "LLVM 后端的 move 目标必须是简单变量名");
         }
         const auto variable = find_variable(name->name, source.position);
+        materialize_native_parse(variable);
         const auto value = temporary();
         write_instruction(value + " = load ptr, ptr " + variable.address);
         write_instruction("store ptr null, ptr " + variable.address);

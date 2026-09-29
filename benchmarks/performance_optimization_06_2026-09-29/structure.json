@@ -1,0 +1,16 @@
+{
+  "target": "x86_64-w64-windows-gnu",
+  "optimization": "-O3",
+  "behavior": "PARSE_SCALAR_OK",
+  "native": "PARSE_CORE_OK",
+  "local_ok_calls": [
+    "txrt_add_i64",
+    "txrt_parse_int_scalar",
+    "txrt_require_success",
+    "txrt_stack_error_location",
+    "txrt_sub_i64",
+    "txrt_vector_index_error",
+    "txrt_vector_ref_str"
+  ],
+  "full_result_materializes": true
+}

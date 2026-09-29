@@ -43,6 +43,9 @@ private:
         std::string dynamic_array_length;
         std::string dict_reference;
         std::string native_option_value;
+        std::string native_parse_ok;
+        std::string native_parse_value;
+        std::string native_parse_error;
         std::string vector_reference;
 
         variable_slot(value_type value_type, std::string value_address,
@@ -106,7 +109,7 @@ private:
                                           std::string_view field,
                                           source_pos position) const;
     [[nodiscard]] std::string scalar_field_address(
-        const expression& item);
+        const expression& item, bool read_only = false);
     [[nodiscard]] bool direct_scalar_field(
         const expression& item) const;
     [[nodiscard]] ir_value load(const variable_slot& variable);
@@ -190,6 +193,16 @@ private:
     void write_sum_declarations();
     void write_iterator_declarations();
     [[nodiscard]] static const char* scalar_option_suffix(const value_type& type);
+    [[nodiscard]] const call_expression* native_parse_initializer(
+        const variable_declaration& declaration) const;
+    [[nodiscard]] bool is_parse_result_type(const value_type& type) const;
+    [[nodiscard]] bool gc_neutral_native_parse_declaration(
+        const call_expression& call);
+    [[nodiscard]] bool emit_native_parse_declaration(
+        const statement& item, const variable_declaration& declaration);
+    void materialize_native_parse(const variable_slot& variable);
+    [[nodiscard]] std::string native_parse_field_address(
+        const variable_slot& variable, const expression& item);
     [[nodiscard]] bool emit_native_option_declaration(
         const statement& item, const variable_declaration& declaration);
     [[nodiscard]] std::optional<ir_value> emit_native_option_method(

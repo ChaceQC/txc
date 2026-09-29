@@ -60,11 +60,17 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
             return false;
         }
         // 作为普通值读取局部标量 option 时会在逃逸边界生成句柄。
-        return !item.type.is_option() ||
-            !scalar_option_suffix(item.type.parameters.front());
+        return !is_parse_result_type(item.type) && (!item.type.is_option() ||
+            !scalar_option_suffix(item.type.parameters.front()));
     }
     if (const auto* member = std::get_if<member_expression>(&item.data))
     {
+        if (is_parse_result_type(member->object->type) &&
+            std::holds_alternative<name_reference>(member->object->data) &&
+            (member->field == "ok" || member->field == "value"))
+        {
+            return true;
+        }
         return !is_value_handle(item.type) && item.type != value_type::str_type &&
             gc_neutral_expression(*member->object);
     }
@@ -86,6 +92,11 @@ bool llvm_code_generator::gc_neutral_expression(const expression& item)
     }
     if (const auto* update = std::get_if<update_expression>(&item.data))
     {
+        if (const auto* member = std::get_if<member_expression>(&update->target->data);
+            member && is_parse_result_type(member->object->type))
+        {
+            return false;
+        }
         if (const auto* index = std::get_if<index_expression>(&update->target->data);
             index && (index->object->type.is_typed_container() ||
                       index->object->type.is_vector()))
@@ -240,6 +251,10 @@ bool llvm_code_generator::gc_neutral_statement(const statement& item)
     if (const auto* declaration =
             std::get_if<variable_declaration>(&item.data))
     {
+        if (const auto* call = native_parse_initializer(*declaration))
+        {
+            return gc_neutral_native_parse_declaration(*call);
+        }
         if (gc_neutral_native_option_declaration(*declaration))
         {
             return true;
@@ -250,6 +265,11 @@ bool llvm_code_generator::gc_neutral_statement(const statement& item)
     if (const auto* assignment =
             std::get_if<variable_assignment>(&item.data))
     {
+        if (const auto* member = std::get_if<member_expression>(&assignment->target->data);
+            member && is_parse_result_type(member->object->type))
+        {
+            return false;
+        }
         if (const auto* index = std::get_if<index_expression>(&assignment->target->data);
             index && (index->object->type.is_typed_container() ||
                       index->object->type.is_vector()) &&

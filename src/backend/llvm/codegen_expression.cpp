@@ -285,7 +285,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     {
         if (direct_scalar_field(item))
         {
-            return load({item.type, scalar_field_address(item)});
+            return load({item.type, scalar_field_address(item, true)});
         }
         ir_value object{value_type::void_type, {}};
         bool borrowed_object = false;
@@ -295,6 +295,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
                                                 access->object->position);
             if (is_value_handle(variable.type))
             {
+                materialize_native_parse(variable);
                 const auto handle = temporary();
                 write_instruction(handle + " = load ptr, ptr " + variable.address);
                 object = {variable.type, handle};

@@ -187,7 +187,7 @@ file(GLOB _tx_abi_files CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/backend/cpp/*.hpp"
     "${CMAKE_SOURCE_DIR}/src/backend/llvm/*.cpp")
 list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hpp"
-    "src/common/text_encoding.hpp")
+    "src/common/text_encoding.hpp" "src/stdlib/parse.hpp")
 list(SORT _tx_interface_files)
 list(SORT _tx_abi_files)
 set(TX_INTERFACE_COUNT 0)
@@ -262,6 +262,7 @@ add_executable(txc
     src/backend/llvm/codegen_vector_calls.cpp
     src/backend/llvm/codegen_sum.cpp
     src/backend/llvm/codegen_native_option.cpp
+    src/backend/llvm/codegen_native_parse.cpp
     src/backend/llvm/codegen_iterator.cpp
     src/backend/llvm/codegen_closure.cpp
     src/backend/llvm/codegen_vector_statement.cpp

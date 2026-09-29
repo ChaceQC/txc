@@ -1,0 +1,65 @@
+import "parse.txh" as parse
+import "time.txh" as time
+import "format.txh" as fmt
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - started)
+    print(checksum)
+}
+
+def local_ok(inputs: vector<str>, count: int) -> int
+{
+    int checksum = 0
+    for index in 0..=count - 1
+    {
+        auto parsed = parse.try_parse_int(inputs[index % 1000], 10)
+        if parsed.ok
+        {
+            checksum += 1
+        }
+    }
+    return checksum
+}
+
+def full_result(inputs: vector<str>, count: int) -> int
+{
+    int checksum = 0
+    for index in 0..=count - 1
+    {
+        auto parsed = parse.try_parse_int(inputs[index % 1000], 10)
+        auto error = parsed.error
+        if parsed.ok
+        {
+            checksum += 1
+        }
+        checksum += len(error.kind) + len(error.code) + len(error.message)
+    }
+    return checksum
+}
+
+def main() -> int
+{
+    auto valid = vector<str>()
+    auto invalid = vector<str>()
+    for index in 0..=999
+    {
+        str text = fmt.format("{}", index)
+        valid.push_back(text)
+        invalid.push_back(text + "x")
+    }
+    int started = time.monotonic_micros()
+    int checksum = local_ok(valid, 100000)
+    report("local_valid", started, checksum)
+    started = time.monotonic_micros()
+    checksum = local_ok(invalid, 100000)
+    report("local_invalid", started, checksum)
+    started = time.monotonic_micros()
+    checksum = full_result(valid, 100000)
+    report("full_valid", started, checksum)
+    started = time.monotonic_micros()
+    checksum = full_result(invalid, 100000)
+    report("full_invalid", started, checksum)
+    return 0
+}

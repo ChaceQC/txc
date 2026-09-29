@@ -5,6 +5,15 @@
 extern "C"
 {
 
+int txrt_parse_int_scalar(const void* text, std::int64_t base,
+    bool* ok, std::int64_t* value, std::int64_t* error) noexcept;
+int txrt_parse_float_scalar(const void* text,
+    bool* ok, double* value, std::int64_t* error) noexcept;
+int txrt_parse_materialize_int(bool ok, std::int64_t value, std::int64_t error,
+    const char* result_type, const char* error_type, void** result) noexcept;
+int txrt_parse_materialize_float(bool ok, double value, std::int64_t error,
+    const char* result_type, const char* error_type, void** result) noexcept;
+
 int txrt_parse_try_parse_int(const void* text, std::int64_t base,
     const char* result_type, const char* error_type, void** result) noexcept;
 int txrt_parse_try_parse_float(const void* text,

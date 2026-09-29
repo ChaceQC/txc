@@ -185,6 +185,7 @@ std::size_t llvm_code_generator::field_index(const value_type& type,
 llvm_code_generator::ir_value llvm_code_generator::load(
     const variable_slot& variable)
 {
+    materialize_native_parse(variable);
     if (!variable.native_option_value.empty())
     {
         return load_native_option(variable);
@@ -286,6 +287,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value_or_borrow(
                  item.type == value_type::str_type))
     {
         const auto variable = find_variable(name->name, item.position);
+        materialize_native_parse(variable);
         if (!variable.snapshot_kind.empty() ||
             !variable.native_option_value.empty())
         {
@@ -319,6 +321,21 @@ void llvm_code_generator::release(const ir_value& value)
 
 void llvm_code_generator::release_slot(const variable_slot& variable)
 {
+    if (!variable.native_parse_ok.empty())
+    {
+        const auto held = temporary();
+        const auto present = temporary();
+        const auto destroy = label();
+        const auto ready = label();
+        write_instruction(held + " = load ptr, ptr " + variable.address);
+        write_instruction(present + " = icmp ne ptr " + held + ", null");
+        write_instruction("br i1 " + present + ", label %" + destroy + ", label %" + ready);
+        start_block(destroy);
+        release({variable.type, held});
+        write_instruction("br label %" + ready);
+        start_block(ready);
+        return;
+    }
     if (!variable.native_option_value.empty())
     {
         return;

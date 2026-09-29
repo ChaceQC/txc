@@ -31,7 +31,8 @@ void llvm_code_generator::emit_declaration(
         emit_local_array_declaration(item, declaration, *length);
         return;
     }
-    if (emit_native_option_declaration(item, declaration))
+    if (emit_native_parse_declaration(item, declaration) ||
+        emit_native_option_declaration(item, declaration))
     {
         return;
     }

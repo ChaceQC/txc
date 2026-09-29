@@ -217,6 +217,7 @@ std::string llvm_code_generator::lvalue_address(
         {
             throw compile_error(item.position, "字段或索引需要复合类型变量");
         }
+        materialize_native_parse(variable);
         const auto result = temporary();
         write_instruction(result + " = load ptr, ptr " + variable.address);
         return result;

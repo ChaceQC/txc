@@ -10,6 +10,10 @@
 
 具体结果为 `int_result`、`float_result`、`str_result`、`bool_result`，字段依次为 `bool ok`、对应静态类型的 `value`、`error_info error`。成功时 error 的三个字符串均为空；失败时 value 分别为 `0`、`0.0`、`""`、`false`，调用方应先检查 ok。成功的空文本与失败可以明确区分，不使用 none 代替失败。
 
+结果及其错误对象仍是普通共享结构体，`ok/value/error` 和错误字符串均可按原规则修改；修改 `ok` 不会自动修改 `value` 或清除 `error`。例如 `auto alias = parsed` 后，`alias.value = 7` 必须能通过 `parsed.value` 观察。
+
+编译器可将直接位置实参调用 `try_parse_int/try_parse_float` 初始化的局部结果暂存为标量值与错误描述。仅读取 `ok/value` 时不构造动态结果或错误对象；读取 `error`、写字段、建立别名、装箱、传参或返回时，先物化同一个普通结构体，后续访问和异常分支合流使用该对象。命名/展开实参和其他不能直接分析的初始化继续使用完整结果路径；这不改变公开返回类型及错误字符串。
+
 `error.fail_io(code: str, message: str) -> void` 供 `.tx` 编写的标准库网络包装层报告可恢复的 I/O 错误；调用后进入 `io_error` 路径，调用方可按 `code` 分支处理。它不返回正常值，也不替代 `try`/`exception` 的捕获规则。
 
 运行时首次记录错误时保存当前 TX 调用栈及最近执行的语句位置。`error.stack_trace() -> str` 返回按调用顺序排列的 `函数 (文件:行:列)` 文本；在 `exception` 分支取走错误后仍可读取该次快照，下一次错误会覆盖。无错误时返回空文本。栈记录不包含实参值、文件内容或秘密正文；未捕获错误会在原中文信息后附上该栈。重新抛出的清理错误不会覆盖正在传播的原错误与原栈。
@@ -30,6 +34,7 @@
 - 两端仅忽略 ASCII 空白（空格、制表、换行、回车、垂直制表、换页）。必须消费完整文本，不能部分解析。
 - 整数范围为有符号 64 位，包括最小负值；float 接受十进制小数和科学计数法，必须为有限 double，不接受 NaN、Infinity 或十六进制浮点数。
 - 空文本、非法语法、越界、非法进制分别返回 `empty_input`、`invalid_syntax`、`out_of_range`、`invalid_base`；浮点非有限值返回 `non_finite`，类别均为 `parse_error`。
+- 整数先检查进制，再检查空文本及数字；即使前面的数字已经溢出，后续非法字符仍优先报告 `invalid_syntax`。仅当全部字符有效且数值越界时报告 `out_of_range`。
 - `try_parse_*` 对这些输入失败返回结果；`parse_*` 对相同失败进入可捕获错误路径。分配失败等运行时故障仍按运行时错误处理。
 - 现有 `str as int/float` 保留转换与报错文本约定，转换失败归入 `parse_error`，可以捕获。
 

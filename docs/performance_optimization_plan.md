@@ -2,7 +2,7 @@
 
 日期：2026-09-29。
 
-状态：原始分析与方案记录时尚未实施任何项。2026-09-29 已完成第 01 项的基线归档和定向校准，验收见[记录](../benchmarks/performance_baseline_2026-09-29/README.md)；02.1～02.4 已实施，02.5 评估后暂不分区，但 map 对照存在回退，整项性能验收尚未通过，见[02 记录](../benchmarks/performance_optimization_02_2026-09-29/README.md)；03 已实施并完成定向验收，见[03 记录](../benchmarks/performance_optimization_03_2026-09-29/README.md)；04 已实施并完成定向结构与行为验收，格式化负载尚无稳定整体收益，见[04 记录](../benchmarks/performance_optimization_04_2026-09-29/README.md)；05 已实施并完成定向验收，见[05 记录](../benchmarks/performance_optimization_05_2026-09-29/README.md)；06～16 仍待实施。01 没有修改编译器、运行时、标准库或发布工具链产物。
+状态：原始分析与方案记录时尚未实施任何项。2026-09-29 已完成第 01 项的基线归档和定向校准，验收见[记录](../benchmarks/performance_baseline_2026-09-29/README.md)；02.1～02.4 已实施，02.5 评估后暂不分区，但 map 对照存在回退，整项性能验收尚未通过，见[02 记录](../benchmarks/performance_optimization_02_2026-09-29/README.md)；03 已实施并完成定向验收，见[03 记录](../benchmarks/performance_optimization_03_2026-09-29/README.md)；04 已实施并完成定向结构与行为验收，格式化负载尚无稳定整体收益，见[04 记录](../benchmarks/performance_optimization_04_2026-09-29/README.md)；05 已实施并完成定向验收，见[05 记录](../benchmarks/performance_optimization_05_2026-09-29/README.md)；06 已实施并完成定向验收，见[06 记录](../benchmarks/performance_optimization_06_2026-09-29/README.md)；07～16 仍待实施。01 没有修改编译器、运行时、标准库或发布工具链产物。
 
 ## 1. 目标、依据与适用范围
 
@@ -119,7 +119,7 @@
 - 不整体关闭 GC、溢出检查或诊断栈，不默认启用 fast-math，不改变随机数序列。
 - 新实现按语义分析、LLVM 生成、运行时和标准库职责拆分；不把全部逻辑加入一个通用源文件。
 - C ABI、布局或类型描述改变时，检查兼容指纹覆盖范围，整体重建编译器、静态库和三个预编译 TX 桥接对象，再核对包兼容性。
-- 下列“验收”按各项实际实施时间执行并记录；01 的定向验收已另附记录，02～16 尚未执行。
+- 下列“验收”按各项实际实施时间执行并记录；01～06 的实际状态和限制见各项记录，07～16 尚未执行。
 
 ### 3.2 本计划的阶段
 
@@ -209,13 +209,15 @@
 
 涉及文件：[parse.txh](../tx/stdlib/parse.txh)、[error.txh](../tx/stdlib/error.txh)、[parse_abi.cpp](../src/backend/cpp/parse_abi.cpp)、[error_result.hpp](../src/backend/cpp/error_result.hpp)、[error_abi.cpp](../src/backend/cpp/error_abi.cpp)、[parse.cpp](../src/stdlib/parse.cpp)、[表达式值生成](../src/backend/llvm/codegen_expression_values.cpp)、[局部 option 实现参考](../src/backend/llvm/codegen_native_option.cpp)。
 
-- [ ] **06.1 固定公开契约。** try_parse_int 返回 errors.int_result，字段为可按原规则访问的 ok/value/error；不更换返回类型，不要求用户迁移为内置 result<int>。成功值、失败默认值、错误 kind/code/message 以及可修改字段均需保留。
-- [ ] **06.2 新增轻量内部返回。** 解析核心通过类型明确的结果保存成功标记、标量值和可延迟展开的错误描述。对不会逃逸的局部结果，以栈槽/SSA 保存；只有读取完整错误、产生共享别名、进入 any、传给未知调用或跨原有 ABI 时才物化原结构。
-- [ ] **06.3 处理可写字段和别名。** 首批只接受用途能完整分析的局部结果。字段写入、别名赋值和异常路径合流必须维持一致表示；无法证明时退回完整结构。不能只优化 .ok 读取而使之后的 .value/.error 或字段修改失效。
-- [ ] **06.4 让错误信息延迟构造。** 成功路径不分配空 error_info；失败路径先保存与原契约一致的描述，观察错误字段时再生成字符串及对象。省掉本身不会产生用户副作用的临时构造，仍保留发生错误时的源码位置、类别与优先级。
-- [ ] **06.5 优化数字扫描。** 借用输入视图；将溢出界限分解为预先计算的 cutoff/cutlim，避免逐字符除法。常量十进制可走专门核心；溢出后仍完成必要的非法字符判断，保留最小负数、前后空白、正号及 2～36 进制规则。
+- [x] **06.1 固定公开契约。** try_parse_int 返回 errors.int_result，字段为可按原规则访问的 ok/value/error；不更换返回类型，不要求用户迁移为内置 result<int>。成功值、失败默认值、错误 kind/code/message 以及可修改字段均需保留。
+- [x] **06.2 新增轻量内部返回。** 解析核心通过类型明确的结果保存成功标记、标量值和可延迟展开的错误描述。对不会逃逸的局部结果，以栈槽/SSA 保存；只有读取完整错误、产生共享别名、进入 any、传给未知调用或跨原有 ABI 时才物化原结构。
+- [x] **06.3 处理可写字段和别名。** 首批只接受用途能完整分析的局部结果。字段写入、别名赋值和异常路径合流必须维持一致表示；无法证明时退回完整结构。不能只优化 .ok 读取而使之后的 .value/.error 或字段修改失效。
+- [x] **06.4 让错误信息延迟构造。** 成功路径不分配空 error_info；失败路径先保存与原契约一致的描述，观察错误字段时再生成字符串及对象。省掉本身不会产生用户副作用的临时构造，仍保留发生错误时的源码位置、类别与优先级。
+- [x] **06.5 优化数字扫描。** 借用输入视图；将溢出界限分解为预先计算的 cutoff/cutlim，避免逐字符除法。常量十进制可走专门核心；溢出后仍完成必要的非法字符判断，保留最小负数、前后空白、正号及 2～36 进制规则。
 
 完成判据：本地只检查 .ok 的成功循环不创建 result/error_info 动态对象、不为结果登记 GC、不复制输入文本。失败仅检查 .ok 时也不构造不被观察的完整错误对象；读取、修改或传递完整结果的原用法行为不变。分别报告解析核心与公开接口结果，不能把 C++ 简化对照直接视为完整契约目标。
+
+06 的内部表示、物化边界、行为/IR 检查与解析核心、公开接口的独立采样见[验收记录](../benchmarks/performance_optimization_06_2026-09-29/README.md)。首批优化直接位置实参初始化的 int/float 局部结果；字段写入即物化，命名/展开实参保持原路径。整数使用通用 cutoff/cutlim 核心，未额外引入十进制专用实现。
 
 ### 07. 格式化直接写入与静态计划融合
 
@@ -352,7 +354,7 @@
 | --- | --- | --- | --- |
 | 02～03 GC 与属性 | [runtime_context 检查](../scripts/check_runtime_context.py)、[借用检查](../scripts/check_call_borrowing.py)、[复活示例](../examples/cycle_resurrection.tx) | 已有待传播错误、阈值、借用失效、deinit 复活、worker/join | call_borrowing，map 索引对照 |
 | 04～05 句柄与文本 | [跨线程文本](../tests/stdlib/send_sync_text.tx)、[线程生命周期](../tests/stdlib/thread_lifecycle.tx)、[并发错误](../scripts/check_concurrency_errors.py) | 根/内部引用、跨线程释放、错误退出、短长文本 | string_conversion、format、mini-filesystem |
-| 06 解析结果 | [解析错误检查](../scripts/check_parse_errors.py)、[解析用例](../tests/stdlib/parse_errors.tx) | 成功也可读取 error、字段修改、别名、INT64_MIN、混合非法与溢出 | parse_valid / parse_invalid，parse_int |
+| 06 解析结果 | [局部结果检查](../scripts/check_parse_scalar.py)、[解析错误检查](../scripts/check_parse_errors.py)、[解析用例](../tests/stdlib/parse_errors.tx) | 成功也可读取 error、字段修改、别名、INT64_MIN、混合非法与溢出 | [局部/完整结果与核心采样](../benchmarks/performance_optimization_06_2026-09-29/README.md) |
 | 07 格式化 | [静态运行时检查](../scripts/check_static_runtime.py)、[静态运行时用例](../tests/containers/static_runtime.tx) | 实参顺序、模板错误、Unicode 宽度、缓存并发重入 | format_literal / format_dynamic |
 | 08 serde | [行为](../tests/serde/behavior.tx)、[跨模块](../tests/serde/module.tx)、[迁移](../tests/formats/serde_migration.tx) | 重复/未知字段、版本、默认值、嵌套限额、失败清理 | serde_short_text / serde_long_text，serde_json |
 | 09 对象布局 | [类示例](../examples/advanced_classes.tx)、[跨模块类](../examples/advanced_class_module/main.tx)、[内存示例](../examples/memory_management.tx) | 别名、多继承、初始化、动态恢复、析构与复活 | struct_operators / class_methods / module_call / runtime_cast / deinit |
@@ -374,7 +376,7 @@
 
 ## 6. 状态与交接
 
-当前已完成 01 的归档、校准和定向验收；02.1～02.4 已实施且 02.5 完成条件性评估，但 02 的 map 性能观察仍待定位；03 已完成定向验收；04 已完成定向结构与行为验收，格式化负载尚无稳定整体收益；05 已完成定向验收；06～16 仍按前置条件推进。复选框表示各小点实施状态，整项验收还须满足其完成判据。
+当前已完成 01 的归档、校准和定向验收；02.1～02.4 已实施且 02.5 完成条件性评估，但 02 的 map 性能观察仍待定位；03 已完成定向验收；04 已完成定向结构与行为验收，格式化负载尚无稳定整体收益；05、06 已完成定向验收；07～16 仍按前置条件推进。复选框表示各小点实施状态，整项验收还须满足其完成判据。
 
 | 修改项 | 优先级 | 主要前置 | 当前状态 |
 | --- | --- | --- | --- |
@@ -383,7 +385,7 @@
 | 03 调用效果统一 | P0 | 01；结合 02 | 已完成定向验收；等价 C++ 对照缺失 |
 | 04 值句柄去无用锁 | P0 | 01 | 已完成定向结构与行为验收；格式化负载未见稳定整体收益 |
 | 05 文本共享与借用 | P1 | 03、04 | 已完成定向验收；剩余热点交由 06～08 |
-| 06 解析结果与核心 | P1 | 03～05；首批可用局部专用表示 | 待实施 |
+| 06 解析结果与核心 | P1 | 03～05；首批可用局部专用表示 | 已完成局部结构与行为验收；完整成功路径本轮回退 11.05%，见采样记录 |
 | 07 格式化 | P1 | 03～05 | 待实施 |
 | 08 serde | P1 | 02～05；与 09 对接字段访问 | 待实施 |
 | 09 静态对象布局 | P1 | 03、04，明确布局契约 | 待实施 |

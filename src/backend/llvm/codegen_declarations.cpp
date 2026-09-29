@@ -72,6 +72,10 @@ void llvm_code_generator::write_external_declarations()
     write_sync_declarations();
     write_channel_declarations();
     module_ << "declare i32 @txrt_parse_try_parse_int(ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_int_scalar(ptr, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_float_scalar(ptr, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_materialize_int(i1, i64, i64, ptr, ptr, ptr)\n"
+            << "declare i32 @txrt_parse_materialize_float(i1, double, i64, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_call_needs_default(ptr, ptr, i64, ptr, ptr)\n"
             << "declare i32 @txrt_parse_try_parse_float(ptr, ptr, ptr, ptr)\n"
             << "declare i32 @txrt_parse_parse_int(ptr, i64, ptr)\n"

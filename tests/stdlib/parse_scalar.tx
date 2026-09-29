@@ -1,0 +1,169 @@
+import "parse.txh" as parse
+import "error.txh" as errors
+
+def expect(condition: bool, label: str)
+{
+    if !condition
+    {
+        print("FAIL", label)
+        print(1 / 0)
+    }
+}
+
+def change(value: errors.int_result) -> int
+{
+    value.ok = false
+    value.value = 71
+    value.error.code = "changed"
+    return 3
+}
+
+def returned(text: str) -> errors.int_result
+{
+    auto value = parse.try_parse_int(text)
+    return value
+}
+
+def replace_input(values: vector<str>) -> int
+{
+    values[0] = "not a number"
+    return 10
+}
+
+def branch_alias(enabled: bool)
+{
+    auto parsed = parse.try_parse_int("17")
+    if enabled
+    {
+        auto alias = parsed
+        alias.value = 23
+    }
+    int expected = 17
+    if enabled
+    {
+        expected = 23
+    }
+    expect(parsed.ok && parsed.value == expected, "branch alias")
+}
+
+def aliases_and_writes()
+{
+    auto parsed = parse.try_parse_int("17")
+    parsed.value += 2
+    expect(parsed.value == 19, "scalar write")
+    auto alias = parsed
+    alias.value++
+    expect(parsed.value == 20, "alias write")
+    parsed.ok = false
+    expect(!alias.ok && alias.error.kind == "", "independent ok")
+    parsed = parse.try_parse_int("bad")
+    expect(!parsed.ok && parsed.value == 0 && alias.value == 20, "rebind")
+    auto error_alias = parsed.error
+    error_alias.message = "kept"
+    expect(parsed.error.message == "kept", "error alias")
+    parsed.error = errors.error_info("custom", "replacement", "message")
+    expect(parsed.error.code == "replacement" && error_alias.message == "kept", "replace error")
+
+    auto boxed_source = parse.try_parse_int("31")
+    array boxes = [boxed_source]
+    any boxed = boxes[0]
+    auto recovered = boxed as errors.int_result
+    recovered.value = 37
+    expect(boxed_source.value == 37, "any identity")
+    auto passed = parse.try_parse_int("41")
+    passed.value += change(passed)
+    expect(!passed.ok && passed.value == 74 && passed.error.code == "changed", "call then write")
+    auto container_source = parse.try_parse_int("43")
+    auto values = vector<errors.int_result>()
+    values.push_back(container_source)
+    values[0].value = 47
+    expect(container_source.value == 47, "container identity")
+    auto callback_source = parse.try_parse_int("51")
+    auto callback = bind(change, callback_source)
+    expect(callback() == 3 && callback_source.value == 71, "closure identity")
+    auto result = returned("53")
+    expect(result.ok && result.value == 53, "returned result")
+}
+
+def exception_join(enabled: bool)
+{
+    auto parsed = parse.try_parse_int("61")
+    try
+    {
+        if enabled
+        {
+            change(parsed)
+        }
+        print(parse.parse_int("invalid"))
+    }
+    exception errors.parse_error as e
+    {
+        if enabled
+        {
+            expect(!parsed.ok && parsed.value == 71, "materialized catch")
+        }
+        else
+        {
+            expect(parsed.ok && parsed.value == 61, "scalar catch")
+        }
+        expect(e.code == "invalid_syntax", "error preserved")
+    }
+    parsed.value = 79
+    expect(parsed.value == 79, "write after join")
+}
+
+def boundaries()
+{
+    auto inputs = vector<str>(["97"])
+    auto held = parse.try_parse_int(inputs[0], replace_input(inputs))
+    expect(held.ok && held.value == 97 && inputs[0] == "not a number", "input lifetime")
+    auto overflow = parse.try_parse_int("9223372036854775808999x")
+    expect(!overflow.ok && overflow.value == 0, "overflow syntax status")
+    expect(overflow.error.code == "invalid_syntax", "overflow syntax priority")
+    auto low_base = parse.try_parse_int("", 1)
+    expect(low_base.error.code == "invalid_base", "base priority")
+    auto sign = parse.try_parse_int("+")
+    expect(sign.error.message == "整数符号后需要数字", "sign message")
+    auto empty = parse.try_parse_int(" ")
+    expect(empty.error.message == "整数解析文本不能为空", "empty message")
+    auto success = parse.try_parse_int("+9223372036854775807")
+    expect(success.ok && success.value == 9223372036854775807, "maximum")
+    expect(success.error.kind == "" && success.error.code == "" && success.error.message == "", "empty error")
+    auto minimum = parse.try_parse_int(" -8000000000000000 ", 16)
+    expect(minimum.ok && minimum.value == -9223372036854775808, "minimum")
+    auto named = parse.try_parse_int(base=16, text="ff")
+    auto spread = parse.try_parse_float(*["1.5"])
+    expect(named.value == 255 && spread.value == 1.5, "fallback binding")
+    auto floating = parse.try_parse_float("+1.25e2")
+    expect(floating.ok && floating.value == 125.0, "float scalar")
+    auto float_alias = floating
+    float_alias.value = 3.5
+    expect(floating.value == 3.5 && floating.error.kind == "", "float alias")
+    auto invalid_float = parse.try_parse_float("nan")
+    expect(!invalid_float.ok && invalid_float.value == 0.0, "float failure")
+    expect(invalid_float.error.code == "non_finite", "float error")
+    for index in 0..=2
+    {
+        auto local = parse.try_parse_int("83")
+        if index == 1
+        {
+            local.value = 89
+        }
+        else
+        {
+            expect(local.value == 83, "loop reset")
+        }
+    }
+}
+
+def main() -> int
+{
+    boundaries()
+    aliases_and_writes()
+    branch_alias(false)
+    branch_alias(true)
+    exception_join(false)
+    exception_join(true)
+    print("PARSE_SCALAR_OK")
+    return 0
+}

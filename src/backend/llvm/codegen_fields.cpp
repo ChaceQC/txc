@@ -20,11 +20,19 @@ bool llvm_code_generator::direct_scalar_field(const expression& item) const
 }
 
 std::string llvm_code_generator::scalar_field_address(
-    const expression& item)
+    const expression& item, bool read_only)
 {
     const auto& member = std::get<member_expression>(item.data);
     const auto& name = std::get<name_reference>(member.object->data);
     const auto variable = find_variable(name.name, item.position);
+    if (!variable.native_parse_ok.empty())
+    {
+        if (read_only)
+        {
+            return native_parse_field_address(variable, item);
+        }
+        materialize_native_parse(variable);
+    }
     const bool class_field = classes_.contains(member.object->type.name);
     const auto slot = class_field ? *member.field_slot :
         field_index(member.object->type, member.field, item.position);
