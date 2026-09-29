@@ -2,7 +2,7 @@
 
 日期：2026-09-29。
 
-状态：原始分析与方案记录时尚未实施任何项。2026-09-29 已完成第 01 项的基线归档和定向校准，验收见[记录](../benchmarks/performance_baseline_2026-09-29/README.md)；02.1～02.4 已实施，02.5 评估后暂不分区，但 map 对照存在回退，整项性能验收尚未通过，见[02 记录](../benchmarks/performance_optimization_02_2026-09-29/README.md)；03 已实施并完成定向验收，见[03 记录](../benchmarks/performance_optimization_03_2026-09-29/README.md)；04 已实施并完成定向结构与行为验收，格式化负载尚无稳定整体收益，见[04 记录](../benchmarks/performance_optimization_04_2026-09-29/README.md)；05 已实施并完成定向验收，见[05 记录](../benchmarks/performance_optimization_05_2026-09-29/README.md)；06 已实施并完成定向验收，见[06 记录](../benchmarks/performance_optimization_06_2026-09-29/README.md)；07 已实施并完成定向验收，动态模板整体收益较小，见[07 记录](../benchmarks/performance_optimization_07_2026-09-29/README.md)；08～16 仍待实施。01 没有修改编译器、运行时、标准库或发布工具链产物。
+状态：原始分析与方案记录时尚未实施任何项。2026-09-29 已完成第 01 项的基线归档和定向校准，验收见[记录](../benchmarks/performance_baseline_2026-09-29/README.md)；02.1～02.4 已实施，02.5 评估后暂不分区，但 map 对照存在回退，整项性能验收尚未通过，见[02 记录](../benchmarks/performance_optimization_02_2026-09-29/README.md)；03 已实施并完成定向验收，见[03 记录](../benchmarks/performance_optimization_03_2026-09-29/README.md)；04 已实施并完成定向结构与行为验收，格式化负载尚无稳定整体收益，见[04 记录](../benchmarks/performance_optimization_04_2026-09-29/README.md)；05 已实施并完成定向验收，见[05 记录](../benchmarks/performance_optimization_05_2026-09-29/README.md)；06 已实施并完成定向验收，见[06 记录](../benchmarks/performance_optimization_06_2026-09-29/README.md)；07 已实施并完成定向验收，动态模板整体收益较小，见[07 记录](../benchmarks/performance_optimization_07_2026-09-29/README.md)；08 已实施并完成定向验收，见[08 记录](../benchmarks/performance_optimization_08_2026-09-29/README.md)；09～16 仍待实施。01 没有修改编译器、运行时、标准库或发布工具链产物。
 
 ## 1. 目标、依据与适用范围
 
@@ -119,7 +119,7 @@
 - 不整体关闭 GC、溢出检查或诊断栈，不默认启用 fast-math，不改变随机数序列。
 - 新实现按语义分析、LLVM 生成、运行时和标准库职责拆分；不把全部逻辑加入一个通用源文件。
 - C ABI、布局或类型描述改变时，检查兼容指纹覆盖范围，整体重建编译器、静态库和三个预编译 TX 桥接对象，再核对包兼容性。
-- 下列“验收”按各项实际实施时间执行并记录；01～07 的实际状态和限制见各项记录，08～16 尚未执行。
+- 下列“验收”按各项实际实施时间执行并记录；01～08 的实际状态和限制见各项记录，09～16 尚未执行。
 
 ### 3.2 本计划的阶段
 
@@ -237,13 +237,15 @@
 
 涉及文件：[codegen_serde.cpp](../src/backend/llvm/codegen_serde.cpp)、[serde.hpp](../src/stdlib/serde.hpp)、[serde.cpp](../src/stdlib/serde.cpp)、[serde_value.cpp](../src/stdlib/serde_value.cpp)、[serde_schema.cpp](../src/stdlib/serde_schema.cpp)、[serde_abi.cpp](../src/backend/cpp/serde_abi.cpp)、[JSON 解析器](../src/stdlib/json_parser.cpp)、[JSON 流接口](../src/backend/cpp/json_stream_abi.cpp)。
 
-- [ ] **08.1 复用静态 schema。** 当前 schema 已由编译器生成，不再做一轮“缓存 schema JSON”的优化。为现有描述补充必要的字段访问、写入和解码入口，字段名、类型、版本、默认值和未知字段策略均在编译期绑定。
-- [ ] **08.2 直接序列化字段。** 从实际结构体字段读取静态类型值，直接写 JSON/CBOR builder，不先转成 tx_dict。沿用既有数字、转义、字段输出顺序和版本字段约定；保留环检测及深度、大小限制。
-- [ ] **08.3 直接解析到临时字段槽。** 复用解析器词法/值读取能力，按字段描述分派，使用位图或同等结构检查重复和缺失字段。默认值在相应槽位填入；避免“JSON 动态树 → schema 校验 → 第二个对象”的完整中转。
-- [ ] **08.4 原子提交结果。** 任一字段失败时释放已经构造的字段，不能向调用方暴露半初始化对象；全部成功后才创建或提交最终结构体。借用输入文本的字段必须在输入释放前取得符合寿命要求的所有权。
-- [ ] **08.5 分层处理复杂类型。** 先覆盖 int/float/bool/str 与静态嵌套结构，再接入 option/vector/bytes 等当前支持类型。unknown=preserve 只为实际未知内容保留动态表示；不能通过快路径跳过重复字段、未知字段、版本或限额检查。
+- [x] **08.1 复用静态 schema。** 当前 schema 已由编译器生成，不再做一轮“缓存 schema JSON”的优化。为现有描述补充必要的字段访问、写入和解码入口，字段名、类型、版本、默认值和未知字段策略均在编译期绑定。
+- [x] **08.2 直接序列化字段。** 从实际结构体字段读取静态类型值，直接写 JSON/CBOR builder，不先转成 tx_dict。沿用既有数字、转义、字段输出顺序和版本字段约定；保留环检测及深度、大小限制。
+- [x] **08.3 直接解析到临时字段槽。** 复用解析器词法/值读取能力，按字段描述分派，使用位图或同等结构检查重复和缺失字段。默认值在相应槽位填入；避免“JSON 动态树 → schema 校验 → 第二个对象”的完整中转。
+- [x] **08.4 原子提交结果。** 任一字段失败时释放已经构造的字段，不能向调用方暴露半初始化对象；全部成功后才创建或提交最终结构体。借用输入文本的字段必须在输入释放前取得符合寿命要求的所有权。
+- [x] **08.5 分层处理复杂类型。** 先覆盖 int/float/bool/str 与静态嵌套结构，再接入 option/vector/bytes 等当前支持类型。unknown=preserve 只为实际未知内容保留动态表示；不能通过快路径跳过重复字段、未知字段、版本或限额检查。
 
 完成判据：固定字段结构体往返不再构造整棵中间 tx_dict/any 树，失败清理与旧路径一致。用相同 schema、相同校验能力的 C++ 对照报告倍率；原 44～88 倍仅作为历史参考。
+
+08 验收：[实现、结构与失败清理、ABI 标识和同轮原始样本](../benchmarks/performance_optimization_08_2026-09-29/README.md)。成功路径直接编解码字段；失败后复用原验证路径保持错误优先级。C++ 对照使用相同 schema 的完整契约原生调用，与候选共享编解码器；字段仍采用现有 any 槽，静态内存布局留给 09。
 
 ### 09. 结构体和类的静态字段布局
 
@@ -358,7 +360,7 @@
 | 04～05 句柄与文本 | [跨线程文本](../tests/stdlib/send_sync_text.tx)、[线程生命周期](../tests/stdlib/thread_lifecycle.tx)、[并发错误](../scripts/check_concurrency_errors.py) | 根/内部引用、跨线程释放、错误退出、短长文本 | string_conversion、format、mini-filesystem |
 | 06 解析结果 | [局部结果检查](../scripts/check_parse_scalar.py)、[解析错误检查](../scripts/check_parse_errors.py)、[解析用例](../tests/stdlib/parse_errors.tx) | 成功也可读取 error、字段修改、别名、INT64_MIN、混合非法与溢出 | [局部/完整结果与核心采样](../benchmarks/performance_optimization_06_2026-09-29/README.md) |
 | 07 格式化 | [格式化定向检查](../scripts/check_format_optimized.py)、[静态运行时用例](../tests/containers/static_runtime.tx) | 实参顺序、模板错误、Unicode 宽度、缓存并发重入 | format_literal / format_dynamic |
-| 08 serde | [行为](../tests/serde/behavior.tx)、[跨模块](../tests/serde/module.tx)、[迁移](../tests/formats/serde_migration.tx) | 重复/未知字段、版本、默认值、嵌套限额、失败清理 | serde_short_text / serde_long_text，serde_json |
+| 08 serde | [直接编解码检查](../scripts/check_serde_direct.py)、[行为](../tests/serde/behavior.tx)、[跨模块](../tests/serde/module.tx)、[迁移](../tests/formats/serde_migration.tx) | 重复/未知字段、版本、默认值、嵌套限额、失败清理 | serde_short_text / serde_long_text，serde_json |
 | 09 对象布局 | [类示例](../examples/advanced_classes.tx)、[跨模块类](../examples/advanced_class_module/main.tx)、[内存示例](../examples/memory_management.tx) | 别名、多继承、初始化、动态恢复、析构与复活 | struct_operators / class_methods / module_call / runtime_cast / deinit |
 | 10 闭包 | [闭包错误](../tests/stdlib/closure_error.tx)、[闭包环](../tests/stdlib/closure_cycle.tx)、[跨模块闭包](../tests/stdlib/closure_module/main.tx) | 捕获寿命、move、包装失败、递归回调 | function_value / closure_bind |
 | 11 堆 | [类型化容器检查](../scripts/check_typed_containers.py) | 稳定性、用户比较器抛错/重入、NaN、空堆 | heap_push_pop |
@@ -378,7 +380,7 @@
 
 ## 6. 状态与交接
 
-当前已完成 01 的归档、校准和定向验收；02.1～02.4 已实施且 02.5 完成条件性评估，但 02 的 map 性能观察仍待定位；03 已完成定向验收；04 已完成定向结构与行为验收，格式化负载尚无稳定整体收益；05、06 已完成定向验收；07 已完成定向验收，真正动态模板仍有明显容器和调用成本；08～16 仍按前置条件推进。复选框表示各小点实施状态，整项验收还须满足其完成判据。
+当前已完成 01 的归档、校准和定向验收；02.1～02.4 已实施且 02.5 完成条件性评估，但 02 的 map 性能观察仍待定位；03 已完成定向验收；04 已完成定向结构与行为验收，格式化负载尚无稳定整体收益；05、06 已完成定向验收；07 已完成定向验收，真正动态模板仍有明显容器和调用成本；08 已完成直接编解码定向验收；09～16 仍按前置条件推进。复选框表示各小点实施状态，整项验收还须满足其完成判据。
 
 | 修改项 | 优先级 | 主要前置 | 当前状态 |
 | --- | --- | --- | --- |
@@ -389,7 +391,7 @@
 | 05 文本共享与借用 | P1 | 03、04 | 已完成定向验收；剩余热点交由 06～08 |
 | 06 解析结果与核心 | P1 | 03～05；首批可用局部专用表示 | 已完成局部结构与行为验收；完整成功路径本轮回退 11.05%，见采样记录 |
 | 07 格式化 | P1 | 03～05 | 已完成定向验收；字面量 2.02 倍、局部常量模板 10.60 倍、真正动态模板 1.07 倍，见独立记录 |
-| 08 serde | P1 | 02～05；与 09 对接字段访问 | 待实施 |
+| 08 serde | P1 | 02～05；与 09 对接字段访问 | 已完成定向验收；JSON 短/长文本 1.87/1.36 倍，CBOR 2.39/1.83 倍 |
 | 09 静态对象布局 | P1 | 03、04，明确布局契约 | 待实施 |
 | 10 函数值与闭包 | P2 | 03；与 09 共用类型描述 | 待实施 |
 | 11 堆 | P2 | 03、04 | 待实施 |

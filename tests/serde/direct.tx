@@ -1,0 +1,42 @@
+import "serde.txh" as serde
+import "bytes.txh" as bytes
+import "test.txh" as test
+
+struct scalars serde(version=3)
+{
+    z: vector<float> serde(24)
+    a: vector<bool> serde(2)
+    text: str serde(256)
+    blobs: vector<bytes> serde(23)
+    ints: vector<int> serde(1)
+    number: float serde(3, default=1.5)
+    flag: bool serde(4, default=true)
+    label: str serde(5, default="默认")
+}
+
+def main() -> int
+{
+    scalars value = scalars(vector<float>([1.0, -0.0, 1.25]),
+        vector<bool>([true, false]), "中\n\t\"\\🌍",
+        vector<bytes>([bytes.from_hex(""), bytes.from_hex("00ff")]),
+        vector<int>([-9223372036854775807 - 1, 9223372036854775807]),
+        2.5, false, "手动")
+    str json = serde.serialize_json(value)
+    scalars from_json = serde.deserialize_json<scalars>(json)
+    scalars from_cbor = serde.deserialize_cbor<scalars>(serde.serialize_cbor(value))
+    test.assert_equal(json, serde.serialize_json(from_cbor))
+    test.assert_equal(json, serde.serialize_json(from_json))
+    json = "释放输入"
+    test.assert_equal("中\n\t\"\\🌍", from_json.text)
+    test.assert_equal("00ff", bytes.to_hex(from_json.blobs[1]))
+    test.assert_equal(-9223372036854775807 - 1, from_json.ints[0])
+    scalars defaults = serde.deserialize_json<scalars>(
+        "{\"text\":\"ok\",\"z\":[],\"a\":[],\"ints\":[],\"blobs\":[],\"$schema\":3}")
+    test.assert_equal(1.5, defaults.number)
+    test.assert_true(defaults.flag)
+    test.assert_equal("默认", defaults.label)
+    from_json.label = "修改后"
+    test.assert_equal("修改后", serde.deserialize_json<scalars>(serde.serialize_json(from_json)).label)
+    print("SERDE_DIRECT_TX_OK")
+    return 0
+}

@@ -1,0 +1,22 @@
+{
+  "head": "2992f876d040c5c656dfcd0d3fac1ae7be1c85a4",
+  "worktree": "?? benchmarks/performance_optimization_08_2026-09-29/\n",
+  "source_sha256": "ffcf80a1a1bc549650a25e3ebd8e0e8bfe05f70073cd773a6e0c5ba9285f2326",
+  "toolchain_sha256": {
+    "txc.exe": "d99f64b6e9c2c765cc8a976ecd072931270f4594a6b7950261a2b9f506ae7a09",
+    "libtxstdlib.a": "1911c05347d7a094517227ce7c3f5df60e7b549edc83478a172cd44e3baf77ae",
+    "package.compat": "9e51caf33edda18f5a4ff713fcbc77ef0dc121faebc505780b596a86dedaafa5"
+  },
+  "dll_sha256": {
+    "libgcc_s_seh-1.dll": "d7e343dd266747177c3699bc3201ea36eceef158e98530e089263bc55bb2a6d7",
+    "libicudt78.dll": "60255653982986c9fb72ad1b10b8dc502e498d890e0218cb0a47bc5907aa4e43",
+    "libicuin78.dll": "1925ba8b617ffbaf986dc6f5edc2d0952b0d48a9b710e1047809abd6a9846af3",
+    "libicuuc78.dll": "be4fc632a5fca5dc4a6fa8726084d63f45b7561b078d00bf107bffc30d336fb7",
+    "libstdc++-6.dll": "47559ac91bda181bd21e8e1af352eb87703248277d55fdc8da8f20464fcca5e7",
+    "libstdc++-u.dll": "5df0dba7064c43343ff33d2a02bbcbdfc1e035bc9d91024ec003c6d5a3054aa2",
+    "libwinpthread-1.dll": "08168351ae29d6d5825e4c3c64176bf1ec4a3724e5b87a4e3596f24c20455ab2",
+    "libwinpthread-u.dll": "72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0",
+    "msquic.dll": "e1544c8e8586411f70fadbc808d6b4dd020b027820792d78c187e36460e23bc9"
+  },
+  "program_sha256": "9e83170f4cccf19b10cfe73f4d2ac0fb139da3bfbd2c5599f4e3b671693d9a98"
+}

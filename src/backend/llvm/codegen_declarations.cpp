@@ -7,6 +7,12 @@ namespace tx
 
 void llvm_code_generator::write_external_declarations()
 {
+    for (const auto* codec : {"integer", "floating", "boolean", "text", "bytes",
+        "option", "structure", "vector_integer", "vector_floating", "vector_boolean",
+        "vector_text", "vector_bytes", "vector_object"})
+    {
+        module_ << "@tx_serde_" << codec << " = external constant i8\n";
+    }
     for (const auto& [name, overloads] : functions_)
     {
         (void)name;

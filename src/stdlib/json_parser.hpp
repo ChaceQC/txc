@@ -15,12 +15,13 @@ public:
     std::any parse_value(std::size_t depth);
     void skip_space();
     void require_end();
+    std::string parse_string();
+    void skip_value(std::size_t depth);
 
 private:
     std::any parse_literal(std::string_view literal, std::any value);
     tx_array parse_array(std::size_t depth);
     tx_dict parse_object(std::size_t depth);
-    std::string parse_string();
     std::any parse_number();
     std::uint32_t parse_hex_quad();
     void parse_unicode_escape(std::string& output);

@@ -1,0 +1,42 @@
+import "serde.txh" as serde
+import "time.txh" as time
+
+struct payload serde(version=1)
+{
+    id: int serde(1)
+    name: str serde(2)
+}
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - started)
+    print(checksum)
+}
+
+def bench(value: payload, label: str)
+{
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=4999
+    {
+        payload decoded = serde.deserialize_json<payload>(serde.serialize_json(value))
+        checksum += decoded.id + len(decoded.name)
+    }
+    report("serde_json_" + label, started, checksum)
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=4999
+    {
+        payload decoded = serde.deserialize_cbor<payload>(serde.serialize_cbor(value))
+        checksum += decoded.id + len(decoded.name)
+    }
+    report("serde_cbor_" + label, started, checksum)
+}
+
+def main() -> int
+{
+    bench(payload(7, "x"), "short")
+    bench(payload(7, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"), "long")
+    return 0
+}

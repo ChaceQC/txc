@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <bit>
 #include <charconv>
+#include <numeric>
 
 namespace tx
 {
@@ -28,7 +29,7 @@ std::string llvm_code_generator::serde_type_constant(const value_type& type)
             element = "@.serde_type." + std::to_string(serde_types_.size());
             serde_types_.emplace(child.name, element);
             const auto value = serde_type_constant(child);
-            globals_ << element << " = private constant { i64, ptr, ptr, ptr } "
+            globals_ << element << " = private constant { i64, ptr, ptr, ptr, ptr } "
                      << value << '\n';
         }
     }
@@ -36,8 +37,20 @@ std::string llvm_code_generator::serde_type_constant(const value_type& type)
     {
         structure = serde_schema_constant(type);
     }
+    constexpr const char* codecs[] = {"integer", "floating", "boolean", "text",
+        "bytes", "vector_object", "option", "structure"};
+    std::string codec = codecs[kind];
+    if (type.is_vector())
+    {
+        const auto& child = type.parameters.front();
+        codec = "vector_" + std::string(child == value_type::int_type ? "integer" :
+            child == value_type::float_type ? "floating" :
+            child == value_type::bool_type ? "boolean" :
+            child == value_type::str_type ? "text" :
+            child == value_type::bytes_type ? "bytes" : "object");
+    }
     return "{ i64 " + std::to_string(kind) + ", ptr " + global_bytes(type.name) +
-        ", ptr " + element + ", ptr " + structure + " }";
+        ", ptr " + element + ", ptr " + structure + ", ptr @tx_serde_" + codec + " }";
 }
 
 std::string llvm_code_generator::serde_default_constant(const struct_field& field)
@@ -89,11 +102,12 @@ std::string llvm_code_generator::serde_schema_constant(const value_type& type)
     const auto& definition = *structs_.at(type.name);
     const auto& metadata = *definition.serde;
     constexpr std::string_view field_layout =
-        "{ ptr, i64, i64, { i64, ptr, ptr, ptr }, { i64, i64, ptr, i64 } }";
+        "{ ptr, i64, i64, { i64, ptr, ptr, ptr, ptr }, { i64, i64, ptr, i64 } }";
     std::string fields;
     std::size_t count = 0;
     std::int64_t unknown_index = -1;
     std::string unknown_name;
+    std::vector<const struct_field*> ordered_fields;
     for (std::size_t index = 0; index < definition.fields.size(); ++index)
     {
         const auto& field = definition.fields[index];
@@ -107,9 +121,10 @@ std::string llvm_code_generator::serde_schema_constant(const value_type& type)
         {
             fields += ", ";
         }
+        ordered_fields.push_back(&field);
         fields += std::string(field_layout) + " { ptr " + global_bytes(field.name) +
             ", i64 " + std::to_string(field.serde->number) + ", i64 " +
-            std::to_string(index) + ", { i64, ptr, ptr, ptr } " +
+            std::to_string(index) + ", { i64, ptr, ptr, ptr, ptr } " +
             serde_type_constant(field.type) + ", { i64, i64, ptr, i64 } " +
             serde_default_constant(field) + " }";
     }
@@ -118,13 +133,32 @@ std::string llvm_code_generator::serde_schema_constant(const value_type& type)
     const auto unknown = global_bytes(unknown_name);
     const auto policy = metadata.unknown == serde_unknown_policy::preserve ? 2 :
         metadata.unknown == serde_unknown_policy::ignore ? 1 : 0;
+    // JSON 按 UTF-8 字段名字节序，CBOR 正整数键按规范编码序（即编号序）。
+    std::vector<std::size_t> order(count);
+    std::iota(order.begin(), order.end(), 0);
+    for (const bool json : {true, false})
+    {
+        std::sort(order.begin(), order.end(), [&](std::size_t left, std::size_t right)
+        {
+            return json ? ordered_fields[left]->name < ordered_fields[right]->name
+                : ordered_fields[left]->serde->number < ordered_fields[right]->serde->number;
+        });
+        globals_ << symbol << (json ? ".json_order" : ".cbor_order")
+                 << " = private constant [" << count << " x i64] [";
+        for (std::size_t index = 0; index < count; ++index)
+        {
+            globals_ << (index ? ", " : "") << "i64 " << order[index];
+        }
+        globals_ << "]\n";
+    }
     globals_ << symbol << ".fields = private constant [" << count << " x "
              << field_layout << "] [" << fields << "]\n"
-             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64 } "
+             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64, ptr, ptr } "
              << "{ ptr " << type_name << ", ptr " << display << ", i64 " << metadata.version
              << ", i64 " << policy << ", i64 " << definition.fields.size()
              << ", i64 " << unknown_index << ", ptr " << unknown << ", ptr "
-             << symbol << ".fields, i64 " << count << " }\n";
+             << symbol << ".fields, i64 " << count << ", ptr " << symbol
+             << ".json_order, ptr " << symbol << ".cbor_order }\n";
     return symbol;
 }
 

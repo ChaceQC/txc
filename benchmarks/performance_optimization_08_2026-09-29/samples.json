@@ -1,0 +1,211 @@
+{
+  "measured_at_utc": "2026-09-29T12:24:19.144013+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+  "iterations": 5000,
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "07",
+      "08",
+      "cpp_contract"
+    ],
+    [
+      "cpp_contract",
+      "08",
+      "07"
+    ],
+    [
+      "07",
+      "08",
+      "cpp_contract"
+    ],
+    [
+      "cpp_contract",
+      "08",
+      "07"
+    ],
+    [
+      "07",
+      "08",
+      "cpp_contract"
+    ],
+    [
+      "cpp_contract",
+      "08",
+      "07"
+    ]
+  ],
+  "candidate": {
+    "head": "2992f876d040c5c656dfcd0d3fac1ae7be1c85a4",
+    "worktree": " M CMakeLists.txt\n M src/backend/cpp/serde_abi.hpp\n M src/backend/llvm/codegen_declarations.cpp\n M src/backend/llvm/codegen_serde.cpp\n M src/stdlib/cbor_internal.hpp\n M src/stdlib/json_parser.hpp\n M src/stdlib/json_writer.cpp\n M src/stdlib/serde.cpp\n?? benchmarks/performance_optimization_08_2026-09-29/\n?? scripts/check_serde_direct.py\n?? src/stdlib/cbor_skip.cpp\n?? src/stdlib/json_scalar.cpp\n?? src/stdlib/json_scalar.hpp\n?? src/stdlib/json_skip.cpp\n?? src/stdlib/serde_codecs.cpp\n?? src/stdlib/serde_direct.hpp\n?? src/stdlib/serde_reader.cpp\n?? src/stdlib/serde_struct_reader.cpp\n?? src/stdlib/serde_struct_writer.cpp\n?? src/stdlib/serde_vector.cpp\n?? src/stdlib/serde_writer.cpp\n?? tests/serde/direct.tx\n?? tests/serde/direct_native.cpp\n",
+    "source_sha256": "ffcf80a1a1bc549650a25e3ebd8e0e8bfe05f70073cd773a6e0c5ba9285f2326",
+    "toolchain_sha256": {
+      "txc.exe": "05361b98727eb23935676d4d79985c0d22f86c0e2acedac07929492746fb3434",
+      "libtxstdlib.a": "1a54f4f24780159d3eb9e45a01643e6b0564b9938a313a5b3b92ab9b5f2fcd79",
+      "package.compat": "aea3fb49cb8fe55674542964c8ec7101ad0f51e14e2fe552d8545c1d3cb7f378"
+    },
+    "dll_sha256": {
+      "libgcc_s_seh-1.dll": "d7e343dd266747177c3699bc3201ea36eceef158e98530e089263bc55bb2a6d7",
+      "libicudt78.dll": "60255653982986c9fb72ad1b10b8dc502e498d890e0218cb0a47bc5907aa4e43",
+      "libicuin78.dll": "1925ba8b617ffbaf986dc6f5edc2d0952b0d48a9b710e1047809abd6a9846af3",
+      "libicuuc78.dll": "be4fc632a5fca5dc4a6fa8726084d63f45b7561b078d00bf107bffc30d336fb7",
+      "libstdc++-6.dll": "47559ac91bda181bd21e8e1af352eb87703248277d55fdc8da8f20464fcca5e7",
+      "libstdc++-u.dll": "5df0dba7064c43343ff33d2a02bbcbdfc1e035bc9d91024ec003c6d5a3054aa2",
+      "libwinpthread-1.dll": "08168351ae29d6d5825e4c3c64176bf1ec4a3724e5b87a4e3596f24c20455ab2",
+      "libwinpthread-u.dll": "72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0",
+      "msquic.dll": "e1544c8e8586411f70fadbc808d6b4dd020b027820792d78c187e36460e23bc9"
+    }
+  },
+  "cpp_contract": {
+    "source_sha256": "0049fc5220e3dbf411181e78b5433f9332069a1e1368b0d01fd61b15aa444532",
+    "compiler": "g++ (GCC) 13.1.0",
+    "scope": "Same runtime schema and full JSON/CBOR validation; excludes TX handle/call boundary"
+  },
+  "program_sha256": {
+    "07": "9e83170f4cccf19b10cfe73f4d2ac0fb139da3bfbd2c5599f4e3b671693d9a98",
+    "08": "efb6c189bbb791e57100c5eaf1aec7b01718dee70872bd4f309041e6607c7d5d",
+    "cpp_contract": "886f0894cbc011e96a065bf4ab2e669fc3d289ef866ee35cf9d27a966842c4c0"
+  },
+  "results": {
+    "07": {
+      "serde_json_short": {
+        "samples_ms": [
+          18.353,
+          18.6,
+          18.125,
+          19.673,
+          18.04
+        ],
+        "median_ms": 18.353,
+        "checksum": "40000"
+      },
+      "serde_cbor_short": {
+        "samples_ms": [
+          13.713,
+          13.844,
+          13.411,
+          25.726,
+          13.311
+        ],
+        "median_ms": 13.713,
+        "checksum": "40000"
+      },
+      "serde_json_long": {
+        "samples_ms": [
+          36.415,
+          36.508,
+          35.153,
+          43.515,
+          35.003
+        ],
+        "median_ms": 36.415,
+        "checksum": "655000"
+      },
+      "serde_cbor_long": {
+        "samples_ms": [
+          20.653,
+          18.618,
+          18.038,
+          19.676,
+          19.447
+        ],
+        "median_ms": 19.447,
+        "checksum": "655000"
+      }
+    },
+    "08": {
+      "serde_json_short": {
+        "samples_ms": [
+          16.024,
+          9.659,
+          9.733,
+          9.827,
+          9.796
+        ],
+        "median_ms": 9.796,
+        "checksum": "40000"
+      },
+      "serde_cbor_short": {
+        "samples_ms": [
+          9.394,
+          5.646,
+          5.733,
+          5.748,
+          5.664
+        ],
+        "median_ms": 5.733,
+        "checksum": "40000"
+      },
+      "serde_json_long": {
+        "samples_ms": [
+          26.839,
+          26.824,
+          26.517,
+          27.85,
+          26.603
+        ],
+        "median_ms": 26.824,
+        "checksum": "655000"
+      },
+      "serde_cbor_long": {
+        "samples_ms": [
+          10.249,
+          10.83,
+          10.725,
+          10.148,
+          10.653
+        ],
+        "median_ms": 10.653,
+        "checksum": "655000"
+      }
+    },
+    "cpp_contract": {
+      "serde_json_short": {
+        "samples_ms": [
+          7.755,
+          7.973,
+          7.858,
+          7.98,
+          8.232
+        ],
+        "median_ms": 7.973,
+        "checksum": "40000"
+      },
+      "serde_cbor_short": {
+        "samples_ms": [
+          3.391,
+          3.403,
+          3.432,
+          3.468,
+          3.427
+        ],
+        "median_ms": 3.427,
+        "checksum": "40000"
+      },
+      "serde_json_long": {
+        "samples_ms": [
+          23.783,
+          24.411,
+          29.395,
+          24.041,
+          25.744
+        ],
+        "median_ms": 24.411,
+        "checksum": "655000"
+      },
+      "serde_cbor_long": {
+        "samples_ms": [
+          6.994,
+          7.087,
+          6.965,
+          7.229,
+          7.299
+        ],
+        "median_ms": 7.087,
+        "checksum": "655000"
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "cases": [
+    "serde/behavior",
+    "serde/module",
+    "formats/serde_migration",
+    "serde/direct"
+  ],
+  "bound_codecs": [
+    "vector_integer",
+    "vector_floating",
+    "vector_boolean",
+    "vector_bytes",
+    "integer",
+    "floating",
+    "boolean",
+    "text",
+    "bytes"
+  ],
+  "native": {
+    "status": "SERDE_DIRECT_NATIVE_OK",
+    "fixed_encode_tx_allocations": 0,
+    "fixed_decode_tx_allocations": 1,
+    "ignored_decode_tx_allocations": 1,
+    "json_error_cases": 19,
+    "cbor_error_cases": 8,
+    "partial_struct_released": true
+  }
+}

@@ -22,6 +22,7 @@ struct cbor_head
 cbor_head cbor_read_head(format_input& input);
 std::any cbor_parse_value(format_input& input, const cbor_limits& limits,
                           std::size_t depth);
+void cbor_skip_value(format_input& input, const cbor_limits& limits, std::size_t depth);
 void cbor_require_end(format_input& input);
 bool cbor_valid_utf8(std::string_view value);
 bool cbor_key_less(std::string_view left, std::string_view right);

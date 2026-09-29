@@ -1,0 +1,21 @@
+{
+  "CMakeLists.txt": "6a52fefa0c3a9848983b0a03d992eb3769240b2c8577175a23c6856de8e49587",
+  "src/backend/cpp/serde_abi.hpp": "c587483c448d2dc977f5c09c982bbe4c10899e782cfd0567eaddcf028ffa1d84",
+  "src/backend/llvm/codegen_declarations.cpp": "6d5cac46c72336f18d8d303761806dc9b5c195192239765bef73dd962579bcad",
+  "src/backend/llvm/codegen_serde.cpp": "740a4befb9398be656e9f3826fbe7094a38b06c4ff713ebc6e1b37f5d027daac",
+  "src/stdlib/cbor_internal.hpp": "a04bd64d79e7fb8c282674bfd6d5fa12c93e518f5a1e56e834d286f73107b16f",
+  "src/stdlib/cbor_skip.cpp": "55437786bcf422d8cb969c4df6b12d009b39919fff6a603fb06f1d66bdd02288",
+  "src/stdlib/json_parser.hpp": "e6d858fd9737d6dc7fed731fc8818f891e4d8994c3a187f4a33d4eb6c7e9c5a2",
+  "src/stdlib/json_scalar.cpp": "5583230d6fa570e41294d5c46602ce22209c8e6061f57c6fdf523fe862083b43",
+  "src/stdlib/json_scalar.hpp": "42d690c4062990ad787c575b47430ab943d87f77421100ffc0b5230058847256",
+  "src/stdlib/json_skip.cpp": "58c596e853ef0ee8cf34b9dffe4234291e8d55480287eaaac3385a79cd2b6090",
+  "src/stdlib/json_writer.cpp": "62b0d60a215e35eeecdc435e710166483debf7e742e830a7a870088912b83566",
+  "src/stdlib/serde_codecs.cpp": "b857c33c66788dad697e012b43764743e287925e21cbebdeac589e5e4382b053",
+  "src/stdlib/serde_direct.hpp": "ab90e5143b716f23e92ea8315e3fd66c81cca91f05f827d8e331b9850d886a4e",
+  "src/stdlib/serde_reader.cpp": "2a868299ee3d6da818020267dda5e7659986ae853c9721e29cd62917390becb8",
+  "src/stdlib/serde_struct_reader.cpp": "f6af67516c91aa973c7752443607bdca599d22435cfb01dbb3f17a94cbc76f4c",
+  "src/stdlib/serde_struct_writer.cpp": "3ee4263f551046f9d7ad5cbfd89d2f7d57599f9075129da86eed442b379d6387",
+  "src/stdlib/serde_vector.cpp": "df8d4031d50d2bcb3ce20579a52cada6798ebccc1f8bd1d77296b49967ec50cd",
+  "src/stdlib/serde_writer.cpp": "19d9506aa8f16e85ab3d4663e4f0bf3edea463bad1b5ac10947940bec2b818e0",
+  "src/stdlib/serde.cpp": "4672c249ce4c6139a6f42d8f67c86568456bf36464f31dffaead1f958066174a"
+}

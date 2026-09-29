@@ -1,4 +1,5 @@
 #include "stdlib/serde.hpp"
+#include "stdlib/serde_direct.hpp"
 
 #include "stdlib/cbor.hpp"
 #include "stdlib/dictionary.hpp"
@@ -246,6 +247,16 @@ std::any serde_decode_struct(const std::any& value,
 std::string serde_serialize_json(const serde_schema* schema,
                                  const std::any& value)
 {
+    try
+    {
+        serde_writer writer(serde_format::json);
+        serde_write_struct(writer, value, *schema, {});
+        return writer.finish();
+    }
+    catch (const runtime_failure&)
+    {
+        // 失败后再走旧验证顺序，保留既有错误优先级；成功热路径不构建动态树。
+    }
     serde_active active;
     auto output = json_stringify(serde_encode_struct(value,
         schema, serde_format::json, active, 0));
@@ -262,6 +273,17 @@ std::any serde_deserialize_json(const serde_schema* schema, std::string_view tex
     {
         serde_decode_error("size_limit", "serde JSON 输入超过 16 MiB");
     }
+    try
+    {
+        serde_reader reader(serde_format::json, text);
+        auto result = serde_read_struct(reader, *schema, {});
+        reader.finish();
+        return result;
+    }
+    catch (const runtime_failure&)
+    {
+        // 局部字段和未交付对象已释放，再精确复现语法、版本、字段的诊断次序。
+    }
     return serde_decode_struct(json_parse_unique(text), schema,
         serde_format::json, 0);
 }
@@ -269,6 +291,16 @@ std::any serde_deserialize_json(const serde_schema* schema, std::string_view tex
 byte_value serde_serialize_cbor(const serde_schema* schema,
                                 const std::any& value)
 {
+    try
+    {
+        serde_writer writer(serde_format::cbor);
+        serde_write_struct(writer, value, *schema, {});
+        auto bytes = writer.finish();
+        return make_bytes({bytes.begin(), bytes.end()});
+    }
+    catch (const runtime_failure&)
+    {
+    }
     serde_active active;
     const cbor_limits limits{serde_max_bytes, serde_max_bytes, 128, 1000000};
     return cbor_encode(serde_encode_struct(value, schema,
@@ -279,6 +311,20 @@ std::any serde_deserialize_cbor(const serde_schema* schema,
                                 const byte_value& data)
 {
     const cbor_limits limits{serde_max_bytes, serde_max_bytes, 128, 1000000};
+    if (data && data->size() <= serde_max_bytes)
+    {
+        try
+        {
+            serde_reader reader(serde_format::cbor, std::string_view(
+                reinterpret_cast<const char*>(data->data()), data->size()));
+            auto result = serde_read_struct(reader, *schema, {});
+            reader.finish();
+            return result;
+        }
+        catch (const runtime_failure&)
+        {
+        }
+    }
     return serde_decode_struct(cbor_decode(data, limits),
         schema, serde_format::cbor, 0);
 }

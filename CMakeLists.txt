@@ -187,7 +187,7 @@ file(GLOB _tx_abi_files CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/backend/cpp/*.hpp"
     "${CMAKE_SOURCE_DIR}/src/backend/llvm/*.cpp")
 list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hpp"
-    "src/common/text_encoding.hpp" "src/stdlib/parse.hpp")
+    "src/common/text_encoding.hpp" "src/stdlib/parse.hpp" "src/stdlib/serde_direct.hpp")
 list(SORT _tx_interface_files)
 list(SORT _tx_abi_files)
 set(TX_INTERFACE_COUNT 0)
@@ -454,10 +454,17 @@ add_library(txstdlib STATIC
     src/stdlib/json_schema.cpp
     src/stdlib/cbor_common.cpp
     src/stdlib/cbor_reader.cpp
+    src/stdlib/cbor_skip.cpp
     src/stdlib/cbor_writer.cpp
     src/stdlib/serde_schema.cpp
     src/stdlib/serde_value.cpp
     src/stdlib/serde.cpp
+    src/stdlib/serde_reader.cpp
+    src/stdlib/serde_writer.cpp
+    src/stdlib/serde_codecs.cpp
+    src/stdlib/serde_vector.cpp
+    src/stdlib/serde_struct_reader.cpp
+    src/stdlib/serde_struct_writer.cpp
     src/stdlib/cbor_stream.cpp
     src/stdlib/format_stream.cpp
     src/stdlib/csv.cpp
@@ -469,6 +476,8 @@ add_library(txstdlib STATIC
     src/stdlib/xml_tree_nodes.cpp
     src/stdlib/xml_writer.cpp
     src/stdlib/json_writer.cpp
+    src/stdlib/json_scalar.cpp
+    src/stdlib/json_skip.cpp
     src/stdlib/json_fields.cpp
     src/stdlib/log.cpp
     src/stdlib/test.cpp
