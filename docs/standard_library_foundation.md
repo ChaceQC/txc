@@ -48,7 +48,7 @@
 | 文件流与网络 | `io_error/not_found`、`permission_denied`、`invalid_path`、`invalid_mode`、`closed_stream`、`invalid_encoding`、`size_limit`、`timeout`、`connection_closed`、`protocol_error`、`invalid_header`、`invalid_argument`、`invalid_utf8`、`unsupported_option`、`operation_failed`；DNS 的 `name_not_found`、`no_records`、`unsupported_platform` 见[地址解析](dns.md)；socket 的 `closed_handle`、`short_write` 见[低层 Socket](socket.md) | `io_error/short_read` 预留；后续文件操作沿用可适用的旧码 |
 | 通用运行时、JSON 写入、现有 `crypto`、测试与日志 | `runtime_error/allocation_failed`、`unknown_error`、`operation_failed`、`invalid_argument`、`size_limit`、`invalid_indent`、`cyclic_value`、`unsupported_value`、`invalid_key`、`random_failed`、`authentication_failed`、`invalid_format`、`assertion_failed`、`invalid_tolerance`、`invalid_name`、`invalid_level`、`invalid_field` | `runtime_error/invalid_state`；现有 `crypto` 错误不悄悄改类，新安全 API 才使用 `security_error` |
 | 子进程 | `process.txh` 的接口与实施证据见[子进程与管道](process.md) | `process_error/spawn_failed`、`wait_failed`、`terminated`、`output_limit`、`invalid_state`、`timeout`、`invalid_argument`、`unsupported_operation`、`terminate_failed`、`pipe_failed`；等待超时及有界捕获的可预期停止使用显式状态并保留子进程句柄 |
-| 数据库 | 尚无公开入口 | `database_error/connection_failed`、`query_failed`、`constraint_violation`、`busy`、`pool_exhausted`、`invalid_state` |
+| 数据库 | `db` 的同步 SQLite/PostgreSQL、参数、行值、游标、事务与池 | `database_error/connection_failed`、`connection_lost`、`authentication_failed`、`tls_failed`、`query_failed`、`constraint_violation`、`transaction_failed`、`conflict`、`timeout`、`cancelled`、`busy`、`read_only`、`invalid_state`、`invalid_argument`、`parameter_missing`、`column_missing`、`ambiguous_column`、`type_mismatch`、`invalid_encoding`、`limit_exceeded`、`thread_violation`、`unsupported_driver`、`pool_exhausted`、`pool_closed` |
 | `secret_bytes`、`password` | `security_error/invalid_state`、`size_limit`、`random_failed`、`invalid_argument`、`invalid_format`、`operation_failed`；秘密缓冲状态和 Argon2id PHC 参数见[秘密字节](secret_bytes.md)、[密码存储](password.md) | 后续密钥操作复用适用的安全错误码 |
 | 公钥、证书与 TLS | `public_key`、`x509`、`tls` 的接口、失败码及验证状态见[公钥密码学](public_key.md)、[证书读取与验证](x509.md)、[TLS 安全流](tls.md) | `security_error/invalid_certificate`、`invalid_pkcs12`、`invalid_password_or_data`、`no_private_key`、`unsupported_key`、`unsupported_platform`、`size_limit`、`operation_failed` 用于解析或操作失败；安全流的 `handshake_failed`、`alpn_mismatch`、`truncated_close` 与证书身份失败码已登记 |
 | 取消与截止时间 | 尚无公开入口 | `cancelled_error/cancelled`、`deadline_exceeded`；已发生的外部效果由操作结果另行说明 |
@@ -92,8 +92,10 @@
 | Argon2 参考实现 | `20190702`；Git 提交 `62358ba2123abd17fccf2a108a301d4b52c01a7c` | CC0-1.0 或 Apache-2.0，发行采用 Apache-2.0；静态归档，`tx/ARGON2-LICENSE` 随包 |
 | libxml2 | `2.13.8`；`277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a` | MIT；源码由 CMake `FetchContent` 校验后静态归档，`tx/LIBXML2-LICENSE` 随包 |
 | libsodium | MSYS2 MinGW x64 包 `1.0.22-3`；`e8d8bc169fa122eccfc3e4252615937a62fa0bd6ca21ed4912bac48d6ed2f870` | ISC；包由 CMake `FetchContent` 校验后将静态库归档，`tx/LIBSODIUM-LICENSE` 随包 |
+| SQLite | amalgamation `3.53.4`；`1e71ddf93849c6a6ecf58b827c0692073d2dd7ee40196158068f7b29f422e87d` | 公有领域；CMake 校验源码并静态归档，`tx/SQLITE-LICENSE` 随包 |
+| PostgreSQL libpq | EDB Windows x64 `18.4-1`；`7effe34c0bf89027b3f171447d351cbc460f4566c8d0f643daec67f140787858` | PostgreSQL License；GNU 导入库并入标准库，`libpq.dll`、OpenSSL 及运行库按固定归档交付；`POSTGRESQL-LICENSE`、`LIBPQ-THIRD-PARTY-LICENSES` 随包，DLL 纳入兼容指纹 |
 
-CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。Argon2 随 9.2、libsodium 随 9.4、MsQuic/nghttp3 随 11.6 引入；SQLite、libpq 仍未引入。各模块若新增第三方依赖，须在构建配置中固定准确版本及源码归档 SHA-256 或 Git 提交哈希、许可证选择和交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
+CBOR 8.4 采用仓库内实现，未引入原计划的 QCBOR；具体支持范围与限额见 [CBOR 模块说明](cbor.md)。Argon2 随 9.2、libsodium 随 9.4、MsQuic/nghttp3 随 11.6、SQLite 随 12.2、libpq 随 12.3 引入。各模块若新增第三方依赖，须在构建配置中固定准确版本及源码归档 SHA-256 或 Git 提交哈希、许可证选择和交付文件，再列入本表；不得以开发机已安装的随机版本充当发行条件。系统 Win32/IOCP 与仓库已有工具链另按平台发行说明处理。
 
 ### 第 1 节完成记录（2026-09-26）
 

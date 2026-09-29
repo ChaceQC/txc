@@ -449,6 +449,18 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     {
         emit_stack_location();
     }
+    if (target.external_name.starts_with("db.") &&
+        (item.type.is_option() || structs_.contains(item.type.name)))
+    {
+        parameters += (parameters.empty() ? "" : ", ") +
+            std::string("ptr ") + global_bytes(item.type.name);
+        if (item.type.is_option() &&
+            (target.external_name.ends_with("_decimal") ||
+             target.external_name.ends_with("_datetime")))
+        {
+            parameters += ", ptr " + global_bytes(item.type.parameters.front().name);
+        }
+    }
     const bool returns_value = item.type != value_type::void_type;
     std::string address;
     if (returns_value)

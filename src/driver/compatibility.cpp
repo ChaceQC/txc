@@ -215,7 +215,9 @@ void verify_tool_package(const fs::path& tool_dir)
                              "libwinpthread-1.dll", "libstdc++-u.dll",
                              "libwinpthread-u.dll",
                              "libicuin78.dll", "libicuuc78.dll",
-                             "libicudt78.dll", "msquic.dll"})
+                             "libicudt78.dll", "msquic.dll", "libpq.dll",
+                             "libssl-3-x64.dll", "libcrypto-3-x64.dll", "libintl-9.dll",
+                             "libiconv-2.dll", "libwinpthread-p.dll", "vcruntime140.dll"})
     {
         require_digest(tool_dir / name, manifest_field(manifest, name), name);
     }

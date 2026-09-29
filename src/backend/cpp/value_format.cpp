@@ -16,6 +16,7 @@
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
 #include "stdlib/ipc.hpp"
+#include "stdlib/db.hpp"
 #include "stdlib/json_stream.hpp"
 #include "stdlib/csv.hpp"
 #include "stdlib/xml.hpp"
@@ -250,6 +251,12 @@ void append_value(std::string& output, const std::any& value,
     else if (value.type() == typeid(ipc_listener))
     {
         output += "<ipc_listener>";
+    }
+    else if (const auto name = db_runtime_type(value); !name.empty())
+    {
+        output += '<';
+        output += name;
+        output += '>';
     }
     else if (value.type() == typeid(ipc_stream))
     {

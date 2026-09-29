@@ -339,7 +339,9 @@ int compile_llvm_native(const std::string& generated_source,
                              "libwinpthread-u.dll",
                              "libicuin78.dll",
                              "libicuuc78.dll", "libicudt78.dll",
-                             "msquic.dll"})
+                             "msquic.dll", "libpq.dll", "libssl-3-x64.dll",
+                             "libcrypto-3-x64.dll", "libintl-9.dll", "libiconv-2.dll",
+                             "libwinpthread-p.dll", "vcruntime140.dll"})
     {
         place_runtime_dependency(tool_dir / name, output_dir);
     }

@@ -406,6 +406,7 @@ value_type semantic_analyzer::check_cast(expression& item, cast_expression& cast
         cast.target == value_type::process_pipe_type ||
         cast.target == value_type::ipc_listener_type ||
         cast.target == value_type::ipc_stream_type ||
+        cast.target.is_database_type() ||
         cast.target == value_type::json_reader_type ||
         cast.target == value_type::json_writer_type ||
         cast.target == value_type::cbor_reader_type ||

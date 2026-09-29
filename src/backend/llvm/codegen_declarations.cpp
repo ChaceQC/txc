@@ -7,6 +7,7 @@ namespace tx
 
 void llvm_code_generator::write_external_declarations()
 {
+    write_db_declarations();
     module_ << "declare void @llvm.assume(i1)\n";
     for (const auto* first : {"i64", "f64", "bool", "str"})
     {

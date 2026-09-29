@@ -1,0 +1,31 @@
+import "db.txh" as db
+
+def main() -> int
+{
+    db_connection connection = db.open(db.sqlite_options(":memory:"))
+    db_statement schema = db.prepare(connection, "CREATE TABLE notes(id INTEGER PRIMARY KEY, content TEXT)")
+    db.execute(schema)
+    db.close_statement(schema)
+
+    db_transaction transaction = db.begin(connection, "immediate")
+    db_statement insert = db.prepare(connection, "INSERT INTO notes(content) VALUES(?)")
+    db.bind(insert, 1, db.str_value("第一条记录"))
+    db.execution written = db.execute(insert)
+    print(written.affected_rows, written.insert_id.value())
+    db.commit(transaction)
+    db.close_statement(insert)
+
+    db_statement select = db.prepare(connection, "SELECT id, content FROM notes ORDER BY id")
+    db_cursor cursor = db.query(select)
+    option<db_row> item = db.next(cursor)
+    while item.is_some()
+    {
+        db_row row = item.value()
+        print(db.get_int(row, 0).value(), db.get_str(row, db.column_index(row, "content")).value())
+        item = db.next(cursor)
+    }
+    db.close_cursor(cursor)
+    db.close_statement(select)
+    db.close(connection)
+    return 0
+}

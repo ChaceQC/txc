@@ -20,6 +20,8 @@
 
 不透明内置类型 `process_child` 与 `process_pipe` 只能由 `process.txh` 取得，普通赋值及从 `any` 显式恢复共享同一状态；禁止手工构造、`deep_copy` 和未经证明的跨线程传递。进程关闭使父侧管道别名失效，等待成功缓存退出状态且仍可读完输出。接口与失败语义见[子进程与管道](process.md)，用法见[process.tx](../examples/process.tx)。
 
+不透明内置类型 `db_connection/db_statement/db_cursor/db_transaction` 由 `db.txh` 创建，赋值及从 `any` 恢复共享资源状态；禁止手工构造、`deep_copy` 和跨线程传递。`db_pool` 支持 `Send/Sync` 与共享赋值，但禁止手工构造和 `deep_copy`；池中借出的连接仍只允许借用线程访问，归还使旧借用及其子资源失效。`db_row/db_value` 是不可变行快照与标记 SQL 值，支持复制但当前同样不声明 `Send/Sync`。SQL NULL 由 `option<T>` 的无值表示，游标无行由 `option<db_row>` 的无值表示，列缺失与类型错误分别抛数据库错误。参数从 1、列从 0 开始；关闭连接使所有子资源别名失效，但已读取行仍可使用。标准库参数绑定 `db.bind` 必须经模块别名限定调用，未限定的 `bind(...)` 继续表示闭包构造；该标准库声明不解除用户函数的保留名限制。完整接口、事务和驱动差异见[数据库](db.md)，用法见 [sqlite.tx](../examples/sqlite.tx) 和 [postgres.tx](../examples/postgres.tx)。
+
 不透明内置类型 `json_reader` 与 `json_writer` 只能由 `json.txh` 创建，用于逐项读取或生成根数组。赋值及从 `any` 显式恢复共享同一游标；禁止手工构造、`deep_copy` 和跨线程传递。`close` 只释放游标持有的文件流引用，不关闭调用方的流；写入必须显式 `finish` 才补齐根数组。接口、限额与失败后的状态见 [JSON 增量接口](json.md#增量读写与-schema)，示例见 [json_stream.tx](../examples/json_stream.tx)。
 
 不透明内置类型 `csv_reader` 与 `csv_writer` 使用相同的共享游标、`any` 恢复、禁止复制和跨线程传递规则。`csv.next_row` 返回 `option<vector<str>>`；表头快照与已返回行独立于游标，关闭后仍可使用。dialect、字段限额与失败语义见 [CSV](csv.md)，示例见 [csv_stream.tx](../examples/csv_stream.tx)。

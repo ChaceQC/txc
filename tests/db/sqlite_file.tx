@@ -1,0 +1,78 @@
+import "db.txh" as db
+import "error.txh" as errors
+import "test.txh" as test
+import "time.txh" as time
+
+def execute(connection: db_connection, sql: str) -> void
+{
+    db_statement statement = db.prepare(connection, sql)
+    db.execute(statement)
+}
+
+def invalid_open(config: db.options) -> void
+{
+    db.open(config)
+}
+
+def check_options() -> void
+{
+    db.options config = db.sqlite_options(":memory:")
+    config.wal = true
+    test.assert_throws_code(bind(invalid_open, config), "invalid_argument")
+    config.wal = false
+    config.busy_timeout_ms = -1
+    test.assert_throws_code(bind(invalid_open, config), "invalid_argument")
+    config.busy_timeout_ms = 0
+    config.driver = "postgres"
+    test.assert_throws_code(bind(invalid_open, config), "unsupported_driver")
+    test.assert_throws_code(bind(invalid_open, db.sqlite_options("file:uri.sqlite")), "invalid_argument")
+    db.options missing = db.sqlite_options("does_not_exist.sqlite")
+    missing.read_only = true
+    test.assert_throws_code(bind(invalid_open, missing), "connection_failed")
+}
+
+def main() -> int
+{
+    check_options()
+    db.options config = db.sqlite_options("数据 数据库.sqlite")
+    config.wal = true
+    db_connection connection = db.open(config)
+    execute(connection, "CREATE TABLE values_table(value INTEGER)")
+    db.options other_config = db.sqlite_options("数据 数据库.sqlite")
+    other_config.busy_timeout_ms = 60
+    db_connection other = db.open(other_config)
+    db_transaction transaction = db.begin(connection, "immediate")
+    execute(connection, "INSERT INTO values_table VALUES(1)")
+    int start = time.monotonic_millis()
+    bool busy = false
+    try
+    {
+        execute(other, "INSERT INTO values_table VALUES(2)")
+    }
+    exception errors.database_error as failure
+    {
+        busy = failure.code == "busy"
+    }
+    test.assert_true(busy)
+    test.assert_true(time.monotonic_millis() - start >= 30)
+    test.assert_equal(5, db.extended_error_code(other) % 256)
+    db.commit(transaction)
+    execute(other, "INSERT INTO values_table VALUES(2)")
+    db_transaction rolled = db.begin(other, "deferred")
+    execute(other, "INSERT INTO values_table VALUES(3)")
+    db.close(other)
+    test.assert_false(db.rollback(rolled))
+    db.close(connection)
+
+    db.options readonly = db.sqlite_options("数据 数据库.sqlite")
+    readonly.read_only = true
+    db_connection reader = db.open(readonly)
+    db_statement statement = db.prepare(reader, "SELECT count(*) FROM values_table")
+    db_cursor cursor = db.query(statement)
+    test.assert_equal(2, db.get_int(db.next(cursor).value(), 0).value())
+    db.close_cursor(cursor)
+    test.assert_throws_code(bind(execute, reader, "INSERT INTO values_table VALUES(4)"), "read_only")
+    db.close(reader)
+    print("SQLite 文件、WAL、只读和忙等待通过")
+    return 0
+}

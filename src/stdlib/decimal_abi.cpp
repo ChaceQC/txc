@@ -1,4 +1,5 @@
 #include "stdlib/decimal.hpp"
+#include "backend/cpp/decimal_value.hpp"
 
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/value_format.hpp"
@@ -20,6 +21,8 @@ namespace
     throw runtime_failure({tx::error_kind::runtime, "invalid_argument",
                            "十进制值的内部状态无效"});
 }
+
+} // namespace
 
 value read(const void* source)
 {
@@ -62,8 +65,6 @@ void* make(value number, const char* type_name)
     register_class_gc(object);
     return detail::make_handle<std::any>(class_handle(std::move(object)));
 }
-
-} // namespace
 
 } // namespace tx_generated::decimal_math
 

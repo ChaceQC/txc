@@ -1,0 +1,128 @@
+import "db.txh" as db
+import "bytes.txh" as bytes
+import "decimal.txh" as decimal
+import "time.txh" as time
+import "test.txh" as test
+
+def execute(connection: db_connection, sql: str) -> db.execution
+{
+    db_statement statement = db.prepare(connection, sql)
+    return db.execute(statement)
+}
+
+def scalar(connection: db_connection, sql: str) -> int
+{
+    db_statement statement = db.prepare(connection, sql)
+    db_cursor cursor = db.query(statement)
+    return db.get_int(db.next(cursor).value(), 0).value()
+}
+
+def without_commit(connection: db_connection) -> void
+{
+    db_transaction transaction = db.begin(connection, "deferred")
+    execute(connection, "INSERT INTO events(id) VALUES(99)")
+}
+
+def insert_event(connection: db_connection) -> db_statement
+{
+    test.assert_equal(0, execute(connection,
+        "CREATE TABLE events(id INTEGER PRIMARY KEY, label TEXT, enabled INTEGER, amount TEXT, moment TEXT, data BLOB, ratio REAL, missing TEXT)").affected_rows)
+    db_statement insert = db.prepare(connection,
+        "INSERT INTO events VALUES(:id, :label, :enabled, :amount, :moment, :data, :ratio, :missing)")
+    test.assert_equal(8, db.parameter_count(insert))
+    test.assert_equal(2, db.parameter_index(insert, ":label"))
+    vector<db_value> values = vector<db_value>([db.int_value(1), db.str_value("' ; DROP TABLE events; -- 中文"),
+        db.bool_value(true), db.decimal_value(decimal.parse("99999999999999999999.123456789012345678")),
+        db.datetime_value(time.parse_offset_datetime("2026-09-30T18:30:00.123456+08:00")),
+        db.bytes_value(bytes.from_hex("0001ff")), db.float_value(1.5), db.null_value()])
+    db.bind_all(insert, db.parameters(values))
+    db.execution written = db.execute(insert)
+    test.assert_equal(1, written.affected_rows)
+    test.assert_equal(1, written.insert_id.value())
+    test.assert_equal(0, execute(connection, "CREATE TABLE other(value INTEGER)").affected_rows)
+    test.assert_equal(1, execute(connection, "UPDATE events SET enabled=1 WHERE id=1").affected_rows)
+    test.assert_equal(0, execute(connection, "UPDATE events SET enabled=0 WHERE id=200").affected_rows)
+    test.assert_false(execute(connection,
+        "INSERT INTO events(id) VALUES(1) ON CONFLICT(id) DO UPDATE SET enabled=1").insert_id.is_some())
+    return insert
+}
+
+def check_transactions(connection: db_connection) -> void
+{
+    db_transaction transaction = db.begin(connection, "immediate")
+    db.savepoint(transaction, "first")
+    execute(connection, "INSERT INTO events(id) VALUES(2)")
+    db.savepoint(transaction, "second")
+    execute(connection, "INSERT INTO events(id) VALUES(3)")
+    db.rollback_to(transaction, "first")
+    db.release_savepoint(transaction, "first")
+    db.commit(transaction)
+    test.assert_false(db.rollback(transaction))
+    test.assert_equal(1, scalar(connection, "SELECT count(*) FROM events"))
+    without_commit(connection)
+    test.assert_equal(1, scalar(connection, "SELECT count(*) FROM events"))
+}
+
+def read_event(connection: db_connection) -> db_row
+{
+    db_statement select = db.prepare(connection, "SELECT * FROM events ORDER BY id; -- 尾部注释")
+    db_cursor cursor = db.query(select)
+    db_row row = db.next(cursor).value()
+    test.assert_equal(8, db.column_count(row))
+    test.assert_equal("label", db.column_name(row, 1))
+    test.assert_equal(1, db.column_index(row, "label"))
+    test.assert_equal(1, db.get_int(row, 0).value())
+    test.assert_equal("' ; DROP TABLE events; -- 中文", db.get_str(row, 1).value())
+    test.assert_true(db.get_bool(row, 2).value())
+    test.assert_equal("99999999999999999999.123456789012345678", decimal.to_text(db.get_decimal(row, 3).value()))
+    test.assert_equal(28800, db.get_datetime(row, 4).value().offset_seconds)
+    test.assert_equal("0001ff", bytes.to_hex(db.get_bytes(row, 5).value()))
+    test.assert_equal(1.5, db.get_float(row, 6).value())
+    test.assert_false(db.get_str(row, 7).is_some())
+    test.assert_equal("null", db.value_kind(db.get_value(row, 7)))
+    test.assert_false(db.next(cursor).is_some())
+    test.assert_false(db.next(cursor).is_some())
+    test.assert_true(db.close_cursor(cursor))
+    test.assert_false(db.close_cursor(cursor))
+    test.assert_true(db.close_statement(select))
+    test.assert_false(db.close_statement(select))
+    return row
+}
+
+def check_writes(connection: db_connection) -> void
+{
+    execute(connection, "CREATE TABLE keyed(id TEXT PRIMARY KEY) WITHOUT ROWID")
+    test.assert_false(execute(connection, "INSERT INTO keyed VALUES('x')").insert_id.is_some())
+    db_statement returning = db.prepare(connection, "INSERT INTO events(id) VALUES(4) RETURNING id")
+    db_cursor returned = db.query(returning)
+    test.assert_equal(4, db.get_int(db.next(returned).value(), 0).value())
+    test.assert_false(db.next(returned).is_some())
+    db.close_cursor(returned)
+    db.close_statement(returning)
+
+    db_transaction rolled = db.begin(connection, "exclusive")
+    execute(connection, "DELETE FROM events")
+    test.assert_true(db.rollback(rolled))
+    test.assert_equal(2, scalar(connection, "SELECT count(*) FROM events"))
+}
+
+def main() -> int
+{
+    test.assert_equal("3.53.4", db.sqlite_version())
+    db_connection connection = db.open(db.sqlite_options(":memory:"))
+    db_statement insert = insert_event(connection)
+    check_transactions(connection)
+    db_row row = read_event(connection)
+    check_writes(connection)
+    array aliases = [connection]
+    any alias = aliases[0]
+    db_connection restored = alias as db_connection
+    test.assert_true(db.close(connection))
+    test.assert_false(db.close(restored))
+    test.assert_false(db.close_statement(insert))
+    test.assert_equal("' ; DROP TABLE events; -- 中文", db.get_str(row, 1).value())
+    db_row copied = deep_copy(row)
+    test.assert_equal(1, db.get_int(copied, 0).value())
+    print("SQLite 绑定、行读取、事务和资源通过")
+    return 0
+}

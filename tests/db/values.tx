@@ -1,0 +1,74 @@
+import "db.txh" as db
+import "bytes.txh" as bytes
+import "decimal.txh" as decimal
+import "time.txh" as time
+import "test.txh" as test
+
+def wrong_type() -> void
+{
+    db.as_int(db.str_value("1"))
+}
+
+def wrong_boolean() -> void
+{
+    db.as_bool(db.int_value(2))
+}
+
+def wrong_decimal() -> void
+{
+    db.as_decimal(db.str_value("invalid"))
+}
+
+def wrong_datetime() -> void
+{
+    db.as_datetime(db.str_value("2026-09-30"))
+}
+
+def main() -> int
+{
+    db_value null = db.null_value()
+    test.assert_equal("null", db.value_kind(null))
+    test.assert_false(db.as_int(null).is_some())
+    test.assert_false(db.as_float(null).is_some())
+    test.assert_false(db.as_bool(null).is_some())
+    test.assert_false(db.as_str(null).is_some())
+    test.assert_false(db.as_bytes(null).is_some())
+    test.assert_false(db.as_decimal(null).is_some())
+    test.assert_false(db.as_datetime(null).is_some())
+    test.assert_equal(0, db.as_int(db.int_value(0)).value())
+    test.assert_equal(9223372036854775807, db.as_int(db.int_value(9223372036854775807)).value())
+    test.assert_equal(1.5, db.as_float(db.float_value(1.5)).value())
+    test.assert_false(db.as_bool(db.bool_value(false)).value())
+    test.assert_true(db.as_bool(db.int_value(1)).value())
+    test.assert_equal("", db.as_str(db.str_value("")).value())
+    test.assert_equal("中文参数", db.as_str(db.str_value("中文参数")).value())
+    test.assert_equal("", bytes.to_hex(db.as_bytes(db.bytes_value(bytes.empty())).value()))
+    test.assert_equal("00ff01", bytes.to_hex(db.as_bytes(db.bytes_value(bytes.from_hex("00ff01"))).value()))
+
+    db_value amount = db.decimal_value(decimal.parse("12345678901234567890.123456789012345678"))
+    test.assert_equal("decimal", db.value_kind(amount))
+    test.assert_equal("12345678901234567890.123456789012345678",
+        decimal.to_text(db.as_decimal(amount).value()))
+    time.offset_datetime date = time.parse_offset_datetime("2026-09-30T18:30:00.123456+08:00")
+    db_value timestamp = db.datetime_value(date)
+    test.assert_equal("datetime", db.value_kind(timestamp))
+    time.offset_datetime restored = db.as_datetime(timestamp).value()
+    test.assert_equal(date.unix_micros, restored.unix_micros)
+    test.assert_equal(date.offset_seconds, restored.offset_seconds)
+
+    array boxes = [db.int_value(7)]
+    any boxed = boxes[0]
+    db_value value = boxed as db_value
+    test.assert_equal(7, db.as_int(value).value())
+    db_value copied = deep_copy(value)
+    test.assert_equal(7, db.as_int(copied).value())
+    vector<db_value> values = vector<db_value>([null, value, amount, timestamp])
+    db.parameters params = db.parameters(values)
+    test.assert_equal(4, params.values.size())
+    test.assert_throws_code(wrong_type, "type_mismatch")
+    test.assert_throws_code(wrong_boolean, "type_mismatch")
+    test.assert_throws_code(wrong_decimal, "type_mismatch")
+    test.assert_throws_code(wrong_datetime, "type_mismatch")
+    print("DB 值和类型契约通过")
+    return 0
+}

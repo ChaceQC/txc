@@ -19,7 +19,7 @@
 | 网络 | `httpx`、`websocket` 和 `requests` 的 HTTP/WS 能力，含 HTTP/2/3、文件流、客户端会话、服务端路由/并发、WSS 与明文共享监听器 Upgrade；TCP/UDP/DNS/TLS 低层接口；`requests` 的池、分块、代理、CA、客户端证书、Cookie 和有界重试 | 跨网迁移与第 13 节终态验收；第 11.9 项 Windows x64 本机专项见[网络边界验收](network_11_9.md) |
 | 数据格式 | 严格 JSON 解析、序列化、字段读取、增量数组与受限 schema；CSV 流式读写、表头与 dialect；XML reader、树、writer 与安全默认值；CBOR 确定性编解码与根数组流；`serde` 固定 schema 的 JSON/CBOR 结构体映射和显式版本迁移 | 第 8.6/13 节跨格式、大数据和跨平台专项验收 |
 | 并发 | 当前仅有无捕获的顶层函数值；网络服务循环同步执行 | 线程、任务、取消、同步原语、通道、异步文件/网络 I/O、进程间通信 |
-| 数据库 | 无公开数据库模块 | SQLite 与 PostgreSQL 连接、参数绑定、游标、事务、连接池和迁移接口 |
+| 数据库 | `db` 已提供同步 SQLite/PostgreSQL、TLS 验证、参数绑定、值与行快照、逐行游标、事务、保存点及有界连接池；12.1～12.4 的接口与边界见[数据库](db.md) | 迁移、异步查询与第 12.7/13 节综合验收 |
 | 测试与调试 | `test/log/debug` 与 `txc test` 已有第 3 节基础接口；仓库另有针对编译器/标准库的脚本和样例 | 参数化/性质测试、并行与超时、可替换日志 sink/轮转、性能分析及终态验收 |
 | 安全 | `crypto` 已有安全随机数、SHA-2、HMAC、HKDF/PBKDF2、AES-256-GCM；`secret_bytes` 与 `password` 已提供受控秘密缓冲和 Argon2id；HTTP 客户端验证 TLS | 非对称签名/密钥交换、X.509 与证书存储、大文件认证加密及第 9.7 节综合验收 |
 

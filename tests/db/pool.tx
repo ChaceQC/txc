@@ -1,0 +1,53 @@
+import "db.txh" as db
+import "thread.txh" as thread
+import "test.txh" as test
+import "error.txh" as errors
+
+def worker(pool: db_pool) -> int
+{
+    db_connection connection = db.acquire(pool, 1000)
+    db_statement statement = db.prepare(connection, "SELECT 7")
+    db_cursor cursor = db.query(statement)
+    int result = db.get_int(db.next(cursor).value(), 0).value()
+    db.release(connection)
+    return result
+}
+
+def main() -> int
+{
+    db_pool pool = db.pool(db.sqlite_options("pool.sqlite"), 1, 2)
+    assert_send(pool)
+    assert_sync(pool)
+    join_handle<int> work = thread.spawn(bind(worker, pool))
+    test.assert_equal(7, thread.join(work))
+    db_connection connection = db.acquire(pool, 0)
+    db_statement statement = db.prepare(connection, "CREATE TABLE events(id INTEGER)")
+    db.execute(statement)
+    db_transaction transaction = db.begin(connection, "deferred")
+    db_statement insert = db.prepare(connection, "INSERT INTO events VALUES(1)")
+    db.execute(insert)
+    db_connection alias = connection
+    test.assert_true(db.release(connection))
+    test.assert_false(db.release(alias))
+    test.assert_false(db.rollback(transaction))
+    bool rejected = false
+    try
+    {
+        db.execute(insert)
+    }
+    exception errors.database_error as error
+    {
+        test.assert_equal("invalid_state", error.code)
+        rejected = true
+    }
+    test.assert_true(rejected)
+    connection = db.acquire(pool, 0)
+    db_statement select = db.prepare(connection, "SELECT count(*) FROM events")
+    db_cursor cursor = db.query(select)
+    test.assert_equal(0, db.get_int(db.next(cursor).value(), 0).value())
+    db.close(connection)
+    test.assert_true(db.close_pool(pool))
+    test.assert_false(db.close_pool(pool))
+    print("TX 连接池线程共享、回滚及别名失效通过")
+    return 0
+}

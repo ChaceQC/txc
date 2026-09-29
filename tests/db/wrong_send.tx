@@ -1,0 +1,8 @@
+import "db.txh" as db
+
+def main() -> int
+{
+    db_connection connection = db.open(db.sqlite_options(":memory:"))
+    assert_send(connection)
+    return 0
+}

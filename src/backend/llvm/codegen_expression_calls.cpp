@@ -14,7 +14,7 @@ bool supported_external_call(std::string_view name)
            name.starts_with("thread.") || name.starts_with("sync.") ||
            name.starts_with("channel.") || name.starts_with("task.") ||
            name.starts_with("async_file.") ||
-           name.starts_with("ipc.") ||
+           name.starts_with("ipc.") || name.starts_with("db.") ||
            name.starts_with("unicode.") ||
            name.starts_with("regex.") ||
            name.starts_with("crypto.") || name.starts_with("secret.") ||

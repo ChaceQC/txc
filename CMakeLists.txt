@@ -6,6 +6,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 include(FetchContent)
+include(cmake/postgres.cmake)
 if(WIN32)
     FetchContent_Declare(ccache_binary
         URL https://github.com/ccache/ccache/releases/download/v4.14/ccache-4.14-windows-x86_64.zip
@@ -82,6 +83,11 @@ FetchContent_Declare(libsodium_binary
     URL_HASH SHA256=e8d8bc169fa122eccfc3e4252615937a62fa0bd6ca21ed4912bac48d6ed2f870
     SOURCE_SUBDIR _tx_no_cmake_project
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(sqlite_amalgamation
+    URL https://www.sqlite.org/2026/sqlite-amalgamation-3530400.zip
+    URL_HASH SHA256=1e71ddf93849c6a6ecf58b827c0692073d2dd7ee40196158068f7b29f422e87d
+    SOURCE_SUBDIR _tx_no_cmake_project
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 set(LIBXML2_WITH_C14N OFF CACHE BOOL "" FORCE)
 set(LIBXML2_WITH_CATALOG OFF CACHE BOOL "" FORCE)
 set(LIBXML2_WITH_DEBUG OFF CACHE BOOL "" FORCE)
@@ -113,7 +119,14 @@ set(CMAKE_WARN_DEPRECATED OFF)
 FetchContent_MakeAvailable(nghttp2 mbedtls nghttp3 msquic_binary
     icu_binary pcre2_binary libxml2
     stdcpp_runtime gcc_runtime winpthread_runtime argon2_reference
-    libsodium_binary)
+    libsodium_binary sqlite_amalgamation)
+add_library(tx_sqlite_static STATIC "${sqlite_amalgamation_SOURCE_DIR}/sqlite3.c")
+target_include_directories(tx_sqlite_static PUBLIC "${sqlite_amalgamation_SOURCE_DIR}")
+target_compile_definitions(tx_sqlite_static PRIVATE
+    SQLITE_THREADSAFE=1 SQLITE_OMIT_LOAD_EXTENSION=1 SQLITE_ENABLE_PREUPDATE_HOOK=1)
+set_source_files_properties(src/stdlib/db_connection.cpp PROPERTIES
+    COMPILE_DEFINITIONS SQLITE_ENABLE_PREUPDATE_HOOK=1)
+set_target_properties(tx_sqlite_static PROPERTIES C_STANDARD 11)
 if(MINGW)
     find_package(Threads REQUIRED)
     # mbedtls / mbedx509 通过 mbedcrypto 继承此链接依赖。
@@ -191,6 +204,7 @@ list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hp
     "src/common/text_encoding.hpp" "src/stdlib/parse.hpp" "src/stdlib/serde_direct.hpp"
     "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp" "src/stdlib/iterator.hpp")
 list(APPEND _tx_abi_files "src/stdlib/container_scalar.hpp" "src/stdlib/typed_map.hpp")
+list(APPEND _tx_abi_files "src/stdlib/db.hpp")
 list(APPEND _tx_abi_files "src/stdlib/byte_storage.hpp" "src/stdlib/vector.hpp"
     "src/stdlib/serde_scalar.hpp" "src/stdlib/json_parser.hpp")
 list(SORT _tx_interface_files)
@@ -329,6 +343,7 @@ add_executable(txc
     src/backend/llvm/codegen_record_method.cpp
     src/backend/llvm/codegen_print.cpp
     src/backend/llvm/codegen_external_direct.cpp
+    src/backend/llvm/codegen_db.cpp
     src/backend/llvm/codegen_string_literal_call.cpp
     src/backend/llvm/codegen_string_concat.cpp
     src/backend/llvm/codegen_string_borrow.cpp
@@ -421,6 +436,12 @@ add_library(txstdlib STATIC
     src/backend/cpp/process_abi.cpp
     src/backend/cpp/process_io_abi.cpp
     src/backend/cpp/ipc_abi.cpp
+    src/backend/cpp/db_abi.cpp
+    src/backend/cpp/db_pool_abi.cpp
+    src/backend/cpp/db_resource_abi.cpp
+    src/backend/cpp/db_value_abi.cpp
+    src/backend/cpp/db_row_abi.cpp
+    src/backend/cpp/db_domain_abi.cpp
     src/backend/cpp/vector_text_abi.cpp
     src/backend/cpp/algorithm_abi.cpp
     src/backend/cpp/algorithm_extended_abi.cpp
@@ -565,6 +586,18 @@ add_library(txstdlib STATIC
     src/stdlib/ipc_connection.cpp
     src/stdlib/ipc_transport.cpp
     src/stdlib/ipc_frame.cpp
+    src/stdlib/db_values.cpp
+    src/stdlib/db_resources.cpp
+    src/stdlib/db_connection.cpp
+    src/stdlib/db_binding.cpp
+    src/stdlib/db_query.cpp
+    src/stdlib/db_transaction.cpp
+    src/stdlib/db_postgres_connection.cpp
+    src/stdlib/db_postgres_io.cpp
+    src/stdlib/db_postgres_statement.cpp
+    src/stdlib/db_postgres_rows.cpp
+    src/stdlib/db_pool.cpp
+    src/stdlib/db_pool_return.cpp
     src/stdlib/filesystem_listing.cpp
     src/stdlib/filesystem_operations.cpp
     src/stdlib/path.cpp
@@ -636,7 +669,7 @@ target_include_directories(txstdlib PRIVATE
     "${msquic_binary_SOURCE_DIR}/build/native/include")
 target_link_libraries(txstdlib PRIVATE nghttp2_static nghttp3_static
     mbedtls mbedx509 mbedcrypto
-    argon2_reference_static LibXml2::LibXml2 libsodium_static)
+    argon2_reference_static LibXml2::LibXml2 libsodium_static tx_sqlite_static tx_libpq)
 add_dependencies(txc txstdlib)
 if(WIN32)
     target_link_libraries(txc PRIVATE shell32 bcrypt)

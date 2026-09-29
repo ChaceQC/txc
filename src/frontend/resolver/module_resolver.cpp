@@ -29,6 +29,7 @@ bool is_builtin_type(const std::string& name)
            name == "regex_pattern" || name == "fs_watcher" ||
            name == "process_child" || name == "process_pipe" ||
            name == "ipc_listener" || name == "ipc_stream" ||
+           value_type(name).is_database_type() ||
            name == "json_reader" || name == "json_writer" ||
            name == "cbor_reader" || name == "cbor_writer" ||
            name == "csv_reader" || name == "csv_writer" ||
@@ -124,7 +125,8 @@ void module_resolver::build_index(const program& source)
     {
         const auto key = module_of(function.position);
         if ((is_builtin_call(function.name) || is_builtin_type(function.name)) &&
-            function.external_name != "algorithm.any")
+            function.external_name != "algorithm.any" &&
+            function.external_name != "db.bind")
         {
             throw compile_error(function.position, "保留的函数名：" + function.name);
         }

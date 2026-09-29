@@ -1,0 +1,9 @@
+import "db.txh" as db
+
+def main() -> int
+{
+    db_connection connection = db.open(db.sqlite_options(":memory:"))
+    db_statement statement = db.prepare(connection, "SELECT ?")
+    db.bind(statement, 1, "不能用 str 代替 db_value")
+    return 0
+}

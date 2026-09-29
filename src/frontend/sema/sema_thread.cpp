@@ -30,7 +30,7 @@ bool semantic_analyzer::is_send_type(const value_type& type) const
             candidate == value_type::none_type ||
             candidate == value_type::cancel_token_type ||
             candidate.name == "condition" || candidate.name == "semaphore" ||
-            candidate.name == "once")
+            candidate.name == "once" || candidate.name == "db_pool")
         {
             return true;
         }
@@ -42,6 +42,7 @@ bool semantic_analyzer::is_send_type(const value_type& type) const
             candidate == value_type::secret_bytes_type ||
             candidate == value_type::ipc_listener_type ||
             candidate == value_type::ipc_stream_type ||
+            candidate.is_database_type() ||
             candidate.is_function())
         {
             return false;
@@ -157,7 +158,7 @@ bool semantic_analyzer::is_sync_type(const value_type& type) const
         type == value_type::bool_type || type == value_type::str_type ||
         type == value_type::bytes_type || type == value_type::none_type ||
         type == value_type::cancel_token_type || type.name == "condition" ||
-        type.name == "semaphore" || type.name == "once")
+        type.name == "semaphore" || type.name == "once" || type.name == "db_pool")
     {
         return true;
     }

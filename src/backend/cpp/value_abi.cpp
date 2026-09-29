@@ -18,6 +18,7 @@
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
 #include "stdlib/ipc.hpp"
+#include "stdlib/db.hpp"
 #include "stdlib/json_stream.hpp"
 #include "stdlib/cbor.hpp"
 #include "stdlib/csv.hpp"
@@ -309,6 +310,7 @@ extern "C" int txrt_value_require_type(const void* value,
                 typeid(tx_generated::process_pipe)) ||
             (type == "ipc_listener" && item.type() ==
                 typeid(tx_generated::ipc_listener)) ||
+            tx_generated::db_type_matches(item, type) ||
             (type == "ipc_stream" && item.type() ==
                 typeid(tx_generated::ipc_stream)) ||
             (type == "json_reader" && item.type() == typeid(tx_generated::json_reader)) ||

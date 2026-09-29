@@ -1,0 +1,26 @@
+import "db.txh" as db
+import "secret.txh" as secret
+import "file.txh" as file
+import "env.txh" as env
+
+// 密码从受控文件读取为秘密字节，不放进连接 URL 或日志。
+def main() -> int
+{
+    secret_bytes password = secret.from_bytes(file.read_bytes(env.get("TX_DB_PASSWORD_FILE")))
+    db.postgres_config config = db.postgres_options("localhost", "postgres", "tx_user", env.get("TX_DB_CA"))
+    db_pool pool = db.postgres_pool(config, password, 4, 16)
+    secret.close(password)
+    db_connection connection = db.acquire(pool, 5000)
+    db_statement statement = db.prepare(connection, "SELECT $1::text AS message")
+    db.bind(statement, 1, db.str_value("来自 TX 的参数化查询"))
+    db_cursor cursor = db.query(statement)
+    option<db_row> row = db.next(cursor)
+    while row.is_some()
+    {
+        print(db.get_str(row.value(), 0).value())
+        row = db.next(cursor)
+    }
+    db.release(connection)
+    db.close_pool(pool)
+    return 0
+}

@@ -1,0 +1,208 @@
+import "db.txh" as db
+import "error.txh" as errors
+import "test.txh" as test
+import "string.txh" as string
+
+def expect_code(operation: fn()->void, code: str) -> void
+{
+    bool caught = false
+    try
+    {
+        operation()
+    }
+    exception errors.database_error as failure
+    {
+        caught = true
+        test.assert_equal(code, failure.code)
+        test.assert_false(string.contains(failure.message, "private_table"))
+    }
+    test.assert_true(caught, "应捕获 database_error")
+}
+
+def prepare_only(connection: db_connection, sql: str) -> void
+{
+    db.prepare(connection, sql)
+}
+
+def execute(connection: db_connection, sql: str) -> void
+{
+    db_statement statement = db.prepare(connection, sql)
+    db.execute(statement)
+}
+
+def query_only(statement: db_statement) -> void
+{
+    db.query(statement)
+}
+
+def next_only(cursor: db_cursor) -> void
+{
+    db.next(cursor)
+}
+
+def read_only(connection: db_connection, sql: str) -> void
+{
+    db_statement statement = db.prepare(connection, sql)
+    db_cursor cursor = db.query(statement)
+    db.next(cursor)
+}
+
+def row_of(connection: db_connection, sql: str) -> db_row
+{
+    db_statement statement = db.prepare(connection, sql)
+    db_cursor cursor = db.query(statement)
+    return db.next(cursor).value()
+}
+
+def get_int(row: db_row, index: int) -> void
+{
+    db.get_int(row, index)
+}
+
+def get_name(row: db_row, name: str) -> void
+{
+    db.column_index(row, name)
+}
+
+def bind_one(statement: db_statement, index: int) -> void
+{
+    db.bind(statement, index, db.int_value(8))
+}
+
+def bind_short(statement: db_statement) -> void
+{
+    vector<db_value> values = vector<db_value>([db.int_value(2)])
+    db.bind_all(statement, db.parameters(values))
+}
+
+def commit(transaction: db_transaction) -> void
+{
+    db.commit(transaction)
+}
+
+def copy_connection(connection: db_connection) -> void
+{
+    deep_copy(connection)
+}
+
+def failed_scope(connection: db_connection) -> void
+{
+    db_transaction transaction = db.begin(connection, "deferred")
+    execute(connection, "INSERT INTO parent VALUES(4)")
+    execute(connection, "INSERT INTO private_table VALUES(4)")
+}
+
+def check_bindings(connection: db_connection) -> void
+{
+    db_statement statement = db.prepare(connection, "SELECT ?, ?")
+    expect_code(bind(query_only, statement), "parameter_missing")
+    expect_code(bind(bind_one, statement, 0), "parameter_missing")
+    expect_code(bind(bind_one, statement, 3), "parameter_missing")
+    db.bind(statement, 1, db.int_value(7))
+    expect_code(bind(bind_short, statement), "parameter_missing")
+    db.bind(statement, 2, db.null_value())
+    db_cursor cursor = db.query(statement)
+    expect_code(bind(prepare_only, connection, "SELECT 2"), "invalid_state")
+    expect_code(bind(bind_one, statement, 1), "invalid_state")
+    db_row row = db.next(cursor).value()
+    test.assert_equal(7, db.get_int(row, 0).value())
+    test.assert_false(db.get_int(row, 1).is_some())
+    db.close_cursor(cursor)
+    db.clear_bindings(statement)
+    expect_code(bind(query_only, statement), "parameter_missing")
+    db.bind(statement, 1, db.int_value(9))
+    db.bind(statement, 2, db.null_value())
+    cursor = db.query(statement)
+    test.assert_true(db.close_statement(statement))
+    test.assert_false(db.close_cursor(cursor))
+    expect_code(bind(next_only, cursor), "invalid_state")
+    expect_code(bind(query_only, statement), "invalid_state")
+}
+
+def check_rows(connection: db_connection) -> void
+{
+    db_row row = row_of(connection, "SELECT '7' AS text, NULL AS empty, 0 AS zero, 1.0 AS real, '' AS blank, x'' AS blob")
+    expect_code(bind(get_int, row, 0), "type_mismatch")
+    expect_code(bind(get_int, row, -1), "column_missing")
+    expect_code(bind(get_int, row, 6), "column_missing")
+    expect_code(bind(get_name, row, "missing"), "column_missing")
+    test.assert_false(db.get_int(row, 1).is_some())
+    test.assert_equal(0, db.get_int(row, 2).value())
+    test.assert_equal(1.0, db.get_float(row, 3).value())
+    test.assert_equal("", db.get_str(row, 4).value())
+    test.assert_true(db.get_bytes(row, 5).is_some())
+    test.assert_equal("bytes", db.value_kind(db.get_value(row, 5)))
+    db_row duplicate = row_of(connection, "SELECT 1 AS same, 2 AS same")
+    expect_code(bind(get_name, duplicate, "same"), "ambiguous_column")
+    db_statement no_rows = db.prepare(connection, "SELECT 1 WHERE 0")
+    db_cursor empty = db.query(no_rows)
+    test.assert_false(db.next(empty).is_some())
+    test.assert_false(db.next(empty).is_some())
+    db.close_cursor(empty)
+}
+
+def check_transactions(connection: db_connection) -> void
+{
+    execute(connection, "CREATE TABLE parent(id INTEGER PRIMARY KEY)")
+    execute(connection, "CREATE TABLE child(parent INTEGER REFERENCES parent(id) DEFERRABLE INITIALLY DEFERRED)")
+    db_transaction transaction = db.begin(connection, "deferred")
+    execute(connection, "INSERT INTO child VALUES(999)")
+    expect_code(bind(commit, transaction), "constraint_violation")
+    test.assert_true(db.extended_error_code(connection) % 256 == 19)
+    test.assert_true(db.rollback(transaction))
+    expect_code(bind(commit, transaction), "invalid_state")
+    expect_code(bind(failed_scope, connection), "query_failed")
+    test.assert_equal(0, db.get_int(row_of(connection, "SELECT count(*) FROM parent"), 0).value())
+    execute(connection, "INSERT INTO parent VALUES(1)")
+    db_transaction auto_rollback = db.begin(connection, "immediate")
+    expect_code(bind(execute, connection, "INSERT OR ROLLBACK INTO parent VALUES(1)"), "constraint_violation")
+    test.assert_false(db.rollback(auto_rollback))
+
+    db_transaction live = db.begin(connection, "deferred")
+    db_statement select = db.prepare(connection, "SELECT * FROM parent")
+    db_cursor cursor = db.query(select)
+    expect_code(bind(commit, live), "invalid_state")
+    test.assert_true(db.rollback(live))
+    expect_code(bind(next_only, cursor), "invalid_state")
+}
+
+def check_external_values() -> void
+{
+    db_connection external = db.open(db.sqlite_options("external.sqlite"))
+    db_statement dirty = db.prepare(external, "SELECT value FROM dirty")
+    db_cursor cursor = db.query(dirty)
+    expect_code(bind(next_only, cursor), "invalid_encoding")
+    test.assert_equal(1, db.get_int(row_of(external, "SELECT 1"), 0).value())
+    db.close(external)
+
+    db.options limits = db.sqlite_options(":memory:")
+    limits.max_value_bytes = 256
+    db_connection limited = db.open(limits)
+    expect_code(bind(read_only, limited, "SELECT zeroblob(512)"), "limit_exceeded")
+    db.close(limited)
+}
+
+def main() -> int
+{
+    db_connection connection = db.open(db.sqlite_options(":memory:"))
+    check_bindings(connection)
+    check_rows(connection)
+    check_transactions(connection)
+    expect_code(bind(prepare_only, connection, "BEGIN"), "invalid_state")
+    expect_code(bind(prepare_only, connection, "ATTACH ':memory:' AS bypass"), "invalid_state")
+    expect_code(bind(prepare_only, connection, "PRAGMA busy_timeout=0"), "invalid_state")
+    expect_code(bind(prepare_only, connection, "SELECT 1; SELECT 2"), "invalid_argument")
+    expect_code(bind(prepare_only, connection, "-- 仅注释"), "invalid_argument")
+    expect_code(bind(copy_connection, connection), "invalid_state")
+    db_statement final = db.prepare(connection, "SELECT 1")
+    db_cursor cursor = db.query(final)
+    db_row retained = db.next(cursor).value()
+    db.close(connection)
+    expect_code(bind(next_only, cursor), "invalid_state")
+    expect_code(bind(prepare_only, connection, "SELECT 1"), "invalid_state")
+    test.assert_equal(1, db.get_int(retained, 0).value())
+    test.assert_false(db.close_cursor(cursor))
+    check_external_values()
+    print("SQLite 失败路径和关闭状态通过")
+    return 0
+}

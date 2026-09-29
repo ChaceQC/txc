@@ -58,6 +58,13 @@ struct value_type
         return name.starts_with("vector<") && parameters.size() == 1;
     }
 
+    [[nodiscard]] bool is_database_type() const noexcept
+    {
+        return name == "db_connection" || name == "db_statement" ||
+               name == "db_cursor" || name == "db_transaction" ||
+               name == "db_row" || name == "db_value" || name == "db_pool";
+    }
+
     [[nodiscard]] bool is_option() const noexcept
     {
         return name.starts_with("option<") && parameters.size() == 1;

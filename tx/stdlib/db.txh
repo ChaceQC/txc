@@ -1,0 +1,101 @@
+import "decimal.txh" as decimal
+import "time.txh" as time
+
+struct options
+{
+    driver: str
+    path: str
+    read_only: bool
+    wal: bool
+    busy_timeout_ms: int
+    max_value_bytes: int
+}
+
+struct parameters
+{
+    values: vector<db_value>
+}
+
+struct execution
+{
+    affected_rows: int
+    insert_id: option<int>
+}
+
+struct postgres_config
+{
+    host: str
+    port: int
+    database: str
+    user: str
+    ca_file: str
+    connect_timeout_ms: int
+    operation_timeout_ms: int
+    max_value_bytes: int
+    read_only: bool
+}
+
+def postgres_options(host: str, database: str, user: str, ca_file: str) -> postgres_config
+def postgres_version() -> int
+def open_postgres(config: postgres_config, password: secret_bytes) -> db_connection
+def sqlstate(connection: db_connection) -> str
+def transaction_status(connection: db_connection) -> str
+def pool(config: options, max_connections: int, max_waiters: int) -> db_pool
+def postgres_pool(config: postgres_config, password: secret_bytes, max_connections: int, max_waiters: int) -> db_pool
+def acquire(pool: db_pool, timeout_ms: int) -> db_connection
+def release(connection: db_connection) -> bool
+def close_pool(pool: db_pool) -> bool
+
+def sqlite_options(path: str) -> options
+def sqlite_version() -> str
+def open(config: options) -> db_connection
+def close(connection: db_connection) -> bool
+def extended_error_code(connection: db_connection) -> int
+
+def prepare(connection: db_connection, sql: str) -> db_statement
+def parameter_count(statement: db_statement) -> int
+def parameter_index(statement: db_statement, name: str) -> int
+def bind(statement: db_statement, index: int, value: db_value) -> void
+def bind_all(statement: db_statement, params: parameters) -> void
+def clear_bindings(statement: db_statement) -> void
+def execute(statement: db_statement) -> execution
+def query(statement: db_statement) -> db_cursor
+def close_statement(statement: db_statement) -> bool
+def next(cursor: db_cursor) -> option<db_row>
+def close_cursor(cursor: db_cursor) -> bool
+
+def column_count(row: db_row) -> int
+def column_name(row: db_row, index: int) -> str
+def column_index(row: db_row, name: str) -> int
+def get_value(row: db_row, index: int) -> db_value
+def get_int(row: db_row, index: int) -> option<int>
+def get_float(row: db_row, index: int) -> option<float>
+def get_bool(row: db_row, index: int) -> option<bool>
+def get_str(row: db_row, index: int) -> option<str>
+def get_bytes(row: db_row, index: int) -> option<bytes>
+def get_decimal(row: db_row, index: int) -> option<decimal.decimal>
+def get_datetime(row: db_row, index: int) -> option<time.offset_datetime>
+
+def null_value() -> db_value
+def int_value(value: int) -> db_value
+def float_value(value: float) -> db_value
+def bool_value(value: bool) -> db_value
+def str_value(value: str) -> db_value
+def bytes_value(value: bytes) -> db_value
+def decimal_value(value: decimal.decimal) -> db_value
+def datetime_value(value: time.offset_datetime) -> db_value
+def value_kind(value: db_value) -> str
+def as_int(value: db_value) -> option<int>
+def as_float(value: db_value) -> option<float>
+def as_bool(value: db_value) -> option<bool>
+def as_str(value: db_value) -> option<str>
+def as_bytes(value: db_value) -> option<bytes>
+def as_decimal(value: db_value) -> option<decimal.decimal>
+def as_datetime(value: db_value) -> option<time.offset_datetime>
+
+def begin(connection: db_connection, mode: str) -> db_transaction
+def commit(transaction: db_transaction) -> void
+def rollback(transaction: db_transaction) -> bool
+def savepoint(transaction: db_transaction, name: str) -> void
+def rollback_to(transaction: db_transaction, name: str) -> void
+def release_savepoint(transaction: db_transaction, name: str) -> void

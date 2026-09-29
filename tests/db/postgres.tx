@@ -1,0 +1,129 @@
+import "db.txh" as db
+import "bytes.txh" as bytes
+import "secret.txh" as secret
+import "env.txh" as env
+import "decimal.txh" as decimal
+import "time.txh" as time
+import "test.txh" as test
+import "error.txh" as errors
+
+def execute(connection: db_connection, sql: str) -> void
+{
+    db_statement statement = db.prepare(connection, sql)
+    db.execute(statement)
+}
+
+def row_of(connection: db_connection, sql: str) -> db_row
+{
+    db_statement statement = db.prepare(connection, sql)
+    db_cursor cursor = db.query(statement)
+    db_row row = db.next(cursor).value()
+    test.assert_false(db.next(cursor).is_some())
+    return row
+}
+
+def check_values(connection: db_connection) -> void
+{
+    execute(connection, "CREATE TEMP TABLE values_test(id bigint PRIMARY KEY, label text, enabled bool, amount numeric, moment timestamptz, data bytea, ratio double precision, missing text)")
+    db_statement insert = db.prepare(connection, "INSERT INTO values_test VALUES($1,$2,$3,$4,$5,$6,$7,$8)")
+    test.assert_equal(8, db.parameter_count(insert))
+    test.assert_equal(2, db.parameter_index(insert, "$2"))
+    vector<db_value> values = vector<db_value>([db.int_value(1), db.str_value("'; DROP TABLE values_test; -- 中文"),
+        db.bool_value(true), db.decimal_value(decimal.parse("99999999999999999.123456789012345678")),
+        db.datetime_value(time.parse_offset_datetime("2026-09-30T18:30:00.123456+08:00")),
+        db.bytes_value(bytes.from_hex("0001ff")), db.float_value(1.5), db.null_value()])
+    db.bind_all(insert, db.parameters(values))
+    db.execution result = db.execute(insert)
+    test.assert_equal(1, result.affected_rows)
+    test.assert_false(result.insert_id.is_some())
+    db_row row = row_of(connection, "SELECT * FROM values_test")
+    test.assert_equal(1, db.get_int(row, 0).value())
+    test.assert_equal("'; DROP TABLE values_test; -- 中文", db.get_str(row, 1).value())
+    test.assert_true(db.get_bool(row, 2).value())
+    test.assert_equal("99999999999999999.123456789012345678", decimal.to_text(db.get_decimal(row, 3).value()))
+    test.assert_equal(0, db.get_datetime(row, 4).value().offset_seconds)
+    test.assert_equal("0001ff", bytes.to_hex(db.get_bytes(row, 5).value()))
+    test.assert_equal(1.5, db.get_float(row, 6).value())
+    test.assert_false(db.get_str(row, 7).is_some())
+    test.assert_equal("decimal", db.value_kind(db.get_value(row, 3)))
+    test.assert_equal("datetime", db.value_kind(db.get_value(row, 4)))
+    db_statement empty = db.prepare(connection, "SELECT 1 WHERE false")
+    db_cursor cursor = db.query(empty)
+    test.assert_false(db.next(cursor).is_some())
+    test.assert_false(db.next(cursor).is_some())
+}
+
+def check_transactions(connection: db_connection) -> void
+{
+    db_transaction transaction = db.begin(connection, "serializable")
+    db.savepoint(transaction, "recover")
+    bool failed = false
+    try
+    {
+        execute(connection, "INSERT INTO values_test(id) VALUES(1)")
+    }
+    exception errors.database_error as error
+    {
+        test.assert_equal("constraint_violation", error.code)
+        failed = true
+    }
+    test.assert_true(failed)
+    test.assert_equal("23505", db.sqlstate(connection))
+    test.assert_equal("failed", db.transaction_status(connection))
+    failed = false
+    try
+    {
+        db.commit(transaction)
+    }
+    exception errors.database_error as error
+    {
+        test.assert_equal("transaction_failed", error.code)
+        failed = true
+    }
+    test.assert_true(failed)
+    db.rollback_to(transaction, "recover")
+    test.assert_equal("active", db.transaction_status(connection))
+    execute(connection, "INSERT INTO values_test(id) VALUES(2)")
+    db.release_savepoint(transaction, "recover")
+    db.commit(transaction)
+    test.assert_equal("idle", db.transaction_status(connection))
+    test.assert_equal(2, db.get_int(row_of(connection, "SELECT count(*) FROM values_test"), 0).value())
+}
+
+def run_checks() -> int
+{
+    test.assert_equal(180004, db.postgres_version())
+    db.postgres_config config = db.postgres_options("localhost", "postgres", "tx_test", env.get("TX_DB_CA"))
+    config.port = env.get("TX_DB_PORT") as int
+    secret_bytes password = secret.from_bytes(bytes.from_hex(env.get("TX_DB_PASSWORD_HEX")))
+    db_connection connection = db.open_postgres(config, password)
+    secret.close(password)
+    check_values(connection)
+    check_transactions(connection)
+    db_statement statement = db.prepare(connection, "SELECT generate_series(1, 4000)::bigint")
+    db_cursor cursor = db.query(statement)
+    int count = 0
+    while db.next(cursor).is_some()
+    {
+        count += 1
+    }
+    test.assert_equal(4000, count)
+    db_row retained = row_of(connection, "SELECT 42::bigint")
+    db.close(connection)
+    test.assert_equal(42, db.get_int(retained, 0).value())
+    print("PostgreSQL 类型、绑定、逐行读取、SQLSTATE 和事务恢复通过")
+    return 0
+}
+
+def main() -> int
+{
+    try
+    {
+        return run_checks()
+    }
+    exception errors.database_error as error
+    {
+        print(error.code)
+        return 1
+    }
+}

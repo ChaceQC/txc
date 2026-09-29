@@ -25,6 +25,7 @@ bool is_builtin_name(const std::string& name)
            name == "regex_pattern" || name == "fs_watcher" ||
            name == "process_child" || name == "process_pipe" ||
            name == "ipc_listener" || name == "ipc_stream" ||
+           value_type(name).is_database_type() ||
            name == "json_reader" || name == "json_writer" ||
            name == "cbor_reader" || name == "cbor_writer" ||
            name == "csv_reader" || name == "csv_writer" ||
@@ -321,7 +322,7 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         type == value_type::process_child_type ||
         type == value_type::process_pipe_type ||
         type == value_type::ipc_listener_type ||
-        type == value_type::ipc_stream_type ||
+        type == value_type::ipc_stream_type || type.is_database_type() ||
         type == value_type::json_reader_type ||
         type == value_type::json_writer_type ||
         type == value_type::cbor_reader_type ||
@@ -446,7 +447,8 @@ void semantic_analyzer::register_functions(const program& source, bool require_m
         const auto& display_name = function.source_name.empty()
             ? function.name : function.source_name;
         if ((is_builtin_name(function.name) &&
-             function.external_name != "algorithm.any") ||
+             function.external_name != "algorithm.any" &&
+             function.external_name != "db.bind") ||
             structs_.contains(function.name) ||
             classes_.contains(function.name))
         {

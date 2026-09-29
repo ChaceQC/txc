@@ -9,6 +9,7 @@
 #include "stdlib/filesystem_watch.hpp"
 #include "stdlib/process.hpp"
 #include "stdlib/ipc.hpp"
+#include "stdlib/db.hpp"
 #include "stdlib/json_stream.hpp"
 #include "stdlib/cbor.hpp"
 #include "stdlib/csv.hpp"
@@ -21,6 +22,17 @@ namespace tx_generated
 
 std::any copy_resource_value(const std::any& value)
 {
+    if (value.type() == typeid(db_row) || value.type() == typeid(db_value))
+    {
+        return value;
+    }
+    if (value.type() == typeid(db_connection) ||
+        value.type() == typeid(db_statement) ||
+        value.type() == typeid(db_cursor) ||
+        value.type() == typeid(db_transaction) || value.type() == typeid(db_pool))
+    {
+        db_fail("invalid_state", "deep_copy 不能复制数据库资源");
+    }
     if (value.type() == typeid(secret::handle))
     {
         throw runtime_failure({tx::error_kind::security, "invalid_state",

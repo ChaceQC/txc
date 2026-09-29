@@ -7,6 +7,7 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $project_root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $build_dir = [System.IO.Path]::GetFullPath((Join-Path $project_root 'build'))
 $tool_dir = Join-Path $project_root 'tx'
+$postgres_root = Join-Path $build_dir '_deps/postgres_binary-src'
 $bundled_cmake = 'D:\CLion 2024.3.4\bin\cmake\win\x64\bin\cmake.exe'
 $parallel_jobs = [Math]::Max(1, [Math]::Min([Environment]::ProcessorCount, 8))
 if (-not $env:CCACHE_DIR)
@@ -38,6 +39,10 @@ if ($LASTEXITCODE -ne 0)
 if ($LASTEXITCODE -ne 0)
 {
     throw '编译失败；build/ 已保留。'
+}
+if (Test-Path -LiteralPath (Join-Path $postgres_root 'pgsql/include/libpq-fe.h'))
+{
+    $postgres_root = Join-Path $postgres_root 'pgsql'
 }
 
 $clang_exe = $null
@@ -169,7 +174,9 @@ $dependency_archives = @(
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicuuc.dll.a'),
     (Join-Path $build_dir '_deps/icu_binary-src/mingw64/lib/libicudt.dll.a'),
     (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/lib/libpcre2-8.a'),
-    (Join-Path $build_dir '_deps/libxml2-build/libxml2.a')
+    (Join-Path $build_dir '_deps/libxml2-build/libxml2.a'),
+    (Join-Path $build_dir 'libtx_sqlite_static.a'),
+    (Join-Path $build_dir 'libtx_libpq_import.a')
 )
 foreach ($archive in $dependency_archives)
 {
@@ -211,6 +218,22 @@ Copy-Item -LiteralPath (Join-Path $build_dir '_deps/pcre2_binary-src/mingw64/sha
     -Destination (Join-Path $tool_dir 'PCRE2-LICENCE.md') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/libxml2-src/Copyright') `
     -Destination (Join-Path $tool_dir 'LIBXML2-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $project_root 'third_party/sqlite/LICENSE') `
+    -Destination (Join-Path $tool_dir 'SQLITE-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $postgres_root 'server_license.txt') `
+    -Destination (Join-Path $tool_dir 'POSTGRESQL-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $postgres_root 'commandlinetools_3rd_party_licenses.txt') `
+    -Destination (Join-Path $tool_dir 'LIBPQ-THIRD-PARTY-LICENSES') -Force
+foreach ($name in @('libpq.dll', 'libssl-3-x64.dll', 'libcrypto-3-x64.dll',
+                    'libintl-9.dll', 'libiconv-2.dll'))
+{
+    Copy-Item -LiteralPath (Join-Path $postgres_root "bin/$name") `
+        -Destination (Join-Path $tool_dir $name) -Force
+}
+Copy-Item -LiteralPath (Join-Path $postgres_root 'bin/libwinpthread-1.dll') `
+    -Destination (Join-Path $tool_dir 'libwinpthread-p.dll') -Force
+Copy-Item -LiteralPath (Join-Path $postgres_root 'pgAdmin 4/python/vcruntime140.dll') `
+    -Destination (Join-Path $tool_dir 'vcruntime140.dll') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/stdcpp_runtime-src/mingw64/share/licenses/libstdc++/COPYING.RUNTIME') `
     -Destination (Join-Path $tool_dir 'GCC-RUNTIME-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/stdcpp_runtime-src/mingw64/share/licenses/libstdc++/COPYING3') `
@@ -224,6 +247,7 @@ foreach ($name in @('libicuin78.dll', 'libicuuc78.dll', 'libicudt78.dll'))
 }
 # ICU 仅经 C 接口与 TX 运行时相连；私有导入名隔离另一套 C++ 和线程运行库。
 $import_rewrites = @(
+    @{ Name = 'libintl-9.dll'; From = 'libwinpthread-1.dll'; To = 'libwinpthread-p.dll' },
     @{ Name = 'libicuin78.dll'; From = 'libstdc++-6.dll'; To = 'libstdc++-u.dll' },
     @{ Name = 'libicuuc78.dll'; From = 'libstdc++-6.dll'; To = 'libstdc++-u.dll' },
     @{ Name = 'libicuuc78.dll'; From = 'libwinpthread-1.dll'; To = 'libwinpthread-u.dll' },
@@ -311,7 +335,9 @@ foreach ($name in @('libgcc_s_seh-1.dll', 'libstdc++-6.dll',
                     'libwinpthread-1.dll', 'libstdc++-u.dll',
                     'libwinpthread-u.dll',
                     'libicuin78.dll', 'libicuuc78.dll', 'libicudt78.dll',
-                    'msquic.dll'))
+                    'msquic.dll', 'libpq.dll', 'libssl-3-x64.dll',
+                    'libcrypto-3-x64.dll', 'libintl-9.dll', 'libiconv-2.dll',
+                    'libwinpthread-p.dll', 'vcruntime140.dll'))
 {
     $digest = (Get-FileHash -LiteralPath (Join-Path $tool_dir $name) -Algorithm SHA256).Hash.ToLowerInvariant()
     $compatibility_manifest += "$name $digest`n"

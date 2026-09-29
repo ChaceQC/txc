@@ -549,6 +549,7 @@ private:
     void write_callback_releases(const function_decl& function,
                                  bool call_completed);
     void write_external_declarations();
+    void write_db_declarations();
     void write_instruction(const std::string& text);
     void write_context_boundary();
     void write_stack_frame(const function_decl& function);
