@@ -1,0 +1,415 @@
+{
+  "captured_at_utc": "2026-09-29T07:58:03.661022+00:00",
+  "historical_measurement_date": "2026-09-29",
+  "git": {
+    "head": "bb97baabb6f6626eef007a971007a47226106c78",
+    "tracked_diff_sha256": "8e9f7e0fff49837364f76d807bf5cffb52e09485ad28a690e86bb3c47e818f44",
+    "tracked_diff_bytes": 117741,
+    "status_paths": [
+      " M CMakeLists.txt",
+      " M docs/http3.md",
+      " M docs/runtime_optimization.md",
+      " M docs/socket.md",
+      " M docs/standard_library_9_11_review.md",
+      " M docs/standard_library_complete_design.md",
+      " M docs/task.md",
+      " M docs/thread.md",
+      " M scripts/build.ps1",
+      " M scripts/check_http3_server.py",
+      " M src/backend/cpp/concurrency_result.cpp",
+      " M src/backend/cpp/cycle_gc.cpp",
+      " M src/backend/cpp/cycle_gc.hpp",
+      " M src/backend/cpp/runtime_context.cpp",
+      " M src/backend/cpp/socket_async_abi.cpp",
+      " M src/backend/cpp/task_runtime.cpp",
+      " M src/backend/cpp/thread_abi.cpp",
+      " M src/driver/compatibility.cpp",
+      " M src/driver/main.cpp",
+      " M src/stdlib/http3_server.cpp",
+      " M src/stdlib/http3_server_connection.cpp",
+      " M src/stdlib/http3_server_events.cpp",
+      " M src/stdlib/http3_server_headers.cpp",
+      " M src/stdlib/http3_server_internal.hpp",
+      " M src/stdlib/http3_server_listener.cpp",
+      " M src/stdlib/regex_match.cpp",
+      " M src/stdlib/tls_identity.cpp",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/ComputeBench.java",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/FeatureBench.java",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/HttpBench.java",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/LegacyBench.java",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/REPORT.md",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/SystemBench.java",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/WsBench.java",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/child.cpp",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/compare_languages.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/compute.cpp",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/compute.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/compute.tx",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/features.cpp",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/features.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/features.tx",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/http.cpp",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/http.tx",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/http_client.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/http_server.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/legacy.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/performance_retest_20260927.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/runtime_cost.cpp",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/system.cpp",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/system.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/system.tx",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/ws.cpp",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/ws.tx",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/ws_client.py",
+      "?? benchmarks/performance_baseline_2026-09-29/audit/ws_server.py",
+      "?? benchmarks/performance_baseline_2026-09-29/samples/diverse_performance_results.json",
+      "?? benchmarks/performance_baseline_2026-09-29/samples/diverse_performance_results_20260929.json",
+      "?? benchmarks/performance_baseline_2026-09-29/samples/performance_retest_20260927_committed.json",
+      "?? benchmarks/performance_baseline_2026-09-29/samples/performance_retest_20260927_runtime_context.json",
+      "?? benchmarks/performance_baseline_2026-09-29/samples/performance_retest_20260929.json",
+      "?? benchmarks/performance_retest_2026-09-29.md",
+      "?? docs/performance_optimization_plan.md",
+      "?? scripts/archive_performance_baseline.py",
+      "?? scripts/check_concurrency_errors.py",
+      "?? scripts/check_http3_server_resources.py",
+      "?? scripts/check_http3_server_streams.py",
+      "?? src/backend/cpp/socket_async_loop.cpp",
+      "?? src/backend/cpp/socket_async_loop.hpp",
+      "?? src/backend/cpp/socket_async_tcp.cpp",
+      "?? src/backend/cpp/socket_async_udp.cpp",
+      "?? tests/network/http3_lifetime_server.tx",
+      "?? tests/network/http3_reap_server.tx",
+      "?? tests/network/http3_stream_reap_server.tx",
+      "?? tests/network/socket_async_capacity.tx",
+      "?? tests/network/socket_async_contract.tx",
+      "?? tests/network/socket_async_dispatch.tx",
+      "?? tests/stdlib/concurrency_error_abi.cpp",
+      "?? tests/stdlib/concurrency_error_propagation.tx"
+    ]
+  },
+  "machine": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor_identifier": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "reported_cpu": "AMD Ryzen 7 6800H",
+    "reported_os": "Windows 11 Pro build 26200"
+  },
+  "toolchain_versions": {
+    "bundled_clang": "clang version 23.1.2 (https://github.com/llvm/llvm-project 85ac560262434c9ccfc0c183ec22d4138ed647fb)",
+    "g++": "g++ (GCC) 13.1.0",
+    "python": "Python 3.12.10",
+    "java": "java version \"23.0.2\" 2025-01-21",
+    "node": "v24.13.0"
+  },
+  "toolchain_sha256": {
+    "tx/txc.exe": "58ff0459fcee33b82a2a887f73109c3a71143cd10135b6ac23edb32161c771d3",
+    "tx/libtxstdlib.a": "ec5f0804addcca0997178d951ab0e6e5a108fc12481a38bf4994eca6bb3519c1",
+    "tx/clang.exe": "e7956e325bc32a1a96838a19a14c58a18916e710f202776c62f27c621ec79411"
+  },
+  "benchmark_source_sha256": {
+    "benchmarks/call_borrowing.tx": "6e77763d77f435006016519a717723d14337336312d4589a8836345d9882bfa8",
+    "benchmarks/diverse_performance.cpp": "1096b7e288c6111144e5a75a6df125e5bab121f455fe3c2230cbc933a0a6dbb3",
+    "benchmarks/diverse_performance.py": "d3071763daca745f33653d4fd437bdc2acfc2240084f39f3f682c18b78d15845",
+    "benchmarks/diverse_performance.tx": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+    "benchmarks/diverse_performance_java.java": "617f021a55b261c026ef4e81b87feaf3edc6cdb96795344aaf0a53fb908e1c16",
+    "benchmarks/language_features/compare.cpp": "608ad0ee9b42f58c08abd041fd9b43b0f7e46cba3b0a5b97c3baedfa7756829f",
+    "benchmarks/language_features/compare.hpp": "5ae8ba224b2029b2d869fbebfe2033137f57d87d1c1cf220dc85194f63d20539",
+    "benchmarks/language_features/compare.tx": "88e1285edafabf7ebdf0ed09002aa61cfe27ad4209224675f4e0d8e90cde313f",
+    "benchmarks/language_features/compare_java.java": "b3680606ca1dda8940a0dbcbdf5dad3d1aba8e1361f7d0ae4e7415b324d24fd0",
+    "benchmarks/language_features/compare_py.py": "d460efecc609b68d9cd2fd8b15e5cf7497a194c6a3b596d8c33c5741e6149d22",
+    "benchmarks/language_features/containers.cpp": "04b1126b717ce76e63ca5fe67fba65d45b0bdbf2eb6cf543cb63ed0c6e518064",
+    "benchmarks/language_features/core.cpp": "38759f3a8f337d8a316c755e3253b69f1b3130f0b1b9754441c4cc586d0f6bd4",
+    "benchmarks/language_features/feature_containers.java": "c1169570c9a39d4d9b4276308b5c4f6f80f981c35f379d4cf23300b82ecbe11d",
+    "benchmarks/language_features/feature_containers.py": "a1b65e01f3501e964d2dfbec5b67a8c594bb60b1a78c5e9d4a81b8b60f7fea66",
+    "benchmarks/language_features/feature_core.java": "f461222c7dac881cb40c80577da2fdb0c487dcd4e982771dafd093863d86d858",
+    "benchmarks/language_features/feature_core.py": "65438f8c3e88a839eb0fdcb8bec4011e2e43505700c02ecc191462a0d5a5d143",
+    "benchmarks/language_features/feature_memory.java": "cb15dae8a8fdbe31177f0a73be773849e1c693311db4d362c70e1bcb1de6c692",
+    "benchmarks/language_features/feature_memory.py": "c8069869b96871e31014ca54ab457959c14c4c1cd507bf6ca9f2bd0183a5c1de",
+    "benchmarks/language_features/feature_objects.java": "7c0b415a4b0441d4a421caf596a80515d3b2109f1410624d95faf5e94d020464",
+    "benchmarks/language_features/feature_objects.py": "fe8328f19c46b980c7852215089d9d5d2024737094a2ed3b8668146a50b2340c",
+    "benchmarks/language_features/feature_workload.java": "562f2ed9edf4f51df778ca7c180d4b7c9730488f455209861a655e0aa9a19ca1",
+    "benchmarks/language_features/feature_workload.py": "d6d44bdd4e79a0b1f9598b83757b340801d9643d9b99608abd5769bf7f8a291a",
+    "benchmarks/language_features/memory.cpp": "b51b4823d59ad1597f4aae0b6a8603b3cf36ed1e63c2292eec387bb9f346d723",
+    "benchmarks/language_features/objects.cpp": "fe3714da89b0954b6b2772f3f2c3b825aa11db621ee80e4ff52fbb933011fb77",
+    "benchmarks/language_features/run_compare.ps1": "7beb0f457653b0222ce49fee01252012314276faf1136781b839052459ad494e",
+    "benchmarks/language_features/workload.cpp": "c028c819391908900d32fb9cb9197e31ddda48a4a901b89e59767cb8697a82a4",
+    "benchmarks/language_features/workload.hpp": "485f99240c9f8d4266bb869c07615b3bacf033c83ade68de423e9f5458889875",
+    "benchmarks/language_features/workload.tx": "98322509dc151d3aa9df8158cfe10493f843150f357ddce18ae166b4ceb78919",
+    "benchmarks/language_features/workload.txh": "1d6bf9c492834076e1e6a85bbe54b2b6eece8b4d771d542c6df35c3aed8e6077",
+    "benchmarks/static_runtime.tx": "c89a9f68f889735c0663a1c65bbb8dfd206fba254de234e1845315ff4047e016",
+    "scripts/build.ps1": "246cb24626d12aacb9d33008c72720c0312e504b6a5ab29d54abf9269d8f231c",
+    "scripts/run_diverse_performance.py": "f251d79ed58a871956f7ec5bf1cee38d2c381293ec59c00e28cb9f5ee2f26565"
+  },
+  "copied_files": [
+    {
+      "source": "tx_build/performance_retest_20260927_runtime_context.json",
+      "archive": "benchmarks/performance_baseline_2026-09-29/samples/performance_retest_20260927_runtime_context.json",
+      "sha256": "0a908371a8ccb57d9ac55125fb1d896acc2196353c60e5f5f6bf1685912761eb",
+      "bytes": 71248
+    },
+    {
+      "source": "tx_build/performance_retest_20260927_committed.json",
+      "archive": "benchmarks/performance_baseline_2026-09-29/samples/performance_retest_20260927_committed.json",
+      "sha256": "7fa6c9e6031603311a8785f9417e519120fcbf73fbbdcf49467bb3dc846c0b6d",
+      "bytes": 71197
+    },
+    {
+      "source": "tx_build/performance_retest_20260929.json",
+      "archive": "benchmarks/performance_baseline_2026-09-29/samples/performance_retest_20260929.json",
+      "sha256": "85b555c6713ea7c7bc3e2b901b43e52503f49004d4a87cc9896f1ec266dd9474",
+      "bytes": 71199
+    },
+    {
+      "source": "tx_build/diverse_performance_results.json",
+      "archive": "benchmarks/performance_baseline_2026-09-29/samples/diverse_performance_results.json",
+      "sha256": "7ef83a334a45904a90d8b57eaca3b4f2d49dd48dbc6c9cd2cd6d23442c68f1ab",
+      "bytes": 25350
+    },
+    {
+      "source": "tx_build/diverse_performance_results_20260929.json",
+      "archive": "benchmarks/performance_baseline_2026-09-29/samples/diverse_performance_results_20260929.json",
+      "sha256": "c3c14473c26c1393fe161a158a90d898b6be74105b7ed17a725e561e893aecf9",
+      "bytes": 25355
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/child.cpp",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/child.cpp",
+      "sha256": "89368ca7b977ca12d41c1e01bfd04a716268de28ee89058c28f46405882dc789",
+      "bytes": 29
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/compute.cpp",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/compute.cpp",
+      "sha256": "e68844ff441311ea17c0931d33ee8ca0b34a70a1d27bd46392ec58d9ce5024eb",
+      "bytes": 6233
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/compute.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/compute.py",
+      "sha256": "2a3f87638342c7978db0fa16a470e100d18b0ab99011d72774c921f2a860270d",
+      "bytes": 4526
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/compute.tx",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/compute.tx",
+      "sha256": "12c52e58edf98d340cdda497dc2937aac3e834450004e9eff20570f4083d6951",
+      "bytes": 7636
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/ComputeBench.java",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/ComputeBench.java",
+      "sha256": "19c020ab96c80345584613e618331664c17c55a01ae377c8df35fc295278c93e",
+      "bytes": 8906
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/FeatureBench.java",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/FeatureBench.java",
+      "sha256": "f2a4de3e5a285210bdb8b48de3dc29d4914208721af2f3afb95535a08840c700",
+      "bytes": 4886
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/features.cpp",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/features.cpp",
+      "sha256": "9f60d95f9b30feed0eb83dfa0247f0b57729a646155a350f6bb542a6b2be7e4a",
+      "bytes": 4047
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/features.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/features.py",
+      "sha256": "16f65b475c4ccb6a4c0fc0e37241b1f30e2d31ade86054c4c646567102dd9c1b",
+      "bytes": 2603
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/features.tx",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/features.tx",
+      "sha256": "f1f14992e0941af360a01d483cbb6fb02cc69d795c35e95985d76591637035a2",
+      "bytes": 3589
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/http.cpp",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/http.cpp",
+      "sha256": "34db1d7aa77422f87d150e5e909424617438b1b5382ca94c59993ddc88229791",
+      "bytes": 2280
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/http.tx",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/http.tx",
+      "sha256": "a3434b56e44129f3137a87313786939eb4897c06199db84d37e2e816d78c72d9",
+      "bytes": 869
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/http_client.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/http_client.py",
+      "sha256": "7dbca3a7f620da4af2be6644f8c0bd5285e4034574110d5e7a25b35725fdc07e",
+      "bytes": 910
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/http_server.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/http_server.py",
+      "sha256": "6202bfe16dc330e286c62502124ee1952789144be264c067632f365a50ed0aed",
+      "bytes": 620
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/HttpBench.java",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/HttpBench.java",
+      "sha256": "ea38cb1556231d1ef78f0f2bbf36d0d01bdb95e6a7a6dbba5fb33b122193b6d9",
+      "bytes": 955
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/legacy.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/legacy.py",
+      "sha256": "e982bc8f2269e831e07f527a41149d56aed1eea92d878cf80773d6b666ca7230",
+      "bytes": 2234
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/LegacyBench.java",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/LegacyBench.java",
+      "sha256": "9e0b874b35b3eeeb7df33ec527ca7ba645918aa54f70b1b764f9098181441345",
+      "bytes": 4080
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/REPORT.md",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/REPORT.md",
+      "sha256": "c18004bbbce10667d261b757a78e2d507d2ddc45290a997758f00adf622f610a",
+      "bytes": 17054
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/runtime_cost.cpp",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/runtime_cost.cpp",
+      "sha256": "6ee5d801cfe38a5a940d9bd49b5fdf0d23b6317f2d5160ca34a922111ef04483",
+      "bytes": 1506
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/system.cpp",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/system.cpp",
+      "sha256": "272b4587759b756276defc09f4a5b098da164ef106d00bdd672cc085ce784ba1",
+      "bytes": 2595
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/system.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/system.py",
+      "sha256": "d6b3d0330f10b4c518ef7930890ee11bafaae80fde55b83facdad699f6f56405",
+      "bytes": 1069
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/system.tx",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/system.tx",
+      "sha256": "69172c36faedd42019f8b2063f335e774eb824f1aa0f1706f14f6066743f860f",
+      "bytes": 2574
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/SystemBench.java",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/SystemBench.java",
+      "sha256": "d4c9a139d655d86648609d49a9f16072e863f5be81f6d4c7d78a081ce9188b0c",
+      "bytes": 1735
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/ws.cpp",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/ws.cpp",
+      "sha256": "8ca16a0c11a415b564fb0fba5e368aee1dc1e6c5ee2df61c8ae2e3cad4bc71d9",
+      "bytes": 2542
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/ws.tx",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/ws.tx",
+      "sha256": "3418c12403764c4d3cc5f4e3f2c6eb6c750a84b69cdd851189760e45035f6945",
+      "bytes": 569
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/ws_client.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/ws_client.py",
+      "sha256": "5630abebaafa31bd504893eea8772214353b6e5f18c26f96a1de15fc9f9b0cc1",
+      "bytes": 500
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/ws_server.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/ws_server.py",
+      "sha256": "2579a11edeabe19ee896f32512966dc7d70d6fe529358e6aac54635d722fd6e1",
+      "bytes": 291
+    },
+    {
+      "source": "tx_build/perf_audit_20260927/WsBench.java",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/WsBench.java",
+      "sha256": "01afd757f3494ba8be8caaaaf80dd82eb919338907ae699b4d13a11dd2028d18",
+      "bytes": 1658
+    },
+    {
+      "source": "tx_build/performance_retest_20260927.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/performance_retest_20260927.py",
+      "sha256": "861f1c65d55ca24c270a8fa40959cade9b473dfe3b7f78fcbca0f0c6ed8491c1",
+      "bytes": 8630
+    },
+    {
+      "source": "tx_build/language_comparison/compare_languages.py",
+      "archive": "benchmarks/performance_baseline_2026-09-29/audit/compare_languages.py",
+      "sha256": "885e75cbd07f4dcd3cda5b8e4314af915d29b0a300d3018e81f0838940ac243c",
+      "bytes": 4599
+    },
+    {
+      "source": "tx_build/call_borrowing_committed.exe",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/call_borrowing_committed.exe",
+      "sha256": "4c83d34738f3f5fa02d5d112ae81dc45841caa2f6d4243a14f5f92a3f1308960",
+      "bytes": 1178756
+    },
+    {
+      "source": "tx_build/static_runtime_committed.exe",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/static_runtime_committed.exe",
+      "sha256": "6d8a3db9ef2d54ddb60983757a35d05529500458c5b137a156963b5a18630297",
+      "bytes": 1127700
+    },
+    {
+      "source": "tx_build/libgcc_s_seh-1.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/libgcc_s_seh-1.dll",
+      "sha256": "d7e343dd266747177c3699bc3201ea36eceef158e98530e089263bc55bb2a6d7",
+      "bytes": 149364
+    },
+    {
+      "source": "tx_build/libicudt78.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/libicudt78.dll",
+      "sha256": "60255653982986c9fb72ad1b10b8dc502e498d890e0218cb0a47bc5907aa4e43",
+      "bytes": 33120806
+    },
+    {
+      "source": "tx_build/libicuin78.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/libicuin78.dll",
+      "sha256": "1925ba8b617ffbaf986dc6f5edc2d0952b0d48a9b710e1047809abd6a9846af3",
+      "bytes": 3186867
+    },
+    {
+      "source": "tx_build/libicuuc78.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/libicuuc78.dll",
+      "sha256": "be4fc632a5fca5dc4a6fa8726084d63f45b7561b078d00bf107bffc30d336fb7",
+      "bytes": 1999466
+    },
+    {
+      "source": "tx_build/libstdc++-6.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/libstdc++-6.dll",
+      "sha256": "47559ac91bda181bd21e8e1af352eb87703248277d55fdc8da8f20464fcca5e7",
+      "bytes": 26602560
+    },
+    {
+      "source": "tx_build/libstdc++-u.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/libstdc++-u.dll",
+      "sha256": "5df0dba7064c43343ff33d2a02bbcbdfc1e035bc9d91024ec003c6d5a3054aa2",
+      "bytes": 2659216
+    },
+    {
+      "source": "tx_build/libwinpthread-1.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/libwinpthread-1.dll",
+      "sha256": "08168351ae29d6d5825e4c3c64176bf1ec4a3724e5b87a4e3596f24c20455ab2",
+      "bytes": 68800
+    },
+    {
+      "source": "tx_build/libwinpthread-u.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/libwinpthread-u.dll",
+      "sha256": "72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0",
+      "bytes": 66333
+    },
+    {
+      "source": "tx_build/msquic.dll",
+      "archive": "tx_build/performance_baseline_2026-09-29/legacy_bundle/msquic.dll",
+      "sha256": "e1544c8e8586411f70fadbc808d6b4dd020b027820792d78c187e36460e23bc9",
+      "bytes": 548656
+    }
+  ],
+  "legacy_bundle_note": "objdump 显示两份旧程序只依赖第三方 libgcc_s_seh-1.dll 与 libstdc++-6.dll；这两份 DLL 在归档时 tx_build、tx 和保留的 09-27 审计目录哈希相同。仍缺少初次测量时的加载路径记录。"
+}

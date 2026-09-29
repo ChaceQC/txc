@@ -1,0 +1,188 @@
+import "time.txh" as time
+
+def report(name: str, start: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - start)
+    print(checksum)
+}
+
+def double_value(value: int) -> int
+{
+    return value * 2
+}
+
+def add(base: int, value: int) -> int
+{
+    return base + value
+}
+
+def bench_vector_push()
+{
+    vector<int> values = vector<int>()
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        values.push_back(i)
+    }
+    report("vector_push", start, values[99999] + len(values))
+}
+
+def bench_vector_index()
+{
+    int seed = 7
+    if time.unix_millis() < 0
+    {
+        seed = 8
+    }
+    vector<int> values = vector<int>(1024, seed)
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=499999
+    {
+        checksum += values[i % 1024]
+    }
+    report("vector_index", start, checksum)
+}
+
+def bench_map_lookup()
+{
+    map<int, int> values = map<int, int>()
+    for i in 0..=127
+    {
+        values[i] = i
+    }
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        checksum += values[i % 128]
+    }
+    report("map_lookup", start, checksum)
+}
+
+def bench_set_contains()
+{
+    set<int> values = set<int>()
+    for i in 0..=127
+    {
+        values.insert(i)
+    }
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        if values.contains(i % 128)
+        {
+            checksum += 1
+        }
+    }
+    report("set_contains", start, checksum)
+}
+
+def bench_heap()
+{
+    heap<int> values = heap<int>()
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        values.push(i % 1000)
+    }
+    for i in 0..=49999
+    {
+        checksum += values.top()
+        values.pop()
+    }
+    report("heap_push_pop", start, checksum)
+}
+
+def bench_queue()
+{
+    queue<int> values = queue<int>()
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        values.push(i)
+    }
+    for i in 0..=99999
+    {
+        checksum += values.front()
+        values.pop()
+    }
+    report("queue_push_pop", start, checksum)
+}
+
+def bench_iterator()
+{
+    vector<int> values = vector<int>()
+    for i in 0..=999
+    {
+        values.push_back(i)
+    }
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for cycle in 0..=99
+    {
+        auto cursor = values.snapshot_iter()
+        for i in 0..=999
+        {
+            auto item = cursor.next()
+            checksum += item.value()
+        }
+        cursor.close()
+    }
+    report("iterator_snapshot", start, checksum)
+}
+
+def bench_option()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        option<int> value = option<int>(i % 8)
+        checksum += value.value()
+    }
+    report("option_value", start, checksum)
+}
+
+def bench_function_value()
+{
+    fn(int)->int operation = double_value
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        checksum += operation(i)
+    }
+    report("function_value", start, checksum)
+}
+
+def bench_closure()
+{
+    fn(int)->int operation = bind(add, 5)
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        checksum += operation(i)
+    }
+    report("closure_bind", start, checksum)
+}
+
+def main() -> int
+{
+    bench_vector_push()
+    bench_vector_index()
+    bench_map_lookup()
+    bench_set_contains()
+    bench_heap()
+    bench_queue()
+    bench_iterator()
+    bench_option()
+    bench_function_value()
+    bench_closure()
+    return 0
+}

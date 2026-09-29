@@ -1,0 +1,23 @@
+import "time.txh" as time
+import "websocket.txh" as websocket
+
+def main() -> int
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99
+    {
+        auto peer = websocket.connect("ws://127.0.0.1:19791/", 5000)
+        websocket.send_text(peer, "ok")
+        auto message = websocket.receive(peer, 5000)
+        if message.open && message.text == "ok"
+        {
+            checksum += 1
+        }
+        websocket.close(peer)
+    }
+    print("websocket_echo")
+    print(time.monotonic_micros() - start)
+    print(checksum)
+    return 0
+}

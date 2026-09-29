@@ -30,7 +30,13 @@ concurrent_result invoke_concurrent_callback(const void* target,
             target)(callback), &detail::destroy_handle<std::string>);
         if (!value)
         {
-            throw std::runtime_error("跨线程文本结果为空");
+            // TX 回调失败时以空指针返回，原始错误已经留在当前上下文。
+            if (detail::current_runtime_context().last_error_kind ==
+                tx::error_kind::none)
+            {
+                throw std::runtime_error("跨线程文本结果为空");
+            }
+            return {};
         }
         return *value;
     }
@@ -42,7 +48,12 @@ concurrent_result invoke_concurrent_callback(const void* target,
             target)(callback), &detail::destroy_handle<std::any>);
         if (!value)
         {
-            throw std::runtime_error("跨线程复合结果为空");
+            if (detail::current_runtime_context().last_error_kind ==
+                tx::error_kind::none)
+            {
+                throw std::runtime_error("跨线程复合结果为空");
+            }
+            return {};
         }
         return *value;
     }

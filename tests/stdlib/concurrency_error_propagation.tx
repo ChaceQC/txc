@@ -1,0 +1,147 @@
+import "error.txh" as errors
+import "string.txh" as string
+import "thread.txh" as thread
+import "task.txh" as task
+
+struct packet
+{
+    value: int
+}
+
+def raise_original() -> void
+{
+    errors.fail_io("audit_original", "原始跨线程错误")
+}
+
+def fail_text() -> str
+{
+    raise_original()
+    return "未到达"
+}
+
+def fail_packet() -> packet
+{
+    raise_original()
+    return packet(0)
+}
+
+def good_text() -> str
+{
+    return "正常结果"
+}
+
+def check_original(kind: str, code: str, message: str,
+    stack: str, caller: str) -> bool
+{
+    auto frames = string.split_vector(stack, "\n")
+    if frames.size() != 2
+    {
+        return false
+    }
+    bool identity = kind == "io_error" && code == "audit_original" && message == "原始跨线程错误"
+    bool functions = string.starts_with(frames[0], caller + " (") && string.starts_with(frames[1], "raise_original (")
+    bool locations = string.contains(frames[0], "concurrency_error_propagation.tx:") && string.contains(frames[1], "concurrency_error_propagation.tx:")
+    return identity && functions && locations
+}
+
+def check_thread_text() -> int
+{
+    try
+    {
+        join_handle<str> worker = thread.spawn(fail_text)
+        thread.join(worker)
+        return 1
+    }
+    exception errors.io_error as failure
+    {
+        if !check_original(failure.kind, failure.code, failure.message,
+            errors.stack_trace(), "fail_text")
+        {
+            return 2
+        }
+    }
+    return 0
+}
+
+def check_thread_packet() -> int
+{
+    try
+    {
+        join_handle<packet> worker = thread.spawn(fail_packet)
+        thread.join(worker)
+        return 1
+    }
+    exception errors.io_error as failure
+    {
+        if !check_original(failure.kind, failure.code, failure.message,
+            errors.stack_trace(), "fail_packet")
+        {
+            return 2
+        }
+    }
+    return 0
+}
+
+def check_task_results(scope: task_scope) -> int
+{
+    try
+    {
+        task<str> worker = task.spawn(scope, fail_text)
+        task.wait(worker)
+        return 1
+    }
+    exception errors.io_error as failure
+    {
+        if !check_original(failure.kind, failure.code, failure.message,
+            errors.stack_trace(), "fail_text")
+        {
+            return 2
+        }
+    }
+    try
+    {
+        task<packet> worker = task.spawn(scope, fail_packet)
+        task.wait(worker)
+        return 3
+    }
+    exception errors.io_error as failure
+    {
+        if !check_original(failure.kind, failure.code, failure.message,
+            errors.stack_trace(), "fail_packet")
+        {
+            return 4
+        }
+    }
+    # 同一作用域后续任务不能继承已经由 wait 观察的错误。
+    task<str> healthy = task.spawn(scope, good_text)
+    if task.wait(healthy) != "正常结果"
+    {
+        return 5
+    }
+    return 0
+}
+
+def main() -> int
+{
+    int result = check_thread_text()
+    if result != 0
+    {
+        return result
+    }
+    result = check_thread_packet()
+    if result != 0
+    {
+        return result + 2
+    }
+    result = task.scope(check_task_results, 4, 5000)
+    if result != 0
+    {
+        return result + 4
+    }
+    join_handle<str> healthy = thread.spawn(good_text)
+    if thread.join(healthy) != "正常结果"
+    {
+        return 10
+    }
+    return 0
+}

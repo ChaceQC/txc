@@ -1,0 +1,18 @@
+{
+  "captured_at_utc": "2026-09-29T08:07:01.328675+00:00",
+  "copied_files": [
+    {
+      "source": "tx_build/performance_baseline_2026-09-29/call_borrowing_same_session.json",
+      "archive": "benchmarks/performance_baseline_2026-09-29/samples/call_borrowing_same_session.json",
+      "sha256": "fd06d67fccac0172df4fab4dc980538fa96405fa9b8b0c9ea9ca7c80a0b7bb23",
+      "bytes": 2800
+    },
+    {
+      "source": "tx_build/performance_baseline_2026-09-29/static_runtime_same_session.json",
+      "archive": "benchmarks/performance_baseline_2026-09-29/samples/static_runtime_same_session.json",
+      "sha256": "4d8307664cadbc3c0fdb19eb1ad0913fe826805ab59d87e7fca3af80b5894191",
+      "bytes": 2840
+    }
+  ],
+  "legacy_dll_provenance": "unknown; see manifest.json legacy_bundle_note"
+}

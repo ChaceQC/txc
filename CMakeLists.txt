@@ -342,6 +342,9 @@ add_library(txstdlib STATIC
     src/backend/cpp/dns_abi.cpp
     src/backend/cpp/socket_abi.cpp
     src/backend/cpp/socket_async_abi.cpp
+    src/backend/cpp/socket_async_loop.cpp
+    src/backend/cpp/socket_async_tcp.cpp
+    src/backend/cpp/socket_async_udp.cpp
     src/backend/cpp/network_stream_abi.cpp
     src/backend/cpp/network_http2_abi.cpp
     src/backend/cpp/network_session_abi.cpp

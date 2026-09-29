@@ -1,0 +1,9 @@
+{
+  "captured_at_utc": "2026-09-29T08:14:27.623046+00:00",
+  "copied_file": {
+    "source": "tx_build/performance_equivalence/results_complete.json",
+    "archive": "benchmarks/performance_baseline_2026-09-29/samples/equivalence_results.json",
+    "sha256": "3c543d7b5f8df0d3415f4cbc5c6f8acda3178873e298c393994cd766be8e6bda",
+    "bytes": 23819
+  }
+}

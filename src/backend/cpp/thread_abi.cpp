@@ -150,13 +150,19 @@ void run_worker(std::shared_ptr<thread_state> state, std::any callback,
         }
         catch (const std::exception& error)
         {
-            tx_generated::detail::set_error(tx::error_kind::runtime,
-                "thread_failed", error.what());
+            if (context.last_error_kind == tx::error_kind::none)
+            {
+                tx_generated::detail::set_error(tx::error_kind::runtime,
+                    "thread_failed", error.what());
+            }
         }
         catch (...)
         {
-            tx_generated::detail::set_error(tx::error_kind::runtime,
-                "thread_failed", "线程发生未知错误");
+            if (context.last_error_kind == tx::error_kind::none)
+            {
+                tx_generated::detail::set_error(tx::error_kind::runtime,
+                    "thread_failed", "线程发生未知错误");
+            }
         }
         error = snapshot_error(context);
         callback.reset();

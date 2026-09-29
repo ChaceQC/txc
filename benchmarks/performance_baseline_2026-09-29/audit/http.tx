@@ -1,0 +1,38 @@
+import "httpx.txh" as httpx
+import "requests.txh" as requests
+import "time.txh" as time
+
+def report(name: str, start: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - start)
+    print(checksum)
+}
+
+def main() -> int
+{
+    str url = "http://127.0.0.1:19790/data"
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99
+    {
+        auto response = httpx.get(url, 5000)
+        if response.status == 200 && response.body == "OK"
+        {
+            checksum += 1
+        }
+    }
+    report("httpx_get", start, checksum)
+    checksum = 0
+    start = time.monotonic_micros()
+    for i in 0..=99
+    {
+        auto response = requests.get(url)
+        if response.status_code == 200 && response.text() == "OK"
+        {
+            checksum += 1
+        }
+    }
+    report("requests_get", start, checksum)
+    return 0
+}

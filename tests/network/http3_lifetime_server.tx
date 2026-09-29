@@ -1,0 +1,20 @@
+import "httpx.txh" as httpx
+import "file.txh" as file
+import "secret.txh" as secret
+import "encoding.txh" as encoding
+import "system.txh" as system
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    secret_bytes password = secret.from_bytes(
+        encoding.encode("test-only-password", "utf-8"))
+    httpx.listener server = httpx.listen_h3("127.0.0.1", 19756,
+        file.read_bytes(args[0] + "/server.p12"), password)
+    secret.close(password)
+    httpx.request incoming = httpx.accept(server, 10000)
+    httpx.close(server)
+    httpx.respond(incoming.connection,
+        httpx.response(200, map<str, str>(), vector<str>(), incoming.target))
+    return 0
+}

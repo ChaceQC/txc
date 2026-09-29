@@ -114,8 +114,11 @@ foreach ($name in @('ld.exe', 'libssp-0.dll'))
     Copy-Item -LiteralPath (Join-Path $gcc_bin $name) `
         -Destination (Join-Path $link_dir $name) -Force
 }
-Copy-Item -LiteralPath (Join-Path $build_dir '_deps/winpthread_runtime-src/mingw64/bin/libwinpthread-1.dll') `
+# libstdc++-6.dll 与 libwinpthread-1.dll 必须来自同一套 MinGW 运行时。
+Copy-Item -LiteralPath (Join-Path $gcc_bin 'libwinpthread-1.dll') `
     -Destination (Join-Path $tool_dir 'libwinpthread-1.dll') -Force
+Copy-Item -LiteralPath (Join-Path $build_dir '_deps/winpthread_runtime-src/mingw64/bin/libwinpthread-1.dll') `
+    -Destination (Join-Path $tool_dir 'libwinpthread-u.dll') -Force
 Copy-Item -LiteralPath (Join-Path $gcc_bin 'libstdc++-6.dll') `
     -Destination (Join-Path $tool_dir 'libstdc++-6.dll') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/gcc_runtime-src/mingw64/bin/libgcc_s_seh-1.dll') `
@@ -216,12 +219,22 @@ foreach ($name in @('libicuin78.dll', 'libicuuc78.dll', 'libicudt78.dll'))
     Copy-Item -LiteralPath (Join-Path $build_dir "_deps/icu_binary-src/mingw64/bin/$name") `
         -Destination (Join-Path $tool_dir $name) -Force
 }
-# ICU 仅经 C 接口与 TX 运行时相连；私有导入名避免覆盖原编译器的 C++ 运行库。
-$old_import = [System.Text.Encoding]::ASCII.GetBytes('libstdc++-6.dll')
-$new_import = [System.Text.Encoding]::ASCII.GetBytes('libstdc++-u.dll')
-foreach ($name in @('libicuin78.dll', 'libicuuc78.dll'))
+# ICU 仅经 C 接口与 TX 运行时相连；私有导入名隔离另一套 C++ 和线程运行库。
+$import_rewrites = @(
+    @{ Name = 'libicuin78.dll'; From = 'libstdc++-6.dll'; To = 'libstdc++-u.dll' },
+    @{ Name = 'libicuuc78.dll'; From = 'libstdc++-6.dll'; To = 'libstdc++-u.dll' },
+    @{ Name = 'libicuuc78.dll'; From = 'libwinpthread-1.dll'; To = 'libwinpthread-u.dll' },
+    @{ Name = 'libstdc++-u.dll'; From = 'libwinpthread-1.dll'; To = 'libwinpthread-u.dll' }
+)
+foreach ($rewrite in $import_rewrites)
 {
-    $path = Join-Path $tool_dir $name
+    $old_import = [System.Text.Encoding]::ASCII.GetBytes($rewrite.From)
+    $new_import = [System.Text.Encoding]::ASCII.GetBytes($rewrite.To)
+    if ($old_import.Length -ne $new_import.Length)
+    {
+        throw "运行时导入名长度不一致：$($rewrite.Name)；build/ 已保留。"
+    }
+    $path = Join-Path $tool_dir $rewrite.Name
     $data = [System.IO.File]::ReadAllBytes($path)
     $matches = 0
     for ($index = 0; $index -le $data.Length - $old_import.Length; $index++)
@@ -245,7 +258,7 @@ foreach ($name in @('libicuin78.dll', 'libicuuc78.dll'))
     }
     if ($matches -ne 1)
     {
-        throw "ICU 导入表与固定包不符：$name；build/ 已保留。"
+        throw "运行时导入表与固定包不符：$($rewrite.Name)；build/ 已保留。"
     }
     [System.IO.File]::WriteAllBytes($path, $data)
 }
@@ -293,6 +306,7 @@ $library_hash = (Get-FileHash -LiteralPath $library_path -Algorithm SHA256).Hash
 $compatibility_manifest = "tx-package-v2`nabi $abi_fingerprint`ntxc $compiler_hash`nstdlib $library_hash`n"
 foreach ($name in @('libgcc_s_seh-1.dll', 'libstdc++-6.dll',
                     'libwinpthread-1.dll', 'libstdc++-u.dll',
+                    'libwinpthread-u.dll',
                     'libicuin78.dll', 'libicuuc78.dll', 'libicudt78.dll',
                     'msquic.dll'))
 {

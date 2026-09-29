@@ -64,7 +64,6 @@ std::shared_mutex& execution_gate()
 }
 
 thread_local std::size_t concurrent_depth = 0;
-thread_local std::optional<std::shared_lock<std::shared_mutex>> execution_lock;
 
 std::size_t registered_node_count()
 {
@@ -223,17 +222,15 @@ concurrent_execution_scope::concurrent_execution_scope()
 {
     if (concurrent_depth == 0)
     {
-        execution_lock.emplace(execution_gate());
+        // 锁跟随栈上作用域释放，避免 MinGW 在线程退出时析构非平凡 TLS 对象。
+        execution_lock_ = std::shared_lock<std::shared_mutex>(execution_gate());
     }
     ++concurrent_depth;
 }
 
 concurrent_execution_scope::~concurrent_execution_scope()
 {
-    if (--concurrent_depth == 0)
-    {
-        execution_lock.reset();
-    }
+    --concurrent_depth;
 }
 
 void register_gc_node(const std::shared_ptr<void>& object, gc_trace trace,

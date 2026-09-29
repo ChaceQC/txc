@@ -1,3 +1,6 @@
+#include "performance_equivalence/parse_contract.hpp"
+#include "performance_equivalence/serde_payload.hpp"
+
 #include <charconv>
 #include <chrono>
 #include <cstdint>
@@ -25,15 +28,15 @@ void bench_vector_scale()
 {
     // 使用运行时种子，避免 Release 把固定值求和预先折叠。
     const auto epoch = std::chrono::system_clock::now().time_since_epoch().count();
-    const int seed = epoch > 0 ? 3 : 4;
-    const std::vector<int> small(1000, seed);
-    const std::vector<int> large(100000, seed);
+    const std::int64_t seed = epoch > 0 ? 3 : 4;
+    const std::vector<std::int64_t> small(1000, seed);
+    const std::vector<std::int64_t> large(100000, seed);
     report("vector_scan_1k", [&]()
     {
         std::int64_t checksum = 0;
         for (int repetition = 0; repetition < 1000; ++repetition)
         {
-            for (const int value : small)
+            for (const std::int64_t value : small)
             {
                 checksum += value;
             }
@@ -45,7 +48,7 @@ void bench_vector_scale()
         std::int64_t checksum = 0;
         for (int repetition = 0; repetition < 100; ++repetition)
         {
-            for (const int value : large)
+            for (const std::int64_t value : large)
             {
                 checksum += value;
             }
@@ -56,7 +59,7 @@ void bench_vector_scale()
 
 void bench_vector_access()
 {
-    std::vector<int> values;
+    std::vector<std::int64_t> values;
     values.reserve(8192);
     for (int i = 0; i < 8192; ++i)
     {
@@ -84,8 +87,8 @@ void bench_vector_access()
 
 void bench_map_distribution()
 {
-    std::unordered_map<int, int> small;
-    std::unordered_map<int, int> large;
+    std::unordered_map<std::int64_t, std::int64_t> small;
+    std::unordered_map<std::int64_t, std::int64_t> large;
     small.reserve(128);
     large.reserve(8192);
     for (int i = 0; i < 8192; ++i)
@@ -119,7 +122,7 @@ void bench_map_distribution()
         std::int64_t checksum = 0;
         for (int i = 0; i < 500000; ++i)
         {
-            int key = 100000 + (i % 8192);
+            std::int64_t key = 100000 + (i % 8192);
             if (i % 10 == 0)
             {
                 key = i % 8192;
@@ -132,8 +135,8 @@ void bench_map_distribution()
 
 void bench_dictionary_keys()
 {
-    using key_type = std::variant<int, std::string, bool>;
-    const std::unordered_map<key_type, int> values = {
+    using key_type = std::variant<std::int64_t, std::string, bool>;
+    const std::unordered_map<key_type, std::int64_t> values = {
         {key_type{7}, 1}, {key_type{std::string{"seven"}}, 2}, {key_type{true}, 3}
     };
     report("dictionary_int_hit", [&]()
@@ -159,7 +162,7 @@ void bench_dictionary_keys()
         std::int64_t checksum = 0;
         for (int i = 0; i < 200000; ++i)
         {
-            checksum += values.contains(key_type{i});
+            checksum += values.contains(key_type{static_cast<std::int64_t>(i)});
         }
         return checksum;
     });
@@ -264,31 +267,19 @@ void bench_encoding_paths()
     });
 }
 
-std::int64_t fixed_json_roundtrip(std::string_view name)
-{
-    const std::string json = "{\"id\":7,\"name\":\"" + std::string{name} + "\"}";
-    const auto name_start = json.find("\"name\":\"") + 8;
-    const auto name_end = json.find('"', name_start);
-    int id = 0;
-    const auto start = json.data() + 6;
-    const auto parsed = std::from_chars(start, json.data() + json.size(), id);
-    if (parsed.ec != std::errc{} || name_end == std::string::npos)
-    {
-        throw std::runtime_error("invalid JSON result");
-    }
-    return id + static_cast<std::int64_t>(name_end - name_start);
-}
-
 void bench_serde_size()
 {
-    const std::string short_name = "x";
-    const std::string long_name = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const performance_equivalence::payload short_value{7, "x"};
+    const performance_equivalence::payload long_value{7,
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
     report("serde_short_text", [&]()
     {
         std::int64_t checksum = 0;
         for (int i = 0; i < 5000; ++i)
         {
-            checksum += fixed_json_roundtrip(short_name);
+            const auto decoded = performance_equivalence::deserialize_payload(
+                performance_equivalence::serialize_payload(short_value));
+            checksum += decoded.id + decoded.name.size();
         }
         return checksum;
     });
@@ -297,7 +288,9 @@ void bench_serde_size()
         std::int64_t checksum = 0;
         for (int i = 0; i < 5000; ++i)
         {
-            checksum += fixed_json_roundtrip(long_name);
+            const auto decoded = performance_equivalence::deserialize_payload(
+                performance_equivalence::serialize_payload(long_value));
+            checksum += decoded.id + decoded.name.size();
         }
         return checksum;
     });
@@ -319,10 +312,9 @@ void bench_parse_paths()
         std::int64_t checksum = 0;
         for (int i = 0; i < 100000; ++i)
         {
-            int parsed = 0;
             const std::string_view text = valid_inputs[i % 1000];
-            const auto result = std::from_chars(text.data(), text.data() + text.size(), parsed);
-            checksum += result.ec == std::errc{} && result.ptr == text.data() + text.size();
+            const auto result = performance_equivalence::try_parse_int(text, 10);
+            checksum += result.ok;
         }
         return checksum;
     });
@@ -331,17 +323,78 @@ void bench_parse_paths()
         std::int64_t checksum = 0;
         for (int i = 0; i < 100000; ++i)
         {
-            int parsed = 0;
             const std::string_view text = invalid_inputs[i % 1000];
-            const auto result = std::from_chars(text.data(), text.data() + text.size(), parsed);
-            checksum += result.ec != std::errc{} || result.ptr != text.data() + text.size();
+            const auto result = performance_equivalence::try_parse_int(text, 10);
+            checksum += !result.ok;
         }
         return checksum;
     });
 }
 
-int main()
+void bench_parse_core()
 {
+    std::vector<std::string> valid_inputs;
+    std::vector<std::string> invalid_inputs;
+    valid_inputs.reserve(1000);
+    invalid_inputs.reserve(1000);
+    for (int i = 0; i < 1000; ++i)
+    {
+        valid_inputs.push_back(std::to_string(i));
+        invalid_inputs.push_back(valid_inputs.back() + "x");
+    }
+    report("parse_core_valid", [&]()
+    {
+        std::int64_t checksum = 0;
+        for (int i = 0; i < 100000; ++i)
+        {
+            checksum += performance_equivalence::parse_int_core(valid_inputs[i % 1000]);
+        }
+        return checksum;
+    });
+    report("parse_core_invalid", [&]()
+    {
+        std::int64_t checksum = 0;
+        for (int i = 0; i < 100000; ++i)
+        {
+            checksum += !performance_equivalence::parse_int_core(invalid_inputs[i % 1000]);
+        }
+        return checksum;
+    });
+}
+
+void check_contracts()
+{
+    using performance_equivalence::try_parse_int;
+    const auto minimum = try_parse_int(" -9223372036854775808 ", 10);
+    const auto signed_value = try_parse_int(" +7 ", 10);
+    const auto invalid = try_parse_int("7x", 10);
+    const auto overflow = try_parse_int("9223372036854775808", 10);
+    if (!minimum.ok || minimum.value != INT64_MIN ||
+        !signed_value.ok || signed_value.value != 7 ||
+        invalid.ok || invalid.error.code != "invalid_syntax" ||
+        overflow.ok || overflow.error.code != "out_of_range")
+    {
+        throw std::runtime_error("解析公开结果契约校验失败");
+    }
+    performance_equivalence::check_serde_contract();
+}
+
+int main(int argc, char** argv)
+{
+    if (argc == 2 && std::string_view{argv[1]} == "--parse-core")
+    {
+        bench_parse_core();
+        return 0;
+    }
+    if (argc == 2 && std::string_view{argv[1]} == "--contract-check")
+    {
+        check_contracts();
+        return 0;
+    }
+    if (argc != 1)
+    {
+        throw std::runtime_error("未知的基准参数");
+    }
     bench_vector_scale();
     bench_vector_access();
     bench_map_distribution();

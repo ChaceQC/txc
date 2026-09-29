@@ -20,6 +20,10 @@ compiler = root / "tx/txc.exe"
 library = root / "tx/libtxstdlib.a"
 source = root / "benchmarks/diverse_performance.tx"
 cpp_source = root / "benchmarks/diverse_performance.cpp"
+cpp_parse_source = root / "benchmarks/performance_equivalence/parse_contract.cpp"
+cpp_parse_header = root / "benchmarks/performance_equivalence/parse_contract.hpp"
+cpp_serde_source = root / "benchmarks/performance_equivalence/serde_payload.cpp"
+cpp_serde_header = root / "benchmarks/performance_equivalence/serde_payload.hpp"
 python_source = root / "benchmarks/diverse_performance.py"
 java_source = root / "benchmarks/diverse_performance_java.java"
 startup_source = root / "benchmarks/minimal_startup.tx"
@@ -30,7 +34,7 @@ program = root / "tx_build/diverse_performance.exe"
 cpp_program = root / "tx_build/diverse_performance_cpp.exe"
 startup_program = root / "tx_build/minimal_startup.exe"
 cpp_startup_program = root / "tx_build/minimal_startup_cpp.exe"
-output = root / "tx_build/diverse_performance_results.json"
+output = root / "tx_build/diverse_performance_results_equivalent.json"
 jackson_root = Path.home() / ".m2/repository/com/fasterxml/jackson/core"
 jackson_jars = [
     jackson_root / "jackson-databind/2.18.4/jackson-databind-2.18.4.jar",
@@ -184,9 +188,35 @@ def run_compilation(command: list[str], rounds: int = 3) -> dict:
     }
 
 
+def run_cpp_parse_core(rounds: int = 5) -> dict:
+    command = [str(cpp_program), "--parse-core"]
+    expected = {"parse_core_valid": 100000, "parse_core_invalid": 100000}
+
+    def read() -> dict[str, int]:
+        lines = run_measured(command)["stdout"].splitlines()
+        if len(lines) != 6:
+            raise ValueError("C++ 核心解析对照输出行数错误")
+        result = {lines[index]: (int(lines[index + 1]), int(lines[index + 2]))
+                  for index in (0, 3)}
+        if set(result) != set(expected) or any(
+            result[name][1] != checksum for name, checksum in expected.items()
+        ):
+            raise ValueError("C++ 核心解析对照校验失败")
+        return {name: result[name][0] for name in expected}
+
+    read()
+    samples = [read() for _ in range(rounds)]
+    return {name: {"checksum": expected[name],
+                   "samples_us": [item[name] for item in samples],
+                   "median_ms": statistics.median(item[name] for item in samples) / 1000}
+            for name in expected}
+
+
 def main() -> None:
     before = {str(path.relative_to(root)): digest(path) for path in
-              (compiler, library, source, cpp_source, python_source, java_source,
+              (compiler, library, source, cpp_source, cpp_parse_source,
+               cpp_parse_header, cpp_serde_source, cpp_serde_header,
+               python_source, java_source,
                startup_source, cpp_startup_source, python_startup_source,
                java_startup_source)}
     if any(not jar.is_file() for jar in jackson_jars):
@@ -194,7 +224,10 @@ def main() -> None:
     run_measured([str(compiler), str(source), "-o", str(program)])
     run_measured([str(compiler), str(startup_source), "-o", str(startup_program)])
     cpp_flags = ["g++", "-std=c++23", "-O3", "-DNDEBUG"]
-    run_measured([*cpp_flags, str(cpp_source), "-o", str(cpp_program)])
+    cpp_command = [*cpp_flags, str(cpp_source), str(cpp_parse_source),
+                   str(cpp_serde_source), "-o", str(cpp_program)]
+    run_measured(cpp_command)
+    run_measured([str(cpp_program), "--contract-check"])
     run_measured([*cpp_flags, str(cpp_startup_source), "-o",
                   str(cpp_startup_program)])
     run_measured(["javac", "-encoding", "UTF-8", "-cp", java_classpath,
@@ -214,12 +247,12 @@ def main() -> None:
         "Java": ["java", "-cp", java_classpath, "minimal_startup_java"],
     }
     diverse = run_cross_language(commands)
+    cpp_parse_core = run_cpp_parse_core()
     startup = run_startup(startup_commands)
     compile_results = {
         "TX check": run_compilation([str(compiler), "check", str(source)]),
         "TX full": run_compilation([str(compiler), str(source), "-o", str(program)]),
-        "C++ full": run_compilation([*cpp_flags, str(cpp_source), "-o",
-                                     str(cpp_program)]),
+        "C++ full": run_compilation(cpp_command),
         "Python bytecode": run_compilation([
             sys.executable, "-X", "utf8", "-B", "-c",
             "from pathlib import Path; import sys; "
@@ -233,7 +266,9 @@ def main() -> None:
     }
 
     after = {str(path.relative_to(root)): digest(path) for path in
-             (compiler, library, source, cpp_source, python_source, java_source,
+             (compiler, library, source, cpp_source, cpp_parse_source,
+              cpp_parse_header, cpp_serde_source, cpp_serde_header,
+              python_source, java_source,
               startup_source, cpp_startup_source, python_startup_source,
               java_startup_source)}
     if before != after:
@@ -244,6 +279,9 @@ def main() -> None:
         "platform": "Windows x64",
         "peak_memory_note": "2 ms polling of process-tree working set; approximate",
         "diverse": diverse,
+        "cpp_parse_core": cpp_parse_core,
+        "comparison_note": "parse_valid/invalid and serde_* use full C++ payload contracts; "
+                           "2026-09-29 archived C++ samples used simplified references",
         "startup": startup,
         "compilation": compile_results,
         "program_bytes": {

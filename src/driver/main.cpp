@@ -336,6 +336,7 @@ int compile_llvm_native(const std::string& generated_source,
         ? fs::current_path() : output_path.parent_path();
     for (const auto* name : {"libgcc_s_seh-1.dll", "libstdc++-6.dll",
                              "libwinpthread-1.dll", "libstdc++-u.dll",
+                             "libwinpthread-u.dll",
                              "libicuin78.dll",
                              "libicuuc78.dll", "libicudt78.dll",
                              "msquic.dll"})

@@ -24,10 +24,11 @@ namespace tx_generated::http3
 {
 
 class server_connection;
+class server_listener;
 
 struct server_request
 {
-    std::shared_ptr<server_connection> session;
+    std::weak_ptr<server_connection> session;
     std::int64_t stream_id = -1;
     http_request_data value;
     std::size_t header_bytes = 0;
@@ -36,9 +37,18 @@ struct server_request
     std::string response_body;
     std::size_t response_offset = 0;
     bool complete = false;
+    bool closed = false;
+    bool delivered = false;
     bool response_started = false;
     bool response_done = false;
     bool body_offered = false;
+};
+
+struct server_request_ticket
+{
+    std::shared_ptr<server_listener> listener;
+    std::shared_ptr<server_connection> connection;
+    std::shared_ptr<server_request> request;
 };
 
 class server_listener : public std::enable_shared_from_this<server_listener>
@@ -51,9 +61,12 @@ public:
     server_listener(const server_listener&) = delete;
     server_listener& operator=(const server_listener&) = delete;
 
-    void queue(std::shared_ptr<server_request> request);
+    void queue(server_request_ticket request);
+    void discard(const server_connection* connection,
+                 std::int64_t stream_id = -1);
+    void request_reap() noexcept;
     void report_error(std::exception_ptr error) noexcept;
-    std::shared_ptr<server_request> pop(std::int64_t timeout_ms);
+    server_request_ticket pop(std::int64_t timeout_ms);
     void close() noexcept;
     [[nodiscard]] HQUIC configuration() const noexcept
     {
@@ -74,7 +87,9 @@ private:
     PCCERT_CONTEXT certificate_ = nullptr;
     std::mutex mutex_;
     std::condition_variable changed_;
-    std::deque<std::shared_ptr<server_request>> completed_;
+    std::mutex reaper_mutex_;
+    std::condition_variable reaper_changed_;
+    std::deque<server_request_ticket> completed_;
     std::exception_ptr error_;
     std::vector<std::shared_ptr<server_connection>> connections_;
     std::jthread reaper_;
@@ -93,10 +108,15 @@ public:
     void respond(const std::shared_ptr<server_request>& request,
                  const http_response_data& response);
     void close_stream(std::int64_t id) noexcept;
+    bool mark_delivered(const std::shared_ptr<server_request>& request) noexcept;
+    void close_unclaimed_requests() noexcept;
+    void reap_native_handles() noexcept;
+    void wait_if_idle_closed() noexcept;
+    void shutdown() noexcept;
     void reject_failed_configuration() noexcept;
     [[nodiscard]] bool stopped() const noexcept
     {
-        return shutdown_;
+        return native_closed_.load();
     }
 
 private:
@@ -107,12 +127,30 @@ private:
             control,
             encoder,
             decoder,
-            peer
-        } kind = role::peer;
-        server_connection* owner = nullptr;
+            peer_request,
+            peer_unidirectional
+        } kind = role::peer_request;
+        enum class close_reason
+        {
+            active,
+            normal,
+            peer_abort,
+            local_abort,
+            connection_closed
+        } closure = close_reason::active;
         HQUIC handle = nullptr;
         std::int64_t id = -1;
+        std::uint64_t peer_error_code = 0;
+        std::uint32_t callbacks_active = 0;
+        std::uint32_t native_operations_active = 0;
+        std::size_t pending_sends = 0;
         bool started = false;
+        bool peer_send_shutdown = false;
+        bool send_shutdown_complete = false;
+        bool response_fin_submitted = false;
+        bool shutdown_complete = false;
+        bool abort_requested = false;
+        bool close_called = false;
     };
     struct send_state
     {
@@ -138,6 +176,10 @@ private:
 
     void connection_event(QUIC_CONNECTION_EVENT* event);
     void stream_event(stream_state& stream, QUIC_STREAM_EVENT* event);
+    void finish_stream_shutdown(stream_state& stream,
+                                QUIC_STREAM_EVENT* event) noexcept;
+    void release_stream_callback(stream_state& stream) noexcept;
+    void fail_stream(stream_state& stream) noexcept;
     void receive(stream_state& stream, const QUIC_BUFFER* buffers,
                  std::uint32_t count, bool fin);
     void open_control_streams();
@@ -145,10 +187,13 @@ private:
     void pump();
     void capture_error() noexcept;
     void check_error();
+    void wait_native_shutdown() noexcept;
+    void reap_closed_streams() noexcept;
+    void close_native_handles() noexcept;
     std::vector<std::pair<std::string, std::string>> response_fields(
         const http_response_data& response);
 
-    std::shared_ptr<server_listener> listener_;
+    std::weak_ptr<server_listener> listener_;
     const QUIC_API_TABLE* api_ = nullptr;
     HQUIC connection_ = nullptr;
     nghttp3_conn* h3_ = nullptr;
@@ -162,7 +207,16 @@ private:
     std::int64_t decoder_id_ = -1;
     std::exception_ptr error_;
     std::atomic<bool> shutdown_ = false;
+    std::atomic<bool> shutdown_requested_ = false;
+    std::uint32_t connection_callbacks_active_ = 0;
+    std::uint32_t connection_operations_active_ = 0;
+    std::uint32_t stream_callbacks_active_ = 0;
+    std::uint32_t stream_closes_active_ = 0;
+    bool native_close_started_ = false;
+    bool listener_closed_ = false;
     bool bound_ = false;
+    bool connection_shutdown_complete_ = false;
+    std::atomic<bool> native_closed_ = false;
 };
 
 } // namespace tx_generated::http3

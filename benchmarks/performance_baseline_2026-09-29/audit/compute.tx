@@ -1,0 +1,343 @@
+import "algorithm.txh" as algorithm
+import "bytes.txh" as byte_values
+import "cancel.txh" as cancel
+import "cbor.txh" as cbor
+import "crypto.txh" as crypto
+import "csv.txh" as csv
+import "decimal.txh" as decimals
+import "dictionary.txh" as dictionary
+import "encoding.txh" as encoding
+import "env.txh" as env
+import "format.txh" as fmt
+import "json.txh" as json
+import "math.txh" as math
+import "parse.txh" as parse
+import "random.txh" as random
+import "regex.txh" as regex
+import "serde.txh" as serde
+import "statistics.txh" as statistics
+import "test.txh" as test
+import "time.txh" as time
+import "unicode.txh" as unicode
+import "xml.txh" as xml
+
+struct audit_record serde(version=1)
+{
+    number: int serde(1)
+    name: str serde(2)
+}
+
+def report(name: str, start: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - start)
+    print(checksum)
+}
+
+def bench_algorithm()
+{
+    vector<int> values = vector<int>()
+    for i in 0..=255
+    {
+        values.push_back(255 - i)
+    }
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=4999
+    {
+        auto sorted_values = algorithm.sorted(values)
+        checksum += sorted_values[0] + sorted_values[255]
+    }
+    report("algorithm_sort", start, checksum)
+}
+
+def bench_bytes()
+{
+    bytes data = encoding.encode("Hello, 世界!", "utf-8")
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=19999
+    {
+        auto encoded = byte_values.to_hex(data)
+        auto decoded = byte_values.from_hex(encoded)
+        checksum += len(decoded)
+    }
+    report("bytes_hex", start, checksum)
+}
+
+def bench_cancel()
+{
+    auto owner = cancel.source()
+    auto token = cancel.token(owner)
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        checksum += cancel.status(token)
+    }
+    report("cancel_status", start, checksum)
+}
+
+def bench_cbor()
+{
+    auto limits = cbor.default_limits()
+    array value = [1, 2, 3, "hello"]
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        auto encoded = cbor.encode(value, limits)
+        array decoded = cbor.decode(encoded, limits)
+        checksum += len(decoded)
+    }
+    report("cbor_roundtrip", start, checksum)
+}
+
+def bench_crypto()
+{
+    bytes data = encoding.encode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "utf-8")
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        checksum += len(crypto.sha256(data))
+    }
+    report("crypto_sha256", start, checksum)
+}
+
+def bench_csv()
+{
+    auto dialect = csv.default_dialect()
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        auto rows = csv.parse("a,b\r\n1,2\r\n3,4\r\n", dialect)
+        checksum += len(rows)
+    }
+    report("csv_parse", start, checksum)
+}
+
+def bench_decimal()
+{
+    auto left = decimals.parse("12345.67")
+    auto right = decimals.parse("89.01")
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        auto value = decimals.add(left, right, 2, "half_even")
+        checksum += len(decimals.to_text(value))
+    }
+    report("decimal_add", start, checksum)
+}
+
+def bench_dictionary()
+{
+    dict values = {}
+    for i in 0..=127
+    {
+        values[i] = i
+    }
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        if dictionary.contains(values, i % 128)
+        {
+            checksum += 1
+        }
+    }
+    report("dictionary_contains", start, checksum)
+}
+
+def bench_encoding()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=19999
+    {
+        auto encoded = encoding.encode("Hello, 世界!", "utf-8")
+        checksum += len(encoded)
+    }
+    report("encoding_utf8", start, checksum)
+}
+
+def bench_env()
+{
+    env.set("TX_PERF_AUDIT_VALUE", "sample")
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=19999
+    {
+        checksum += len(env.get("TX_PERF_AUDIT_VALUE"))
+    }
+    report("env_get", start, checksum)
+    env.remove("TX_PERF_AUDIT_VALUE")
+}
+
+def bench_format()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        checksum += len(fmt.format("{}:{}", "alpha", 42))
+    }
+    report("format_text", start, checksum)
+}
+
+def bench_json()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        auto value = json.parse_object("{\"a\":123,\"b\":\"hello\",\"c\":[1,2,3]}")
+        checksum += json.get_int(value, "a")
+    }
+    report("json_parse", start, checksum)
+}
+
+def bench_math()
+{
+    float checksum = 0.0
+    auto start = time.monotonic_micros()
+    for i in 1..=1000000
+    {
+        checksum += math.sqrt(i as float)
+    }
+    report("math_sqrt", start, checksum as int)
+}
+
+def bench_parse()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        checksum += parse.parse_int("12345")
+    }
+    report("parse_int", start, checksum)
+}
+
+def bench_random()
+{
+    random.seed(12345)
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=199999
+    {
+        checksum += random.random_int(0, 1000)
+    }
+    report("random_int", start, checksum)
+}
+
+def bench_regex()
+{
+    auto pattern = regex.compile("[a-z]+[0-9]+", "", 1024, 100000, 1000)
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=19999
+    {
+        auto result = regex.search(pattern, "prefix abc123 suffix", 0)
+        if result.found
+        {
+            checksum += len(result.text)
+        }
+    }
+    report("regex_search", start, checksum)
+}
+
+def bench_serde()
+{
+    audit_record value = audit_record(42, "alpha")
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        auto encoded = serde.serialize_json(value)
+        auto decoded = serde.deserialize_json<audit_record>(encoded)
+        checksum += decoded.number
+    }
+    report("serde_json", start, checksum)
+}
+
+def bench_statistics()
+{
+    vector<float> values = vector<float>()
+    for i in 0..=127
+    {
+        values.push_back(i as float)
+    }
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        checksum += statistics.mean(values) as int
+    }
+    report("statistics_mean", start, checksum)
+}
+
+def bench_test()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=99999
+    {
+        test.assert_true(i >= 0)
+        checksum += 1
+    }
+    report("test_assert", start, checksum)
+}
+
+def bench_unicode()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        checksum += len(unicode.normalize("Café", "NFC"))
+    }
+    report("unicode_nfc", start, checksum)
+}
+
+def bench_xml()
+{
+    auto limits = xml.default_limits()
+    limits.max_bytes = 1048576
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=9999
+    {
+        auto document = xml.parse("<r><a>1</a><a>2</a></r>", limits)
+        checksum += len(xml.local_name(xml.root(document)))
+    }
+    report("xml_parse", start, checksum)
+}
+
+def main() -> int
+{
+    bench_algorithm()
+    bench_bytes()
+    bench_cancel()
+    bench_cbor()
+    bench_crypto()
+    bench_csv()
+    bench_decimal()
+    bench_dictionary()
+    bench_encoding()
+    bench_env()
+    bench_format()
+    bench_json()
+    bench_math()
+    bench_parse()
+    bench_random()
+    bench_regex()
+    bench_serde()
+    bench_statistics()
+    bench_test()
+    bench_unicode()
+    bench_xml()
+    return 0
+}

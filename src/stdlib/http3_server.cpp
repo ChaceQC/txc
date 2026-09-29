@@ -18,7 +18,7 @@ struct registry
     std::mutex mutex;
     std::int64_t next_id = id_prefix;
     std::unordered_map<std::int64_t, std::shared_ptr<server_listener>> listeners;
-    std::unordered_map<std::int64_t, std::shared_ptr<server_request>> requests;
+    std::unordered_map<std::int64_t, server_request_ticket> requests;
 };
 
 registry& states()
@@ -39,7 +39,7 @@ std::shared_ptr<server_listener> listener_at(std::int64_t id)
     return found->second;
 }
 
-std::shared_ptr<server_request> request_at(std::int64_t id)
+server_request_ticket request_at(std::int64_t id)
 {
     auto& value = states();
     std::lock_guard lock(value.mutex);
@@ -83,75 +83,99 @@ std::int64_t accept(std::int64_t listener, const binary_stream& destination,
     {
         destination->file.require_open();
     }
-    auto request = listener_at(listener)->pop(timeout_ms);
-    if (request->value.body.size() > max_request_bytes)
+    auto owner = listener_at(listener);
+    auto pending = owner->pop(timeout_ms);
+    auto& request = *pending.request;
+    try
     {
-        request->session->close_stream(request->stream_id);
-        network::fail("size_limit", "HTTP/3 请求正文超过接收上限");
+        if (request.value.body.size() > max_request_bytes)
+        {
+            network::fail("size_limit", "HTTP/3 请求正文超过接收上限");
+        }
+        if (destination)
+        {
+            destination->file.write(request.value.body);
+            request.value.body.clear();
+        }
+        else if (!binary)
+        {
+            network::validate_utf8(request.value.body);
+        }
     }
-    if (destination)
+    catch (...)
     {
-        destination->file.write(request->value.body);
-        request->value.body.clear();
+        pending.connection->close_stream(request.stream_id);
+        throw;
     }
-    else if (!binary)
+    if (!pending.connection->mark_delivered(pending.request))
     {
-        network::validate_utf8(request->value.body);
+        pending.connection->close_stream(request.stream_id);
+        network::fail("connection_closed", "HTTP/3 请求流已关闭");
     }
-    auto& value = states();
-    std::lock_guard lock(value.mutex);
-    const auto id = value.next_id++;
-    value.requests.emplace(id, std::move(request));
-    return id;
+    pending.listener = std::move(owner);
+    try
+    {
+        auto& value = states();
+        std::lock_guard lock(value.mutex);
+        const auto id = value.next_id++;
+        value.requests.emplace(id, pending);
+        return id;
+    }
+    catch (...)
+    {
+        pending.connection->close_stream(request.stream_id);
+        throw;
+    }
 }
 
 http_request_data request(std::int64_t id)
 {
-    return request_at(id)->value;
+    return request_at(id).request->value;
 }
 
 void respond(std::int64_t id, const http_response_data& value,
              const binary_stream& source, std::int64_t body_length,
              bool binary)
 {
-    if (body_length < 0 || body_length >
-        static_cast<std::int64_t>(network::max_body_bytes))
-    {
-        network::fail("size_limit", "HTTP/3 响应正文超过 8 MiB");
-    }
-    auto state = request_at(id);
-    auto response = value;
-    if (source)
-    {
-        source->file.require_open();
-        constexpr std::size_t block_size = 16 * 1024;
-        char buffer[block_size];
-        auto remaining = static_cast<std::size_t>(body_length);
-        response.body.clear();
-        response.body.reserve(remaining);
-        while (remaining > 0)
-        {
-            const auto amount = source->file.read_into(buffer,
-                std::min(remaining, block_size));
-            if (amount == 0)
-            {
-                network::fail("operation_failed", "HTTP/3 响应源流提前结束");
-            }
-            response.body.append(buffer, amount);
-            remaining -= amount;
-        }
-    }
-    else if (static_cast<std::int64_t>(response.body.size()) != body_length)
-    {
-        network::fail("invalid_argument", "HTTP/3 响应正文长度不匹配");
-    }
-    if (!binary)
-    {
-        network::validate_utf8(response.body);
-    }
+    auto pending = request_at(id);
     try
     {
-        state->session->respond(state, response);
+        if (body_length < 0 || body_length >
+            static_cast<std::int64_t>(network::max_body_bytes))
+        {
+            network::fail("size_limit", "HTTP/3 响应正文超过 8 MiB");
+        }
+        auto response = value;
+        if (source)
+        {
+            source->file.require_open();
+            constexpr std::size_t block_size = 16 * 1024;
+            char buffer[block_size];
+            auto remaining = static_cast<std::size_t>(body_length);
+            response.body.clear();
+            response.body.reserve(remaining);
+            while (remaining > 0)
+            {
+                const auto amount = source->file.read_into(buffer,
+                    std::min(remaining, block_size));
+                if (amount == 0)
+                {
+                    network::fail("operation_failed",
+                                  "HTTP/3 响应源流提前结束");
+                }
+                response.body.append(buffer, amount);
+                remaining -= amount;
+            }
+        }
+        else if (static_cast<std::int64_t>(response.body.size()) != body_length)
+        {
+            network::fail("invalid_argument", "HTTP/3 响应正文长度不匹配");
+        }
+        if (!binary)
+        {
+            network::validate_utf8(response.body);
+        }
+        pending.connection->respond(pending.request, response);
     }
     catch (...)
     {
@@ -182,7 +206,7 @@ void close_listener(std::int64_t id) noexcept
 
 void close_connection(std::int64_t id) noexcept
 {
-    std::shared_ptr<server_request> state;
+    server_request_ticket state;
     {
         auto& value = states();
         std::lock_guard lock(value.mutex);
@@ -194,7 +218,7 @@ void close_connection(std::int64_t id) noexcept
         state = std::move(found->second);
         value.requests.erase(found);
     }
-    state->session->close_stream(state->stream_id);
+    state.connection->close_stream(state.request->stream_id);
 }
 
 } // namespace tx_generated::http3

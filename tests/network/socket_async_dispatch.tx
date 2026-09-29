@@ -1,0 +1,92 @@
+import "cancel.txh" as cancel
+import "error.txh" as errors
+import "socket.txh" as net
+import "task.txh" as task
+import "time.txh" as clock
+
+def answer() -> int
+{
+    return 42
+}
+
+def expect_timeout(value: task<net.read_result>) -> bool
+{
+    try
+    {
+        task.wait(value)
+    }
+    exception errors.io_error as failure
+    {
+        return failure.code == "timeout"
+    }
+    return false
+}
+
+def run(scope: task_scope) -> int
+{
+    net.tcp_listener listener = net.listen_tcp("127.0.0.1", 0, 16)
+    int port = net.listener_port(listener)
+    net.tcp_stream c0 = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream s0 = net.accept_tcp(listener, 1000)
+    net.tcp_stream c1 = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream s1 = net.accept_tcp(listener, 1000)
+    net.tcp_stream c2 = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream s2 = net.accept_tcp(listener, 1000)
+    net.tcp_stream c3 = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream s3 = net.accept_tcp(listener, 1000)
+    net.tcp_stream c4 = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream s4 = net.accept_tcp(listener, 1000)
+    net.tcp_stream c5 = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream s5 = net.accept_tcp(listener, 1000)
+    net.tcp_stream c6 = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream s6 = net.accept_tcp(listener, 1000)
+    net.tcp_stream c7 = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream s7 = net.accept_tcp(listener, 1000)
+
+    cancel_source source = cancel.source()
+    cancel_token token = cancel.token(source)
+    task<net.read_result> r0 = net.read_async(s0, 1, 1200, token)
+    task<net.read_result> r1 = net.read_async(s1, 1, 1200, token)
+    task<net.read_result> r2 = net.read_async(s2, 1, 1200, token)
+    task<net.read_result> r3 = net.read_async(s3, 1, 1200, token)
+    task<net.read_result> r4 = net.read_async(s4, 1, 1200, token)
+    task<net.read_result> r5 = net.read_async(s5, 1, 1200, token)
+    task<net.read_result> r6 = net.read_async(s6, 1, 1200, token)
+    task<net.read_result> r7 = net.read_async(s7, 1, 1200, token)
+    int started = clock.monotonic_millis()
+    task<int> work = task.spawn(scope, answer)
+    if task.wait(work) != 42 || clock.monotonic_millis() - started >= 900
+    {
+        return 1
+    }
+    if (!expect_timeout(r0) || !expect_timeout(r1) ||
+        !expect_timeout(r2) || !expect_timeout(r3) ||
+        !expect_timeout(r4) || !expect_timeout(r5) ||
+        !expect_timeout(r6) || !expect_timeout(r7))
+    {
+        return 2
+    }
+    net.close(c0)
+    net.close(c1)
+    net.close(c2)
+    net.close(c3)
+    net.close(c4)
+    net.close(c5)
+    net.close(c6)
+    net.close(c7)
+    net.close(s0)
+    net.close(s1)
+    net.close(s2)
+    net.close(s3)
+    net.close(s4)
+    net.close(s5)
+    net.close(s6)
+    net.close(s7)
+    net.close(listener)
+    return 0
+}
+
+def main() -> int
+{
+    return task.scope(run, 20, 5000)
+}

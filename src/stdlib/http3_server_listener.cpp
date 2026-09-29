@@ -267,6 +267,7 @@ server_listener::~server_listener() noexcept
 void server_listener::close() noexcept
 {
     std::vector<std::shared_ptr<server_connection>> connections;
+    std::deque<server_request_ticket> completed;
     {
         std::lock_guard lock(mutex_);
         if (closed_)
@@ -275,12 +276,14 @@ void server_listener::close() noexcept
         }
         closed_ = true;
         connections.swap(connections_);
-        completed_.clear();
+        completed.swap(completed_);
         changed_.notify_all();
     }
+    completed.clear();
     if (reaper_.joinable())
     {
         reaper_.request_stop();
+        reaper_changed_.notify_all();
         reaper_.join();
     }
     if (listener_)
@@ -289,6 +292,10 @@ void server_listener::close() noexcept
         api_->ListenerClose(listener_);
         listener_ = nullptr;
     }
+    for (const auto& connection : connections)
+    {
+        connection->close_unclaimed_requests();
+    }
     connections.clear();
 }
 
@@ -296,7 +303,35 @@ void server_listener::reap(std::stop_token token)
 {
     while (!token.stop_requested())
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        {
+            std::unique_lock lock(reaper_mutex_);
+            reaper_changed_.wait_for(lock, std::chrono::milliseconds(100), [&]
+            {
+                return token.stop_requested();
+            });
+        }
+        if (token.stop_requested())
+        {
+            break;
+        }
+        std::size_t connection_count = 0;
+        {
+            std::lock_guard lock(mutex_);
+            connection_count = connections_.size();
+        }
+        for (std::size_t index = 0; index < connection_count; ++index)
+        {
+            std::shared_ptr<server_connection> connection;
+            {
+                std::lock_guard lock(mutex_);
+                if (closed_ || index >= connections_.size())
+                {
+                    break;
+                }
+                connection = connections_[index];
+            }
+            connection->reap_native_handles();
+        }
         std::vector<std::shared_ptr<server_connection>> retired;
         {
             std::lock_guard lock(mutex_);
@@ -317,7 +352,7 @@ void server_listener::reap(std::stop_token token)
     }
 }
 
-void server_listener::queue(std::shared_ptr<server_request> request)
+void server_listener::queue(server_request_ticket request)
 {
     std::lock_guard lock(mutex_);
     if (closed_ || completed_.size() >= 64)
@@ -326,6 +361,34 @@ void server_listener::queue(std::shared_ptr<server_request> request)
     }
     completed_.push_back(std::move(request));
     changed_.notify_one();
+}
+
+void server_listener::discard(const server_connection* connection,
+                              std::int64_t stream_id)
+{
+    std::vector<server_request_ticket> discarded;
+    {
+        std::lock_guard lock(mutex_);
+        for (auto item = completed_.begin(); item != completed_.end();)
+        {
+            if (item->connection.get() == connection &&
+                (stream_id < 0 || item->request->stream_id == stream_id))
+            {
+                discarded.push_back(std::move(*item));
+                item = completed_.erase(item);
+            }
+            else
+            {
+                ++item;
+            }
+        }
+        changed_.notify_all();
+    }
+}
+
+void server_listener::request_reap() noexcept
+{
+    reaper_changed_.notify_one();
 }
 
 void server_listener::report_error(std::exception_ptr error) noexcept
@@ -338,7 +401,7 @@ void server_listener::report_error(std::exception_ptr error) noexcept
     changed_.notify_all();
 }
 
-std::shared_ptr<server_request> server_listener::pop(std::int64_t timeout_ms)
+server_request_ticket server_listener::pop(std::int64_t timeout_ms)
 {
     if (timeout_ms < 0 || timeout_ms > 60000)
     {
@@ -365,7 +428,7 @@ std::shared_ptr<server_request> server_listener::pop(std::int64_t timeout_ms)
     {
         network::fail("connection_closed", "HTTP/3 监听器已关闭");
     }
-    auto result = completed_.front();
+    auto result = std::move(completed_.front());
     completed_.pop_front();
     return result;
 }
@@ -403,9 +466,22 @@ QUIC_STATUS server_listener::event(QUIC_LISTENER_EVENT* event)
     }
     auto session = std::make_shared<server_connection>(shared_from_this(),
         event->NEW_CONNECTION.Connection);
+    bool closed = false;
     {
         std::lock_guard lock(mutex_);
-        connections_.push_back(session);
+        if (closed_)
+        {
+            closed = true;
+        }
+        else
+        {
+            connections_.push_back(session);
+        }
+    }
+    if (closed)
+    {
+        session->reject_failed_configuration();
+        return QUIC_STATUS_CONNECTION_REFUSED;
     }
     const auto status = api_->ConnectionSetConfiguration(
         event->NEW_CONNECTION.Connection, configuration_);

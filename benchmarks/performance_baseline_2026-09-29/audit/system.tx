@@ -1,0 +1,111 @@
+import "debug.txh" as debug
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "file_stream.txh" as streams
+import "log.txh" as log
+import "process.txh" as process
+import "system.txh" as system
+import "time.txh" as time
+
+def report(name: str, start: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - start)
+    print(checksum)
+}
+
+def bench_debug()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=19999
+    {
+        checksum += len(debug.location())
+    }
+    report("debug_location", start, checksum)
+}
+
+def bench_error()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=19999
+    {
+        checksum += len(errors.stack_trace())
+    }
+    report("error_stack", start, checksum)
+}
+
+def bench_file_stream()
+{
+    bytes data = encoding.encode("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "utf-8")
+    str path = "tx_build/perf_audit_20260927/stream_tx.bin"
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=199
+    {
+        auto output = streams.open_binary(path, "write")
+        streams.write_bytes(output, data)
+        streams.close(output)
+        auto input = streams.open_binary(path, "read")
+        checksum += len(streams.read_all_bytes(input))
+        streams.close(input)
+    }
+    report("file_stream_rw", start, checksum)
+}
+
+def bench_log()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=999
+    {
+        log.event("info", "benchmark", {})
+        checksum += 1
+    }
+    report("log_event", start, checksum)
+}
+
+def bench_process()
+{
+    auto config = process.make_options(
+        "tx_build/perf_audit_20260927/child.exe", vector<str>())
+    config.stdin_mode = "null"
+    config.stdout_mode = "null"
+    config.stderr_mode = "null"
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=49
+    {
+        auto child = process.spawn(config)
+        auto status = process.wait(child, 5000)
+        if status.state == "exited" && status.exit_code == 0
+        {
+            checksum += 1
+        }
+        process.close(child)
+    }
+    report("process_spawn", start, checksum)
+}
+
+def bench_system()
+{
+    int checksum = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=19999
+    {
+        checksum += len(system.operating_system())
+    }
+    report("system_os", start, checksum)
+}
+
+def main() -> int
+{
+    bench_debug()
+    bench_error()
+    bench_file_stream()
+    bench_log()
+    bench_process()
+    bench_system()
+    return 0
+}

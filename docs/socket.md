@@ -62,7 +62,9 @@ def close(peer: tcp_stream) -> void
 def close(endpoint: udp_socket) -> void
 ```
 
-`port=0` 仅用于监听或 UDP 绑定，由系统选端口，之后用 `listener_port/udp_port` 查询；目的端口须为 1～65535。空监听地址表示所有本机地址。`backlog` 限 1～128。超时均为 1～60000 毫秒，使用单调时钟约束整个调用；超时不关闭有效句柄。所有传输使用非阻塞 socket 与有界等待，等待期间关闭可唤醒操作。异步操作进入现有有界任务队列，取消令牌与作用域取消在等待时生效；完成与取消交错时，以已完成的读写结果为准。
+`port=0` 仅用于监听或 UDP 绑定，由系统选端口，之后用 `listener_port/udp_port` 查询；目的端口须为 1～65535。空监听地址表示所有本机地址。`backlog` 限 1～128。超时均为 1～60000 毫秒，使用单调时钟约束整个调用；超时不关闭有效句柄。所有传输使用非阻塞 socket 与有界等待，等待期间关闭可唤醒操作。异步操作由独立的网络事件循环登记和等待，不占用通用任务工作线程；最多同时登记 1024 项，满额时提交立即报 `io_error/network_queue_full`。取消令牌与作用域取消在等待时生效；已经交付的读写结果不会被随后取消改写。
+
+四种异步 TCP 操作与同名同步操作共享参数和结果语义：`connect_async` 成功交付一个新流，失败或取消时关闭尚未交付的连接；`accept_async` 成功交付一个新流，失败或取消时监听器保持可用；`read_async` 可短读，返回 0 字节且 `eof=true` 表示对端发送方向结束，后续读取仍返回 EOF；`write_async` 最多确认 16 KiB，可能短写，调用方负责续写。超时报告 `io_error/timeout`，取消报告 `cancelled_error/cancelled`，令牌截止时间报告 `cancelled_error/deadline_exceeded`。本端关闭后的操作按句柄类型报告 `connection_closed` 或 `closed_handle`；挂起操作在关闭后收束。异步操作持有 socket 和写入缓冲直到完成，同一 socket 的同方向操作串行推进，读写两个方向可并行。取消或超时不能撤销已被对端接受的连接、已消耗的输入或已发送的字节；失败不承诺恢复这些部分外部效果。
 
 TCP 是字节流，`read` 单次最多返回 `min(max_bytes, 16 KiB)` 字节，`eof=true` 仅表示对端发送方向已经关闭；合法读取结果可比请求短。`write` 单次最多尝试 16 KiB，并返回确认写入的字节数；调用方循环写剩余部分。`data` 最多 16 MiB，空输入返回 0。`shutdown_write` 发出 TCP 半关闭；此后本端不能再写，但仍可读；`shutdown_read` 相反。关闭或不可恢复的传输失败会使句柄失效，部分已发送数据不能撤销。
 
@@ -73,3 +75,7 @@ UDP 每次 `send_to` 只发送一个完整报文，大小上限 65507 字节；�
 ## 定向验证（2026-09-28）
 
 Windows x64 增量构建通过。`tests/network/socket_behavior.tx` 编译运行通过：本机 TCP 建连、异步建连/接受、二进制短读、重复 EOF、半关闭后反向写入、异步读写、UDP 报文截断与合法空报文、异步收发、预取消和重复关闭。`tests/network/socket_bad_send.tx` 在源码位置拒绝把监听句柄当作 `Send`。验证限本机回环与单进程状态，尚未覆盖跨平台和长时间网络故障注入。
+
+## 异步网络调度定向验证（2026-09-29）
+
+Windows x64 增量构建及 `socket_behavior.tx`、`socket_async_dispatch.tx`、`socket_async_contract.tx`、`socket_async_capacity.tx` 均通过。8 个 1200 毫秒慢读取不会拖延普通任务至超时，普通任务在 900 毫秒阈值内完成；取消、关闭、EOF、短读短写和第 1025 项登记背压按上述契约交付。验证限回环、有限次序与单次容量边界；未覆盖长期高负载和外网故障注入。

@@ -13,18 +13,23 @@ int server_connection::on_begin_headers(nghttp3_conn*, std::int64_t id,
     auto* self = static_cast<server_connection*>(context);
     try
     {
+        if (self->listener_closed_ || self->shutdown_)
+        {
+            network::fail("connection_closed", "HTTP/3 监听器已关闭");
+        }
         if (self->requests_.size() >= 16 || self->requests_.contains(id))
         {
             network::fail("size_limit", "HTTP/3 并发请求流超过 16 条");
         }
         auto request = std::make_shared<server_request>();
-        request->session = self->shared_from_this();
+        request->session = self->weak_from_this();
         request->stream_id = id;
         self->requests_.emplace(id, std::move(request));
         return 0;
     }
     catch (...)
     {
+        self->requests_.erase(id);
         self->error_ = std::current_exception();
         self->changed_.notify_all();
         return NGHTTP3_ERR_CALLBACK_FAILURE;
@@ -94,6 +99,7 @@ int server_connection::on_header(nghttp3_conn*, std::int64_t id,
     }
     catch (...)
     {
+        self->requests_.erase(id);
         self->error_ = std::current_exception();
         self->changed_.notify_all();
         return NGHTTP3_ERR_CALLBACK_FAILURE;
@@ -117,6 +123,7 @@ int server_connection::on_data(nghttp3_conn*, std::int64_t id,
     }
     catch (...)
     {
+        self->requests_.erase(id);
         self->error_ = std::current_exception();
         self->changed_.notify_all();
         return NGHTTP3_ERR_CALLBACK_FAILURE;
@@ -151,11 +158,20 @@ int server_connection::on_end_stream(nghttp3_conn*, std::int64_t id,
         }
         request->value.headers.emplace("host", request->authority);
         request->complete = true;
-        self->listener_->queue(std::move(request));
+        const auto listener = self->listener_.lock();
+        if (!listener)
+        {
+            network::fail("connection_closed", "HTTP/3 监听器已关闭");
+        }
+        server_request_ticket pending;
+        pending.connection = self->shared_from_this();
+        pending.request = std::move(request);
+        listener->queue(std::move(pending));
         return 0;
     }
     catch (...)
     {
+        self->requests_.erase(id);
         self->error_ = std::current_exception();
         self->changed_.notify_all();
         return NGHTTP3_ERR_CALLBACK_FAILURE;

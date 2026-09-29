@@ -1,0 +1,36 @@
+import "httpx.txh" as httpx
+import "file.txh" as file
+import "secret.txh" as secret
+import "encoding.txh" as encoding
+import "system.txh" as system
+import "io.txh" as io
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    secret_bytes password = secret.from_bytes(
+        encoding.encode("test-only-password", "utf-8"))
+    httpx.listener server = httpx.listen_h3("127.0.0.1", 19759,
+        file.read_bytes(args[0] + "/server.p12"), password)
+    secret.close(password)
+    io.write_line("HTTP3_STREAM_REAP_READY")
+    io.flush()
+    int handled = 0
+    while handled < 258
+    {
+        httpx.request incoming = httpx.accept(server, 60000)
+        if incoming.target == "/local-close"
+        {
+            httpx.close(incoming.connection)
+        }
+        else
+        {
+            httpx.respond(incoming.connection,
+                httpx.response(200, map<str, str>(), vector<str>(),
+                    incoming.target))
+        }
+        handled = handled + 1
+    }
+    httpx.close(server)
+    return 0
+}

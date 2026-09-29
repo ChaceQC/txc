@@ -2,6 +2,7 @@
 
 #include <any>
 #include <memory>
+#include <shared_mutex>
 
 namespace tx_generated
 {
@@ -26,6 +27,9 @@ public:
     concurrent_execution_scope(const concurrent_execution_scope&) = delete;
     concurrent_execution_scope& operator=(
         const concurrent_execution_scope&) = delete;
+
+private:
+    std::shared_lock<std::shared_mutex> execution_lock_;
 };
 
 } // namespace tx_generated

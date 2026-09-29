@@ -1,0 +1,318 @@
+import "bytes.txh" as byte_values
+import "cancel.txh" as cancel
+import "error.txh" as errors
+import "socket.txh" as net
+import "task.txh" as task
+import "time.txh" as clock
+
+def run(scope: task_scope) -> int
+{
+    net.tcp_listener listener = net.listen_tcp("127.0.0.1", 0, 8)
+    int port = net.listener_port(listener)
+    cancel_source cancelled = cancel.source()
+    cancel.cancel(cancelled)
+    task<net.tcp_stream> failed_connect = net.connect_async(
+        "127.0.0.1", port, 1000, cancel.token(cancelled))
+    bool connect_cancelled = false
+    try
+    {
+        task.wait(failed_connect)
+    }
+    exception errors.cancelled_error as failure
+    {
+        connect_cancelled = failure.code == "cancelled"
+    }
+    if !connect_cancelled
+    {
+        return 1
+    }
+
+    cancel_source accept_source = cancel.source()
+    task<net.tcp_stream> accepting = net.accept_async(listener, 2000,
+        cancel.token(accept_source))
+    clock.sleep_millis(30)
+    cancel.cancel(accept_source)
+    bool accept_cancelled = false
+    try
+    {
+        task.wait(accepting)
+    }
+    exception errors.cancelled_error as failure
+    {
+        accept_cancelled = failure.code == "cancelled"
+    }
+    if !accept_cancelled
+    {
+        return 2
+    }
+
+    net.tcp_stream client = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream server = net.accept_tcp(listener, 1000)
+    cancel_source read_source = cancel.source()
+    task<net.read_result> stopped_read = net.read_async(server, 8, 2000,
+        cancel.token(read_source))
+    clock.sleep_millis(30)
+    cancel.cancel(read_source)
+    bool read_cancelled = false
+    try
+    {
+        task.wait(stopped_read)
+    }
+    exception errors.cancelled_error as failure
+    {
+        read_cancelled = failure.code == "cancelled"
+    }
+    if !read_cancelled
+    {
+        return 3
+    }
+    task<int> stopped_write = net.write_async(client,
+        byte_values.from_hex("01"), 1000, cancel.token(cancelled))
+    bool write_cancelled = false
+    try
+    {
+        task.wait(stopped_write)
+    }
+    exception errors.cancelled_error as failure
+    {
+        write_cancelled = failure.code == "cancelled"
+    }
+    if !write_cancelled
+    {
+        return 4
+    }
+
+    cancel_source live = cancel.source()
+    bytes short_data = byte_values.from_hex("00ff80")
+    task<int> writing = net.write_async(client, short_data, 1000,
+        cancel.token(live))
+    if task.wait(writing) != 3
+    {
+        return 5
+    }
+    task<net.read_result> reading = net.read_async(server, 100, 1000,
+        cancel.token(live))
+    net.read_result first = task.wait(reading)
+    if first.eof || byte_values.to_hex(first.data) != "00ff80"
+    {
+        return 6
+    }
+
+    bytes large = byte_values.from_vector(vector<int>(20000, 7))
+    task<int> short_write = net.write_async(client, large, 1000,
+        cancel.token(live))
+    int written = task.wait(short_write)
+    if written < 1 || written > 16384
+    {
+        return 7
+    }
+    task<net.read_result> short_read = net.read_async(server, 20000, 1000,
+        cancel.token(live))
+    net.read_result second = task.wait(short_read)
+    if second.eof || len(second.data) < 1 || len(second.data) > 16384
+    {
+        return 8
+    }
+    net.shutdown_write(client)
+    int consumed = len(second.data)
+    while consumed < written
+    {
+        net.read_result part = task.wait(net.read_async(server, 20000,
+            1000, cancel.token(live)))
+        if part.eof || len(part.data) < 1
+        {
+            return 9
+        }
+        consumed = consumed + len(part.data)
+    }
+    task<net.read_result> eof_read = net.read_async(server, 20000, 1000,
+        cancel.token(live))
+    net.read_result eof = task.wait(eof_read)
+    if !eof.eof || len(eof.data) != 0
+    {
+        return 10
+    }
+    net.read_result repeated = task.wait(net.read_async(server, 1, 1000,
+        cancel.token(live)))
+    if !repeated.eof
+    {
+        return 11
+    }
+
+    net.tcp_stream remote_client = net.connect_tcp("127.0.0.1", port, 1000)
+    net.tcp_stream remote_server = net.accept_tcp(listener, 1000)
+    task<net.read_result> remote_pending = net.read_async(remote_server,
+        8, 1000, cancel.token(live))
+    net.close(remote_client)
+    net.read_result remote_closed = task.wait(remote_pending)
+    if !remote_closed.eof || len(remote_closed.data) != 0
+    {
+        return 15
+    }
+    net.close(remote_server)
+
+    task<net.read_result> pending = net.read_async(client, 1, 2000,
+        cancel.token(live))
+    net.close(client)
+    bool closed_read = false
+    try
+    {
+        task.wait(pending)
+    }
+    exception errors.io_error as failure
+    {
+        closed_read = failure.code == "connection_closed"
+    }
+    if !closed_read
+    {
+        return 12
+    }
+    bool closed_write = false
+    try
+    {
+        net.write_async(client, byte_values.from_hex("01"), 1000,
+            cancel.token(live))
+    }
+    exception errors.io_error as failure
+    {
+        closed_write = failure.code == "connection_closed"
+    }
+    if !closed_write
+    {
+        return 16
+    }
+    net.close(server)
+
+    net.tcp_listener closing = net.listen_tcp("127.0.0.1", 0, 2)
+    task<net.tcp_stream> pending_accept = net.accept_async(closing, 2000,
+        cancel.token(live))
+    net.close(closing)
+    bool closed_accept = false
+    try
+    {
+        task.wait(pending_accept)
+    }
+    exception errors.io_error as failure
+    {
+        closed_accept = failure.code == "closed_handle"
+    }
+    if !closed_accept
+    {
+        return 13
+    }
+    bool after_close_accept = false
+    try
+    {
+        net.accept_async(closing, 1000, cancel.token(live))
+    }
+    exception errors.io_error as failure
+    {
+        after_close_accept = failure.code == "closed_handle"
+    }
+    if !after_close_accept
+    {
+        return 17
+    }
+
+    net.tcp_listener deadline_listener = net.listen_tcp("127.0.0.1", 0, 2)
+    cancel_source deadline = cancel.with_deadline_ms(50)
+    task<net.tcp_stream> deadline_accept = net.accept_async(deadline_listener,
+        1000, cancel.token(deadline))
+    bool deadline_reached = false
+    try
+    {
+        task.wait(deadline_accept)
+    }
+    exception errors.cancelled_error as failure
+    {
+        deadline_reached = failure.code == "deadline_exceeded"
+    }
+    net.close(deadline_listener)
+    if !deadline_reached
+    {
+        return 18
+    }
+
+    net.udp_socket receiver = net.bind_udp("127.0.0.1", 0)
+    net.udp_socket sender = net.bind_udp("127.0.0.1", 0)
+    cancel_source udp_source = cancel.source()
+    task<net.datagram> stopped_udp = net.receive_from_async(receiver, 1,
+        2000, cancel.token(udp_source))
+    cancel.cancel(udp_source)
+    bool udp_cancelled = false
+    try
+    {
+        task.wait(stopped_udp)
+    }
+    exception errors.cancelled_error as failure
+    {
+        udp_cancelled = failure.code == "cancelled"
+    }
+    if !udp_cancelled
+    {
+        return 19
+    }
+    task<int> stopped_send = net.send_to_async(sender, "127.0.0.1",
+        net.udp_port(receiver), byte_values.from_hex("ab"), 1000,
+        cancel.token(cancelled))
+    bool send_cancelled = false
+    try
+    {
+        task.wait(stopped_send)
+    }
+    exception errors.cancelled_error as failure
+    {
+        send_cancelled = failure.code == "cancelled"
+    }
+    if !send_cancelled
+    {
+        return 20
+    }
+    task<net.datagram> udp_read = net.receive_from_async(receiver, 1,
+        1000, cancel.token(live))
+    task<int> udp_write = net.send_to_async(sender, "127.0.0.1",
+        net.udp_port(receiver), byte_values.from_hex("ab"), 1000,
+        cancel.token(live))
+    if (task.wait(udp_write) != 1 ||
+        byte_values.to_hex(task.wait(udp_read).data) != "ab")
+    {
+        return 14
+    }
+    net.close(receiver)
+    net.close(sender)
+    net.close(listener)
+    return 0
+}
+
+def cancel_scope(scope: task_scope) -> int
+{
+    net.tcp_listener listener = net.listen_tcp("127.0.0.1", 0, 2)
+    cancel_source source = cancel.source()
+    task<net.tcp_stream> pending = net.accept_async(listener, 2000,
+        cancel.token(source))
+    task.cancel(scope)
+    bool observed = false
+    try
+    {
+        task.wait(pending)
+    }
+    exception errors.cancelled_error as failure
+    {
+        observed = failure.code == "cancelled"
+    }
+    net.close(listener)
+    if observed
+    {
+        return 0
+    }
+    return 1
+}
+
+def main() -> int
+{
+    if task.scope(run, 32, 5000) != 0
+    {
+        return 1
+    }
+    return task.scope(cancel_scope, 4, 1000)
+}

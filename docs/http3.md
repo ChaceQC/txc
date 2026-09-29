@@ -6,6 +6,8 @@
 
 服务端 `listen_h3(host, port, package, password)` 使用 PKCS#12 `bytes` 和 `secret_bytes` 密码。`accept`、`accept_bytes`、`respond`、`respond_bytes`、路由处理和 `close` 与现有 `httpx.listener`/`connection` 契约相同；多条流可在不同 TX 工作线程处理。Schannel 要求能重新打开证书私钥，导入的用户 CNG 密钥只保留到监听资源及已接受连接结束，并在资源释放时删除。正常关闭的定向检查未发现用户 CNG 密钥文件数量增长；进程被强制终止时无法执行清理，可能需要由管理员清理残留密钥容器。当前接口尚不能直接引用证书存储中的既有身份。此项不把 PFX 密码或密钥内容写入错误、日志或生成源码。
 
+关闭监听器会清理未交付的请求。已交付但尚未回复的请求会保活其连接和监听配置，因此从监听器移除连接记录后仍可完成回复；回复或显式关闭请求句柄后释放保活引用。对端中止请求流时，服务端移除尚未交付的请求；已交付句柄会以连接关闭结果结束。已经执行的外部效果无法撤销，调用方不应因此自动重试非幂等操作。请求流结束后单独回收对应的 QUIC 与 nghttp3 状态；控制和 QPACK 流随连接关闭。
+
 ## 显式协议策略
 
 `send_negotiated` 和 `send_negotiated_bytes` 返回 `protocol`、状态、头、Cookie 与正文。`protocol` 为实际使用的 `h3`、`h2` 或 `http/1.1`。策略如下：

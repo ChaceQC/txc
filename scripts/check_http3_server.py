@@ -67,13 +67,25 @@ class Http3Client(QuicConnectionProtocol):
 
     async def get(self):
         self.done = asyncio.get_running_loop().create_future()
+        self.send_get()
+        return await asyncio.wait_for(self.done, 8)
+
+    def send_get(self):
         stream_id = self._quic.get_next_available_stream_id()
         self.http.send_headers(stream_id, [
             (b":method", b"GET"), (b":scheme", b"https"),
             (b":authority", b"service.example"),
             (b":path", b"/hello")], end_stream=True)
         self.transmit()
-        return await asyncio.wait_for(self.done, 8)
+
+    def send_partial_body(self):
+        stream_id = self._quic.get_next_available_stream_id()
+        self.http.send_headers(stream_id, [
+            (b":method", b"POST"), (b":scheme", b"https"),
+            (b":authority", b"service.example"), (b":path", b"/partial"),
+            (b"content-length", b"16")], end_stream=False)
+        self.http.send_data(stream_id, b"partial", end_stream=False)
+        self.transmit()
 
     def quic_event_received(self, event):
         for message in self.http.handle_event(event):
@@ -85,14 +97,23 @@ class Http3Client(QuicConnectionProtocol):
                     self.done.set_result((self.status, bytes(self.body)))
 
 
-async def request():
+async def request(port=19751):
     config = QuicConfiguration(is_client=True, alpn_protocols=H3_ALPN)
     config.verify_mode = ssl.CERT_NONE  # 本机独立客户端只检查协议互操作。
-    async with connect("127.0.0.1", 19751, configuration=config,
+    async with connect("127.0.0.1", port, configuration=config,
                        create_protocol=Http3Client) as protocol:
         result = await protocol.get()
         if result != (b"200", b"/hello"):
             raise AssertionError(result)
+
+
+async def abort_partial_body(port=19751, disconnect_delay=0.1):
+    config = QuicConfiguration(is_client=True, alpn_protocols=H3_ALPN)
+    config.verify_mode = ssl.CERT_NONE
+    async with connect("127.0.0.1", port, configuration=config,
+                       create_protocol=Http3Client) as protocol:
+        protocol.send_partial_body()
+        await asyncio.sleep(disconnect_delay)
 
 
 def main():
@@ -101,7 +122,8 @@ def main():
         fixtures(directory)
         for name in ("http3_server", "http3_client",
                      "http3_untrusted_server", "http3_untrusted_client",
-                     "http3_binary_server", "http3_binary_client"):
+                     "http3_binary_server", "http3_binary_client",
+                     "http3_lifetime_server"):
             source = ROOT / "tests/network" / f"{name}.tx"
             subprocess.run([ROOT / "tx/txc.exe", source], cwd=ROOT,
                            check=True)
@@ -119,6 +141,7 @@ def main():
                     output, _ = server.communicate()
                     raise AssertionError(output.decode("utf-8", "replace"))
                 if client_name == "aioquic":
+                    asyncio.run(abort_partial_body())
                     asyncio.run(request())
                 else:
                     program = ("http3_untrusted_client" if client_name == "untrusted"
@@ -139,6 +162,27 @@ def main():
                 if server.poll() is None:
                     server.kill()
                     server.wait()
+
+        server = subprocess.Popen(
+            [ROOT / "tx_build" / "http3_lifetime_server.exe", directory],
+            cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NO_WINDOW)
+        try:
+            time.sleep(0.5)
+            if server.poll() is not None:
+                output, _ = server.communicate()
+                raise AssertionError(output.decode("utf-8", "replace"))
+            asyncio.run(request(19756))
+            output, _ = server.communicate(timeout=12)
+            decoded = output.decode("utf-8", "replace")
+            if server.returncode != 0:
+                raise AssertionError(decoded or
+                    f"http3_lifetime_server exit={server.returncode}")
+            print("HTTP/3 监听器关闭后已交付请求仍可完成回复")
+        finally:
+            if server.poll() is None:
+                server.kill()
+                server.wait()
 
 
 if __name__ == "__main__":

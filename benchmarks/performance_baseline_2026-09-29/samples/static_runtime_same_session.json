@@ -1,0 +1,135 @@
+{
+  "measured_at_utc": "2026-09-29T08:06:35.975554+00:00",
+  "source_and_program_sha256": {
+    "old": "6d8a3db9ef2d54ddb60983757a35d05529500458c5b137a156963b5a18630297",
+    "new": "eb03ba79475e205beb794b1d6ad46098014d35f092aef71911e52bcefeb505e4",
+    "source": "c89a9f68f889735c0663a1c65bbb8dfd206fba254de234e1845315ff4047e016"
+  },
+  "paths": {
+    "old": "E:\\Project\\other\\Compilation\\tx_build\\performance_baseline_2026-09-29\\legacy_bundle\\static_runtime_committed.exe",
+    "new": "E:\\Project\\other\\Compilation\\tx_build\\static_runtime_20260929.exe",
+    "source": "E:\\Project\\other\\Compilation\\benchmarks\\static_runtime.tx"
+  },
+  "warmups": 1,
+  "rounds": 5,
+  "order_by_round": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "timing": "program internal microseconds, converted to milliseconds",
+  "results": {
+    "vector_foreach": {
+      "checksum": "15000000",
+      "old_samples_ms": [
+        1.27,
+        1.616,
+        1.41,
+        1.386,
+        1.248
+      ],
+      "new_samples_ms": [
+        1.227,
+        1.228,
+        1.316,
+        1.251,
+        1.249
+      ],
+      "old_median_ms": 1.386,
+      "new_median_ms": 1.249
+    },
+    "serde_json": {
+      "checksum": "70000",
+      "old_samples_ms": [
+        37.653,
+        40.327,
+        37.805,
+        38.108,
+        36.369
+      ],
+      "new_samples_ms": [
+        36.447,
+        37.044,
+        38.611,
+        37.953,
+        37.528
+      ],
+      "old_median_ms": 37.805,
+      "new_median_ms": 37.528
+    },
+    "format_text": {
+      "checksum": "988895",
+      "old_samples_ms": [
+        18.627,
+        19.312,
+        19.113,
+        19.166,
+        18.851
+      ],
+      "new_samples_ms": [
+        28.695,
+        29.415,
+        30.82,
+        31.001,
+        29.562
+      ],
+      "old_median_ms": 19.113,
+      "new_median_ms": 29.562
+    },
+    "statistics_mean": {
+      "checksum": "90",
+      "old_samples_ms": [
+        18.877,
+        32.487,
+        18.901,
+        18.609,
+        19.141
+      ],
+      "new_samples_ms": [
+        18.887,
+        19.133,
+        18.546,
+        19.049,
+        19.308
+      ],
+      "old_median_ms": 18.901,
+      "new_median_ms": 19.049
+    },
+    "encoding_utf8": {
+      "checksum": "1800000",
+      "old_samples_ms": [
+        30.708,
+        41.009,
+        35.544,
+        30.291,
+        29.357
+      ],
+      "new_samples_ms": [
+        34.6,
+        34.538,
+        37.619,
+        36.476,
+        34.882
+      ],
+      "old_median_ms": 30.708,
+      "new_median_ms": 34.882
+    }
+  }
+}

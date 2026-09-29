@@ -1,0 +1,135 @@
+{
+  "measured_at_utc": "2026-09-29T08:06:29.011422+00:00",
+  "source_and_program_sha256": {
+    "old": "4c83d34738f3f5fa02d5d112ae81dc45841caa2f6d4243a14f5f92a3f1308960",
+    "new": "4b1fbef79a4ebf4d6b92a7bb615dad0f4279823b96193c8bd03872c8719db577",
+    "source": "6e77763d77f435006016519a717723d14337336312d4589a8836345d9882bfa8"
+  },
+  "paths": {
+    "old": "E:\\Project\\other\\Compilation\\tx_build\\performance_baseline_2026-09-29\\legacy_bundle\\call_borrowing_committed.exe",
+    "new": "E:\\Project\\other\\Compilation\\tx_build\\call_borrowing_20260929.exe",
+    "source": "E:\\Project\\other\\Compilation\\benchmarks\\call_borrowing.tx"
+  },
+  "warmups": 1,
+  "rounds": 5,
+  "order_by_round": [
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ],
+    [
+      "new",
+      "old"
+    ],
+    [
+      "old",
+      "new"
+    ]
+  ],
+  "timing": "program internal microseconds, converted to milliseconds",
+  "results": {
+    "dictionary": {
+      "checksum": "1000000",
+      "old_samples_ms": [
+        13.634,
+        13.418,
+        13.891,
+        13.168,
+        12.66
+      ],
+      "new_samples_ms": [
+        42.517,
+        37.288,
+        39.214,
+        38.141,
+        36.586
+      ],
+      "old_median_ms": 13.418,
+      "new_median_ms": 38.141
+    },
+    "map": {
+      "checksum": "3000000",
+      "old_samples_ms": [
+        4.298,
+        4.145,
+        4.26,
+        4.431,
+        4.188
+      ],
+      "new_samples_ms": [
+        4.45,
+        3.856,
+        3.305,
+        3.384,
+        3.317
+      ],
+      "old_median_ms": 4.26,
+      "new_median_ms": 3.384
+    },
+    "set": {
+      "checksum": "1000000",
+      "old_samples_ms": [
+        14.544,
+        14.609,
+        14.633,
+        14.454,
+        13.077
+      ],
+      "new_samples_ms": [
+        41.169,
+        36.786,
+        38.814,
+        38.958,
+        38.727
+      ],
+      "old_median_ms": 14.544,
+      "new_median_ms": 38.814
+    },
+    "queue": {
+      "checksum": "5000050000",
+      "old_samples_ms": [
+        5.015,
+        5.0,
+        4.72,
+        4.894,
+        4.473
+      ],
+      "new_samples_ms": [
+        12.599,
+        11.994,
+        11.724,
+        11.715,
+        12.688
+      ],
+      "old_median_ms": 4.894,
+      "new_median_ms": 11.994
+    },
+    "cancel": {
+      "checksum": "0",
+      "old_samples_ms": [
+        17.187,
+        15.663,
+        14.848,
+        16.167,
+        15.188
+      ],
+      "new_samples_ms": [
+        40.565,
+        41.046,
+        40.435,
+        42.528,
+        41.201
+      ],
+      "old_median_ms": 15.663,
+      "new_median_ms": 41.046
+    }
+  }
+}

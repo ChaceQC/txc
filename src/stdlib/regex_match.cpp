@@ -5,6 +5,10 @@
 #include <chrono>
 #include <memory>
 #include <mutex>
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
 
 namespace tx_generated
 {
@@ -24,14 +28,36 @@ struct match_workspace
     bool busy = false;
 };
 
+void NTAPI release_workspace(void* value) noexcept
+{
+    delete static_cast<match_workspace*>(value);
+}
+
+DWORD workspace_slot() noexcept
+{
+    static const DWORD slot = FlsAlloc(&release_workspace);
+    return slot;
+}
+
 class workspace_lease
 {
 public:
     explicit workspace_lease(std::size_t pairs)
     {
-        // 每线程只保留一份；重入时用临时工作区，既不串行化并发也不覆盖活动匹配。
-        thread_local match_workspace cached;
-        value_ = cached.busy ? &fallback_ : &cached;
+        // MinGW 的 C++ thread_local 析构可能晚于其模拟 TLS 存储释放。
+        // FLS 在退出线程时直接回收工作区，重入仍使用临时工作区。
+        const DWORD slot = workspace_slot();
+        match_workspace* cached = slot == FLS_OUT_OF_INDEXES ? nullptr :
+            static_cast<match_workspace*>(FlsGetValue(slot));
+        if (!cached && slot != FLS_OUT_OF_INDEXES)
+        {
+            auto pending = std::make_unique<match_workspace>();
+            if (FlsSetValue(slot, pending.get()))
+            {
+                cached = pending.release();
+            }
+        }
+        value_ = cached && !cached->busy ? cached : &fallback_;
         if (value_->pairs < pairs)
         {
             match_handle data(pcre2_match_data_create(

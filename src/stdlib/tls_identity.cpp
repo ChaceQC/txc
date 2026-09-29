@@ -79,8 +79,11 @@ void close_identity(std::int64_t id) noexcept
     const auto found = records.values.find(id);
     if (found != records.values.end())
     {
-        std::lock_guard identity_lock(found->second->mutex);
-        secret::close(found->second->private_key);
+        {
+            // 身份对象仍由登记表持有时释放锁，避免删除对象后解锁悬空互斥锁。
+            std::lock_guard identity_lock(found->second->mutex);
+            secret::close(found->second->private_key);
+        }
         records.values.erase(found);
     }
 }

@@ -103,13 +103,19 @@ void run_callback(const std::shared_ptr<task_scope_state>& scope,
             }
             catch (const std::exception& failure)
             {
-                detail::set_error(tx::error_kind::runtime,
-                                  "task_failed", failure.what());
+                if (context.last_error_kind == tx::error_kind::none)
+                {
+                    detail::set_error(tx::error_kind::runtime,
+                                      "task_failed", failure.what());
+                }
             }
             catch (...)
             {
-                detail::set_error(tx::error_kind::runtime,
-                                  "task_failed", "任务发生未知错误");
+                if (context.last_error_kind == tx::error_kind::none)
+                {
+                    detail::set_error(tx::error_kind::runtime,
+                                      "task_failed", "任务发生未知错误");
+                }
             }
             error = runtime_error(context);
         }

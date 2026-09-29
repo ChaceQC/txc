@@ -19,11 +19,11 @@
 | R02 | P1 | 9、10 | 密码学共享随机状态缺少并发保护 | 静态确认 | 已修复 |
 | R03 | P1 | 11 | 失败 HTTP/2 会话持续阻断后续正常连接 | 已复现 | 已修复 |
 | R04 | P1 | 10 | IOCP 启动与取消之间存在遗漏取消的窗口 | 静态确认 | 已修复 |
-| R05 | P1 | 11 | HTTP/3 未完成请求形成强引用环 | 静态确认 | 待修复 |
+| R05 | P1 | 11 | HTTP/3 未完成请求形成强引用环 | 静态确认 | 已修复 |
 | R06 | P1 | 11 | HTTP/2 在锁外修改共享流表 | 静态确认 | 已修复 |
-| R07 | P2 | 11 | HTTP/3 已完成流的句柄延迟到连接销毁才释放 | 静态确认 | 待修复 |
-| R08 | P2 | 10、11 | 异步网络等待占满通用任务池 | 已复现 | 待修复 |
-| R09 | P2 | 10 | 文本和复合结果的线程、任务异常被覆盖 | 已复现 | 待修复 |
+| R07 | P2 | 11 | HTTP/3 已完成流的句柄延迟到连接销毁才释放 | 静态确认 | 已修复 |
+| R08 | P2 | 10、11 | 异步网络等待占满通用任务池 | 已复现 | 已修复 |
+| R09 | P2 | 10 | 文本和复合结果的线程、任务异常被覆盖 | 已复现 | 已修复 |
 | R10 | P2 | 11 | 客户端证书密码存在未清零的普通字符串副本 | 静态确认 | 已修复 |
 
 下文行号均对应上述代码基准；后续修改后应按函数名与调用关系重新定位。
@@ -356,6 +356,12 @@ Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 构建通过�
    1. 对端只发送部分请求头或正文后断连，确认监听器回收连接后，请求、连接和关联句柄均能释放。
    2. 已交付给调用方但尚未回复的请求在监听器移除连接记录后仍可获得确定的成功或关闭结果；不出现悬空引用。
 
+**顺序 6 执行记录（2026-09-29）：** `src/stdlib/http3_server_internal.hpp` 将请求反向连接引用改为弱引用，并以 request ticket 明确区分监听器队列和外部登记项的连接所有权；已交付 ticket 同时保活监听器配置。`src/stdlib/http3_server.cpp` 在登记前标记请求已交付，所有回复异常都会关闭流并释放登记。`src/stdlib/http3_server_headers.cpp`、`src/stdlib/http3_server_events.cpp` 和 `src/stdlib/http3_server_connection.cpp` 在解析失败、对端流中止及连接关闭完成时清理请求并唤醒等待者；关闭完成后回收 QUIC 流句柄、连接句柄及 nghttp3 状态。`src/stdlib/http3_server_listener.cpp` 关闭监听器时清空未交付队列并终止未交付流，已交付请求仍可回复，释放外部 ticket 后连接才回收。
+
+`scripts/build.ps1 -Incremental` 构建通过；`python -X utf8 scripts/check_http3_server.py`、`python -X utf8 scripts/check_http3_server_resources.py` 和 `txc test tests --format json` 通过。全量检查按顺序运行 31 个 `scripts/check_*.py`：30 个首次运行通过；资源脚本因测试服务恰好在 60 秒等待期限退出，加入中途心跳后重跑通过，最终 31 个脚本均通过。另显式运行 `check_data_formats.py json csv`，覆盖两个数据格式组。
+
+资源测量使用 `scripts/check_http3_server_resources.py`：10 次预热断连后，服务进程基线为 389 个句柄、Private Bytes 6.14 MiB、Working Set 17.50 MiB；之后执行 1,000 次部分 POST 正文后断连，每 100 次用正常请求确认监听器仍能服务并采样。句柄峰值为 410（较基线 +21），第 800～1,000 次为 408（+19）；Private Bytes 峰值约 8.17 MiB（+2.03 MiB），第 1,000 次为 8.11 MiB（+1.96 MiB）；Working Set 第 1,000 次为 19.33 MiB（+1.83 MiB）。再空闲观察 60 秒，句柄保持 408、Private Bytes 保持约 8.12 MiB、Working Set 保持约 19.34 MiB。进程级数据在初始增量后趋于平台，未见随 1,000 次循环或后续 60 秒空闲继续增长；这些计数不能把平台增量归因到某个具体 Windows/MsQuic 对象，也不替代小时级长时间运行测试。
+
 ### 4.10 顺序 7：R07 及时回收 HTTP/3 已完成流
 
 1. **建立流关闭状态。**
@@ -367,6 +373,20 @@ Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 构建通过�
 3. **定向验收。**
    1. 同一条长连接连续处理多条正常请求，完成后的流表数量和 QUIC 句柄数回到稳定基线，而不是一直积累到连接析构。
    2. 对端中止与本端提前关闭各取一条路径，确认没有双重关闭、回调访问已释放对象或未完成请求残留。
+
+**顺序 7 执行记录（2026-09-29）：** `src/stdlib/http3_server_internal.hpp` 为每条流记录请求/对端单向控制流/本端控制与 QPACK 角色、关闭原因、待完成发送数、发送方向关闭及最终关闭状态。客户端双向请求流与单向流按 QUIC stream ID 方向分类；单向控制/QPACK 流不会进入 `requests_`，连接级关键流直到连接关闭。正常完成、对端 abort、本端主动关闭和连接关闭分别记录；对端取消会移除未交付队列项、使尚未回复的外部请求句柄以 `connection_closed` 结束，并只对请求流提交一次双向 abort。监听器关闭仍允许已交付请求回复，回复或显式关闭后若无剩余交付请求才关闭连接。
+
+每条流的 `SHUTDOWN_COMPLETE` 是最终回调；处理完该回调的逻辑后设置一次性关闭标志、从 `stream_handles_` 和 `streams_` 移除记录，并调用一次 `StreamClose`。请求流和对端单向流同步调用 `nghttp3_conn_close_stream`；关键控制流关闭按 HTTP/3 规则关闭连接。`SEND_COMPLETE` 负责释放拥有发送字节的 `send_state` 并减少待完成计数；最终流回调前不得释放 `stream_state`。外部 `close_stream` 在锁外调用 `StreamShutdown` 时保活流句柄；`StreamClose` 和 `ConnectionShutdown` 进行中保活连接句柄；所有流回调和句柄关闭完成后再关闭连接和 nghttp3 状态。成功 `respond` 在响应 FIN 的 `SEND_COMPLETE` 后报告成功；失败或取消关闭对应请求流。服务器已执行的部分外部效果无法由流取消回滚，调用方不应自动重试非幂等操作。
+
+监听器关闭时原先出现 `0xC0000005`：原构建脚本将另一套 MinGW 的 `libwinpthread-1.dll` 与当前 g++ 配套的 `libstdc++-6.dll` 一起打包；崩溃地址落在 `pthread_cond_wait` 调用的 `pthread_mutex_unlock`，切换为当前 g++ 同目录的 DLL 后消失。`scripts/build.ps1` 已固定两者来源一致，同时把 ICU 所需的另一套线程运行库独立命名为 `libwinpthread-u.dll`，改写 ICU 和私有 `libstdc++-u.dll` 的导入名；编译器输出和兼容清单均包含此依赖。定向脚本也改为在服务进程仍存活时读取最终句柄数，再额外发送结束请求触发监听器关闭。
+
+`pwsh -NoProfile -File scripts/build.ps1 -Incremental` 构建通过；`python -X utf8 scripts/check_http3_server_streams.py` 通过：一条连接先发送部分 POST 后由对端 reset，再发出本端主动关闭请求；随后同一连接完成 256 条正常请求。暖机 16 条后，每 16 条采样服务进程句柄数，最后一次测量增量为 1～2，最终仍为 358 个（较基线 +2）；额外结束请求后监听器关闭且服务进程正常退出。`python -X utf8 scripts/check_http3_server.py` 通过基本互操作、二进制往返和监听器关闭后已交付请求回复。`python -X utf8 scripts/check_http3_parallel.py`、`python -X utf8 scripts/check_package_compatibility.py`、`tx/txc.exe test tests/bytes_file_stream/encoding_incremental.tx --format json` 和 `tx/txc.exe test tests/time/calendar.tx --format json` 均通过，覆盖同连接双流并行、运行时依赖清单和 ICU 转换/日历。未运行全量测试；顺序 7 定向结果不覆盖小时级长时间运行或并发故障注入。
+
+**顺序 7 独立全量复核发现与修复（2026-09-29）：** 独立复核的增量构建及 `tx/txc.exe test tests --format json`（1/1）通过；32 个 `scripts/check_*.py` 中 31 个通过，`python -X utf8 scripts/check_static_runtime.py` 的 9 个 TX 用例及 LLVM IR 检查通过，但原生 `runtime_workspace.exe` 在正则工作线程退出时发生 `0xC0000005`。GDB 定位到 `match_workspace` 的 C++ `thread_local` 析构：析构回调拿到的对象存储已被释放，调用其中的 PCRE2 释放函数指针时崩溃。将本机 g++ 的 `libgcc_s_seh-1.dll` 单独替换进临时运行目录仍复现，不能将这次崩溃归因于该 DLL 的版本差异；临时换回另一套 `libwinpthread` 虽可让此用例通过，却会重新引入前述 HTTP/3 关闭崩溃。
+
+`src/stdlib/regex_match.cpp` 改用 Windows FLS 为每个线程保存正则工作区，由 FLS 退出回调释放 PCRE2 资源；重入时仍使用临时工作区，FLS 分配失败时也回退到临时工作区。修复后 `pwsh -NoProfile -File scripts/build.ps1 -Incremental`、`python -X utf8 scripts/check_static_runtime.py`（含原先崩溃的工作线程退出与 `regex_cancel`）、`python -X utf8 scripts/check_http3_server_streams.py`、`python -X utf8 scripts/check_http3_server.py` 和 `python -X utf8 scripts/check_package_compatibility.py` 均通过。HTTP/3 同连接流回收最后采样为 358 个句柄，与暖机基线相同，结束请求后监听器正常关闭。
+
+修复后的另一名独立测试者完成全量复验：增量构建退出码为 0；`tx/txc.exe test tests --format json` 通过 1/1 个测试组、失败 0 个；32 个 `scripts/check_*.py` 全部通过，其中 `check_static_runtime.py` 的 `runtime_workspace` 与 `regex_cancel` 均报告 PASS；另显式运行 `check_data_formats.py json csv`，两个数据格式组通过。R07 状态保持“已修复”；全量复验不替代小时级长时间运行或并发故障注入。
 
 ### 4.11 顺序 8：R09 保留线程和任务的原始 TX 错误
 
@@ -380,7 +400,19 @@ Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 构建通过�
    1. 文本、复合结果分别通过线程 `join` 和任务 `wait` 主动抛出同一个 `io_error/audit_original`，逐项核对类别、码、消息与调用栈。
    2. 再用“无原始错误却返回空指针”确认仍能得到明确的运行时错误，不把真正的 ABI 异常静默吞掉。
 
+**顺序 8 执行记录（2026-09-29）：** `invoke_concurrent_callback()` 在文本或复合回调返回空指针时检查当前运行时错误；已有 TX 错误时返回占位结果，由线程或任务在清理前复制原始错误快照，没有原始错误时仍抛出明确的空结果异常。`thread_abi.cpp` 与 `task_runtime.cpp` 的两类外层 `catch` 仅在当前上下文尚无 TX 错误时写入 `thread_failed` 或 `task_failed`。线程各自使用独立的线程局部运行时上下文；任务每次回调都建立临时上下文，嵌套等待的帮助执行结束后恢复外层上下文，错误快照均在回调句柄和本地对象清理前复制。
+
+Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 退出码为 0。`python -X utf8 scripts/check_concurrency_errors.py` 通过：TX 用例以文本、复合结果分别走 `thread.join` 与 `task.wait` 主动产生相同 `io_error/audit_original`，核对原类别、代码、消息、两层 TX 调用栈及源码文件；后续正常线程/任务仍返回预期文本。原生 ABI 用例对两类结果和两种交付方式分别验证无原始错误的空指针得到 `runtime_error/thread_failed` 或 `runtime_error/task_failed` 及明确消息；另以已有 TX 错误后抛出标准和非标准 C++ 异常验证外层捕获不覆盖原始快照，并验证嵌套任务等待的上下文隔离。`tx/txc.exe test tests/stdlib/concurrency_results.tx --format json` 通过 1/1，覆盖既有正常文本、复合结果和异步任务路径。本项未运行全量测试；R08 的异步网络任务池改造仍属顺序 9。
+
+**顺序 8 独立全量复核中的资源脚本修正（2026-09-29）：** 首轮独立复核的增量构建退出码为 0，`tx/txc.exe test tests --format json` 通过 1/1；33 个 `scripts/check_*.py` 中 32 个通过，`check_http3_server_resources.py` 约 900 次部分正文断连后在 aioquic `wait_connected()` 抛出 `ConnectionError`。旧脚本失败时没有保留服务进程退出状态及输出，因此不能事后确认该次握手失败是否由服务端退出、连接上限或网络瞬态造成。单独重跑原有 1,000 次断连和 60 秒空闲观察通过；每 100 次之间的正常请求约间隔 17～18 秒，未触及服务端单次 `accept` 的 60 秒期限。
+
+服务端对尚未完成原生回收的连接设置 16 个上限；同一服务进程上的 24 路并发握手探针得到 16 次成功、8 次 QUIC 错误码 2（`CONNECTION_REFUSED`），服务进程保持运行，证实该上限也会表现为 aioquic 的 `wait_connected()` `ConnectionError`。`scripts/check_http3_server_resources.py` 现在读取握手终止码，只对错误码 2 在每次部分正文断连前最多等待 5 秒并重试，保持实际完成 1,000 次断连的计数；其他握手错误直接失败，失败时记录服务进程状态及输出。16 路暂占连接后的定向探针记录 3 次容量拒绝，随后一次断连成功且服务进程仍存活。修订后完整资源脚本通过：1,000 次断连、60 秒空闲观察、最大句柄增量 21、最终私有内存增量 1.84 MiB，容量拒绝计数为 0。此前全量失败的具体终止码未捕获，本次修正针对已复现的同症状容量拒绝路径。顺序 7 的流回收实现和顺序 8 的 TX 错误传播实现均未改动。
+
+**顺序 8 修正后的独立全量复验（2026-09-29）：** 另一名独立测试者执行增量构建，退出码为 0；`tx/txc.exe test tests --format json` 通过 1/1 个测试组；33 个 `scripts/check_*.py` 全部通过，其中 `check_concurrency_errors.py` 通过；另显式运行 `check_data_formats.py json csv`，两个数据格式组通过。资源脚本完成 1,000 次部分正文断连和 60 秒空闲观察，容量拒绝计数为 0；暖机基线 374 个句柄，峰值较基线增加 24，最终 396 个（较基线增加 22），最终 Private Bytes 增加 2.18 MiB、Working Set 增加 2.11 MiB。R09 状态保持“已修复”；本次复验不替代小时级长时间运行或并发故障注入。
+
 ### 4.12 顺序 9：R08 将异步网络等待移出通用任务池
+
+**实施前契约（2026-09-29）：** 四类 TCP 异步操作沿用同步接口的参数、错误和结果：连接/接受只在成功时交付新流，未交付的连接在失败、超时、取消时释放；读取可短读，对端发送方向关闭返回空数据及 EOF，重复读取继续返回 EOF；写入单次最多确认 16 KiB 且可短写。超时为 `io_error/timeout`，令牌或作用域取消为 `cancelled_error/cancelled`，令牌截止时间为 `cancelled_error/deadline_exceeded`；本端关闭后按流或监听句柄分别报 `connection_closed`、`closed_handle`。同一 socket 的同方向操作串行，读写可并行。取消、超时、关闭不能回滚已接受的连接、已消费的数据或已发出的字节，成功结果一经交付不再由取消改写。独立网络事件循环最多登记 1024 项，满额提交立即报 `io_error/network_queue_full`；异步期间保活 socket 及写入缓冲，关闭时收束挂起项。UDP 两类异步等待也从通用任务池移走，维持同步 UDP 报文语义。
 
 1. **先固定四类操作的契约。**
    1. 列出 `connect_async`、`accept_async`、`read_async`、`write_async` 的超时、令牌及作用域取消、EOF、短读/短写、关闭后操作和部分外部效果，与现有同步 socket 行为逐项对齐。
@@ -392,3 +424,15 @@ Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 构建通过�
 3. **定向验收。**
    1. 复用报告中的 8 个慢读取加一个普通计算任务场景，确认普通任务在读取超时前完成，且慢读取仍按原超时语义结束。
    2. 分别核对取消、远端关闭、队列容量边界以及异步操作后 socket 句柄状态；只做直接受本项影响的验证，不以增加任务工作线程数作为修复结果。
+
+**顺序 9 执行记录（2026-09-29）：** `src/backend/cpp/socket_async_abi.cpp` 的六个异步入口改为登记网络操作，不再向 `task_executor` 提交等待式 `work(probe)`。新增 `socket_async_loop.hpp/.cpp` 用一条独立线程对非阻塞 socket 执行 `WSAPoll` 就绪等待、令牌/作用域取消、超时、关闭检查与一次性任务交付；`socket_async_tcp.cpp` 实现连接、接受、读取、写入的短步骤，`socket_async_udp.cpp` 实现发送、接收的短步骤；`CMakeLists.txt` 纳入构建。操作登记表最多 1024 项，满额立即返回 `io_error/network_queue_full`。登记项持有 socket、输入缓冲及任务状态，同 socket 同方向按登记顺序推进；同步 API 的方向互斥锁仍保护每次非阻塞实际 I/O。`docs/socket.md` 和 `docs/task.md` 同步运行时与错误契约，原有同步实现未修改。
+
+Windows x64 `pwsh -NoProfile -File scripts/build.ps1 -Incremental` 退出码为 0。`tx/txc.exe test tests/network/socket_behavior.tx --format json` 通过 1/1，核对既有 TCP/UDP 异步成功及预取消。新增 `socket_async_dispatch.tx` 通过 1/1：8 个 1200 毫秒慢读取挂起期间，普通任务返回 42 且等待少于 900 毫秒，随后 8 个读取均按 `io_error/timeout` 结束。`socket_async_contract.tx` 通过 1/1，核对四类 TCP 操作的令牌/作用域取消、令牌截止时间、监听器取消后复用、短读与最多 16 KiB 的短写、EOF 与重复 EOF、远端关闭、本端关闭时挂起任务收束和关闭后错误，并核对 UDP 两个入口的取消及正常报文。`socket_async_capacity.tx` 通过 1/1，1024 个挂起接受操作后第 1025 项得到 `network_queue_full`，作用域退出取消并收束挂起项。`git diff --check` 通过。本阶段仅做增量构建和这些定向用例；外网异常注入与高并发长时负载未纳入本阶段验证，独立全量复验记录见下文。
+
+**顺序 9 独立全量复核中发现的间歇崩溃及修复（2026-09-29）：** 首轮增量构建退出码为 0、`tx/txc.exe test tests --format json` 通过 1/1；33 个 `scripts/check_*.py` 中 32 个通过，唯一失败为 `check_tls_stream.py` 的 `TLS_RANDOM_CONCURRENCY`：前五项 TLS 场景通过，服务端退出码 0，客户端退出码 `0xC0000374`（Windows 堆损坏）。该脚本单独重跑一次六项全通过，但不能据此判定故障消失。同一证书和编译产物连续运行随机并发客户端，第 194 次又得到 `0xC0000005`，服务端仍正常退出；该用例只使用同步 socket，未创建顺序 9 的 `WSAPoll` 网络循环。
+
+GDB 与分步隔离确认了三个生命周期缺陷。`tls_identity.cpp::close_identity()` 原先在 `identity_state::mutex` 的锁卫士仍存活时从登记表删除最后一个 `shared_ptr`，随后解锁已析构的互斥锁；GDB 捕获到 `close_identity -> pthread_mutex_unlock` 的访问违规。单独修复此处后，工作线程退出仍在 `cycle_gc.cpp` 的非平凡 `thread_local optional<shared_lock>` 析构中崩于 `pthread_rwlock_unlock`；将读锁所有权移到 `concurrent_execution_scope` 的栈对象后，线程退出仍在 MinGW `__cxa_thread_atexit` 的 `free` 路径报告 `0xC0000374`。工作线程剩余的非平凡 C++ 线程局部运行时上下文改为 Windows FLS 槽管理，并在退出回调回收。三处修复均限于身份关闭、GC 锁和运行时上下文生命周期；密码学随机源、同步 socket 和顺序 9 网络循环的算法未改。
+
+修复后 Windows x64 增量构建退出码为 0。GDB 下随机并发 TLS 客户端连续 5 次及普通运行连续 300 次均正常结束；完整 `check_tls_stream.py` 的 6 项通过。`socket_async_dispatch.tx`、`socket_async_contract.tx`、`socket_async_capacity.tx` 各通过 1/1，`check_concurrency_errors.py` 与 `check_runtime_context.py` 通过。本次仅作故障相关的定向复验；独立全量复验结果见下文。
+
+**顺序 9 修复后的独立全量复验（2026-09-29）：** 另一名独立测试者执行增量构建，退出码为 0；`tx/txc.exe test tests --format json` 通过 1/1 个测试组；33 个 `scripts/check_*.py` 全部通过，其中 `check_tls_stream.py` 的 6 项（含 `TLS_RANDOM_CONCURRENCY`）均通过。另显式运行 `check_data_formats.py json csv`，两个数据格式组通过。HTTP/3 资源脚本完成 1,000 次部分正文断连和 60 秒空闲观察，容量拒绝计数为 0，最大句柄增量 18，最终 Private Bytes 增加 1.07 MiB；`socket_async_dispatch.tx`、`socket_async_contract.tx`、`socket_async_capacity.tx` 各通过 1/1。R08 状态保持“已修复”；本次复验不替代外网异常注入或高并发长时负载验证。
