@@ -1,4 +1,5 @@
 #include "stdlib/format_internal.hpp"
+#include "stdlib/format_plan_cache.hpp"
 #include "stdlib/stdlib.hpp"
 
 #include <charconv>
@@ -164,9 +165,28 @@ const std::any& resolve_field(const field& item, const tx_array& args,
 std::string tx_fn_format(const std::string& text, const tx_array& args,
                          const tx_dict& kwargs)
 {
+    if (const auto plan = find_format_plan(text))
+    {
+        std::string result;
+        result.reserve(plan->literal_bytes);
+        field_state state;
+        for (const auto& part : plan->parts)
+        {
+            result += part.literal;
+            if (part.field)
+            {
+                const auto& value = resolve_field({part.name, {}, part.conversion}, args, kwargs, state);
+                append_format_value(result, value, part.spec, part.conversion);
+            }
+        }
+        return result;
+    }
     (void)tx_len(text);
     std::string result;
     field_state state;
+    dynamic_format_plan plan;
+    const bool cacheable = text.size() <= format_cache_template_bytes;
+    std::size_t literal_start = 0;
     for (std::size_t offset = 0; offset < text.size();)
     {
         const char current = text[offset];
@@ -193,7 +213,15 @@ std::string tx_fn_format(const std::string& text, const tx_array& args,
             const auto item = parse_field(std::string_view(text).substr(
                 offset + 1, closing - offset - 1));
             const auto& value = resolve_field(item, args, kwargs, state);
-            result += format_field_value(value, item.spec, item.conversion);
+            const auto spec = tx::parse_format_spec(item.spec);
+            if (cacheable)
+            {
+                auto literal = result.substr(literal_start);
+                plan.literal_bytes += literal.size();
+                plan.parts.push_back({std::move(literal), std::string(item.name), spec, item.conversion, true});
+            }
+            append_format_value(result, value, spec, item.conversion);
+            literal_start = result.size();
             offset = closing + 1;
         }
         else if (current == '}')
@@ -205,6 +233,15 @@ std::string tx_fn_format(const std::string& text, const tx_array& args,
             result.push_back(current);
             ++offset;
         }
+    }
+    if (cacheable)
+    {
+        auto literal = result.substr(literal_start);
+        plan.literal_bytes += literal.size();
+        plan.parts.push_back({std::move(literal), {}, {}, 0, false});
+        plan.text = text;
+        // 仅完整成功时缓存；非法模板始终按原扫描顺序报错，不提前解析后面的错误。
+        remember_format_plan(std::move(plan));
     }
     return result;
 }

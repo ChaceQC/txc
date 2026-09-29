@@ -275,6 +275,7 @@ add_executable(txc
     src/backend/llvm/codegen_channel.cpp
     src/backend/llvm/codegen_serde.cpp
     src/backend/llvm/codegen_format.cpp
+    src/backend/llvm/codegen_format_constant.cpp
     src/backend/llvm/codegen_encoding.cpp
     src/backend/llvm/codegen_format_plan.cpp
     src/backend/llvm/codegen_container.cpp
@@ -439,6 +440,8 @@ add_library(txstdlib STATIC
     src/backend/cpp/external_abi_time_random.cpp
     src/stdlib/string.cpp
     src/stdlib/format.cpp
+    src/stdlib/format_append.cpp
+    src/stdlib/format_plan_cache.cpp
     src/stdlib/format_spec.cpp
     src/common/format_spec.cpp
     src/common/text_encoding.cpp

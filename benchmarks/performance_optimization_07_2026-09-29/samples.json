@@ -1,0 +1,178 @@
+{
+  "measured_at_utc": "2026-09-29T11:57:14.225803+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+  "iterations": 50000,
+  "warmups": 1,
+  "rounds": 5,
+  "orders": [
+    [
+      "06",
+      "07",
+      "cpp_reference"
+    ],
+    [
+      "cpp_reference",
+      "07",
+      "06"
+    ],
+    [
+      "06",
+      "07",
+      "cpp_reference"
+    ],
+    [
+      "cpp_reference",
+      "07",
+      "06"
+    ],
+    [
+      "06",
+      "07",
+      "cpp_reference"
+    ],
+    [
+      "cpp_reference",
+      "07",
+      "06"
+    ]
+  ],
+  "candidate": {
+    "head": "43b5eb0eb14fed6dd944aed5d69df3858424c442",
+    "source_sha256": "8ded463f7580f5390c796cd48997ca03a2ff865e2dfd9096e1d14eee2c593bf1",
+    "toolchain_sha256": {
+      "txc.exe": "d99f64b6e9c2c765cc8a976ecd072931270f4594a6b7950261a2b9f506ae7a09",
+      "libtxstdlib.a": "1911c05347d7a094517227ce7c3f5df60e7b549edc83478a172cd44e3baf77ae",
+      "package.compat": "9e51caf33edda18f5a4ff713fcbc77ef0dc121faebc505780b596a86dedaafa5"
+    },
+    "dll_sha256": {
+      "libgcc_s_seh-1.dll": "d7e343dd266747177c3699bc3201ea36eceef158e98530e089263bc55bb2a6d7",
+      "libicudt78.dll": "60255653982986c9fb72ad1b10b8dc502e498d890e0218cb0a47bc5907aa4e43",
+      "libicuin78.dll": "1925ba8b617ffbaf986dc6f5edc2d0952b0d48a9b710e1047809abd6a9846af3",
+      "libicuuc78.dll": "be4fc632a5fca5dc4a6fa8726084d63f45b7561b078d00bf107bffc30d336fb7",
+      "libstdc++-6.dll": "47559ac91bda181bd21e8e1af352eb87703248277d55fdc8da8f20464fcca5e7",
+      "libstdc++-u.dll": "5df0dba7064c43343ff33d2a02bbcbdfc1e035bc9d91024ec003c6d5a3054aa2",
+      "libwinpthread-1.dll": "08168351ae29d6d5825e4c3c64176bf1ec4a3724e5b87a4e3596f24c20455ab2",
+      "libwinpthread-u.dll": "72bf8802de3a99d28f0bc2db9a11f281a9f9f3fa83dab2bc67e69fac3bd3d9c0",
+      "msquic.dll": "e1544c8e8586411f70fadbc808d6b4dd020b027820792d78c187e36460e23bc9"
+    }
+  },
+  "cpp_reference": {
+    "scope": "fixed ASCII algorithm only, not equivalent public format API",
+    "source_sha256": "fa3bd5bfa16f374d7f4b12bf6a14e250f202ca0287329443e006e0fc51db27d2",
+    "compiler": "g++ (GCC) 13.1.0",
+    "flags": "-std=c++23 -O3 -DNDEBUG"
+  },
+  "program_sha256": {
+    "06": "390e80f5b0342f7fb27ded6def8d4066bce625d7c37aecb5e67fa6e6a9e06476",
+    "07": "8b05c9a3244bd385848b88416a0a7d389fcdb0b629e040f5a2cc18259a982188",
+    "cpp_reference": "597b8eac9bbda90e38a3f6e09e12116e1c393fd9678f284a1e1aa16a3a9518a6"
+  },
+  "results": {
+    "06": {
+      "format_literal": {
+        "samples_ms": [
+          11.771,
+          12.219,
+          10.637,
+          10.846,
+          13.817
+        ],
+        "median_ms": 11.771,
+        "checksum": "488890"
+      },
+      "format_local": {
+        "samples_ms": [
+          71.128,
+          56.454,
+          52.393,
+          51.972,
+          52.539
+        ],
+        "median_ms": 52.539,
+        "checksum": "488890"
+      },
+      "format_dynamic": {
+        "samples_ms": [
+          61.335,
+          55.8,
+          53.74,
+          53.733,
+          54.192
+        ],
+        "median_ms": 54.192,
+        "checksum": "488890"
+      }
+    },
+    "07": {
+      "format_literal": {
+        "samples_ms": [
+          5.247,
+          5.353,
+          5.331,
+          5.351,
+          5.315
+        ],
+        "median_ms": 5.331,
+        "checksum": "488890"
+      },
+      "format_local": {
+        "samples_ms": [
+          5.231,
+          5.052,
+          5.729,
+          5.025,
+          5.017
+        ],
+        "median_ms": 5.052,
+        "checksum": "488890"
+      },
+      "format_dynamic": {
+        "samples_ms": [
+          55.349,
+          53.736,
+          51.717,
+          52.295,
+          51.301
+        ],
+        "median_ms": 52.295,
+        "checksum": "488890"
+      }
+    },
+    "cpp_reference": {
+      "format_literal": {
+        "samples_ms": [
+          0.5,
+          0.508,
+          0.569,
+          0.429,
+          0.431
+        ],
+        "median_ms": 0.5,
+        "checksum": "488890"
+      },
+      "format_local": {
+        "samples_ms": [
+          0.533,
+          0.456,
+          0.455,
+          0.429,
+          0.431
+        ],
+        "median_ms": 0.455,
+        "checksum": "488890"
+      },
+      "format_dynamic": {
+        "samples_ms": [
+          0.516,
+          0.436,
+          0.428,
+          0.43,
+          0.434
+        ],
+        "median_ms": 0.434,
+        "checksum": "488890"
+      }
+    }
+  }
+}

@@ -47,6 +47,7 @@ private:
         std::string native_parse_value;
         std::string native_parse_error;
         std::string vector_reference;
+        std::optional<std::string> constant_text;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -254,6 +255,12 @@ private:
         const std::vector<ir_value>& arguments);
     [[nodiscard]] std::optional<ir_value> emit_static_format(
         const expression& item, const call_expression& call, const function_decl& target);
+    [[nodiscard]] std::optional<std::string> constant_format_text(const expression& item) const;
+    [[nodiscard]] bool immutable_format_local(const variable_declaration& declaration) const;
+    void emit_format_field(const ir_value& value, const std::optional<std::string>& bytes,
+        const struct static_format_part& part, const std::string& result, source_pos position);
+    [[nodiscard]] std::vector<ir_value> emit_format_arguments(const call_expression& call,
+        const std::vector<static_format_part>& plan, std::vector<std::optional<std::string>>& bytes);
     [[nodiscard]] std::optional<ir_value> emit_constant_encoding(
         const expression& item, const call_expression& call, const function_decl& target);
     [[nodiscard]] std::string serde_schema_constant(const value_type& type);

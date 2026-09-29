@@ -1,0 +1,49 @@
+{
+  "cases": [
+    "strings/format_optimized",
+    "containers/static_runtime",
+    "strings/format_cache.cpp"
+  ],
+  "ir": {
+    "plain": {
+      "txrt_format_begin": 1,
+      "txrt_format_plain_i64": 1,
+      "txrt_format_plain_bool": 1,
+      "txrt_format_plain_str": 1,
+      "txrt_format_plain_bytes": 0,
+      "txrt_format_format": 0
+    },
+    "literal_bytes": {
+      "txrt_format_begin": 1,
+      "txrt_format_plain_i64": 1,
+      "txrt_format_plain_bool": 0,
+      "txrt_format_plain_str": 0,
+      "txrt_format_plain_bytes": 1,
+      "txrt_format_format": 0
+    },
+    "local_template": {
+      "txrt_format_begin": 1,
+      "txrt_format_plain_i64": 1,
+      "txrt_format_plain_bool": 0,
+      "txrt_format_plain_str": 0,
+      "txrt_format_plain_bytes": 0,
+      "txrt_format_format": 0
+    },
+    "changed_template": {
+      "txrt_format_begin": 0,
+      "txrt_format_plain_i64": 0,
+      "txrt_format_plain_bool": 0,
+      "txrt_format_plain_str": 0,
+      "txrt_format_plain_bytes": 0,
+      "txrt_format_format": 1
+    },
+    "dynamic": {
+      "txrt_format_begin": 0,
+      "txrt_format_plain_i64": 0,
+      "txrt_format_plain_bool": 0,
+      "txrt_format_plain_str": 0,
+      "txrt_format_plain_bytes": 0,
+      "txrt_format_format": 1
+    }
+  }
+}

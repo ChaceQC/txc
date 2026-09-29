@@ -1,0 +1,48 @@
+import "format.txh" as fmt
+import "time.txh" as time
+
+def report(name: str, started: int, checksum: int)
+{
+    print(name)
+    print(time.monotonic_micros() - started)
+    print(checksum)
+}
+
+def dynamic_format(template: str, value: int) -> str
+{
+    return fmt.format(template, "item", value)
+}
+
+def main() -> int
+{
+    int checksum = 0
+    int started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        checksum += len(fmt.format("{}:{}", "item", i))
+    }
+    report("format_literal", started, checksum)
+    str template = "{}:{}"
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        checksum += len(fmt.format(template, "item", i))
+    }
+    report("format_local", started, checksum)
+    checksum = 0
+    started = time.monotonic_micros()
+    for i in 0..=49999
+    {
+        if i % 2 == 0
+        {
+            checksum += len(dynamic_format("{}:{}", i))
+        }
+        else
+        {
+            checksum += len(dynamic_format("{}-{}", i))
+        }
+    }
+    report("format_dynamic", started, checksum)
+    return 0
+}

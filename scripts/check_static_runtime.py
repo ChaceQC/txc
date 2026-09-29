@@ -51,7 +51,7 @@ def main():
     assert "call void @txrt_vector_index_error(" in body(ir, "changing_vector")
     direct = body(ir, "direct_format")
     assert "call i32 @txrt_format_append_i64(" in direct
-    assert "call i32 @txrt_format_append_str(" in direct
+    assert "call i32 @txrt_format_plain_str(" in direct
     for forbidden in ("@txrt_value_box_", "@txrt_array_new(", "@txrt_dict_new(",
                       "@txrt_format_format("):
         assert forbidden not in direct, forbidden

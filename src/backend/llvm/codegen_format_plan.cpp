@@ -202,7 +202,26 @@ std::optional<std::vector<static_format_part>> plan_static_format(
     {
         result.push_back({std::move(literal), std::nullopt, {}, 0});
     }
-    return result;
+    std::vector<static_format_part> fused;
+    for (auto& part : result)
+    {
+        if (!part.argument && !fused.empty() && fused.back().argument)
+        {
+            fused.back().tail = std::move(part.literal);
+        }
+        else
+        {
+            fused.push_back(std::move(part));
+        }
+    }
+    return fused;
+}
+
+bool plain_format_part(const static_format_part& part, const value_type& type)
+{
+    return (type == value_type::int_type && format_plain_integer(part.spec, part.conversion)) ||
+        (type == value_type::bool_type && format_plain_bool(part.spec, part.conversion)) ||
+        (type == value_type::str_type && format_plain_text(part.spec, part.conversion));
 }
 
 } // namespace tx

@@ -2,7 +2,7 @@
 
 日期：2026-09-29。
 
-状态：原始分析与方案记录时尚未实施任何项。2026-09-29 已完成第 01 项的基线归档和定向校准，验收见[记录](../benchmarks/performance_baseline_2026-09-29/README.md)；02.1～02.4 已实施，02.5 评估后暂不分区，但 map 对照存在回退，整项性能验收尚未通过，见[02 记录](../benchmarks/performance_optimization_02_2026-09-29/README.md)；03 已实施并完成定向验收，见[03 记录](../benchmarks/performance_optimization_03_2026-09-29/README.md)；04 已实施并完成定向结构与行为验收，格式化负载尚无稳定整体收益，见[04 记录](../benchmarks/performance_optimization_04_2026-09-29/README.md)；05 已实施并完成定向验收，见[05 记录](../benchmarks/performance_optimization_05_2026-09-29/README.md)；06 已实施并完成定向验收，见[06 记录](../benchmarks/performance_optimization_06_2026-09-29/README.md)；07～16 仍待实施。01 没有修改编译器、运行时、标准库或发布工具链产物。
+状态：原始分析与方案记录时尚未实施任何项。2026-09-29 已完成第 01 项的基线归档和定向校准，验收见[记录](../benchmarks/performance_baseline_2026-09-29/README.md)；02.1～02.4 已实施，02.5 评估后暂不分区，但 map 对照存在回退，整项性能验收尚未通过，见[02 记录](../benchmarks/performance_optimization_02_2026-09-29/README.md)；03 已实施并完成定向验收，见[03 记录](../benchmarks/performance_optimization_03_2026-09-29/README.md)；04 已实施并完成定向结构与行为验收，格式化负载尚无稳定整体收益，见[04 记录](../benchmarks/performance_optimization_04_2026-09-29/README.md)；05 已实施并完成定向验收，见[05 记录](../benchmarks/performance_optimization_05_2026-09-29/README.md)；06 已实施并完成定向验收，见[06 记录](../benchmarks/performance_optimization_06_2026-09-29/README.md)；07 已实施并完成定向验收，动态模板整体收益较小，见[07 记录](../benchmarks/performance_optimization_07_2026-09-29/README.md)；08～16 仍待实施。01 没有修改编译器、运行时、标准库或发布工具链产物。
 
 ## 1. 目标、依据与适用范围
 
@@ -119,7 +119,7 @@
 - 不整体关闭 GC、溢出检查或诊断栈，不默认启用 fast-math，不改变随机数序列。
 - 新实现按语义分析、LLVM 生成、运行时和标准库职责拆分；不把全部逻辑加入一个通用源文件。
 - C ABI、布局或类型描述改变时，检查兼容指纹覆盖范围，整体重建编译器、静态库和三个预编译 TX 桥接对象，再核对包兼容性。
-- 下列“验收”按各项实际实施时间执行并记录；01～06 的实际状态和限制见各项记录，07～16 尚未执行。
+- 下列“验收”按各项实际实施时间执行并记录；01～07 的实际状态和限制见各项记录，08～16 尚未执行。
 
 ### 3.2 本计划的阶段
 
@@ -223,13 +223,15 @@
 
 涉及文件：[codegen_format.cpp](../src/backend/llvm/codegen_format.cpp)、[codegen_format_plan.cpp](../src/backend/llvm/codegen_format_plan.cpp)、[format_static_abi.cpp](../src/backend/cpp/format_static_abi.cpp)、[format_direct_abi.cpp](../src/backend/cpp/format_direct_abi.cpp)、[format.cpp](../src/stdlib/format.cpp)、[format_spec.cpp](../src/stdlib/format_spec.cpp)。
 
-- [ ] **07.1 增加直接写入接口。** 基于已有静态计划，将整数、布尔和文本直接 append 到同一 builder；整数 to_chars 的结果直接进入目标缓冲，避免每个字段先构造完整临时 string。
-- [ ] **07.2 合并初始化和容量安排。** 静态字面量长度可预先累计；动态字段使用可证明的长度/上界或按需增长，检查容量溢出，避免盲目按最大宽度超量预分配。一次完成 builder 创建，减少 begin/literal/append 之间的 ABI 往返。
-- [ ] **07.3 生成常见格式专用路径。** 对默认整数格式、原样文本、无宽度/精度的字段省略通用格式分派和不必要的 Unicode 长度计算；复杂 spec 保留原实现。常量合法性可预解析，但无效格式仍在原执行路径产生可捕获错误。
-- [ ] **07.4 保持实参行为。** 所有实参按源码顺序求值，未引用实参仍求值；后续实参修改前面的值时，使用原有持有规则。静态文本字节在允许的接口直接借用，运行时文本遵循第 05 项。
-- [ ] **07.5 优化真正动态模板。** 先对可证明不变的局部模板传播常量；仍动态的模板使用容量受限、键包含完整模板内容和必要模式的计划缓存。缓存不保存本次参数或借用地址，处理重入与并发，并保持逐次参数校验及错误行为。
+- [x] **07.1 增加直接写入接口。** 基于已有静态计划，将整数、布尔和文本直接 append 到同一 builder；整数 to_chars 的结果直接进入目标缓冲，避免每个字段先构造完整临时 string。
+- [x] **07.2 合并初始化和容量安排。** 静态字面量长度可预先累计；动态字段使用可证明的长度/上界或按需增长，检查容量溢出，避免盲目按最大宽度超量预分配。一次完成 builder 创建，减少 begin/literal/append 之间的 ABI 往返。
+- [x] **07.3 生成常见格式专用路径。** 对默认整数格式、原样文本、无宽度/精度的字段省略通用格式分派和不必要的 Unicode 长度计算；复杂 spec 保留原实现。常量合法性可预解析，但无效格式仍在原执行路径产生可捕获错误。
+- [x] **07.4 保持实参行为。** 所有实参按源码顺序求值，未引用实参仍求值；后续实参修改前面的值时，使用原有持有规则。静态文本字节在允许的接口直接借用，运行时文本遵循第 05 项。
+- [x] **07.5 优化真正动态模板。** 先对可证明不变的局部模板传播常量；仍动态的模板使用容量受限、键包含完整模板内容和必要模式的计划缓存。缓存不保存本次参数或借用地址，处理重入与并发，并保持逐次参数校验及错误行为。
 
 完成判据：基础字面量格式化不构造动态实参容器、不创建每字段临时文本；缓存计划不改变动态参数和错误结果。复测 literal/dynamic 两条路径，另覆盖转义、命名字段、Unicode 宽度、精度和错误实参的必要场景。
+
+07 验收：[实现、边界、工具链标识与同轮原始样本](../benchmarks/performance_optimization_07_2026-09-29/README.md)。原综合负载的局部模板属于可传播常量，另以函数参数传入并轮换模板测量真正动态路径；其本轮整体耗时仅下降 6.85%，不将静态化收益归给缓存。
 
 ### 08. serde 直接编解码，消除整棵中间动态树
 
@@ -355,7 +357,7 @@
 | 02～03 GC 与属性 | [runtime_context 检查](../scripts/check_runtime_context.py)、[借用检查](../scripts/check_call_borrowing.py)、[复活示例](../examples/cycle_resurrection.tx) | 已有待传播错误、阈值、借用失效、deinit 复活、worker/join | call_borrowing，map 索引对照 |
 | 04～05 句柄与文本 | [跨线程文本](../tests/stdlib/send_sync_text.tx)、[线程生命周期](../tests/stdlib/thread_lifecycle.tx)、[并发错误](../scripts/check_concurrency_errors.py) | 根/内部引用、跨线程释放、错误退出、短长文本 | string_conversion、format、mini-filesystem |
 | 06 解析结果 | [局部结果检查](../scripts/check_parse_scalar.py)、[解析错误检查](../scripts/check_parse_errors.py)、[解析用例](../tests/stdlib/parse_errors.tx) | 成功也可读取 error、字段修改、别名、INT64_MIN、混合非法与溢出 | [局部/完整结果与核心采样](../benchmarks/performance_optimization_06_2026-09-29/README.md) |
-| 07 格式化 | [静态运行时检查](../scripts/check_static_runtime.py)、[静态运行时用例](../tests/containers/static_runtime.tx) | 实参顺序、模板错误、Unicode 宽度、缓存并发重入 | format_literal / format_dynamic |
+| 07 格式化 | [格式化定向检查](../scripts/check_format_optimized.py)、[静态运行时用例](../tests/containers/static_runtime.tx) | 实参顺序、模板错误、Unicode 宽度、缓存并发重入 | format_literal / format_dynamic |
 | 08 serde | [行为](../tests/serde/behavior.tx)、[跨模块](../tests/serde/module.tx)、[迁移](../tests/formats/serde_migration.tx) | 重复/未知字段、版本、默认值、嵌套限额、失败清理 | serde_short_text / serde_long_text，serde_json |
 | 09 对象布局 | [类示例](../examples/advanced_classes.tx)、[跨模块类](../examples/advanced_class_module/main.tx)、[内存示例](../examples/memory_management.tx) | 别名、多继承、初始化、动态恢复、析构与复活 | struct_operators / class_methods / module_call / runtime_cast / deinit |
 | 10 闭包 | [闭包错误](../tests/stdlib/closure_error.tx)、[闭包环](../tests/stdlib/closure_cycle.tx)、[跨模块闭包](../tests/stdlib/closure_module/main.tx) | 捕获寿命、move、包装失败、递归回调 | function_value / closure_bind |
@@ -376,7 +378,7 @@
 
 ## 6. 状态与交接
 
-当前已完成 01 的归档、校准和定向验收；02.1～02.4 已实施且 02.5 完成条件性评估，但 02 的 map 性能观察仍待定位；03 已完成定向验收；04 已完成定向结构与行为验收，格式化负载尚无稳定整体收益；05、06 已完成定向验收；07～16 仍按前置条件推进。复选框表示各小点实施状态，整项验收还须满足其完成判据。
+当前已完成 01 的归档、校准和定向验收；02.1～02.4 已实施且 02.5 完成条件性评估，但 02 的 map 性能观察仍待定位；03 已完成定向验收；04 已完成定向结构与行为验收，格式化负载尚无稳定整体收益；05、06 已完成定向验收；07 已完成定向验收，真正动态模板仍有明显容器和调用成本；08～16 仍按前置条件推进。复选框表示各小点实施状态，整项验收还须满足其完成判据。
 
 | 修改项 | 优先级 | 主要前置 | 当前状态 |
 | --- | --- | --- | --- |
@@ -386,7 +388,7 @@
 | 04 值句柄去无用锁 | P0 | 01 | 已完成定向结构与行为验收；格式化负载未见稳定整体收益 |
 | 05 文本共享与借用 | P1 | 03、04 | 已完成定向验收；剩余热点交由 06～08 |
 | 06 解析结果与核心 | P1 | 03～05；首批可用局部专用表示 | 已完成局部结构与行为验收；完整成功路径本轮回退 11.05%，见采样记录 |
-| 07 格式化 | P1 | 03～05 | 待实施 |
+| 07 格式化 | P1 | 03～05 | 已完成定向验收；字面量 2.02 倍、局部常量模板 10.60 倍、真正动态模板 1.07 倍，见独立记录 |
 | 08 serde | P1 | 02～05；与 09 对接字段访问 | 待实施 |
 | 09 静态对象布局 | P1 | 03、04，明确布局契约 | 待实施 |
 | 10 函数值与闭包 | P2 | 03；与 09 共用类型描述 | 待实施 |

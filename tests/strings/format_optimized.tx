@@ -1,0 +1,114 @@
+import "format.txh" as fmt
+import "test.txh" as test
+import "error.txh" as errors
+
+struct holder
+{
+    text: str
+}
+
+def change(value: holder) -> int
+{
+    value.text = "new"
+    return 7
+}
+
+def effect(values: vector<int>, value: int) -> int
+{
+    values.push_back(value)
+    return value
+}
+
+def plain(value: int, text: str, enabled: bool) -> str
+{
+    return fmt.format("[{0}]/{1}/{2}/{{done}}", value, text, enabled)
+}
+
+def literal_bytes(value: int) -> str
+{
+    return fmt.format("{}:{}", "item", value)
+}
+
+def local_template(value: int) -> str
+{
+    str template = "value:{}"
+    auto alias = template
+    return fmt.format(alias, value)
+}
+
+def changed_template(enabled: bool) -> str
+{
+    str template = "before:{}"
+    if enabled
+    {
+        template = "after:{}"
+    }
+    return fmt.format(template, 3)
+}
+
+def dynamic(template: str, *args: array, **kwargs: dict) -> str
+{
+    return fmt.format(template, *args, **kwargs)
+}
+
+def main() -> int
+{
+    test.assert_equal("[-9223372036854775808]/甲🌍/true/{done}", plain(-9223372036854775808, "甲🌍", true))
+    test.assert_equal("[9223372036854775807]//false/{done}", plain(9223372036854775807, "", false))
+    test.assert_equal("item:9", literal_bytes(9))
+    test.assert_equal("value:8", local_template(8))
+    test.assert_equal("before:3", changed_template(false))
+    test.assert_equal("after:3", changed_template(true))
+    test.assert_equal("", fmt.format(""))
+    test.assert_equal("{甲}", fmt.format("{{甲}}"))
+    test.assert_equal("甲\n乙", fmt.format("{}", "甲\n乙"))
+    holder source = holder("old")
+    test.assert_equal("old:7", fmt.format("{}:{}", source.text, change(source)))
+    test.assert_equal("new", source.text)
+    vector<int> effects = vector<int>()
+    test.assert_equal("2:1", fmt.format("{1}:{0}", effect(effects, 1), effect(effects, 2), effect(effects, 3)))
+    test.assert_equal(3, effects.size())
+    bool failed = false
+    try
+    {
+        fmt.format("{", effect(effects, 4))
+    }
+    exception errors.runtime_error as e
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+    test.assert_equal(4, effects[3])
+    for i in 0..=1
+    {
+        test.assert_equal("甲:甲:9", dynamic("{x}:{x}:{}", "甲", 9))
+        test.assert_equal("乙:乙:4", dynamic("{x}:{x}:{}", 4, x="乙"))
+        test.assert_equal("{{甲}}", dynamic("{{{{{}}}}}", "甲"))
+        test.assert_equal("  甲🌍  |+00017|1.250|-1f|111|11", dynamic("{:^6}|{:+06d}|{:.3f}|{:x}|{:b}|{:o}", "甲🌍", 17, 1.25, -31, 7, 9))
+        test.assert_equal("甲乙|1", dynamic("{:.2}|{!s:.1}", "甲乙丙", 123))
+        test.assert_equal("\"甲\"", dynamic("{!r}", "甲"))
+        test.assert_equal("3", dynamic("{:d}", 3))
+        failed = false
+        try
+        {
+            dynamic("{:d}", "wrong")
+        }
+        exception errors.runtime_error as e
+        {
+            failed = true
+        }
+        test.assert_true(failed)
+        failed = false
+        try
+        {
+            dynamic("{:d}")
+        }
+        exception errors.runtime_error as e
+        {
+            failed = true
+        }
+        test.assert_true(failed)
+    }
+    print("FORMAT_OPTIMIZED_OK")
+    return 0
+}
