@@ -52,7 +52,7 @@ def main():
             run([txc, directory / "examples" / source, *flags, "-o", program],
                 directory, environment)
             output = run([program], directory, environment)
-            if source == "llvm_numeric.tx" and output.strip().splitlines() != ["5", "3"]:
+            if source == "llvm_numeric.tx" and output.strip().splitlines() != ["5.0", "3"]:
                 raise RuntimeError(f"数值样例输出不符：{output}")
         print("ZIP 安装验证通过：中文/空格路径、语法检查、ThinLTO、普通链接和 ICU 运行时")
 

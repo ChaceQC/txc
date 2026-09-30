@@ -43,8 +43,8 @@ $llvm_bin = Join-Path $llvm_dir 'bin'
 if (-not (Test-Path -LiteralPath (Join-Path $llvm_bin 'llvm-nm.exe')))
 {
     $archive = get_verified_archive `
-        'https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.2/clang%2Bllvm-23.1.2-x86_64-pc-windows-msvc.tar.zst' `
-        'txc-llvm.tar.zst' 'ceaee048142fece144752c6f6431cb0905a7a6160f78ab8cf5cf0b6216f99418'
+        'https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.2/clang%2Bllvm-23.1.2-x86_64-pc-windows-msvc.tar.xz' `
+        'txc-llvm.tar.xz' '8fb91cdc44fcbbdcf6b3ffd0a1f9859abd14a3c3aae4423c2b6d4a4f90bf0095'
     Push-Location $tools_dir
     try
     {
