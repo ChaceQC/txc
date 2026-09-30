@@ -47,7 +47,7 @@ def main():
         run([txc, "check", directory / "example.tx"], directory, environment)
         # 两条链接路径及 ICU DLL，覆盖打包最容易遗漏的真实依赖。
         for source, flags in (("llvm_numeric.tx", []), ("llvm_numeric.tx", ["--no-lto"]),
-                              ("unicode.tx", [])):
+                              ("unicode.tx", []), ("unicode.tx", ["--no-lto"])):
             program = directory / ("smoke-native.exe" if flags else "smoke.exe")
             run([txc, directory / "examples" / source, *flags, "-o", program],
                 directory, environment)

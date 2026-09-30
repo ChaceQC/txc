@@ -434,7 +434,8 @@ int compile_llvm_native(const std::string& generated_source,
         // ThinLTO 在链接阶段生成机器码，此处也必须与 MinGW emutls ABI 一致。
         arguments.push_back(L"--plugin-opt=-emulated-tls");
     }
-    const auto link_result = run_local_tool(link_dir / (lto ? "ld.lld.exe" : "ld.exe"), arguments);
+    // 两种模式都由 LLD 处理宽字符路径，避免 GNU ld 按系统代码页丢失中文。
+    const auto link_result = run_local_tool(link_dir / "ld.lld.exe", arguments);
     if (link_result != 0)
     {
         return link_result;

@@ -61,7 +61,7 @@ txc 启动 clang 和链接器时会为各个参数添加必要的引号并处理
 
 `emit-library-llvm` 用于构建标准库：允许无 `main` 的 TX 模块，输出不含程序入口的 LLVM IR。`scripts/build.ps1` 再把 IR 编成目标文件并归档到 `libtxstdlib.a`。预编译标准库接口使用稳定内部类型符号，使库对象与不同导入顺序的用户程序共享相同的结构体类型身份。
 
-编译器先解析并检查 .tx，为所有函数建立 SSA/CFG 与别名、逃逸、调用效果及移动分析，再生成 LLVM IR。默认由同目录 `clang.exe` 生成 ThinLTO bitcode，以 `tx/link/ld.lld.exe` 与 `libtxstdlib_lto.a` 共同优化并链接为原生可执行文件。`--no-lto` 显式使用普通目标文件、`libtxstdlib.a` 和 GNU ld；两种路径均使用同一套 MinGW ABI。生成程序需要的运行时 DLL 会复制到输出目录。语法或类型错误会以“文件:行:列: 错误：原因”的形式报告；后端失败时会显示编译器或链接器的输出。
+编译器先解析并检查 .tx，为所有函数建立 SSA/CFG 与别名、逃逸、调用效果及移动分析，再生成 LLVM IR。默认由同目录 `clang.exe` 生成 ThinLTO bitcode，以 `tx/link/ld.lld.exe` 与 `libtxstdlib_lto.a` 共同优化并链接为原生可执行文件。`--no-lto` 显式使用普通目标文件和 `libtxstdlib.a`，仍由 `ld.lld.exe` 链接，但不启用 LTO；两种路径均使用同一套 MinGW ABI，并支持包含中文的安装和输出路径。生成程序需要的运行时 DLL 会复制到输出目录。语法或类型错误会以“文件:行:列: 错误：原因”的形式报告；后端失败时会显示编译器或链接器的输出。
 
 `emit-analysis` 只输出 JSON 分析记录，不调用链接器。记录包含每个函数的控制流块、异常边、支配关系、SSA phi 与输入、别名集合、参数修改/保存/返回关系和移动候选；默认保存到 `tx_build/<源码名>.analysis.json`。分析覆盖本次加载的所有模块，未知动态行为保守处理，细节见[静态执行体系](static_execution_architecture.md)。工具包兼容清单 v3 还校验 ThinLTO 静态库、clang 和 ld.lld 的指纹，交付时需要整体替换 `tx/`。
 

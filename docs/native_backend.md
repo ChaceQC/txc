@@ -4,7 +4,8 @@
 `link/ld.lld.exe` 将它与 `libtxstdlib_lto.a` 中的运行时、标准库及 TX 桥接模块
 共同优化。C++ bitcode 延续 MinGW GNU-target、libstdc++ 和 SEH ABI；第三方
 本机依赖一起归档，运行编译器无需安装 g++ 或外部 LLVM。`--no-lto` 可显式
-选择普通 `libtxstdlib.a` 与 GNU ld。全部生成函数及适配器带一致的目标 CPU
+选择普通目标文件与 `libtxstdlib.a`，由同一个 LLD 链接但不启用 LTO，
+避免上游 GNU ld 在非中文 Windows 代码页下损坏中文路径。全部生成函数及适配器带一致的目标 CPU
 和指令集属性，使 LLVM 可以跨 TX/C++ 模块内联。构建与分析入口见
 [编译与运行](usage.md)和[静态执行体系](static_execution_architecture.md)。
 
