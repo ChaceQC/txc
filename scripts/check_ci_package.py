@@ -40,7 +40,7 @@ def main():
             if not (directory / name).is_file():
                 raise RuntimeError(f"解压包缺少 {name}")
         environment = os.environ.copy()
-        windows = Path(environment["SystemRoot"])
+        windows = Path(environment["SYSTEMROOT"])
         environment["PATH"] = os.pathsep.join(str(path) for path in (windows / "System32", windows))
         environment.pop("TX_LLVM_BIN", None)
         txc = directory / "tx/txc.exe"
