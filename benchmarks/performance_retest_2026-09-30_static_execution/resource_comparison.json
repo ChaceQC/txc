@@ -1,0 +1,146 @@
+[
+  {
+    "suite": "进程运行",
+    "metric": "wall_ms",
+    "unit": "ms",
+    "tx": 122.54710006527603,
+    "reference": "C++",
+    "reference_value": 70.00760000664741,
+    "ratio": 1.750482805490259
+  },
+  {
+    "suite": "进程运行",
+    "metric": "wall_ms",
+    "unit": "ms",
+    "tx": 122.54710006527603,
+    "reference": "Java",
+    "reference_value": 976.3130999635905,
+    "ratio": 0.125520286545214
+  },
+  {
+    "suite": "进程运行",
+    "metric": "wall_ms",
+    "unit": "ms",
+    "tx": 122.54710006527603,
+    "reference": "Python",
+    "reference_value": 810.8730999520048,
+    "ratio": 0.15112981312677598
+  },
+  {
+    "suite": "进程运行",
+    "metric": "sampled_tree_peak_mib",
+    "unit": "MiB",
+    "tx": 9.0625,
+    "reference": "C++",
+    "reference_value": 5.69140625,
+    "ratio": 1.5923129718599862
+  },
+  {
+    "suite": "进程运行",
+    "metric": "sampled_tree_peak_mib",
+    "unit": "MiB",
+    "tx": 9.0625,
+    "reference": "Java",
+    "reference_value": 186.375,
+    "ratio": 0.04862508383635144
+  },
+  {
+    "suite": "进程运行",
+    "metric": "sampled_tree_peak_mib",
+    "unit": "MiB",
+    "tx": 9.0625,
+    "reference": "Python",
+    "reference_value": 14.46484375,
+    "ratio": 0.6265190386173373
+  },
+  {
+    "suite": "空程序启动",
+    "metric": "wall_ms",
+    "unit": "ms",
+    "tx": 46.5475000673905,
+    "reference": "C++",
+    "reference_value": 26.565399952232838,
+    "ratio": 1.7521851788825846
+  },
+  {
+    "suite": "空程序启动",
+    "metric": "wall_ms",
+    "unit": "ms",
+    "tx": 46.5475000673905,
+    "reference": "Java",
+    "reference_value": 212.73219992872328,
+    "ratio": 0.21880796646199502
+  },
+  {
+    "suite": "空程序启动",
+    "metric": "wall_ms",
+    "unit": "ms",
+    "tx": 46.5475000673905,
+    "reference": "Python",
+    "reference_value": 67.65300000552088,
+    "ratio": 0.688033051950275
+  },
+  {
+    "suite": "空程序启动",
+    "metric": "sampled_tree_peak_mib",
+    "unit": "MiB",
+    "tx": 6.16796875,
+    "reference": "C++",
+    "reference_value": null,
+    "ratio": null
+  },
+  {
+    "suite": "空程序启动",
+    "metric": "sampled_tree_peak_mib",
+    "unit": "MiB",
+    "tx": 6.16796875,
+    "reference": "Java",
+    "reference_value": 52.1875,
+    "ratio": 0.11818862275449102
+  },
+  {
+    "suite": "空程序启动",
+    "metric": "sampled_tree_peak_mib",
+    "unit": "MiB",
+    "tx": 6.16796875,
+    "reference": "Python",
+    "reference_value": 11.609375,
+    "ratio": 0.5312920592193809
+  },
+  {
+    "suite": "编译",
+    "metric": "wall_ms",
+    "unit": "ms",
+    "tx": 1691.3201999850571,
+    "reference": "C++ full",
+    "reference_value": 4743.954199948348,
+    "ratio": 0.3565211906985679
+  },
+  {
+    "suite": "编译",
+    "metric": "wall_ms",
+    "unit": "ms",
+    "tx": 1691.3201999850571,
+    "reference": "Java full",
+    "reference_value": 1230.948799988255,
+    "ratio": 1.3739971963100293
+  },
+  {
+    "suite": "编译",
+    "metric": "sampled_tree_peak_mib",
+    "unit": "MiB",
+    "tx": 186.00390625,
+    "reference": "C++ full",
+    "reference_value": 230.703125,
+    "ratio": 0.8062478835082967
+  },
+  {
+    "suite": "编译",
+    "metric": "sampled_tree_peak_mib",
+    "unit": "MiB",
+    "tx": 186.00390625,
+    "reference": "Java full",
+    "reference_value": 150.99609375,
+    "ratio": 1.2318458155477945
+  }
+]

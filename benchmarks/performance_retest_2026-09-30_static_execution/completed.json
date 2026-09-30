@@ -1,0 +1,13 @@
+{
+  "completed_utc": "2026-09-30T11:43:15.911829+00:00",
+  "source_and_toolchain_unchanged": true,
+  "reference_programs_and_external_inputs_unchanged": true,
+  "phase_seconds": {
+    "language": 15.062565900036134,
+    "audit": 295.2631526000332,
+    "special": 28.590362700051628,
+    "diverse": 57.098540099919774,
+    "equivalent": 25.08617649995722,
+    "contracts": 12.179856300004758
+  }
+}

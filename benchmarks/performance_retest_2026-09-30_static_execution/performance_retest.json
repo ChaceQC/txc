@@ -1,0 +1,2673 @@
+{
+  "library": {
+    "measured_at_utc": "2026-09-30T11:36:56.524478+00:00",
+    "toolchain_sha256": {
+      "tx/txc.exe": "dcb0ebf618b82650f83b4983296171ca1546254427f05cd868783d561f0ac2f4",
+      "tx/libtxstdlib.a": "59812409f463779edc832ce5529b100ff2ceb186ca67863ca3ecff729d02de6c"
+    },
+    "results": {
+      "rounds": 7,
+      "warmups": 1,
+      "medians_ms": {
+        "TX": {
+          "math": 4.0,
+          "random": 1.0,
+          "string": 9.0,
+          "array": 18.0,
+          "dict": 3.0,
+          "path": 21.0,
+          "fs": 43.0,
+          "file": 1317.0,
+          "io": 9.0,
+          "time": 4.0
+        },
+        "C++": {
+          "math": 2.1336,
+          "random": 0.3493,
+          "string": 2.6068,
+          "array": 12.3277,
+          "dict_dynamic": 17.7991,
+          "dict_hash": 0.0702,
+          "path": 8.4733,
+          "fs": 41.4818,
+          "file": 1313.3809,
+          "io": 7.8571,
+          "time": 3.4199
+        }
+      },
+      "samples_ms": {
+        "TX": {
+          "math": [
+            4.0,
+            5.0,
+            4.0,
+            4.0,
+            5.0,
+            6.0,
+            4.0
+          ],
+          "random": [
+            1.0,
+            1.0,
+            2.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "string": [
+            9.0,
+            10.0,
+            9.0,
+            9.0,
+            10.0,
+            10.0,
+            9.0
+          ],
+          "array": [
+            18.0,
+            18.0,
+            18.0,
+            17.0,
+            20.0,
+            17.0,
+            17.0
+          ],
+          "dict": [
+            2.0,
+            3.0,
+            4.0,
+            3.0,
+            2.0,
+            2.0,
+            3.0
+          ],
+          "path": [
+            21.0,
+            21.0,
+            21.0,
+            20.0,
+            24.0,
+            21.0,
+            23.0
+          ],
+          "fs": [
+            41.0,
+            80.0,
+            41.0,
+            42.0,
+            51.0,
+            43.0,
+            45.0
+          ],
+          "file": [
+            1309.0,
+            1317.0,
+            1317.0,
+            1407.0,
+            1368.0,
+            1355.0,
+            1305.0
+          ],
+          "io": [
+            10.0,
+            8.0,
+            11.0,
+            10.0,
+            9.0,
+            9.0,
+            8.0
+          ],
+          "time": [
+            4.0,
+            4.0,
+            3.0,
+            4.0,
+            4.0,
+            4.0,
+            3.0
+          ]
+        },
+        "C++": {
+          "math": [
+            2.2007,
+            2.1153,
+            2.1236,
+            2.1336,
+            2.1463,
+            2.1398,
+            2.1077
+          ],
+          "random": [
+            0.5486,
+            0.3353,
+            0.3373,
+            0.3978,
+            0.3493,
+            0.5169,
+            0.3351
+          ],
+          "string": [
+            4.5468,
+            2.4911,
+            2.5574,
+            2.6068,
+            2.5589,
+            2.6879,
+            2.684
+          ],
+          "array": [
+            12.3277,
+            12.2373,
+            12.3773,
+            12.3212,
+            16.5096,
+            13.08,
+            11.8908
+          ],
+          "dict_dynamic": [
+            17.5038,
+            17.7991,
+            18.103,
+            17.2038,
+            19.6227,
+            19.5055,
+            17.2912
+          ],
+          "dict_hash": [
+            0.0757,
+            0.074,
+            0.069,
+            0.0684,
+            0.0702,
+            0.0894,
+            0.07
+          ],
+          "path": [
+            10.0972,
+            8.4669,
+            8.7506,
+            8.4632,
+            10.0246,
+            8.4733,
+            8.3353
+          ],
+          "fs": [
+            43.5325,
+            45.4132,
+            41.2075,
+            39.5003,
+            41.4818,
+            43.0087,
+            39.6191
+          ],
+          "file": [
+            1289.147,
+            1324.0842,
+            1313.3809,
+            1269.2321,
+            1403.8461,
+            1321.4964,
+            1288.4893
+          ],
+          "io": [
+            7.5213,
+            8.8462,
+            9.9231,
+            8.5118,
+            7.8571,
+            7.4383,
+            6.8035
+          ],
+          "time": [
+            3.838,
+            3.4246,
+            3.4004,
+            3.3836,
+            3.5552,
+            3.4199,
+            3.2839
+          ]
+        }
+      },
+      "checksums": {
+        "TX": {
+          "math": "6.666671664588418e+08",
+          "random": "100098265",
+          "string": "30000",
+          "array": "429000",
+          "dict": "1459200",
+          "path": "40000",
+          "fs": "10600",
+          "file": "19200",
+          "io": "5000",
+          "time": "100000"
+        },
+        "C++": {
+          "math": "666667166.4588418",
+          "random": "100098265",
+          "string": "30000",
+          "array": "429000",
+          "dict_dynamic": "1459200",
+          "dict_hash": "1459200",
+          "path": "40000",
+          "fs": "10600",
+          "file": "19200",
+          "io": "5000",
+          "time": "100000"
+        }
+      },
+      "cross_language_checksum_differences": {}
+    }
+  },
+  "audit": {
+    "measured_at_utc": "2026-09-30T11:38:23.673385+00:00",
+    "toolchain_sha256": {
+      "tx/txc.exe": "dcb0ebf618b82650f83b4983296171ca1546254427f05cd868783d561f0ac2f4",
+      "tx/libtxstdlib.a": "59812409f463779edc832ce5529b100ff2ceb186ca67863ca3ecff729d02de6c"
+    },
+    "results": {
+      "compute": {
+        "rounds": 3,
+        "warmups": 1,
+        "medians_ms": {
+          "TX": {
+            "algorithm_sort": 5.469,
+            "bytes_hex": 8.617,
+            "cancel_status": 0.573,
+            "cbor_roundtrip": 22.235,
+            "crypto_sha256": 8.852,
+            "csv_parse": 24.532,
+            "decimal_add": 10.978,
+            "dictionary_contains": 0.362,
+            "encoding_utf8": 4.33,
+            "env_get": 9.844,
+            "format_text": 1.231,
+            "json_parse": 23.194,
+            "math_sqrt": 4.153,
+            "parse_int": 11.408,
+            "random_int": 1.39,
+            "regex_search": 12.651,
+            "serde_json": 13.898,
+            "statistics_mean": 4.457,
+            "test_assert": 7.654,
+            "unicode_nfc": 5.347,
+            "xml_parse": 32.989
+          },
+          "C++": {
+            "algorithm_sort": 3.205,
+            "bytes_hex": 1.837,
+            "cancel_status": 0.378,
+            "crypto_sha256": 4.517,
+            "dictionary_contains": 0.184,
+            "env_get": 52.055,
+            "format_text": 0.823,
+            "math_sqrt": 2.099,
+            "parse_int": 4.732,
+            "random_int": 0.322,
+            "regex_search": 10.524,
+            "statistics_mean": 0.521,
+            "test_assert": 0.0
+          },
+          "Python": {
+            "algorithm_sort": 6.052,
+            "bytes_hex": 3.388,
+            "cancel_status": 18.327,
+            "crypto_sha256": 5.715,
+            "csv_parse": 15.942,
+            "decimal_add": 4.143,
+            "dictionary_contains": 7.852,
+            "encoding_utf8": 1.864,
+            "env_get": 5.569,
+            "format_text": 2.034,
+            "json_parse": 14.075,
+            "math_sqrt": 61.468,
+            "parse_int": 9.523,
+            "random_int": 69.696,
+            "regex_search": 11.952,
+            "serde_json": 35.075,
+            "statistics_mean": 281.474,
+            "test_assert": 3.922,
+            "unicode_nfc": 2.139,
+            "xml_parse": 73.282
+          },
+          "Java": {
+            "algorithm_sort": 7.332,
+            "bytes_hex": 3.312,
+            "cancel_status": 0.547,
+            "crypto_sha256": 15.224,
+            "decimal_add": 3.133,
+            "dictionary_contains": 1.825,
+            "encoding_utf8": 4.282,
+            "env_get": 2.155,
+            "format_text": 8.868,
+            "json_parse": 24.451,
+            "math_sqrt": 2.484,
+            "parse_int": 1.923,
+            "random_int": 2.181,
+            "regex_search": 8.802,
+            "serde_json": 39.343,
+            "statistics_mean": 2.089,
+            "test_assert": 0.197,
+            "unicode_nfc": 13.679,
+            "xml_parse": 168.754
+          }
+        },
+        "samples_ms": {
+          "TX": {
+            "algorithm_sort": [
+              5.708,
+              5.469,
+              5.433
+            ],
+            "bytes_hex": [
+              9.06,
+              8.617,
+              8.491
+            ],
+            "cancel_status": [
+              0.586,
+              0.572,
+              0.573
+            ],
+            "cbor_roundtrip": [
+              22.647,
+              22.235,
+              21.811
+            ],
+            "crypto_sha256": [
+              8.752,
+              9.337,
+              8.852
+            ],
+            "csv_parse": [
+              24.465,
+              24.865,
+              24.532
+            ],
+            "decimal_add": [
+              11.134,
+              10.811,
+              10.978
+            ],
+            "dictionary_contains": [
+              0.359,
+              0.362,
+              0.376
+            ],
+            "encoding_utf8": [
+              4.33,
+              4.297,
+              4.362
+            ],
+            "env_get": [
+              10.962,
+              9.639,
+              9.844
+            ],
+            "format_text": [
+              1.31,
+              1.224,
+              1.231
+            ],
+            "json_parse": [
+              25.089,
+              22.633,
+              23.194
+            ],
+            "math_sqrt": [
+              4.447,
+              4.153,
+              4.111
+            ],
+            "parse_int": [
+              11.602,
+              10.675,
+              11.408
+            ],
+            "random_int": [
+              1.399,
+              1.35,
+              1.39
+            ],
+            "regex_search": [
+              12.972,
+              12.116,
+              12.651
+            ],
+            "serde_json": [
+              13.898,
+              13.786,
+              14.299
+            ],
+            "statistics_mean": [
+              4.457,
+              4.432,
+              4.91
+            ],
+            "test_assert": [
+              7.655,
+              7.446,
+              7.654
+            ],
+            "unicode_nfc": [
+              5.347,
+              5.311,
+              5.376
+            ],
+            "xml_parse": [
+              32.887,
+              32.989,
+              48.25
+            ]
+          },
+          "C++": {
+            "algorithm_sort": [
+              3.205,
+              3.147,
+              3.521
+            ],
+            "bytes_hex": [
+              1.837,
+              1.794,
+              2.045
+            ],
+            "cancel_status": [
+              0.378,
+              0.378,
+              0.423
+            ],
+            "crypto_sha256": [
+              4.517,
+              4.46,
+              5.587
+            ],
+            "dictionary_contains": [
+              0.183,
+              0.184,
+              0.247
+            ],
+            "env_get": [
+              52.055,
+              52.014,
+              70.237
+            ],
+            "format_text": [
+              0.809,
+              0.823,
+              0.96
+            ],
+            "math_sqrt": [
+              2.085,
+              2.099,
+              2.2
+            ],
+            "parse_int": [
+              4.729,
+              4.732,
+              6.311
+            ],
+            "random_int": [
+              0.322,
+              0.322,
+              0.349
+            ],
+            "regex_search": [
+              10.524,
+              10.412,
+              11.012
+            ],
+            "statistics_mean": [
+              0.52,
+              0.521,
+              0.561
+            ],
+            "test_assert": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "Python": {
+            "algorithm_sort": [
+              6.035,
+              6.096,
+              6.052
+            ],
+            "bytes_hex": [
+              3.318,
+              3.388,
+              3.515
+            ],
+            "cancel_status": [
+              18.327,
+              18.522,
+              17.695
+            ],
+            "crypto_sha256": [
+              5.715,
+              5.708,
+              5.804
+            ],
+            "csv_parse": [
+              17.257,
+              15.942,
+              15.647
+            ],
+            "decimal_add": [
+              4.249,
+              4.143,
+              4.072
+            ],
+            "dictionary_contains": [
+              7.852,
+              8.702,
+              7.506
+            ],
+            "encoding_utf8": [
+              1.886,
+              1.856,
+              1.864
+            ],
+            "env_get": [
+              5.558,
+              6.993,
+              5.569
+            ],
+            "format_text": [
+              1.911,
+              2.034,
+              2.591
+            ],
+            "json_parse": [
+              13.631,
+              14.075,
+              14.235
+            ],
+            "math_sqrt": [
+              63.207,
+              61.468,
+              60.903
+            ],
+            "parse_int": [
+              9.523,
+              20.446,
+              9.447
+            ],
+            "random_int": [
+              69.696,
+              82.885,
+              68.721
+            ],
+            "regex_search": [
+              11.833,
+              11.952,
+              11.975
+            ],
+            "serde_json": [
+              34.363,
+              35.075,
+              35.947
+            ],
+            "statistics_mean": [
+              278.615,
+              281.474,
+              296.051
+            ],
+            "test_assert": [
+              3.659,
+              3.922,
+              4.402
+            ],
+            "unicode_nfc": [
+              2.139,
+              2.296,
+              2.118
+            ],
+            "xml_parse": [
+              72.421,
+              73.282,
+              76.684
+            ]
+          },
+          "Java": {
+            "algorithm_sort": [
+              6.111,
+              7.332,
+              8.071
+            ],
+            "bytes_hex": [
+              3.302,
+              3.312,
+              3.447
+            ],
+            "cancel_status": [
+              0.575,
+              0.541,
+              0.547
+            ],
+            "crypto_sha256": [
+              15.224,
+              8.935,
+              18.539
+            ],
+            "decimal_add": [
+              3.447,
+              3.133,
+              2.847
+            ],
+            "dictionary_contains": [
+              3.103,
+              1.825,
+              1.555
+            ],
+            "encoding_utf8": [
+              5.963,
+              2.186,
+              4.282
+            ],
+            "env_get": [
+              2.113,
+              2.798,
+              2.155
+            ],
+            "format_text": [
+              8.309,
+              8.868,
+              8.93
+            ],
+            "json_parse": [
+              23.246,
+              34.262,
+              24.451
+            ],
+            "math_sqrt": [
+              2.396,
+              3.36,
+              2.484
+            ],
+            "parse_int": [
+              1.335,
+              1.923,
+              3.812
+            ],
+            "random_int": [
+              1.135,
+              2.181,
+              3.291
+            ],
+            "regex_search": [
+              7.788,
+              9.143,
+              8.802
+            ],
+            "serde_json": [
+              26.595,
+              39.343,
+              75.115
+            ],
+            "statistics_mean": [
+              2.089,
+              1.97,
+              2.342
+            ],
+            "test_assert": [
+              0.163,
+              0.233,
+              0.197
+            ],
+            "unicode_nfc": [
+              9.685,
+              17.562,
+              13.679
+            ],
+            "xml_parse": [
+              162.053,
+              168.754,
+              168.921
+            ]
+          }
+        },
+        "checksums": {
+          "TX": {
+            "algorithm_sort": "1275000",
+            "bytes_hex": "280000",
+            "cancel_status": "0",
+            "cbor_roundtrip": "40000",
+            "crypto_sha256": "320000",
+            "csv_parse": "30000",
+            "decimal_add": "80000",
+            "dictionary_contains": "100000",
+            "encoding_utf8": "280000",
+            "env_get": "120000",
+            "format_text": "80000",
+            "json_parse": "1230000",
+            "math_sqrt": "666667166",
+            "parse_int": "1234500000",
+            "random_int": "100098265",
+            "regex_search": "120000",
+            "serde_json": "420000",
+            "statistics_mean": "630000",
+            "test_assert": "100000",
+            "unicode_nfc": "40000",
+            "xml_parse": "10000"
+          },
+          "C++": {
+            "algorithm_sort": "1275000",
+            "bytes_hex": "280000",
+            "cancel_status": "0",
+            "crypto_sha256": "320000",
+            "dictionary_contains": "100000",
+            "env_get": "120000",
+            "format_text": "80000",
+            "math_sqrt": "666667166",
+            "parse_int": "1234500000",
+            "random_int": "100098265",
+            "regex_search": "120000",
+            "statistics_mean": "630000",
+            "test_assert": "100000"
+          },
+          "Python": {
+            "algorithm_sort": "1275000",
+            "bytes_hex": "280000",
+            "cancel_status": "0",
+            "crypto_sha256": "320000",
+            "csv_parse": "30000",
+            "decimal_add": "80000",
+            "dictionary_contains": "100000",
+            "encoding_utf8": "280000",
+            "env_get": "120000",
+            "format_text": "80000",
+            "json_parse": "1230000",
+            "math_sqrt": "666667166",
+            "parse_int": "1234500000",
+            "random_int": "99869743",
+            "regex_search": "120000",
+            "serde_json": "420000",
+            "statistics_mean": "630000",
+            "test_assert": "100000",
+            "unicode_nfc": "40000",
+            "xml_parse": "10000"
+          },
+          "Java": {
+            "algorithm_sort": "1275000",
+            "bytes_hex": "280000",
+            "cancel_status": "0",
+            "crypto_sha256": "320000",
+            "decimal_add": "80000",
+            "dictionary_contains": "100000",
+            "encoding_utf8": "280000",
+            "env_get": "120000",
+            "format_text": "80000",
+            "json_parse": "1230000",
+            "math_sqrt": "666667166",
+            "parse_int": "1234500000",
+            "random_int": "99985624",
+            "regex_search": "120000",
+            "serde_json": "420000",
+            "statistics_mean": "630000",
+            "test_assert": "100000",
+            "unicode_nfc": "40000",
+            "xml_parse": "10000"
+          }
+        },
+        "cross_language_checksum_differences": {
+          "random_int": {
+            "TX": "100098265",
+            "C++": "100098265",
+            "Python": "99869743",
+            "Java": "99985624"
+          }
+        }
+      },
+      "features": {
+        "rounds": 3,
+        "warmups": 1,
+        "medians_ms": {
+          "TX": {
+            "vector_push": 1.938,
+            "vector_index": 0.146,
+            "map_lookup": 0.325,
+            "set_contains": 0.259,
+            "heap_push_pop": 29.891,
+            "queue_push_pop": 1.119,
+            "iterator_snapshot": 1.468,
+            "option_value": 0.025,
+            "function_value": 0.286,
+            "closure_bind": 0.19
+          },
+          "C++": {
+            "vector_push": 0.484,
+            "vector_index": 0.207,
+            "map_lookup": 0.188,
+            "set_contains": 0.17,
+            "heap_push_pop": 3.029,
+            "queue_push_pop": 0.292,
+            "iterator_snapshot": 0.046,
+            "option_value": 0.013,
+            "function_value": 0.163,
+            "closure_bind": 0.164
+          },
+          "Python": {
+            "vector_push": 4.142,
+            "vector_index": 24.857,
+            "map_lookup": 5.337,
+            "set_contains": 8.308,
+            "heap_push_pop": 17.187,
+            "queue_push_pop": 8.322,
+            "iterator_snapshot": 4.121,
+            "option_value": 18.088,
+            "function_value": 6.164,
+            "closure_bind": 8.398
+          },
+          "Java": {
+            "vector_push": 2.107,
+            "vector_index": 2.56,
+            "map_lookup": 2.095,
+            "set_contains": 1.278,
+            "heap_push_pop": 8.579,
+            "queue_push_pop": 3.603,
+            "iterator_snapshot": 1.269,
+            "option_value": 1.377,
+            "function_value": 0.381,
+            "closure_bind": 0.616
+          }
+        },
+        "samples_ms": {
+          "TX": {
+            "vector_push": [
+              1.935,
+              2.143,
+              1.938
+            ],
+            "vector_index": [
+              0.146,
+              0.145,
+              0.147
+            ],
+            "map_lookup": [
+              0.325,
+              0.322,
+              0.329
+            ],
+            "set_contains": [
+              0.26,
+              0.259,
+              0.259
+            ],
+            "heap_push_pop": [
+              29.891,
+              29.426,
+              29.974
+            ],
+            "queue_push_pop": [
+              1.199,
+              1.119,
+              1.116
+            ],
+            "iterator_snapshot": [
+              1.471,
+              1.444,
+              1.468
+            ],
+            "option_value": [
+              0.025,
+              0.028,
+              0.024
+            ],
+            "function_value": [
+              0.284,
+              0.331,
+              0.286
+            ],
+            "closure_bind": [
+              0.256,
+              0.19,
+              0.167
+            ]
+          },
+          "C++": {
+            "vector_push": [
+              0.493,
+              0.477,
+              0.484
+            ],
+            "vector_index": [
+              0.207,
+              0.229,
+              0.203
+            ],
+            "map_lookup": [
+              0.191,
+              0.188,
+              0.183
+            ],
+            "set_contains": [
+              0.17,
+              0.183,
+              0.169
+            ],
+            "heap_push_pop": [
+              3.029,
+              3.46,
+              2.996
+            ],
+            "queue_push_pop": [
+              0.284,
+              0.292,
+              0.308
+            ],
+            "iterator_snapshot": [
+              0.044,
+              0.048,
+              0.046
+            ],
+            "option_value": [
+              0.013,
+              0.013,
+              0.013
+            ],
+            "function_value": [
+              0.163,
+              0.16,
+              0.164
+            ],
+            "closure_bind": [
+              0.168,
+              0.16,
+              0.164
+            ]
+          },
+          "Python": {
+            "vector_push": [
+              4.394,
+              3.858,
+              4.142
+            ],
+            "vector_index": [
+              24.68,
+              25.063,
+              24.857
+            ],
+            "map_lookup": [
+              6.022,
+              5.337,
+              5.019
+            ],
+            "set_contains": [
+              8.297,
+              8.308,
+              8.648
+            ],
+            "heap_push_pop": [
+              17.383,
+              15.41,
+              17.187
+            ],
+            "queue_push_pop": [
+              8.7,
+              8.054,
+              8.322
+            ],
+            "iterator_snapshot": [
+              3.948,
+              4.121,
+              4.465
+            ],
+            "option_value": [
+              18.255,
+              18.088,
+              17.773
+            ],
+            "function_value": [
+              6.192,
+              6.164,
+              6.03
+            ],
+            "closure_bind": [
+              8.663,
+              8.398,
+              8.205
+            ]
+          },
+          "Java": {
+            "vector_push": [
+              2.332,
+              2.047,
+              2.107
+            ],
+            "vector_index": [
+              2.183,
+              2.56,
+              2.649
+            ],
+            "map_lookup": [
+              2.095,
+              2.694,
+              1.382
+            ],
+            "set_contains": [
+              1.38,
+              0.946,
+              1.278
+            ],
+            "heap_push_pop": [
+              7.913,
+              11.883,
+              8.579
+            ],
+            "queue_push_pop": [
+              3.603,
+              3.859,
+              3.153
+            ],
+            "iterator_snapshot": [
+              1.454,
+              1.269,
+              1.053
+            ],
+            "option_value": [
+              1.787,
+              1.214,
+              1.377
+            ],
+            "function_value": [
+              0.381,
+              0.364,
+              0.514
+            ],
+            "closure_bind": [
+              0.607,
+              0.616,
+              0.848
+            ]
+          }
+        },
+        "checksums": {
+          "TX": {
+            "vector_push": "199999",
+            "vector_index": "3500000",
+            "map_lookup": "6348464",
+            "set_contains": "100000",
+            "heap_push_pop": "24975000",
+            "queue_push_pop": "4999950000",
+            "iterator_snapshot": "49950000",
+            "option_value": "350000",
+            "function_value": "9999900000",
+            "closure_bind": "5000450000"
+          },
+          "C++": {
+            "vector_push": "199999",
+            "vector_index": "3500000",
+            "map_lookup": "6348464",
+            "set_contains": "100000",
+            "heap_push_pop": "24975000",
+            "queue_push_pop": "4999950000",
+            "iterator_snapshot": "49950000",
+            "option_value": "350000",
+            "function_value": "9999900000",
+            "closure_bind": "5000450000"
+          },
+          "Python": {
+            "vector_push": "199999",
+            "vector_index": "3500000",
+            "map_lookup": "6348464",
+            "set_contains": "100000",
+            "heap_push_pop": "24975000",
+            "queue_push_pop": "4999950000",
+            "iterator_snapshot": "49950000",
+            "option_value": "350000",
+            "function_value": "9999900000",
+            "closure_bind": "5000450000"
+          },
+          "Java": {
+            "vector_push": "199999",
+            "vector_index": "3500000",
+            "map_lookup": "6348464",
+            "set_contains": "100000",
+            "heap_push_pop": "24975000",
+            "queue_push_pop": "4999950000",
+            "iterator_snapshot": "49950000",
+            "option_value": "350000",
+            "function_value": "9999900000",
+            "closure_bind": "5000450000"
+          }
+        },
+        "cross_language_checksum_differences": {}
+      },
+      "system": {
+        "rounds": 3,
+        "warmups": 1,
+        "medians_ms": {
+          "TX": {
+            "debug_location": 5.391,
+            "error_stack": 1.953,
+            "file_stream_rw": 843.336,
+            "log_event": 7.738,
+            "process_spawn": 907.729,
+            "system_os": 2.363
+          },
+          "C++": {
+            "file_stream_rw": 828.336,
+            "process_spawn": 2100.479
+          },
+          "Python": {
+            "file_stream_rw": 863.506,
+            "process_spawn": 939.541
+          },
+          "Java": {
+            "file_stream_rw": 924.854,
+            "process_spawn": 7026.159
+          }
+        },
+        "samples_ms": {
+          "TX": {
+            "debug_location": [
+              6.106,
+              5.318,
+              5.391
+            ],
+            "error_stack": [
+              1.88,
+              1.953,
+              2.435
+            ],
+            "file_stream_rw": [
+              828.287,
+              852.578,
+              843.336
+            ],
+            "log_event": [
+              7.697,
+              7.738,
+              8.205
+            ],
+            "process_spawn": [
+              943.491,
+              881.165,
+              907.729
+            ],
+            "system_os": [
+              2.571,
+              2.363,
+              2.299
+            ]
+          },
+          "C++": {
+            "file_stream_rw": [
+              824.331,
+              828.336,
+              847.31
+            ],
+            "process_spawn": [
+              2016.611,
+              2100.479,
+              2139.643
+            ]
+          },
+          "Python": {
+            "file_stream_rw": [
+              885.163,
+              863.506,
+              854.036
+            ],
+            "process_spawn": [
+              942.759,
+              939.541,
+              910.324
+            ]
+          },
+          "Java": {
+            "file_stream_rw": [
+              924.854,
+              908.743,
+              949.242
+            ],
+            "process_spawn": [
+              6991.343,
+              7077.061,
+              7026.159
+            ]
+          }
+        },
+        "checksums": {
+          "TX": {
+            "debug_location": "1440000",
+            "error_stack": "0",
+            "file_stream_rw": "12800",
+            "log_event": "1000",
+            "process_spawn": "50",
+            "system_os": "140000"
+          },
+          "C++": {
+            "file_stream_rw": "12800",
+            "process_spawn": "50"
+          },
+          "Python": {
+            "file_stream_rw": "12800",
+            "process_spawn": "50"
+          },
+          "Java": {
+            "file_stream_rw": "12800",
+            "process_spawn": "50"
+          }
+        },
+        "cross_language_checksum_differences": {}
+      },
+      "legacy_other": {
+        "rounds": 3,
+        "warmups": 1,
+        "medians_ms": {
+          "Python": {
+            "string": 1.8759,
+            "array": 3.2165,
+            "dict_hash": 0.6987,
+            "path": 50.5882,
+            "fs": 21.3811,
+            "file": 1339.7219,
+            "io": 0.4341,
+            "time": 12.8415
+          },
+          "Java": {
+            "string": 10.1264,
+            "array": 10.4008,
+            "dict_hash": 2.5441,
+            "path": 35.0338,
+            "fs": 72.1214,
+            "file": 1390.9925,
+            "io": 16.5786,
+            "time": 2.6828
+          }
+        },
+        "samples_ms": {
+          "Python": {
+            "string": [
+              1.8197,
+              1.9097,
+              1.8759
+            ],
+            "array": [
+              3.2253,
+              3.2165,
+              3.0919
+            ],
+            "dict_hash": [
+              0.6906,
+              1.0124,
+              0.6987
+            ],
+            "path": [
+              50.2791,
+              52.2839,
+              50.5882
+            ],
+            "fs": [
+              19.8087,
+              21.3811,
+              35.2285
+            ],
+            "file": [
+              1341.2542,
+              1333.7178,
+              1339.7219
+            ],
+            "io": [
+              0.4176,
+              0.5122,
+              0.4341
+            ],
+            "time": [
+              12.7924,
+              12.8415,
+              13.1153
+            ]
+          },
+          "Java": {
+            "string": [
+              12.4845,
+              9.5298,
+              10.1264
+            ],
+            "array": [
+              12.1014,
+              10.4008,
+              8.9951
+            ],
+            "dict_hash": [
+              3.1729,
+              2.2128,
+              2.5441
+            ],
+            "path": [
+              37.4694,
+              29.0889,
+              35.0338
+            ],
+            "fs": [
+              72.1214,
+              70.2082,
+              79.1258
+            ],
+            "file": [
+              1353.5668,
+              1390.9925,
+              1393.8326
+            ],
+            "io": [
+              15.8339,
+              17.3487,
+              16.5786
+            ],
+            "time": [
+              2.492,
+              2.6828,
+              2.7687
+            ]
+          }
+        },
+        "checksums": {
+          "Python": {
+            "string": "30000",
+            "array": "429000",
+            "dict_hash": "1459200",
+            "path": "40000",
+            "fs": "10600",
+            "file": "19200",
+            "io": "5000",
+            "time": "100000"
+          },
+          "Java": {
+            "string": "30000",
+            "array": "429000",
+            "dict_hash": "1459200",
+            "path": "40000",
+            "fs": "10600",
+            "file": "19200",
+            "io": "5000",
+            "time": "100000"
+          }
+        },
+        "cross_language_checksum_differences": {}
+      }
+    }
+  },
+  "network": {
+    "measured_at_utc": "2026-09-30T11:39:06.654703+00:00",
+    "toolchain_sha256": {
+      "tx/txc.exe": "dcb0ebf618b82650f83b4983296171ca1546254427f05cd868783d561f0ac2f4",
+      "tx/libtxstdlib.a": "59812409f463779edc832ce5529b100ff2ceb186ca67863ca3ecff729d02de6c"
+    },
+    "results": {
+      "http": {
+        "rounds": 3,
+        "warmups": 1,
+        "medians_ms": {
+          "TX": {
+            "httpx_get": 975.974,
+            "requests_get": 981.354
+          },
+          "C++": {
+            "http_get": 935.731
+          },
+          "Python": {
+            "requests_get": 1124.466
+          },
+          "Java": {
+            "http_get": 253.905
+          }
+        },
+        "samples_ms": {
+          "TX": {
+            "httpx_get": [
+              977.896,
+              975.974,
+              972.107
+            ],
+            "requests_get": [
+              967.894,
+              990.174,
+              981.354
+            ]
+          },
+          "C++": {
+            "http_get": [
+              916.11,
+              935.731,
+              945.577
+            ]
+          },
+          "Python": {
+            "requests_get": [
+              1124.466,
+              980.803,
+              1141.187
+            ]
+          },
+          "Java": {
+            "http_get": [
+              276.561,
+              253.905,
+              239.369
+            ]
+          }
+        },
+        "checksums": {
+          "TX": {
+            "httpx_get": "100",
+            "requests_get": "100"
+          },
+          "C++": {
+            "http_get": "100"
+          },
+          "Python": {
+            "requests_get": "100"
+          },
+          "Java": {
+            "http_get": "100"
+          }
+        },
+        "cross_language_checksum_differences": {}
+      },
+      "websocket": {
+        "rounds": 3,
+        "warmups": 1,
+        "medians_ms": {
+          "TX": {
+            "websocket_echo": 894.903
+          },
+          "C++": {
+            "websocket_echo": 880.701
+          },
+          "Python": {
+            "websocket_echo": 511.816
+          },
+          "Java": {
+            "websocket_echo": 404.01
+          }
+        },
+        "samples_ms": {
+          "TX": {
+            "websocket_echo": [
+              894.903,
+              886.275,
+              916.337
+            ]
+          },
+          "C++": {
+            "websocket_echo": [
+              865.603,
+              880.701,
+              917.111
+            ]
+          },
+          "Python": {
+            "websocket_echo": [
+              511.816,
+              493.834,
+              638.431
+            ]
+          },
+          "Java": {
+            "websocket_echo": [
+              401.059,
+              458.183,
+              404.01
+            ]
+          }
+        },
+        "checksums": {
+          "TX": {
+            "websocket_echo": "100"
+          },
+          "C++": {
+            "websocket_echo": "100"
+          },
+          "Python": {
+            "websocket_echo": "100"
+          },
+          "Java": {
+            "websocket_echo": "100"
+          }
+        },
+        "cross_language_checksum_differences": {}
+      }
+    }
+  },
+  "external": {
+    "measured_at_utc": "2026-09-30T11:41:12.285829+00:00",
+    "toolchain_sha256": {
+      "tx/txc.exe": "dcb0ebf618b82650f83b4983296171ca1546254427f05cd868783d561f0ac2f4",
+      "tx/libtxstdlib.a": "59812409f463779edc832ce5529b100ff2ceb186ca67863ca3ecff729d02de6c"
+    },
+    "results": {
+      "measured_at_utc": "2026-09-30T11:39:14.897422+00:00",
+      "warmup_processes": 2,
+      "measured_processes": 17,
+      "timing": "internal microseconds; fresh process per invocation; sequential rotated order",
+      "cpp_flags": "g++ 13.1.0 -std=c++23 -O3",
+      "versions": {
+        "node": "24.13.0",
+        "java": "23.0.2",
+        "python": "3.12.10"
+      },
+      "tasks": {
+        "mini-filesystem": {
+          "fanout-2000": {
+            "samples_us": {
+              "C++": [
+                1622,
+                1629,
+                1686,
+                1624,
+                1672,
+                1784,
+                1610,
+                1668,
+                1660,
+                1846,
+                1615,
+                2874,
+                1681,
+                1671,
+                1671,
+                1690,
+                1634
+              ],
+              "JavaScript": [
+                5909,
+                4886,
+                5866,
+                6014,
+                5630,
+                5111,
+                4519,
+                5481,
+                5928,
+                4854,
+                5701,
+                4938,
+                4920,
+                5548,
+                6494,
+                4924,
+                5028
+              ],
+              "Java": [
+                6275,
+                8066,
+                7071,
+                7368,
+                7589,
+                8498,
+                7545,
+                8223,
+                8065,
+                7198,
+                7223,
+                7432,
+                8114,
+                6916,
+                7447,
+                7832,
+                8200
+              ],
+              "TX": [
+                11077,
+                10507,
+                10874,
+                10816,
+                11361,
+                11771,
+                11590,
+                12489,
+                11155,
+                10727,
+                11519,
+                11182,
+                11305,
+                11302,
+                11129,
+                11518,
+                11027
+              ],
+              "Python": [
+                3929,
+                4311,
+                4014,
+                4942,
+                4284,
+                4042,
+                3931,
+                3939,
+                3798,
+                4209,
+                3799,
+                4999,
+                3965,
+                3827,
+                4341,
+                4223,
+                4356
+              ]
+            },
+            "median_ms": {
+              "C++": 1.671,
+              "JavaScript": 5.481,
+              "Java": 7.545,
+              "TX": 11.182,
+              "Python": 4.042
+            }
+          },
+          "deep-pwd-2000": {
+            "samples_us": {
+              "C++": [
+                14821,
+                15071,
+                15037,
+                15027,
+                15564,
+                15227,
+                15155,
+                17459,
+                15639,
+                16140,
+                18463,
+                15479,
+                15640,
+                15399,
+                15171,
+                14906,
+                15208
+              ],
+              "JavaScript": [
+                10334,
+                10538,
+                11858,
+                11368,
+                10217,
+                10554,
+                11163,
+                8732,
+                10135,
+                9367,
+                11180,
+                10379,
+                9931,
+                9706,
+                9609,
+                9876,
+                9310
+              ],
+              "Java": [
+                33180,
+                31595,
+                35094,
+                34369,
+                34416,
+                34516,
+                33507,
+                32592,
+                34040,
+                32426,
+                34611,
+                33241,
+                31936,
+                34655,
+                31191,
+                35455,
+                32410
+              ],
+              "TX": [
+                12454,
+                12465,
+                13502,
+                19865,
+                12376,
+                12568,
+                13444,
+                12794,
+                24026,
+                12076,
+                12104,
+                13008,
+                12359,
+                12597,
+                12365,
+                12598,
+                12306
+              ],
+              "Python": [
+                12254,
+                11968,
+                12095,
+                11648,
+                12241,
+                12091,
+                11600,
+                11867,
+                13073,
+                11828,
+                13343,
+                11930,
+                14078,
+                11896,
+                11789,
+                11713,
+                12077
+              ]
+            },
+            "median_ms": {
+              "C++": 15.227,
+              "JavaScript": 10.217,
+              "Java": 33.507,
+              "TX": 12.568,
+              "Python": 11.968
+            }
+          },
+          "moves-2000": {
+            "samples_us": {
+              "C++": [
+                1014,
+                1019,
+                1025,
+                1018,
+                996,
+                1571,
+                994,
+                1015,
+                1299,
+                999,
+                1037,
+                1011,
+                1017,
+                1067,
+                1006,
+                985,
+                1019
+              ],
+              "JavaScript": [
+                1768,
+                1708,
+                1754,
+                1926,
+                1903,
+                2268,
+                1922,
+                2069,
+                1948,
+                2057,
+                1768,
+                2142,
+                1829,
+                2455,
+                1809,
+                2629,
+                1902
+              ],
+              "Java": [
+                6349,
+                5876,
+                5839,
+                5460,
+                5618,
+                5541,
+                6067,
+                6670,
+                5855,
+                6430,
+                6183,
+                5941,
+                6593,
+                5476,
+                6623,
+                7346,
+                5710
+              ],
+              "TX": [
+                5412,
+                5065,
+                6022,
+                5442,
+                5053,
+                5399,
+                9511,
+                5266,
+                6113,
+                5318,
+                5249,
+                5920,
+                4938,
+                5633,
+                5768,
+                5984,
+                5767
+              ],
+              "Python": [
+                3126,
+                2247,
+                2165,
+                2120,
+                1755,
+                2247,
+                1793,
+                1735,
+                2355,
+                2087,
+                2041,
+                2095,
+                2294,
+                2339,
+                2169,
+                2033,
+                2009
+              ]
+            },
+            "median_ms": {
+              "C++": 1.017,
+              "JavaScript": 1.922,
+              "Java": 5.941,
+              "TX": 5.442,
+              "Python": 2.12
+            }
+          },
+          "random-2000-1": {
+            "samples_us": {
+              "C++": [
+                980,
+                1129,
+                961,
+                972,
+                1007,
+                969,
+                983,
+                1018,
+                1042,
+                984,
+                960,
+                1001,
+                1276,
+                1037,
+                963,
+                1261,
+                997
+              ],
+              "JavaScript": [
+                2243,
+                1915,
+                2168,
+                2014,
+                2342,
+                2299,
+                2498,
+                2175,
+                2215,
+                2094,
+                1998,
+                2179,
+                2156,
+                2510,
+                2994,
+                2058,
+                2027
+              ],
+              "Java": [
+                6775,
+                7208,
+                6291,
+                7844,
+                5837,
+                7182,
+                6784,
+                6153,
+                5426,
+                5079,
+                6017,
+                5903,
+                6323,
+                6989,
+                6921,
+                5375,
+                5902
+              ],
+              "TX": [
+                5659,
+                6833,
+                6687,
+                6009,
+                6081,
+                6397,
+                7025,
+                6539,
+                6399,
+                6106,
+                7414,
+                6850,
+                6246,
+                5783,
+                6608,
+                6513,
+                6108
+              ],
+              "Python": [
+                2485,
+                2725,
+                2452,
+                2686,
+                2520,
+                2847,
+                2398,
+                2895,
+                2511,
+                2737,
+                2535,
+                2897,
+                2553,
+                2673,
+                2521,
+                2598,
+                2744
+              ]
+            },
+            "median_ms": {
+              "C++": 0.997,
+              "JavaScript": 2.175,
+              "Java": 6.291,
+              "TX": 6.399,
+              "Python": 2.598
+            }
+          },
+          "linklong-2000": {
+            "samples_us": {
+              "C++": [
+                109690,
+                128766,
+                115791,
+                105675,
+                106578,
+                105650,
+                117103,
+                106396,
+                119761,
+                116170,
+                117328,
+                116911,
+                105969,
+                108386,
+                109947,
+                120287,
+                104829
+              ],
+              "JavaScript": [
+                126695,
+                119143,
+                121494,
+                123033,
+                118396,
+                118497,
+                116739,
+                124925,
+                120242,
+                122919,
+                122344,
+                121963,
+                117693,
+                121181,
+                144578,
+                116478,
+                121377
+              ],
+              "Java": [
+                318695,
+                251537,
+                332484,
+                260530,
+                260703,
+                260547,
+                298361,
+                273926,
+                230254,
+                276990,
+                283814,
+                245675,
+                289979,
+                304907,
+                296657,
+                236102,
+                235945
+              ],
+              "TX": [
+                34366,
+                34354,
+                31141,
+                31609,
+                32223,
+                33114,
+                32389,
+                34566,
+                31460,
+                31450,
+                31648,
+                32834,
+                31722,
+                31838,
+                32177,
+                31577,
+                32283
+              ],
+              "Python": [
+                492822,
+                458618,
+                448602,
+                448696,
+                448889,
+                485218,
+                447370,
+                449162,
+                450137,
+                474960,
+                460595,
+                449788,
+                469229,
+                467521,
+                454160,
+                459966,
+                445848
+              ]
+            },
+            "median_ms": {
+              "C++": 109.947,
+              "JavaScript": 121.377,
+              "Java": 273.926,
+              "TX": 32.177,
+              "Python": 454.16
+            }
+          }
+        },
+        "not-yet-on-stage": {
+          "all-free-max": {
+            "samples_us": {
+              "C++": [
+                2093,
+                1413,
+                1391,
+                1424,
+                1429,
+                1919,
+                1436,
+                1405,
+                1403,
+                1449,
+                1416,
+                1419,
+                1394,
+                1404,
+                1413,
+                1420,
+                1388
+              ],
+              "JavaScript": [
+                3890,
+                3684,
+                3499,
+                3535,
+                3857,
+                3613,
+                3520,
+                3933,
+                4048,
+                3663,
+                3741,
+                3957,
+                3870,
+                4012,
+                3912,
+                3706,
+                3724
+              ],
+              "Java": [
+                4481,
+                4869,
+                4383,
+                5124,
+                4675,
+                4134,
+                4708,
+                3997,
+                4790,
+                4223,
+                5352,
+                4159,
+                4624,
+                3945,
+                4577,
+                4686,
+                4633
+              ],
+              "TX": [
+                1004,
+                1023,
+                1018,
+                983,
+                973,
+                999,
+                999,
+                993,
+                1003,
+                987,
+                993,
+                988,
+                991,
+                988,
+                1014,
+                970,
+                1005
+              ],
+              "Python": [
+                44202,
+                42915,
+                43945,
+                43484,
+                43392,
+                43715,
+                44048,
+                44324,
+                64813,
+                44914,
+                42420,
+                42528,
+                44885,
+                44074,
+                44384,
+                44105,
+                43061
+              ]
+            },
+            "median_ms": {
+              "C++": 1.416,
+              "JavaScript": 3.741,
+              "Java": 4.624,
+              "TX": 0.993,
+              "Python": 44.048
+            }
+          },
+          "forced-increasing-max": {
+            "samples_us": {
+              "C++": [
+                1418,
+                1403,
+                1397,
+                1402,
+                1451,
+                1488,
+                1412,
+                1403,
+                1412,
+                1455,
+                1429,
+                2307,
+                1621,
+                1407,
+                1391,
+                1420,
+                1881
+              ],
+              "JavaScript": [
+                5695,
+                5099,
+                5296,
+                5435,
+                5128,
+                5472,
+                4796,
+                5147,
+                4913,
+                5604,
+                4837,
+                5476,
+                5553,
+                5242,
+                4951,
+                5234,
+                6183
+              ],
+              "Java": [
+                5910,
+                5509,
+                5317,
+                5510,
+                5628,
+                5399,
+                5833,
+                5727,
+                6201,
+                6109,
+                5818,
+                5362,
+                5602,
+                5971,
+                5462,
+                5411,
+                5810
+              ],
+              "TX": [
+                4571,
+                4269,
+                4347,
+                4287,
+                4215,
+                4260,
+                4366,
+                4392,
+                4505,
+                4486,
+                4251,
+                4190,
+                4577,
+                6365,
+                4243,
+                4299,
+                4235
+              ],
+              "Python": [
+                77744,
+                76787,
+                77089,
+                75988,
+                76794,
+                75816,
+                77251,
+                79351,
+                75890,
+                77565,
+                76740,
+                86673,
+                81487,
+                79893,
+                73293,
+                76830,
+                79333
+              ]
+            },
+            "median_ms": {
+              "C++": 1.418,
+              "JavaScript": 5.242,
+              "Java": 5.628,
+              "TX": 4.299,
+              "Python": 77.089
+            }
+          },
+          "forced-decreasing-max": {
+            "samples_us": {
+              "C++": [
+                1438,
+                3263,
+                1396,
+                1400,
+                1496,
+                1506,
+                1423,
+                4880,
+                1613,
+                1741,
+                1435,
+                1420,
+                1432,
+                1799,
+                1420,
+                1662,
+                1392
+              ],
+              "JavaScript": [
+                4213,
+                4202,
+                3945,
+                3936,
+                4288,
+                4913,
+                3673,
+                7499,
+                3895,
+                4318,
+                3565,
+                3544,
+                4068,
+                3805,
+                3803,
+                3871,
+                3594
+              ],
+              "Java": [
+                5635,
+                5147,
+                4662,
+                4783,
+                4800,
+                4843,
+                5550,
+                5327,
+                6595,
+                5816,
+                5047,
+                4992,
+                4875,
+                4985,
+                4826,
+                4551,
+                5029
+              ],
+              "TX": [
+                1962,
+                989,
+                998,
+                999,
+                2246,
+                1049,
+                1037,
+                1659,
+                1394,
+                1009,
+                1010,
+                1002,
+                1049,
+                1457,
+                1000,
+                984,
+                986
+              ],
+              "Python": [
+                47160,
+                45107,
+                41635,
+                48010,
+                45208,
+                43032,
+                51279,
+                48322,
+                51822,
+                44891,
+                46062,
+                44435,
+                43516,
+                43636,
+                44814,
+                43004,
+                41977
+              ]
+            },
+            "median_ms": {
+              "C++": 1.438,
+              "JavaScript": 3.936,
+              "Java": 4.992,
+              "TX": 1.01,
+              "Python": 44.891
+            }
+          },
+          "shuffled-tight-max-1": {
+            "samples_us": {
+              "C++": [
+                1892,
+                2235,
+                1897,
+                2151,
+                3681,
+                1891,
+                1925,
+                2001,
+                1984,
+                1881,
+                1893,
+                1969,
+                1911,
+                1957,
+                1963,
+                1893,
+                1912
+              ],
+              "JavaScript": [
+                4380,
+                5380,
+                5669,
+                5652,
+                4764,
+                4696,
+                4728,
+                4882,
+                4518,
+                4657,
+                5197,
+                5247,
+                4747,
+                5477,
+                5381,
+                5049,
+                5933
+              ],
+              "Java": [
+                5376,
+                5808,
+                5593,
+                5233,
+                6646,
+                5788,
+                5776,
+                5170,
+                5397,
+                5608,
+                7604,
+                6000,
+                6790,
+                5629,
+                4964,
+                5261,
+                5878
+              ],
+              "TX": [
+                3224,
+                3318,
+                3184,
+                3212,
+                3321,
+                3540,
+                3307,
+                3145,
+                3190,
+                3417,
+                3280,
+                3988,
+                3174,
+                3238,
+                3200,
+                3323,
+                3289
+              ],
+              "Python": [
+                63475,
+                66013,
+                61835,
+                66289,
+                87426,
+                63801,
+                64300,
+                63532,
+                64048,
+                64741,
+                63852,
+                70638,
+                64534,
+                65993,
+                71574,
+                64046,
+                65295
+              ]
+            },
+            "median_ms": {
+              "C++": 1.925,
+              "JavaScript": 5.049,
+              "Java": 5.629,
+              "TX": 3.28,
+              "Python": 64.534
+            }
+          },
+          "alternating-tight-max": {
+            "samples_us": {
+              "C++": [
+                1439,
+                1436,
+                1445,
+                1505,
+                1410,
+                1682,
+                1426,
+                1421,
+                1462,
+                1482,
+                1429,
+                1419,
+                1425,
+                1444,
+                1429,
+                1428,
+                1435
+              ],
+              "JavaScript": [
+                5031,
+                4695,
+                4566,
+                4635,
+                5359,
+                4532,
+                4698,
+                5021,
+                4472,
+                4706,
+                5081,
+                4587,
+                4590,
+                4336,
+                4655,
+                4033,
+                4056
+              ],
+              "Java": [
+                5032,
+                5289,
+                5973,
+                6059,
+                5272,
+                6370,
+                5618,
+                6809,
+                5526,
+                5613,
+                5614,
+                4960,
+                5076,
+                6937,
+                5660,
+                5405,
+                5244
+              ],
+              "TX": [
+                2882,
+                2630,
+                2695,
+                2654,
+                2713,
+                2669,
+                2857,
+                2629,
+                2670,
+                2690,
+                3441,
+                2781,
+                2737,
+                2701,
+                2679,
+                2745,
+                2721
+              ],
+              "Python": [
+                60748,
+                60010,
+                75341,
+                61987,
+                58870,
+                60553,
+                64900,
+                60001,
+                63303,
+                62681,
+                60739,
+                60213,
+                60105,
+                61486,
+                59408,
+                62238,
+                59690
+              ]
+            },
+            "median_ms": {
+              "C++": 1.435,
+              "JavaScript": 4.635,
+              "Java": 5.613,
+              "TX": 2.701,
+              "Python": 60.739
+            }
+          }
+        }
+      },
+      "stable_hashes": {
+        "E:\\Project\\other\\Compilation\\tx\\libtxstdlib.a": "59812409F463779EDC832CE5529B100FF2CEB186CA67863CA3ECFF729D02DE6C",
+        "E:\\Project\\other\\Compilation\\tx\\txc.exe": "DCB0EBF618B82650F83B4983296171CA1546254427F05CD868783D561F0AC2F4",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\mini\\cpp.exe": "17F5AEA3B6F4515BA5C7F9C3F8B788FB4087DBBCF8AAD66C3DBC54E60EAB906F",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\mini\\solution.exe": "40A353C02CA8E3158AA89BEFBACDD727CABF7D5CD980892B44F8D04721F7C39B",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\mini\\solution_benchmark_java$file_system.class": "2D460B6517AC9FA18A704F8FEF361A2636EF25DB95E12F6C7609446843409B70",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\mini\\solution_benchmark_java$node.class": "8B7E9409DC56FA2C323F66B5EE1EBCC3D55BE87692526797D87D163BD413FD91",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\mini\\solution_benchmark_java.class": "5E1FD001D38C1489AE842C7FFA7704FD1DD27F0243C52422BD6F321E2F63C447",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\mini\\tx.exe": "0255C66E986C863EC06CE92987B5F59B1ACC75BC9F84940B2682F1FA5B802C4C",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\stage\\cpp.exe": "B4CAF3D33E19F60410CEFDA060640EE7111BA5CE5FB273B66F5FC44F45B797E6",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\stage\\solution.exe": "0A8B7A141FE30E9BDCA30FA40D5E77C8DFD5547D4BC74D0AC7C216EC3F176F8B",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\stage\\solution_benchmark_java.class": "69200173F1AF1CCD50B738A80A86A63A1076D932751C20E57F706CA8E747E5D1",
+        "E:\\Project\\other\\Compilation\\tx_build\\language_comparison\\stage\\tx.exe": "23D6CDE2B655FBA62D7DF94F42997D47B850A024962B3C6D7AEE7EF493671040",
+        "E:\\Project\\problems\\mini-filesystem\\src\\mini_fs.tx": "089A92E2C901C4E1AB51F0D89B51AE25ED3C93E03B9FE673F2674E40A6B6C1F2",
+        "E:\\Project\\problems\\mini-filesystem\\src\\mini_fs.txh": "166A72509CCC6FFD4F585B44131FB07358F8FAE49EB23AE4EB4A85397B70F2A4",
+        "E:\\Project\\problems\\mini-filesystem\\src\\solution.cpp": "82584DAAF58FBAD72FC89840E3DBDEFE97531FD6C6529A06E530AE6CF2C3976A",
+        "E:\\Project\\problems\\mini-filesystem\\src\\solution.py": "2EF15597C9DA8B0DC53FB9D7A4DD95A10FF439760E05887F9BA402D5F5A1780A",
+        "E:\\Project\\problems\\mini-filesystem\\src\\solution.tx": "EC6CEDCD3379714BC8CB5FC4E3429B5FC6B1083250AEE5A26FA35B26A24D053A",
+        "E:\\Project\\problems\\mini-filesystem\\src\\solution_benchmark.cpp": "5A1A6F2F8DAA9ED5D0DE5CF1C2B9CDD4969C3EEB95955A46E24F8097BEECD8B7",
+        "E:\\Project\\problems\\mini-filesystem\\src\\solution_benchmark.py": "D585C3247BF9D2F6B9AD173CB1D0D99C388B55133845C51046FC17DFDA866A89",
+        "E:\\Project\\problems\\mini-filesystem\\src\\solution_benchmark.tx": "434845F47E57C1BE4AF759F215E2FF9AFB7559674073D4EE361A786279AC4FDD",
+        "E:\\Project\\problems\\mini-filesystem\\src\\solution_benchmark_java.java": "8734C4183C11106CACD286FA71C6C98D4605A1CFB94A3CF348E438F8D34BBB94",
+        "E:\\Project\\problems\\mini-filesystem\\src\\solution_benchmark_js.js": "802B91745508332E9EFA9D5D8C523900C65F5AEC6A5BF9AA7C1E41E4C91FEFAF",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\deep-pwd-2000.in": "B007CE568045A59EE24DD3E7B43EDD7F37F9DCE93775DC64CE2A7232B2D00403",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\deep-pwd-2000.out": "B075607264A6B2D3E10030345D7374622E717D01CD62CB53EBE2CA40386E5AF1",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\fanout-2000.in": "E6C101D0179BBDC9B523E64EDC0335BC3BC3DE7F055A915DEFC1951B4F0C6B4C",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\fanout-2000.out": "69E63A2ACAE5BCB6CED56E93D9A6B3EEC0FC853217933328EE3BEB6AAD2D5EC8",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\linklong-2000.in": "936F14D75F1894853C1686161DEC8D6C9411D3E660A40B7ED500C88131EB0D5D",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\linklong-2000.out": "31964858D4A5FAE24BD7F711F2492D91970EAB3A8074D7BBB207402B9C92F498",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\moves-2000.in": "25A96EAECE7FE0B0224A3BC934783ED89F23BAF728FD5FFE982F4C0F3747238A",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\moves-2000.out": "6DD75B46E7B681BF79B43C06FFB75B1A7FB0CA566411FF92E4429554A9930D25",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\random-2000-1.in": "394214A95B114A7418990C6422A21432FC2A76C5857458D5E8648E3354E67497",
+        "E:\\Project\\problems\\mini-filesystem\\testdata\\random-2000-1.out": "D639933AEB1D1C5EA1A9FDDBA3168E064C64CBBC14BC6717444FB9A8D4E8224E",
+        "E:\\Project\\problems\\not-yet-on-stage\\src\\solution.cpp": "D42537B837160FDE908031B4B874DBBF6376968D95A7764FEF94C4558468650A",
+        "E:\\Project\\problems\\not-yet-on-stage\\src\\solution.py": "34E982712BCF8A47718F6EC7B64FFDDE9080D57413772A9F640C9767359DDD81",
+        "E:\\Project\\problems\\not-yet-on-stage\\src\\solution.tx": "35CB6EE57B55AFB06581029D241BA35C073D2582AE08F2FEB8ECD3A740C8E070",
+        "E:\\Project\\problems\\not-yet-on-stage\\src\\solution_benchmark.cpp": "C12998A03578C305D7607B1B8A8CA773A29C83CEE75CBB8313A1E9AC885217AD",
+        "E:\\Project\\problems\\not-yet-on-stage\\src\\solution_benchmark.py": "49BC71C102A3C578526388C17BA29954DBD7ED8CF40CD6C639C32186582DDF2D",
+        "E:\\Project\\problems\\not-yet-on-stage\\src\\solution_benchmark.tx": "CE65B7D20CABC4DD2DFD4D94458262B637D60D2A7AAA5DC5576E7E0EFB34DDAA",
+        "E:\\Project\\problems\\not-yet-on-stage\\src\\solution_benchmark_java.java": "27E5B29BF5A28AB2BF6C38B3E0D5D149EA4B1FA2944F4AC35B1B1BCB10ED2459",
+        "E:\\Project\\problems\\not-yet-on-stage\\src\\solution_benchmark_js.js": "A389CB9E77ADD12005345048C8B2783916C593E6DF769923D6BCBE9E24C0B5B5",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\all-free-max.in": "701F4E86F020C3CFF8B5BAFF814A3224E59253085915E6B6C8F1534658051273",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\all-free-max.out": "07749CF559A5DDC5E8A7A95E9F469E0182DA1EC6550242733DCD967E0A484011",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\alternating-tight-max.in": "DEE822E15DAC36FA8632356F5014023127C6F3C78EF311366FE1138C3056453F",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\alternating-tight-max.out": "3248CC274D879D1723E7701C28BF35163236467A5F5075FA530C896CC5BB5EA4",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\forced-decreasing-max.in": "77CA5E864536445B5859E57E4A4547688E61C2EC4EECC981B3F6B63A1F1B5700",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\forced-decreasing-max.out": "07749CF559A5DDC5E8A7A95E9F469E0182DA1EC6550242733DCD967E0A484011",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\forced-increasing-max.in": "B4C01D6BCF74D89A7AB1C6602D141FF275AD231D1FDA175047FC532D94B60525",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\forced-increasing-max.out": "4830C579B64348A50F9D413D3B162FBFB20953069D869A34F1A2AE463DFD64CF",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\shuffled-tight-max-1.in": "9E8D2452AD95B5A1211D6182E30A210F6DED80FF1B08772C03FD90FE7148C363",
+        "E:\\Project\\problems\\not-yet-on-stage\\testdata\\shuffled-tight-max-1.out": "CB04711BCE4649FED301A77282F0CD6C04BD76C40C39911FA193F69777464674"
+      }
+    }
+  }
+}

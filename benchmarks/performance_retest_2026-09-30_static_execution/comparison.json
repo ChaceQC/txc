@@ -1,0 +1,1794 @@
+[
+  {
+    "suite": "语言特性",
+    "name": "scalar_control",
+    "previous_ms": 0.168,
+    "current_ms": 0.168,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "updates",
+    "previous_ms": 1.422,
+    "current_ms": 1.417,
+    "change_percent": -0.35161744022502717,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "while_logic",
+    "previous_ms": 0.177,
+    "current_ms": 0.177,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "float_arithmetic",
+    "previous_ms": 0.36,
+    "current_ms": 0.355,
+    "change_percent": -1.388888888888895,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "overloads",
+    "previous_ms": 0.189,
+    "current_ms": 0.188,
+    "change_percent": -0.5291005291005346,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "named_arguments",
+    "previous_ms": 0.425,
+    "current_ms": 0.404,
+    "change_percent": -4.941176470588227,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "recursion",
+    "previous_ms": 0.041,
+    "current_ms": 0.035,
+    "change_percent": -14.634146341463406,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "previous_ms": 12.209,
+    "current_ms": 11.229000000000001,
+    "change_percent": -8.026865427143903,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_destructure",
+    "previous_ms": 0.11800000000000001,
+    "current_ms": 0.01,
+    "change_percent": -91.52542372881356,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_padded",
+    "previous_ms": 0.024,
+    "current_ms": 0.024,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "dict_iteration",
+    "previous_ms": 9.852,
+    "current_ms": 7.313,
+    "change_percent": -25.771416971173366,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "struct_operators",
+    "previous_ms": 0.539,
+    "current_ms": 0.025,
+    "change_percent": -95.36178107606679,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_methods",
+    "previous_ms": 0.682,
+    "current_ms": 0.662,
+    "change_percent": -2.9325513196480912,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "virtual_interface",
+    "previous_ms": 0.922,
+    "current_ms": 0.904,
+    "change_percent": -1.95227765726681,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_operator",
+    "previous_ms": 0.838,
+    "current_ms": 0.598,
+    "change_percent": -28.639618138424815,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "runtime_cast",
+    "previous_ms": 0.273,
+    "current_ms": 0.23600000000000002,
+    "change_percent": -13.55311355311355,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "module_call",
+    "previous_ms": 0.025,
+    "current_ms": 0.024,
+    "change_percent": -4.0000000000000036,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "string_conversion",
+    "previous_ms": 17.674,
+    "current_ms": 16.576,
+    "change_percent": -6.212515559579035,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deep_copy",
+    "previous_ms": 26.444,
+    "current_ms": 25.082,
+    "change_percent": -5.150506731205562,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "copy_cycle",
+    "previous_ms": 10.497,
+    "current_ms": 9.302,
+    "change_percent": -11.384205010955517,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "previous_ms": 16.452,
+    "current_ms": 15.378,
+    "change_percent": -6.528081692195487,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "cycle_gc",
+    "previous_ms": 1.544,
+    "current_ms": 1.542,
+    "change_percent": -0.12953367875647714,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "math",
+    "previous_ms": 2.0,
+    "current_ms": 4.0,
+    "change_percent": 100.0,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "random",
+    "previous_ms": 1.0,
+    "current_ms": 1.0,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "string",
+    "previous_ms": 10.0,
+    "current_ms": 9.0,
+    "change_percent": -9.999999999999998,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "array",
+    "previous_ms": 16.0,
+    "current_ms": 18.0,
+    "change_percent": 12.5,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "dict",
+    "previous_ms": 4.0,
+    "current_ms": 3.0,
+    "change_percent": -25.0,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "path",
+    "previous_ms": 23.0,
+    "current_ms": 21.0,
+    "change_percent": -8.695652173913048,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "fs",
+    "previous_ms": 41.0,
+    "current_ms": 43.0,
+    "change_percent": 4.878048780487809,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "file",
+    "previous_ms": 1234.0,
+    "current_ms": 1317.0,
+    "change_percent": 6.7260940032414895,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "io",
+    "previous_ms": 7.0,
+    "current_ms": 9.0,
+    "change_percent": 28.57142857142858,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "time",
+    "previous_ms": 4.0,
+    "current_ms": 4.0,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "algorithm_sort",
+    "previous_ms": 7.679,
+    "current_ms": 5.469,
+    "change_percent": -28.7797890350306,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "bytes_hex",
+    "previous_ms": 11.71,
+    "current_ms": 8.617,
+    "change_percent": -26.413321947053802,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "cancel_status",
+    "previous_ms": 0.65,
+    "current_ms": 0.573,
+    "change_percent": -11.846153846153861,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "cbor_roundtrip",
+    "previous_ms": 40.044,
+    "current_ms": 22.235,
+    "change_percent": -44.47357906303067,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "crypto_sha256",
+    "previous_ms": 12.645,
+    "current_ms": 8.852,
+    "change_percent": -29.996045867931986,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "csv_parse",
+    "previous_ms": 36.991,
+    "current_ms": 24.532,
+    "change_percent": -33.68116568895137,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "decimal_add",
+    "previous_ms": 14.592,
+    "current_ms": 10.978,
+    "change_percent": -24.766995614035093,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "dictionary_contains",
+    "previous_ms": 0.4,
+    "current_ms": 0.362,
+    "change_percent": -9.500000000000009,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "encoding_utf8",
+    "previous_ms": 5.491,
+    "current_ms": 4.33,
+    "change_percent": -21.143689674012013,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "env_get",
+    "previous_ms": 17.033,
+    "current_ms": 9.844,
+    "change_percent": -42.206305407150836,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "format_text",
+    "previous_ms": 2.687,
+    "current_ms": 1.231,
+    "change_percent": -54.18682545589877,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "json_parse",
+    "previous_ms": 32.457,
+    "current_ms": 23.194,
+    "change_percent": -28.539298148319315,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "math_sqrt",
+    "previous_ms": 3.134,
+    "current_ms": 4.153,
+    "change_percent": 32.51435864709635,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "parse_int",
+    "previous_ms": 14.054,
+    "current_ms": 11.408,
+    "change_percent": -18.8273801053081,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "random_int",
+    "previous_ms": 1.514,
+    "current_ms": 1.39,
+    "change_percent": -8.19022457067372,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "regex_search",
+    "previous_ms": 63.799,
+    "current_ms": 12.651,
+    "change_percent": -80.1705355883321,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "serde_json",
+    "previous_ms": 14.747,
+    "current_ms": 13.898,
+    "change_percent": -5.757103139621622,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "statistics_mean",
+    "previous_ms": 8.843,
+    "current_ms": 4.457,
+    "change_percent": -49.598552527422825,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "test_assert",
+    "previous_ms": 12.305,
+    "current_ms": 7.654,
+    "change_percent": -37.79764323445753,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "unicode_nfc",
+    "previous_ms": 6.828,
+    "current_ms": 5.347,
+    "change_percent": -21.69009958992384,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "xml_parse",
+    "previous_ms": 37.483,
+    "current_ms": 32.989,
+    "change_percent": -11.989435210628818,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_push",
+    "previous_ms": 2.045,
+    "current_ms": 1.938,
+    "change_percent": -5.232273838630808,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_index",
+    "previous_ms": 0.177,
+    "current_ms": 0.146,
+    "change_percent": -17.514124293785315,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "map_lookup",
+    "previous_ms": 0.422,
+    "current_ms": 0.325,
+    "change_percent": -22.985781990521325,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "set_contains",
+    "previous_ms": 0.318,
+    "current_ms": 0.259,
+    "change_percent": -18.55345911949685,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "heap_push_pop",
+    "previous_ms": 7.925,
+    "current_ms": 29.891,
+    "change_percent": 277.1735015772871,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "queue_push_pop",
+    "previous_ms": 1.323,
+    "current_ms": 1.119,
+    "change_percent": -15.41950113378685,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "iterator_snapshot",
+    "previous_ms": 0.165,
+    "current_ms": 1.468,
+    "change_percent": 789.6969696969696,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "option_value",
+    "previous_ms": 0.026,
+    "current_ms": 0.025,
+    "change_percent": -3.8461538461538325,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "function_value",
+    "previous_ms": 0.145,
+    "current_ms": 0.286,
+    "change_percent": 97.24137931034483,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "closure_bind",
+    "previous_ms": 0.188,
+    "current_ms": 0.19,
+    "change_percent": 1.0638297872340496,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "debug_location",
+    "previous_ms": 5.816,
+    "current_ms": 5.391,
+    "change_percent": -7.307427785419529,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "error_stack",
+    "previous_ms": 2.434,
+    "current_ms": 1.953,
+    "change_percent": -19.76170912078883,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "file_stream_rw",
+    "previous_ms": 865.019,
+    "current_ms": 843.336,
+    "change_percent": -2.506650142944833,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "log_event",
+    "previous_ms": 8.256,
+    "current_ms": 7.738,
+    "change_percent": -6.274224806201545,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "process_spawn",
+    "previous_ms": 568.936,
+    "current_ms": 907.729,
+    "change_percent": 59.54852566896805,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "system_os",
+    "previous_ms": 2.382,
+    "current_ms": 2.363,
+    "change_percent": -0.7976490344248632,
+    "note": ""
+  },
+  {
+    "suite": "network/http",
+    "name": "httpx_get",
+    "previous_ms": 997.729,
+    "current_ms": 975.974,
+    "change_percent": -2.180451806051542,
+    "note": ""
+  },
+  {
+    "suite": "network/http",
+    "name": "requests_get",
+    "previous_ms": 1081.947,
+    "current_ms": 981.354,
+    "change_percent": -9.297405510621115,
+    "note": ""
+  },
+  {
+    "suite": "network/websocket",
+    "name": "websocket_echo",
+    "previous_ms": 935.728,
+    "current_ms": 894.903,
+    "change_percent": -4.362913154249948,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_1k",
+    "previous_ms": 0.278,
+    "current_ms": 0.262,
+    "change_percent": -5.755395683453246,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_100k",
+    "previous_ms": 2.46,
+    "current_ms": 2.479,
+    "change_percent": 0.7723577235772439,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_sequential",
+    "previous_ms": 0.308,
+    "current_ms": 0.301,
+    "change_percent": -2.2727272727272707,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_strided",
+    "previous_ms": 0.361,
+    "current_ms": 0.298,
+    "change_percent": -17.451523545706372,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_128",
+    "previous_ms": 1.696,
+    "current_ms": 1.606,
+    "change_percent": -5.306603773584895,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_8192",
+    "previous_ms": 2.179,
+    "current_ms": 2.215,
+    "change_percent": 1.6521340064249657,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_10_percent",
+    "previous_ms": 2.712,
+    "current_ms": 2.522,
+    "change_percent": -7.0058997050147624,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_int_hit",
+    "previous_ms": 1.194,
+    "current_ms": 2.364,
+    "change_percent": 97.98994974874371,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_text_hit",
+    "previous_ms": 5.264,
+    "current_ms": 3.157,
+    "change_percent": -40.02659574468085,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_mostly_miss",
+    "previous_ms": 0.907,
+    "current_ms": 0.845,
+    "change_percent": -6.835722160970237,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_literal",
+    "previous_ms": 7.371,
+    "current_ms": 6.574,
+    "change_percent": -10.81264414597749,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_dynamic",
+    "previous_ms": 7.537,
+    "current_ms": 6.923,
+    "change_percent": -8.146477378267214,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_literal",
+    "previous_ms": 12.816,
+    "current_ms": 12.491,
+    "change_percent": -2.5358926342072485,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_dynamic",
+    "previous_ms": 11.586,
+    "current_ms": 11.221,
+    "change_percent": -3.150353875366829,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_short_text",
+    "previous_ms": 6.964,
+    "current_ms": 9.825,
+    "change_percent": 41.08271108558299,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_long_text",
+    "previous_ms": 9.001,
+    "current_ms": 8.712,
+    "change_percent": -3.2107543606265887,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_valid",
+    "previous_ms": 1.038,
+    "current_ms": 0.83,
+    "change_percent": -20.038535645472066,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_invalid",
+    "previous_ms": 0.978,
+    "current_ms": 0.745,
+    "change_percent": -23.824130879345606,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_scan_1k",
+    "previous_ms": 0.26,
+    "current_ms": 0.26,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_1k",
+    "previous_ms": 0.258,
+    "current_ms": 0.261,
+    "change_percent": 1.1627906976744207,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_scan_100k",
+    "previous_ms": 2.441,
+    "current_ms": 2.416,
+    "change_percent": -1.0241704219582148,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_100k",
+    "previous_ms": 2.402,
+    "current_ms": 2.434,
+    "change_percent": 1.3322231473771762,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_index_sequential",
+    "previous_ms": 0.299,
+    "current_ms": 0.294,
+    "change_percent": -1.6722408026755842,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_index_sequential",
+    "previous_ms": 0.293,
+    "current_ms": 0.295,
+    "change_percent": 0.6825938566553003,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_index_strided",
+    "previous_ms": 0.363,
+    "current_ms": 0.293,
+    "change_percent": -19.283746556473837,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_index_strided",
+    "previous_ms": 0.35,
+    "current_ms": 0.299,
+    "change_percent": -14.57142857142857,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_128",
+    "previous_ms": 1.671,
+    "current_ms": 1.518,
+    "change_percent": -9.156193895870734,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_128",
+    "previous_ms": 1.64,
+    "current_ms": 1.552,
+    "change_percent": -5.3658536585365795,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_8192",
+    "previous_ms": 2.093,
+    "current_ms": 2.008,
+    "change_percent": -4.061156235069275,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_8192",
+    "previous_ms": 2.011,
+    "current_ms": 2.015,
+    "change_percent": 0.19890601690701892,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_10_percent",
+    "previous_ms": 2.271,
+    "current_ms": 1.898,
+    "change_percent": -16.424482606781154,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_10_percent",
+    "previous_ms": 2.212,
+    "current_ms": 2.039,
+    "change_percent": -7.820976491862575,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_int_hit",
+    "previous_ms": 1.222,
+    "current_ms": 1.328,
+    "change_percent": 8.674304418985269,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_int_hit",
+    "previous_ms": 1.169,
+    "current_ms": 1.289,
+    "change_percent": 10.265183917878517,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_text_hit",
+    "previous_ms": 5.17,
+    "current_ms": 2.239,
+    "change_percent": -56.69245647969052,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_text_hit",
+    "previous_ms": 5.186,
+    "current_ms": 2.281,
+    "change_percent": -56.01619745468569,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_mostly_miss",
+    "previous_ms": 0.9,
+    "current_ms": 0.838,
+    "change_percent": -6.8888888888889,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_mostly_miss",
+    "previous_ms": 0.887,
+    "current_ms": 0.833,
+    "change_percent": -6.087936865839916,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "format_literal",
+    "previous_ms": 7.327,
+    "current_ms": 6.306,
+    "change_percent": -13.934761839770715,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "format_literal",
+    "previous_ms": 7.018,
+    "current_ms": 6.346,
+    "change_percent": -9.575377600455969,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "format_dynamic",
+    "previous_ms": 7.514,
+    "current_ms": 6.219,
+    "change_percent": -17.23449560819803,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "format_dynamic",
+    "previous_ms": 7.458,
+    "current_ms": 6.229,
+    "change_percent": -16.478948779833736,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "encoding_literal",
+    "previous_ms": 12.22,
+    "current_ms": 11.582,
+    "change_percent": -5.22094926350245,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "encoding_literal",
+    "previous_ms": 11.625,
+    "current_ms": 11.72,
+    "change_percent": 0.8172043010752805,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "encoding_dynamic",
+    "previous_ms": 11.627,
+    "current_ms": 11.3,
+    "change_percent": -2.8124193687107613,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "encoding_dynamic",
+    "previous_ms": 11.88,
+    "current_ms": 11.079,
+    "change_percent": -6.742424242424239,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "serde_short_text",
+    "previous_ms": 7.057,
+    "current_ms": 6.943,
+    "change_percent": -1.615417316140011,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "serde_short_text",
+    "previous_ms": 6.862,
+    "current_ms": 7.818,
+    "change_percent": 13.931798309530752,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "serde_long_text",
+    "previous_ms": 8.923,
+    "current_ms": 8.432,
+    "change_percent": -5.502633643393473,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "serde_long_text",
+    "previous_ms": 8.853,
+    "current_ms": 8.588,
+    "change_percent": -2.993335592454538,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "parse_valid",
+    "previous_ms": 1.012,
+    "current_ms": 0.764,
+    "change_percent": -24.505928853754945,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "parse_valid",
+    "previous_ms": 0.987,
+    "current_ms": 0.781,
+    "change_percent": -20.87132725430597,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "parse_invalid",
+    "previous_ms": 0.978,
+    "current_ms": 0.727,
+    "change_percent": -25.66462167689162,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "parse_invalid",
+    "previous_ms": 0.969,
+    "current_ms": 0.747,
+    "change_percent": -22.910216718266252,
+    "note": ""
+  },
+  {
+    "suite": "校准/heap",
+    "name": "heap_push_pop",
+    "previous_ms": 7.673,
+    "current_ms": 29.625,
+    "change_percent": 286.09409618141535,
+    "note": ""
+  },
+  {
+    "suite": "校准/heap_clang",
+    "name": "heap_push_pop",
+    "previous_ms": 7.691,
+    "current_ms": 34.858,
+    "change_percent": 353.23104927837727,
+    "note": ""
+  },
+  {
+    "suite": "校准/statistics",
+    "name": "statistics_mean",
+    "previous_ms": 7.96,
+    "current_ms": 4.52,
+    "change_percent": -43.21608040201006,
+    "note": ""
+  },
+  {
+    "suite": "校准/statistics_clang",
+    "name": "statistics_mean",
+    "previous_ms": 7.983,
+    "current_ms": 4.485,
+    "change_percent": -43.81811349116873,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "previous_ms": 12.302,
+    "current_ms": 11.182,
+    "change_percent": -9.104210697447568,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "deep-pwd-2000",
+    "previous_ms": 14.531,
+    "current_ms": 12.568,
+    "change_percent": -13.509049618057956,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "previous_ms": 6.191,
+    "current_ms": 5.442,
+    "change_percent": -12.098207074785972,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "previous_ms": 7.198,
+    "current_ms": 6.399,
+    "change_percent": -11.100305640455687,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "linklong-2000",
+    "previous_ms": 38.952,
+    "current_ms": 32.177,
+    "change_percent": -17.39320188950503,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "all-free-max",
+    "previous_ms": 1.047,
+    "current_ms": 0.993,
+    "change_percent": -5.157593123209159,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "previous_ms": 4.836,
+    "current_ms": 4.299,
+    "change_percent": -11.10421836228288,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-decreasing-max",
+    "previous_ms": 1.038,
+    "current_ms": 1.01,
+    "change_percent": -2.6974951830443183,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "shuffled-tight-max-1",
+    "previous_ms": 3.094,
+    "current_ms": 3.28,
+    "change_percent": 6.01163542340013,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "alternating-tight-max",
+    "previous_ms": 2.908,
+    "current_ms": 2.701,
+    "change_percent": -7.118294360385136,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "dictionary",
+    "previous_ms": 3.553,
+    "current_ms": 3.298,
+    "change_percent": -7.177033492822959,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "map",
+    "previous_ms": 3.292,
+    "current_ms": 2.878,
+    "change_percent": -12.575941676792212,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "set",
+    "previous_ms": 2.556,
+    "current_ms": 2.55,
+    "change_percent": -0.23474178403756207,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "queue",
+    "previous_ms": 1.507,
+    "current_ms": 1.258,
+    "change_percent": -16.522893165228925,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "cancel",
+    "previous_ms": 4.759,
+    "current_ms": 5.504,
+    "change_percent": 15.65454927505776,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "vector_foreach",
+    "previous_ms": 1.773,
+    "current_ms": 1.263,
+    "change_percent": -28.76480541455161,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "serde_json",
+    "previous_ms": 13.422,
+    "current_ms": 13.982,
+    "change_percent": 4.172254507524942,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "format_text",
+    "previous_ms": 12.819,
+    "current_ms": 13.734,
+    "change_percent": 7.1378422653873175,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "statistics_mean",
+    "previous_ms": 18.249,
+    "current_ms": 10.43,
+    "change_percent": -42.84618335251247,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "encoding_utf8",
+    "previous_ms": 23.025,
+    "current_ms": 22.987,
+    "change_percent": -0.16503800217155806,
+    "note": ""
+  },
+  {
+    "suite": "专项/parse_paths",
+    "name": "local_valid",
+    "previous_ms": 1.019,
+    "current_ms": 0.766,
+    "change_percent": -24.828263002944052,
+    "note": ""
+  },
+  {
+    "suite": "专项/parse_paths",
+    "name": "local_invalid",
+    "previous_ms": 0.982,
+    "current_ms": 0.75,
+    "change_percent": -23.62525458248472,
+    "note": ""
+  },
+  {
+    "suite": "专项/parse_paths",
+    "name": "full_valid",
+    "previous_ms": 2.113,
+    "current_ms": 0.878,
+    "change_percent": -58.447704685281586,
+    "note": ""
+  },
+  {
+    "suite": "专项/parse_paths",
+    "name": "full_invalid",
+    "previous_ms": 5.33,
+    "current_ms": 3.241,
+    "change_percent": -39.193245778611626,
+    "note": ""
+  },
+  {
+    "suite": "专项/format_paths",
+    "name": "format_literal",
+    "previous_ms": 7.311,
+    "current_ms": 7.315,
+    "change_percent": 0.05471207769116582,
+    "note": ""
+  },
+  {
+    "suite": "专项/format_paths",
+    "name": "format_local",
+    "previous_ms": 6.998,
+    "current_ms": 7.316,
+    "change_percent": 4.544155472992273,
+    "note": ""
+  },
+  {
+    "suite": "专项/format_paths",
+    "name": "format_dynamic",
+    "previous_ms": 17.266,
+    "current_ms": 19.273,
+    "change_percent": 11.624000926676725,
+    "note": ""
+  },
+  {
+    "suite": "专项/serde_paths",
+    "name": "serde_json_short",
+    "previous_ms": 6.848,
+    "current_ms": 7.21,
+    "change_percent": 5.28621495327104,
+    "note": ""
+  },
+  {
+    "suite": "专项/serde_paths",
+    "name": "serde_cbor_short",
+    "previous_ms": 4.873,
+    "current_ms": 4.732,
+    "change_percent": -2.8934947670839373,
+    "note": ""
+  },
+  {
+    "suite": "专项/serde_paths",
+    "name": "serde_json_long",
+    "previous_ms": 8.226,
+    "current_ms": 8.425,
+    "change_percent": 2.4191587648918045,
+    "note": ""
+  },
+  {
+    "suite": "专项/serde_paths",
+    "name": "serde_cbor_long",
+    "previous_ms": 8.993,
+    "current_ms": 8.341,
+    "change_percent": -7.250083398198615,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "struct_fields",
+    "previous_ms": 0.653,
+    "current_ms": 0.662,
+    "change_percent": 1.3782542113323082,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "class_methods",
+    "previous_ms": 1.511,
+    "current_ms": 1.63,
+    "change_percent": 7.8755790866975595,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "module_call",
+    "previous_ms": 0.026,
+    "current_ms": 0.024,
+    "change_percent": -7.692307692307687,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "function_value",
+    "previous_ms": 1.416,
+    "current_ms": 2.81,
+    "change_percent": 98.44632768361583,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "closure_bind",
+    "previous_ms": 2.071,
+    "current_ms": 1.645,
+    "change_percent": -20.569773056494455,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "heap_push_pop",
+    "previous_ms": 7.916,
+    "current_ms": 29.949,
+    "change_percent": 278.3350176856998,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "snapshot",
+    "previous_ms": 3.112,
+    "current_ms": 14.787,
+    "change_percent": 375.1606683804627,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "vector_1k",
+    "previous_ms": 0.239,
+    "current_ms": 0.24,
+    "change_percent": 0.4184100418409997,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "vector_100k",
+    "previous_ms": 0.283,
+    "current_ms": 0.297,
+    "change_percent": 4.946996466431108,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "division",
+    "previous_ms": 0.398,
+    "current_ms": 0.398,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "recursion",
+    "previous_ms": 0.001,
+    "current_ms": 0.001,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "static_spread",
+    "previous_ms": 22.114,
+    "current_ms": 19.563,
+    "change_percent": -11.53567875553948,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "dynamic_spread",
+    "previous_ms": 22.07,
+    "current_ms": 19.422,
+    "change_percent": -11.998187584956954,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "deep_copy",
+    "previous_ms": 85.426,
+    "current_ms": 78.753,
+    "change_percent": -7.811439140308574,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "hex_encode_short",
+    "previous_ms": 18.035,
+    "current_ms": 18.549,
+    "change_percent": 2.85001386193513,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "hex_decode_short",
+    "previous_ms": 30.902,
+    "current_ms": 31.879,
+    "change_percent": 3.161607662934429,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "hex_encode_large",
+    "previous_ms": 4.565,
+    "current_ms": 4.566,
+    "change_percent": 0.02190580503831363,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "hex_decode_large",
+    "previous_ms": 8.824,
+    "current_ms": 6.752,
+    "change_percent": -23.48141432456936,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "utf8_encode_short",
+    "previous_ms": 22.791,
+    "current_ms": 24.57,
+    "change_percent": 7.805712781361063,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "utf8_decode_short",
+    "previous_ms": 12.924,
+    "current_ms": 14.067,
+    "change_percent": 8.84401114206128,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "utf8_encode_large",
+    "previous_ms": 2.052,
+    "current_ms": 16.209,
+    "change_percent": 689.9122807017544,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "utf8_decode_large",
+    "previous_ms": 3.623,
+    "current_ms": 32.357,
+    "change_percent": 793.0996411813414,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "mean_short",
+    "previous_ms": 8.017,
+    "current_ms": 5.125,
+    "change_percent": -36.07334414369464,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "mean_large",
+    "previous_ms": 40.586,
+    "current_ms": 25.333,
+    "change_percent": -37.581924801655745,
+    "note": ""
+  },
+  {
+    "suite": "专项/file_io",
+    "name": "file_stream_rw",
+    "previous_ms": 863.366,
+    "current_ms": 888.247,
+    "change_percent": 2.881860068615172,
+    "note": ""
+  },
+  {
+    "suite": "专项",
+    "name": "random_long",
+    "previous_ms": 34.0,
+    "current_ms": 41.0,
+    "change_percent": 20.58823529411764,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_alternating",
+    "previous_ms": 16.046,
+    "current_ms": 17.629,
+    "change_percent": 9.865387012339543,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_parameter",
+    "previous_ms": 16.38,
+    "current_ms": 17.913,
+    "change_percent": 9.35897435897437,
+    "note": ""
+  },
+  {
+    "suite": "契约/graph_contract",
+    "name": "graph_copy",
+    "previous_ms": 6.696,
+    "current_ms": 7.334,
+    "change_percent": 9.528076463560332,
+    "note": ""
+  },
+  {
+    "suite": "契约/graph_contract",
+    "name": "graph_gc",
+    "previous_ms": 10.139,
+    "current_ms": 10.423,
+    "change_percent": 2.801065193806096,
+    "note": ""
+  },
+  {
+    "suite": "进程运行",
+    "name": "TX",
+    "previous_ms": 112.13929997757077,
+    "current_ms": 122.54710006527603,
+    "change_percent": 9.28113523964118,
+    "note": ""
+  },
+  {
+    "suite": "空程序启动",
+    "name": "TX",
+    "previous_ms": 27.500799973495305,
+    "current_ms": 46.5475000673905,
+    "change_percent": 69.25871288199619,
+    "note": ""
+  },
+  {
+    "suite": "编译",
+    "name": "TX check",
+    "previous_ms": 169.7518000146374,
+    "current_ms": 379.13899996783584,
+    "change_percent": 123.34903072317545,
+    "note": ""
+  },
+  {
+    "suite": "编译",
+    "name": "TX full",
+    "previous_ms": 1210.8122000936419,
+    "current_ms": 1691.3201999850571,
+    "change_percent": 39.684766956779406,
+    "note": ""
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "thread_spawn_join",
+    "previous_ms": 13.894,
+    "current_ms": 13.854,
+    "change_percent": -0.28789405498776954,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "previous_ms": 20.63,
+    "current_ms": 20.517,
+    "change_percent": -0.5477460009694624,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "atomic_add",
+    "previous_ms": 0.287,
+    "current_ms": 0.384,
+    "change_percent": 33.797909407665514,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "channel_send_recv",
+    "previous_ms": 2.036,
+    "current_ms": 1.978,
+    "change_percent": -2.8487229862475427,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "task_spawn_wait",
+    "previous_ms": 7.247,
+    "current_ms": 7.506,
+    "change_percent": 3.5738926452325126,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_insert",
+    "previous_ms": 11.744,
+    "current_ms": 11.422,
+    "change_percent": -2.7418256130790075,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_read",
+    "previous_ms": 26.512,
+    "current_ms": 26.133,
+    "change_percent": -1.429541339770679,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_savepoint",
+    "previous_ms": 2.71,
+    "current_ms": 2.622,
+    "change_percent": -3.2472324723247237,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_pool",
+    "previous_ms": 139.236,
+    "current_ms": 137.792,
+    "change_percent": -1.0370881093969886,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_async",
+    "previous_ms": 54.127,
+    "current_ms": 54.773,
+    "change_percent": 1.1934893860734874,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "migration_recheck",
+    "previous_ms": 2.033,
+    "current_ms": 2.117,
+    "change_percent": 4.13182488932613,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_insert",
+    "previous_ms": 202.26,
+    "current_ms": 189.458,
+    "change_percent": -6.329476910906751,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_read",
+    "previous_ms": 45.568,
+    "current_ms": 41.141,
+    "change_percent": -9.71515098314607,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_savepoint",
+    "previous_ms": 121.967,
+    "current_ms": 115.403,
+    "change_percent": -5.381783597202516,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/security",
+    "name": "secret_equal",
+    "previous_ms": 16.526,
+    "current_ms": 14.163,
+    "change_percent": -14.298680866513369,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/security",
+    "name": "argon2_hash_verify",
+    "previous_ms": 159.154,
+    "current_ms": 163.263,
+    "change_percent": 2.5817761413473805,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/security",
+    "name": "ed25519_sign",
+    "previous_ms": 17.087,
+    "current_ms": 17.126,
+    "change_percent": 0.22824369403640077,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/security",
+    "name": "ed25519_verify",
+    "previous_ms": 24.95,
+    "current_ms": 24.329,
+    "change_percent": -2.4889779559118197,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/security",
+    "name": "x509_parse_der",
+    "previous_ms": 2.739,
+    "current_ms": 2.965,
+    "change_percent": 8.251186564439571,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/network",
+    "name": "dns_localhost",
+    "previous_ms": 0.305,
+    "current_ms": 0.266,
+    "change_percent": -12.786885245901637,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/network",
+    "name": "udp_echo",
+    "previous_ms": 35.372,
+    "current_ms": 34.354,
+    "change_percent": -2.877982585095562,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/network",
+    "name": "ipc_echo",
+    "previous_ms": 12.739,
+    "current_ms": 12.771,
+    "change_percent": 0.25119711123322563,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/network",
+    "name": "tls_handshake",
+    "previous_ms": 114.903,
+    "current_ms": 144.254,
+    "change_percent": 25.54415463477888,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/async_file",
+    "name": "async_file_rw",
+    "previous_ms": 39.435,
+    "current_ms": 38.012,
+    "change_percent": -3.6084696335742406,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "previous_ms": 0.377,
+    "current_ms": 0.223,
+    "change_percent": -40.84880636604774,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "previous_ms": 0.664,
+    "current_ms": 0.334,
+    "change_percent": -49.69879518072289,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_filtered",
+    "previous_ms": 1.024,
+    "current_ms": 0.901,
+    "change_percent": -12.01171875,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_file",
+    "previous_ms": 32.115,
+    "current_ms": 31.396,
+    "change_percent": -2.23882920753542,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  },
+  {
+    "suite": "新增/profile",
+    "name": "profile_spans",
+    "previous_ms": 0.441,
+    "current_ms": 0.471,
+    "change_percent": 6.8027210884353595,
+    "note": "上一轮为 da798cd 提交后的完整采样"
+  }
+]

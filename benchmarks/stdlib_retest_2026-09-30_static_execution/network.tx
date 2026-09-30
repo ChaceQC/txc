@@ -1,0 +1,72 @@
+import "time.txh" as time
+import "dns.txh" as dns
+import "socket.txh" as socket
+import "ipc.txh" as ipc
+import "tls.txh" as tls
+import "cancel.txh" as cancel
+import "env.txh" as env
+import "parse.txh" as parse
+import "file.txh" as file
+import "bytes.txh" as bytes
+
+def main() -> int
+{
+    auto total = 0
+    auto start = time.monotonic_micros()
+    for i in 1..=100
+    {
+        if len(dns.resolve("localhost", 5000)) > 0
+        {
+            total += 1
+        }
+    }
+    print("dns_localhost", time.monotonic_micros() - start, total)
+    auto udp = socket.bind_udp("127.0.0.1", 0)
+    auto port = parse.parse_int(env.get("BENCH_UDP_PORT"))
+    auto data = file.read_bytes("message.bin")
+    start = time.monotonic_micros()
+    total = 0
+    for i in 1..=500
+    {
+        socket.send_to(udp, "127.0.0.1", port, data, 5000)
+        auto reply = socket.receive_from(udp, 2048, 5000)
+        if reply.data == data
+        {
+            total += len(reply.data)
+        }
+    }
+    print("udp_echo", time.monotonic_micros() - start, total)
+    socket.close(udp)
+    auto source = cancel.source()
+    auto token = cancel.token(source)
+    auto stream = ipc.connect(env.get("BENCH_PIPE"), 4096, 5000, token)
+    start = time.monotonic_micros()
+    total = 0
+    for i in 1..=500
+    {
+        ipc.send(stream, 1, 42, 5000, token)
+        auto response = ipc.recv(stream, 5000, token)
+        total += response.value as int
+    }
+    print("ipc_echo", time.monotonic_micros() - start, total)
+    ipc.close(stream)
+    auto roots = tls.custom_trust(vector<bytes>([file.read_bytes("ca.der")]), false)
+    auto config = tls.client("localhost", roots)
+    port = parse.parse_int(env.get("BENCH_TLS_PORT"))
+    start = time.monotonic_micros()
+    total = 0
+    for i in 1..=10
+    {
+        auto peer = socket.connect_tcp("127.0.0.1", port, 5000)
+        auto secure = tls.connect(peer, config, vector<str>(["bench"]), 5000)
+        tls.write(secure, bytes.from_hex("2a"), 5000)
+        auto reply = tls.read(secure, 1, 5000)
+        if reply.data == bytes.from_hex("2a")
+        {
+            total += 1
+        }
+        tls.close(secure, 5000)
+    }
+    print("tls_handshake", time.monotonic_micros() - start, total)
+    return 0
+}
