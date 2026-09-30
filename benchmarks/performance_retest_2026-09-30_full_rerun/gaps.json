@@ -1,0 +1,578 @@
+[
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "tx_ms": 16.537,
+    "reference_ms": 0.6979,
+    "reference": "C++",
+    "ratio": 23.695371829775038,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "cycle_gc",
+    "tx_ms": 1.522,
+    "reference_ms": 0.0698,
+    "reference": "C++",
+    "ratio": 21.80515759312321,
+    "note": "参考仅处理单节点自环；通用图 GC 另见新增契约"
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "tx_ms": 12.543000000000001,
+    "reference_ms": 0.9874,
+    "reference": "Java",
+    "ratio": 12.703058537573426,
+    "note": "参考不执行 TX 动态命名实参绑定"
+  },
+  {
+    "suite": "语言特性",
+    "name": "deep_copy",
+    "tx_ms": 27.608,
+    "reference_ms": 2.379,
+    "reference": "C++",
+    "ratio": 11.604875998318622,
+    "note": "参考只复制已知形状；通用图复制另见新增契约"
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "format_literal",
+    "tx_ms": 6.875,
+    "reference_ms": 0.638,
+    "reference": "clang C++",
+    "ratio": 10.775862068965518,
+    "note": "C++ 直接拼接固定内容，不是通用格式器"
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "format_literal",
+    "tx_ms": 7.529,
+    "reference_ms": 0.787,
+    "reference": "GCC C++",
+    "ratio": 9.566709021601016,
+    "note": "C++ 直接拼接固定内容，不是通用格式器"
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "serde_short_text",
+    "tx_ms": 8.24,
+    "reference_ms": 0.902,
+    "reference": "GCC C++",
+    "ratio": 9.135254988913525,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "serde_short_text",
+    "tx_ms": 8.445,
+    "reference_ms": 0.947,
+    "reference": "clang C++",
+    "ratio": 8.917634635691659,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_short_text",
+    "tx_ms": 8.467,
+    "reference_ms": 0.956,
+    "reference": "C++",
+    "ratio": 8.856694560669457,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_literal",
+    "tx_ms": 6.735,
+    "reference_ms": 0.801,
+    "reference": "C++",
+    "ratio": 8.408239700374532,
+    "note": "C++ 直接拼接固定内容，不是通用格式器"
+  },
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "tx_ms": 16.537,
+    "reference_ms": 2.1141,
+    "reference": "Java",
+    "ratio": 7.822241142803083,
+    "note": "Java 显式 close 回调，不是 JVM 确定性析构"
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "tx_ms": 13.14,
+    "reference_ms": 1.71,
+    "reference": "C++",
+    "ratio": 7.68421052631579,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "tx_ms": 12.543000000000001,
+    "reference_ms": 1.6927,
+    "reference": "C++",
+    "ratio": 7.410054941808944,
+    "note": "参考不执行 TX 动态命名实参绑定"
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "tx_ms": 7.241,
+    "reference_ms": 0.98,
+    "reference": "C++",
+    "ratio": 7.3887755102040815,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "format_dynamic",
+    "tx_ms": 6.733,
+    "reference_ms": 0.934,
+    "reference": "clang C++",
+    "ratio": 7.208779443254818,
+    "note": "TX 局部不可变模板；C++ 仅实现本负载的两占位符格式"
+  },
+  {
+    "suite": "audit/compute",
+    "name": "regex_search",
+    "tx_ms": 54.007,
+    "reference_ms": 7.625,
+    "reference": "Java",
+    "ratio": 7.082885245901639,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_dynamic",
+    "tx_ms": 7.248,
+    "reference_ms": 1.034,
+    "reference": "C++",
+    "ratio": 7.009671179883946,
+    "note": "局部不可变模板，不能代表真正动态格式化；C++ 仅实现本负载的两占位符格式"
+  },
+  {
+    "suite": "audit/compute",
+    "name": "decimal_add",
+    "tx_ms": 19.5,
+    "reference_ms": 2.848,
+    "reference": "Java",
+    "ratio": 6.846910112359551,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_parameter",
+    "tx_ms": 22.387,
+    "reference_ms": 3.349,
+    "reference": "C++",
+    "ratio": 6.684681994625261,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_alternating",
+    "tx_ms": 22.498,
+    "reference_ms": 3.372,
+    "reference": "C++",
+    "ratio": 6.672004744958482,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "format_dynamic",
+    "tx_ms": 6.88,
+    "reference_ms": 1.049,
+    "reference": "GCC C++",
+    "ratio": 6.558627264061011,
+    "note": "TX 局部不可变模板；C++ 仅实现本负载的两占位符格式"
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "tx_ms": 6.463,
+    "reference_ms": 0.994,
+    "reference": "C++",
+    "ratio": 6.502012072434607,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "copy_cycle",
+    "tx_ms": 12.211,
+    "reference_ms": 1.9034,
+    "reference": "C++",
+    "ratio": 6.41536198381843,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "random",
+    "tx_ms": 2.0,
+    "reference_ms": 0.3332,
+    "reference": "C++",
+    "ratio": 6.002400960384154,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "serde_long_text",
+    "tx_ms": 26.069,
+    "reference_ms": 4.376,
+    "reference": "GCC C++",
+    "ratio": 5.957266910420475,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "string_conversion",
+    "tx_ms": 17.107,
+    "reference_ms": 2.9613,
+    "reference": "C++",
+    "ratio": 5.7768547597339,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_long_text",
+    "tx_ms": 26.261,
+    "reference_ms": 4.557,
+    "reference": "C++",
+    "ratio": 5.762782532367785,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "serde_long_text",
+    "tx_ms": 26.353,
+    "reference_ms": 4.953,
+    "reference": "clang C++",
+    "ratio": 5.320613769432667,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "bytes_hex",
+    "tx_ms": 9.441,
+    "reference_ms": 1.816,
+    "reference": "C++",
+    "ratio": 5.198788546255507,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "regex_search",
+    "tx_ms": 54.007,
+    "reference_ms": 10.604,
+    "reference": "C++",
+    "ratio": 5.093078083741984,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "env_get",
+    "tx_ms": 14.391,
+    "reference_ms": 2.938,
+    "reference": "Java",
+    "ratio": 4.898230088495575,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "decimal_add",
+    "tx_ms": 19.5,
+    "reference_ms": 4.086,
+    "reference": "Python",
+    "ratio": 4.772393538913362,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "parse_int",
+    "tx_ms": 11.998,
+    "reference_ms": 2.529,
+    "reference": "Java",
+    "ratio": 4.744167655199684,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_128",
+    "tx_ms": 1.691,
+    "reference_ms": 0.357,
+    "reference": "clang C++",
+    "ratio": 4.7366946778711485,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "queue_push_pop",
+    "tx_ms": 1.389,
+    "reference_ms": 0.295,
+    "reference": "C++",
+    "ratio": 4.708474576271187,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "encoding_dynamic",
+    "tx_ms": 12.218,
+    "reference_ms": 2.721,
+    "reference": "GCC C++",
+    "ratio": 4.490260933480338,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "encoding_literal",
+    "tx_ms": 12.933,
+    "reference_ms": 2.939,
+    "reference": "GCC C++",
+    "ratio": 4.40047635250085,
+    "note": ""
+  },
+  {
+    "suite": "契约/graph_contract",
+    "name": "graph_copy",
+    "tx_ms": 10.086,
+    "reference_ms": 2.295,
+    "reference": "C++",
+    "ratio": 4.394771241830066,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_literal",
+    "tx_ms": 12.564,
+    "reference_ms": 2.878,
+    "reference": "C++",
+    "ratio": 4.365531619179986,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "encoding_dynamic",
+    "tx_ms": 12.516,
+    "reference_ms": 2.902,
+    "reference": "clang C++",
+    "ratio": 4.31288766368022,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "string",
+    "tx_ms": 10.0,
+    "reference_ms": 2.322,
+    "reference": "C++",
+    "ratio": 4.306632213608958,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "encoding_literal",
+    "tx_ms": 12.903,
+    "reference_ms": 2.999,
+    "reference": "clang C++",
+    "ratio": 4.302434144714905,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_dynamic",
+    "tx_ms": 12.601,
+    "reference_ms": 2.945,
+    "reference": "C++",
+    "ratio": 4.278777589134126,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_methods",
+    "tx_ms": 0.68,
+    "reference_ms": 0.1653,
+    "reference": "C++",
+    "ratio": 4.113732607380521,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_1k",
+    "tx_ms": 0.261,
+    "reference_ms": 0.065,
+    "reference": "clang C++",
+    "ratio": 4.015384615384615,
+    "note": ""
+  },
+  {
+    "suite": "长随机数",
+    "name": "random_long",
+    "tx_ms": 34.0,
+    "reference_ms": 8.5089,
+    "reference": "C++",
+    "ratio": 3.9958161454477072,
+    "note": ""
+  },
+  {
+    "suite": "网络观察",
+    "name": "requests_get / http_get",
+    "tx_ms": 1086.811,
+    "reference_ms": 275.237,
+    "reference": "Java",
+    "ratio": 3.948636992846165,
+    "note": "客户端实现与生命周期不同，仅作 HTTP 端到端观察"
+  },
+  {
+    "suite": "audit/compute",
+    "name": "regex_search",
+    "tx_ms": 54.007,
+    "reference_ms": 13.845,
+    "reference": "Python",
+    "ratio": 3.9008306247742865,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "tx_ms": 16.537,
+    "reference_ms": 4.2705,
+    "reference": "Python",
+    "ratio": 3.872380283339187,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deep_copy",
+    "tx_ms": 27.608,
+    "reference_ms": 7.169,
+    "reference": "Java",
+    "ratio": 3.851025247593807,
+    "note": "参考只复制已知形状；通用图复制另见新增契约"
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_8192",
+    "tx_ms": 2.175,
+    "reference_ms": 0.571,
+    "reference": "clang C++",
+    "ratio": 3.809106830122592,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_push",
+    "tx_ms": 1.883,
+    "reference_ms": 0.502,
+    "reference": "C++",
+    "ratio": 3.750996015936255,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_destructure",
+    "tx_ms": 4.066,
+    "reference_ms": 1.1049,
+    "reference": "C++",
+    "ratio": 3.6799710381029955,
+    "note": ""
+  },
+  {
+    "suite": "校准/statistics",
+    "name": "statistics_mean",
+    "tx_ms": 10.653,
+    "reference_ms": 2.901,
+    "reference": "GCC C++",
+    "ratio": 3.6721820062047574,
+    "note": ""
+  },
+  {
+    "suite": "网络观察",
+    "name": "httpx_get / http_get",
+    "tx_ms": 1010.161,
+    "reference_ms": 275.237,
+    "reference": "Java",
+    "ratio": 3.6701497255092876,
+    "note": "客户端实现与生命周期不同，仅作 HTTP 端到端观察"
+  },
+  {
+    "suite": "audit/compute",
+    "name": "random_int",
+    "tx_ms": 1.357,
+    "reference_ms": 0.378,
+    "reference": "C++",
+    "ratio": 3.5899470899470898,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "tx_ms": 12.543000000000001,
+    "reference_ms": 3.518,
+    "reference": "Python",
+    "ratio": 3.565378055713474,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "tx_ms": 6.463,
+    "reference_ms": 1.891,
+    "reference": "Python",
+    "ratio": 3.4177683765203595,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "tx_ms": 4.814,
+    "reference_ms": 1.424,
+    "reference": "C++",
+    "ratio": 3.38061797752809,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_operator",
+    "tx_ms": 0.808,
+    "reference_ms": 0.2409,
+    "reference": "C++",
+    "ratio": 3.3540888335408887,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "tx_ms": 7.241,
+    "reference_ms": 2.182,
+    "reference": "JavaScript",
+    "ratio": 3.3185151237396884,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "tx_ms": 6.463,
+    "reference_ms": 1.954,
+    "reference": "JavaScript",
+    "ratio": 3.3075742067553735,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "iterator_snapshot",
+    "tx_ms": 0.163,
+    "reference_ms": 0.053,
+    "reference": "C++",
+    "ratio": 3.0754716981132075,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "tx_ms": 13.14,
+    "reference_ms": 4.361,
+    "reference": "Python",
+    "ratio": 3.0130703966980055,
+    "note": ""
+  }
+]

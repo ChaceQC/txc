@@ -181,10 +181,9 @@ int send(const void* value, value_type item, std::int64_t timeout_ms,
     });
 }
 
-template<class value_type>
-int recv(const void* value, std::int64_t timeout_ms,
-         const void* token, const char* option_name,
-         void** result) noexcept
+template<class value_type, class receiver>
+int recv_into(const void* value, std::int64_t timeout_ms,
+              const void* token, receiver receive) noexcept
 {
     return invoke_checked([&]
     {
@@ -196,18 +195,15 @@ int recv(const void* value, std::int64_t timeout_ms,
             if (!state->queue.empty())
             {
                 auto item = state->queue.front();
-                auto* output = make_handle<std::any>(
-                    option_value(option_name, true, item));
+                receive(true, item);
                 state->queue.pop_front();
                 lock.unlock();
                 state->can_send.notify_one();
-                *result = output;
                 return;
             }
             if (state->closed)
             {
-                *result = make_handle<std::any>(
-                    option_value(option_name, false, {}));
+                receive(false, value_type{});
                 return;
             }
             check_cancel(token);
@@ -219,6 +215,33 @@ int recv(const void* value, std::int64_t timeout_ms,
             state->can_recv.wait_until(lock, next_wake(limit));
         }
     });
+}
+
+template<class value_type>
+int recv(const void* value, std::int64_t timeout_ms,
+         const void* token, const char* option_name, void** result) noexcept
+{
+    return recv_into<value_type>(value, timeout_ms, token,
+        [&](bool present, const value_type& item)
+        {
+            *result = make_handle<std::any>(option_value(option_name, present, item));
+        });
+}
+
+template<class value_type>
+int recv_required(const void* value, std::int64_t timeout_ms,
+                  const void* token, value_type* result) noexcept
+{
+    return recv_into<value_type>(value, timeout_ms, token,
+        [&](bool present, value_type item)
+        {
+            if (!present)
+            {
+                throw tx_generated::runtime_failure({tx::error_kind::runtime,
+                    "invalid_state", "空 option 没有值"});
+            }
+            *result = item;
+        });
 }
 
 template<class value_type>
@@ -316,6 +339,11 @@ int select_channels(const void* values, std::int64_t timeout_ms,
 } // namespace
 
 #define TX_CHANNEL_ABI(SUFFIX, TYPE) \
+extern "C" int txrt_channel_recv_required_##SUFFIX(const void* channel, \
+    std::int64_t timeout_ms, const void* token, TYPE* result) noexcept \
+{ \
+    return recv_required<TYPE>(channel, timeout_ms, token, result); \
+} \
 extern "C" int txrt_channel_bounded_##SUFFIX(std::int64_t capacity, \
     void** result) noexcept \
 { \

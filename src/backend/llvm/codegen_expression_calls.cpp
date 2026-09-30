@@ -767,6 +767,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
             { return value.kind != argument_kind::positional; });
     if (target.external)
     {
+        if (auto logged = emit_lazy_log(item, call, target))
+        {
+            return *logged;
+        }
         if (auto formatted = emit_static_format(item, call, target))
         {
             return *formatted;

@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include <algorithm>
 
 namespace tx
 {
@@ -21,6 +22,13 @@ declare i32 @txrt_option_unpack_i64(ptr, ptr, ptr)
 declare i32 @txrt_option_unpack_f64(ptr, ptr, ptr)
 declare i32 @txrt_option_unpack_bool(ptr, ptr, ptr)
 declare i32 @txrt_option_empty_error()
+declare i32 @txrt_db_get_int_required(ptr, i64, ptr)
+declare i32 @txrt_db_get_float_required(ptr, i64, ptr)
+declare i32 @txrt_db_get_bool_required(ptr, i64, ptr)
+declare i32 @txrt_db_get_str_required(ptr, i64, ptr)
+declare i32 @txrt_channel_recv_required_i64(ptr, i64, ptr, ptr)
+declare i32 @txrt_channel_recv_required_f64(ptr, i64, ptr, ptr)
+declare i32 @txrt_channel_recv_required_bool(ptr, i64, ptr, ptr)
 declare i32 @txrt_option_value_or(ptr, ptr, ptr)
 declare i32 @txrt_result_value(ptr, ptr)
 declare i32 @txrt_result_error(ptr, ptr)
@@ -33,6 +41,66 @@ llvm_code_generator::ir_value llvm_code_generator::emit_sum_call(
     if (const auto native = emit_native_option_method(item, call))
     {
         return *native;
+    }
+    // 临时 option 没有身份或别名观察点，直接读取列并执行原有空值检查。
+    // 实参仍按源码顺序求值，错误位置保持为外层 value() 调用位置。
+    if (call.receiver && call.receiver->type.is_option() && call.name == "value")
+    {
+        const auto* inner = std::get_if<call_expression>(&call.receiver->data);
+        const bool positional = inner && std::all_of(inner->arguments.begin(),
+            inner->arguments.end(), [](const call_argument& argument)
+            {
+                return argument.kind == argument_kind::positional;
+            });
+        if (positional && inner->overload_index && !inner->receiver &&
+            inner->arguments.size() == 3 && functions_.contains(inner->name) &&
+            scalar_option_suffix(item.type))
+        {
+            const auto& target = *functions_.at(inner->name).at(*inner->overload_index);
+            if (target.external && target.external_name == "channel.recv")
+            {
+                const auto channel = call_argument_value(*inner, 0);
+                const auto timeout = call_argument_value(*inner, 1);
+                const auto token = call_argument_value(*inner, 2);
+                const auto output = allocate(item.type, item.position);
+                const auto status = temporary();
+                write_instruction(status + " = call i32 @txrt_channel_recv_required_" +
+                    scalar_option_suffix(item.type) + "(ptr " + channel.text +
+                    ", i64 " + timeout.text + ", ptr " + token.text + ", ptr " + output + ")");
+                write_instruction("call void @txrt_require_success(i32 " + status + ")");
+                release(channel);
+                release(timeout);
+                release(token);
+                return load({item.type, output});
+            }
+        }
+        if (positional && inner->overload_index && !inner->receiver &&
+            inner->arguments.size() == 2 && functions_.contains(inner->name))
+        {
+            const auto& target = *functions_.at(inner->name).at(*inner->overload_index);
+            const auto& name = target.external_name;
+            if (target.external && (name == "db.get_int" || name == "db.get_float" ||
+                name == "db.get_bool" || name == "db.get_str"))
+            {
+                const auto row = call_argument_value(*inner, 0);
+                const auto index = call_argument_value(*inner, 1);
+                const auto output = allocate(item.type, item.position);
+                const auto status = temporary();
+                write_instruction(status + " = call i32 @txrt_db_" + name.substr(3) +
+                    "_required(ptr " + row.text + ", i64 " + index.text +
+                    ", ptr " + output + ")");
+                write_instruction("call void @txrt_require_success(i32 " + status + ")");
+                release(row);
+                release(index);
+                if (item.type == value_type::str_type)
+                {
+                    const auto value = temporary();
+                    write_instruction(value + " = load ptr, ptr " + output);
+                    return {item.type, value};
+                }
+                return load({item.type, output});
+            }
+        }
     }
     const auto& type = call.container_type ? *call.container_type : call.receiver->type;
     const auto& element = type.parameters.front();
@@ -180,6 +248,12 @@ llvm_code_generator::ir_value llvm_code_generator::emit_sum_call(
     }
     const auto handle = temporary();
     write_instruction(handle + " = load ptr, ptr " + output);
+    if (is_value_handle(item.type))
+    {
+        // option/result 的元素类型已由语义分析确定，取值 ABI 已产生独立根。
+        // 直接交付该根，避免将它当作动态 cast 再检查并复制一次。
+        return {item.type, handle};
+    }
     const ir_value dynamic{value_type::any_type, handle};
     const auto result = from_any(dynamic,
         call.name == "error" ? item.type : element, item.position);

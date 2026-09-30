@@ -36,10 +36,14 @@ bool llvm_code_generator::rebinds_name(const std::vector<stmt_ptr>& body,
         }
         if (const auto* unpack = std::get_if<unpack_assignment>(&item->data))
         {
-            if (std::find(unpack->names.begin(), unpack->names.end(), name) !=
-                unpack->names.end())
+            for (std::size_t index = 0; index < unpack->names.size(); ++index)
             {
-                return true;
+                // 首次解构声明不会覆盖已有根；把声明计为重绑定会立即
+                // 装箱刚建立的标量快照，连只读局部数组也退回堆句柄。
+                if (!unpack->declares[index] && unpack->names[index] == name)
+                {
+                    return true;
+                }
             }
         }
         if (const auto* branch = std::get_if<if_statement>(&item->data))

@@ -61,6 +61,30 @@ void exercise(const tx_generated::byte_value& leaf,
     tx_generated::secret::close(private_key);
 }
 
+void check_context_isolation(const tx_generated::byte_value& leaf,
+    const tx_generated::bytes_vector& intermediate,
+    const tx_generated::bytes_vector& roots)
+{
+    using tx_generated::x509::verify;
+    // 命中同一引擎后仍重验主机名和用途，不缓存验证结论。
+    if (verify(leaf, intermediate, roots, "wrong.example", "server_auth", false).status !=
+            "hostname_mismatch" ||
+        verify(leaf, intermediate, roots, "", "client_auth", false).status != "wrong_purpose")
+    {
+        throw std::runtime_error("cached verifier skipped policy checks");
+    }
+    tx_generated::bytes_vector empty;
+    if (verify(leaf, empty, roots, "service.example", "server_auth", false).status == "valid" ||
+        verify(leaf, intermediate, empty, "service.example", "server_auth", false).status == "valid")
+    {
+        throw std::runtime_error("cached verifier leaked intermediates or trust anchors");
+    }
+    if (verify(leaf, intermediate, roots, "service.example", "server_auth", false).status != "valid")
+    {
+        throw std::runtime_error("cached verifier failed after policy error");
+    }
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -84,6 +108,7 @@ int main(int argc, char** argv)
         auto password = tx_generated::secret::from_bytes(
             tx_generated::make_bytes({text.begin(), text.end()}));
         exercise(leaf, intermediate, roots, package, password);
+        check_context_isolation(leaf, intermediate, roots);
         const auto before = handle_count();
         for (int index = 0; index < 20; ++index)
         {

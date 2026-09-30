@@ -403,6 +403,8 @@ private:
         const function_decl& target, const std::vector<ir_value>& arguments);
     [[nodiscard]] ir_value call_argument_value(const call_expression& call,
                                                std::size_t index);
+    [[nodiscard]] std::optional<ir_value> emit_lazy_log(
+        const expression& item, const call_expression& call, const function_decl& target);
     [[nodiscard]] ir_value emit_direct_external_call(
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
@@ -545,7 +547,8 @@ private:
     void emit_native_closure_adapter(const std::string& name,
                                      const value_type& type, bool bound);
     void emit_typed_bind_wrapper(const std::string& name,
-                                 const value_type& parent_type, std::size_t captured);
+        const value_type& parent_type, std::size_t captured,
+        const function_decl* direct_target = nullptr);
     void cache_closure_local(variable_slot& slot, const variable_declaration& declaration,
                              const std::string& value);
     void write_callback_releases(const function_decl& function,

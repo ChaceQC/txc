@@ -1,0 +1,200 @@
+[
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "tx_ms": 88.653,
+    "reference_ms": 0.3715,
+    "reference": "C++",
+    "ratio": 238.63526244952897,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "atomic_add",
+    "tx_ms": 18.229,
+    "reference_ms": 0.1753,
+    "reference": "C++",
+    "ratio": 103.98745008556759,
+    "note": "C++ std::atomic、Java AtomicLong；Python 没有对应公开原子整数，使用 Lock 实现线程安全加法，不能当成原子指令性能。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_filtered",
+    "tx_ms": 45.575,
+    "reference_ms": 0.4428,
+    "reference": "C++",
+    "ratio": 102.92457091237578,
+    "note": "采用校准样本：C++ 调用真实 TX 日志后端级别检查，Java Logger，Python logging；各参考仅在级别允许时构造字段，TX 另有闭包/错误边界。废弃初版 C++ volatile 检查倍率。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "tx_ms": 4.389,
+    "reference_ms": 0.056,
+    "reference": "C++",
+    "ratio": 78.375,
+    "note": "固定 seed=1000，参考保留两个回调；本负载不执行失败缩减。TX 还保留受检回调及测试错误处理。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "tx_ms": 4.361,
+    "reference_ms": 0.0583,
+    "reference": "C++",
+    "ratio": 74.80274442538594,
+    "note": "参考使用 std::function / IntConsumer / Python 函数；TX 含真实测试框架和受检回调。参考没有 TX 错误上下文，不外推到失败报告。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "channel_send_recv",
+    "tx_ms": 21.7,
+    "reference_ms": 0.792,
+    "reference": "C++",
+    "ratio": 27.398989898989896,
+    "note": "C++ mutex/condition_variable 队列；Java ArrayBlockingQueue；Python Queue。都是立即成功路径；TX 另有取消及句柄规则，不代表多生产者吞吐。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "atomic_add",
+    "tx_ms": 18.229,
+    "reference_ms": 0.8927999999999999,
+    "reference": "Java",
+    "ratio": 20.417786738351257,
+    "note": "C++ std::atomic、Java AtomicLong；Python 没有对应公开原子整数，使用 Lock 实现线程安全加法，不能当成原子指令性能。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "tx_ms": 88.653,
+    "reference_ms": 6.0652,
+    "reference": "Java",
+    "ratio": 14.616665567499837,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_filtered",
+    "tx_ms": 45.575,
+    "reference_ms": 4.1523,
+    "reference": "Java",
+    "ratio": 10.975844712568938,
+    "note": "采用校准样本：C++ 调用真实 TX 日志后端级别检查，Java Logger，Python logging；各参考仅在级别允许时构造字段，TX 另有闭包/错误边界。废弃初版 C++ volatile 检查倍率。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "tls_handshake",
+    "tx_ms": 266.349,
+    "reference_ms": 26.9508,
+    "reference": "C++",
+    "ratio": 9.882786410792999,
+    "note": "全部验证临时 CA 和 localhost，禁用服务端票据，Java 每次废弃 session；TX mbedTLS，C++/Python OpenSSL，Java JSSE。配置在计时外，库内部握手上下文分配计时。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_read",
+    "tx_ms": 70.523,
+    "reference_ms": 9.1225,
+    "reference": "C++",
+    "ratio": 7.730665935872841,
+    "note": "C++ 使用同一后端及行快照；Java JDBC、Python sqlite3。TX/C++ 差值包含 ABI、option、行读取接口与生成代码开销。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_read",
+    "tx_ms": 70.523,
+    "reference_ms": 9.744200000000001,
+    "reference": "Python",
+    "ratio": 7.237433550214486,
+    "note": "C++ 使用同一后端及行快照；Java JDBC、Python sqlite3。TX/C++ 差值包含 ABI、option、行读取接口与生成代码开销。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_filtered",
+    "tx_ms": 45.575,
+    "reference_ms": 6.5266,
+    "reference": "Python",
+    "ratio": 6.982962032298594,
+    "note": "采用校准样本：C++ 调用真实 TX 日志后端级别检查，Java Logger，Python logging；各参考仅在级别允许时构造字段，TX 另有闭包/错误边界。废弃初版 C++ volatile 检查倍率。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "channel_send_recv",
+    "tx_ms": 21.7,
+    "reference_ms": 3.7095,
+    "reference": "Java",
+    "ratio": 5.849844992586602,
+    "note": "C++ mutex/condition_variable 队列；Java ArrayBlockingQueue；Python Queue。都是立即成功路径；TX 另有取消及句柄规则，不代表多生产者吞吐。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "tx_ms": 88.653,
+    "reference_ms": 15.4569,
+    "reference": "Python",
+    "ratio": 5.735496768433515,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_insert",
+    "tx_ms": 11.518,
+    "reference_ms": 2.0173,
+    "reference": "Python",
+    "ratio": 5.709611857433202,
+    "note": "C++ 直接调用 TX 的同一 C++ 数据库后端；Java SQLite JDBC；Python sqlite3。SQLite 版本不同，事务内逐条执行，不使用批插入。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "tx_ms": 4.361,
+    "reference_ms": 0.8382000000000001,
+    "reference": "Java",
+    "ratio": 5.202815557146265,
+    "note": "参考使用 std::function / IntConsumer / Python 函数；TX 含真实测试框架和受检回调。参考没有 TX 错误上下文，不外推到失败报告。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_read",
+    "tx_ms": 87.601,
+    "reference_ms": 17.7608,
+    "reference": "Python",
+    "ratio": 4.932266564569163,
+    "note": "TX/C++ libpq 单行模式；Java/Python 默认结果获取策略不同。C++ 同后端可用于定位包装层开销，跨驱动比例是端到端负载观察。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "tx_ms": 4.389,
+    "reference_ms": 1.1069,
+    "reference": "Java",
+    "ratio": 3.9651278344927277,
+    "note": "固定 seed=1000，参考保留两个回调；本负载不执行失败缩减。TX 还保留受检回调及测试错误处理。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_read",
+    "tx_ms": 87.601,
+    "reference_ms": 23.1595,
+    "reference": "C++",
+    "ratio": 3.782508257950301,
+    "note": "TX/C++ libpq 单行模式；Java/Python 默认结果获取策略不同。C++ 同后端可用于定位包装层开销，跨驱动比例是端到端负载观察。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_savepoint",
+    "tx_ms": 2.536,
+    "reference_ms": 0.6738999999999999,
+    "reference": "Python",
+    "ratio": 3.7631696097343825,
+    "note": "C++ 同后端；Java JDBC、Python sqlite3；在内存库中测量，不表示持久化落盘吞吐。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "tls_handshake",
+    "tx_ms": 266.349,
+    "reference_ms": 72.7345,
+    "reference": "Python",
+    "ratio": 3.661934845224756,
+    "note": "全部验证临时 CA 和 localhost，禁用服务端票据，Java 每次废弃 session；TX mbedTLS，C++/Python OpenSSL，Java JSSE。配置在计时外，库内部握手上下文分配计时。"
+  }
+]

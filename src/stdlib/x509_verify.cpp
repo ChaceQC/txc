@@ -1,4 +1,5 @@
 #include "stdlib/x509_win.hpp"
+#include "stdlib/x509_verification_context.hpp"
 
 #include "stdlib/error.hpp"
 
@@ -10,35 +11,6 @@ namespace tx_generated::x509
 #ifdef _WIN32
 namespace
 {
-
-void add_certificate(HCERTSTORE store, const byte_value& data)
-{
-    auto parsed = certificate(data);
-    if (!CertAddCertificateContextToStore(store, parsed.get(),
-            CERT_STORE_ADD_USE_EXISTING, nullptr))
-    {
-        fail("operation_failed", "添加证书到验证存储失败");
-    }
-}
-
-void add_system_roots(HCERTSTORE roots, DWORD location)
-{
-    store_ptr system(CertOpenStore(CERT_STORE_PROV_SYSTEM_W, 0, 0,
-        location | CERT_STORE_READONLY_FLAG, L"ROOT"));
-    if (!system)
-    {
-        fail("operation_failed", "读取系统根证书存储失败");
-    }
-    certificate_cursor cursor;
-    while (const auto* current = cursor.next(system.get()))
-    {
-        if (!CertAddCertificateContextToStore(roots, current,
-                CERT_STORE_ADD_USE_EXISTING, nullptr))
-        {
-            fail("operation_failed", "加入系统信任锚失败");
-        }
-    }
-}
 
 const char* usage_oid(std::string_view purpose)
 {
@@ -160,33 +132,8 @@ verification verify(const byte_value& leaf, const bytes_vector& intermediates,
         fail("size_limit", "中间证书或信任锚超过 64 张");
     }
 
-    auto leaf_context = certificate(leaf);
-    auto additional = memory_store();
-    for (const auto& item : intermediates.data().values)
-    {
-        add_certificate(additional.get(), item);
-    }
-    auto roots = memory_store();
-    for (const auto& item : trust_anchors.data().values)
-    {
-        add_certificate(roots.get(), item);
-    }
-    if (system_trust)
-    {
-        add_system_roots(roots.get(), CERT_SYSTEM_STORE_CURRENT_USER);
-        add_system_roots(roots.get(), CERT_SYSTEM_STORE_LOCAL_MACHINE);
-    }
-
-    CERT_CHAIN_ENGINE_CONFIG engine_config{};
-    engine_config.cbSize = sizeof(engine_config);
-    // 只把显式加入的根视为锚；中间证书存储不授予信任。
-    engine_config.hExclusiveRoot = roots.get();
-    HCERTCHAINENGINE raw_engine = nullptr;
-    if (!CertCreateCertificateChainEngine(&engine_config, &raw_engine))
-    {
-        fail("operation_failed", "创建证书链引擎失败");
-    }
-    engine_ptr engine(raw_engine);
+    auto context = acquire_verification_context(leaf, intermediates, trust_anchors, system_trust);
+    std::lock_guard lock(context->mutex);
 
     char* requested_oid = const_cast<char*>(oid);
     CERT_CHAIN_PARA chain_parameters{};
@@ -197,8 +144,9 @@ verification verify(const byte_value& leaf, const bytes_vector& intermediates,
     PCCERT_CHAIN_CONTEXT raw_chain = nullptr;
     constexpr DWORD flags = CERT_CHAIN_CACHE_ONLY_URL_RETRIEVAL |
         CERT_CHAIN_DISABLE_AUTH_ROOT_AUTO_UPDATE;
-    if (!CertGetCertificateChain(engine.get(), leaf_context.get(), nullptr,
-            additional.get(), &chain_parameters, flags, nullptr, &raw_chain))
+    // 只复用解析和引擎，每次仍按当前时间、用途和主机名重新验证。
+    if (!CertGetCertificateChain(context->engine.get(), context->leaf.get(), nullptr,
+            context->additional.get(), &chain_parameters, flags, nullptr, &raw_chain))
     {
         fail("operation_failed", "构建证书链失败");
     }

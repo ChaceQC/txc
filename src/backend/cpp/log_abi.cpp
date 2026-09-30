@@ -109,9 +109,18 @@ extern "C" int txrt_log_flush() noexcept
 
 extern "C" int txrt_log_enabled(const void* level, bool* result) noexcept
 {
-    return invoke_checked([&]
+    return tx_generated::detail::invoke_leaf([&]
     {
         *result = tx_generated::tx_log_enabled(text(level));
+    });
+}
+
+extern "C" int txrt_log_enabled_literal(const char* level, std::uint64_t length,
+    bool* result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_log_enabled(std::string(level, length));
     });
 }
 

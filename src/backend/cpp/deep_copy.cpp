@@ -35,6 +35,15 @@ public:
         {
             return value;
         }
+        // 通用对象图的数组和字典优先处理，不先试探全部向量实例化类型。
+        if (const auto* array = std::any_cast<tx_array>(&value))
+        {
+            return copy_array(*array);
+        }
+        if (const auto* dictionary = std::any_cast<tx_dict>(&value))
+        {
+            return copy_dict(*dictionary);
+        }
         if (const auto* container = std::any_cast<container_handle>(&value))
         {
             return copy_container(*container);
@@ -67,14 +76,6 @@ public:
         }))
         {
             return vector_result;
-        }
-        if (value.type() == typeid(tx_array))
-        {
-            return copy_array(std::any_cast<const tx_array&>(value));
-        }
-        if (value.type() == typeid(tx_dict))
-        {
-            return copy_dict(std::any_cast<const tx_dict&>(value));
         }
         if (value.type() == typeid(dynamic_struct))
         {

@@ -1,0 +1,470 @@
+{
+  "concurrency": {
+    "old": [
+      {
+        "wall_ms": 222.15950000099838,
+        "cases": {
+          "thread_spawn_join": {
+            "ms": 14.89,
+            "checksum": 100
+          },
+          "mutex_uncontended": {
+            "ms": 133.438,
+            "checksum": 100000
+          },
+          "atomic_add": {
+            "ms": 21.536,
+            "checksum": 100000
+          },
+          "channel_send_recv": {
+            "ms": 21.57,
+            "checksum": 200010000
+          },
+          "task_spawn_wait": {
+            "ms": 7.889,
+            "checksum": 500
+          }
+        }
+      },
+      {
+        "wall_ms": 179.86540007404983,
+        "cases": {
+          "thread_spawn_join": {
+            "ms": 16.114,
+            "checksum": 100
+          },
+          "mutex_uncontended": {
+            "ms": 92.539,
+            "checksum": 100000
+          },
+          "atomic_add": {
+            "ms": 18.259,
+            "checksum": 100000
+          },
+          "channel_send_recv": {
+            "ms": 21.679,
+            "checksum": 200010000
+          },
+          "task_spawn_wait": {
+            "ms": 7.762,
+            "checksum": 500
+          }
+        }
+      },
+      {
+        "wall_ms": 185.64769998192787,
+        "cases": {
+          "thread_spawn_join": {
+            "ms": 15.321,
+            "checksum": 100
+          },
+          "mutex_uncontended": {
+            "ms": 96.588,
+            "checksum": 100000
+          },
+          "atomic_add": {
+            "ms": 18.53,
+            "checksum": 100000
+          },
+          "channel_send_recv": {
+            "ms": 22.687,
+            "checksum": 200010000
+          },
+          "task_spawn_wait": {
+            "ms": 7.939,
+            "checksum": 500
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "wall_ms": 87.71640004124492,
+        "cases": {
+          "thread_spawn_join": {
+            "ms": 13.609,
+            "checksum": 100
+          },
+          "mutex_uncontended": {
+            "ms": 38.29,
+            "checksum": 100000
+          },
+          "atomic_add": {
+            "ms": 0.455,
+            "checksum": 100000
+          },
+          "channel_send_recv": {
+            "ms": 2.0,
+            "checksum": 200010000
+          },
+          "task_spawn_wait": {
+            "ms": 8.689,
+            "checksum": 500
+          }
+        }
+      },
+      {
+        "wall_ms": 86.35130000766367,
+        "cases": {
+          "thread_spawn_join": {
+            "ms": 14.79,
+            "checksum": 100
+          },
+          "mutex_uncontended": {
+            "ms": 37.362,
+            "checksum": 100000
+          },
+          "atomic_add": {
+            "ms": 0.452,
+            "checksum": 100000
+          },
+          "channel_send_recv": {
+            "ms": 2.04,
+            "checksum": 200010000
+          },
+          "task_spawn_wait": {
+            "ms": 7.906,
+            "checksum": 500
+          }
+        }
+      },
+      {
+        "wall_ms": 98.26350002549589,
+        "cases": {
+          "thread_spawn_join": {
+            "ms": 14.911,
+            "checksum": 100
+          },
+          "mutex_uncontended": {
+            "ms": 45.955,
+            "checksum": 100000
+          },
+          "atomic_add": {
+            "ms": 0.854,
+            "checksum": 100000
+          },
+          "channel_send_recv": {
+            "ms": 3.414,
+            "checksum": 200010000
+          },
+          "task_spawn_wait": {
+            "ms": 8.377,
+            "checksum": 500
+          }
+        }
+      }
+    ]
+  },
+  "diagnostics": {
+    "old": [
+      {
+        "wall_ms": 115.54040003102273,
+        "cases": {
+          "test_parameterized": {
+            "ms": 4.029,
+            "checksum": 199990000
+          },
+          "test_property": {
+            "ms": 4.443,
+            "checksum": 20000
+          },
+          "log_filtered": {
+            "ms": 46.152,
+            "checksum": 100000
+          },
+          "log_file": {
+            "ms": 26.689,
+            "checksum": 2000
+          }
+        }
+      },
+      {
+        "wall_ms": 118.02489997353405,
+        "cases": {
+          "test_parameterized": {
+            "ms": 4.634,
+            "checksum": 199990000
+          },
+          "test_property": {
+            "ms": 4.347,
+            "checksum": 20000
+          },
+          "log_filtered": {
+            "ms": 46.855,
+            "checksum": 100000
+          },
+          "log_file": {
+            "ms": 27.184,
+            "checksum": 2000
+          }
+        }
+      },
+      {
+        "wall_ms": 114.90600008983165,
+        "cases": {
+          "test_parameterized": {
+            "ms": 3.995,
+            "checksum": 199990000
+          },
+          "test_property": {
+            "ms": 4.196,
+            "checksum": 20000
+          },
+          "log_filtered": {
+            "ms": 46.542,
+            "checksum": 100000
+          },
+          "log_file": {
+            "ms": 26.642,
+            "checksum": 2000
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "wall_ms": 63.272499945014715,
+        "cases": {
+          "test_parameterized": {
+            "ms": 0.54,
+            "checksum": 199990000
+          },
+          "test_property": {
+            "ms": 0.661,
+            "checksum": 20000
+          },
+          "log_filtered": {
+            "ms": 1.043,
+            "checksum": 100000
+          },
+          "log_file": {
+            "ms": 26.627,
+            "checksum": 2000
+          }
+        }
+      },
+      {
+        "wall_ms": 66.25099992379546,
+        "cases": {
+          "test_parameterized": {
+            "ms": 0.387,
+            "checksum": 199990000
+          },
+          "test_property": {
+            "ms": 0.737,
+            "checksum": 20000
+          },
+          "log_filtered": {
+            "ms": 1.127,
+            "checksum": 100000
+          },
+          "log_file": {
+            "ms": 27.448,
+            "checksum": 2000
+          }
+        }
+      },
+      {
+        "wall_ms": 64.6610000403598,
+        "cases": {
+          "test_parameterized": {
+            "ms": 0.39,
+            "checksum": 199990000
+          },
+          "test_property": {
+            "ms": 0.698,
+            "checksum": 20000
+          },
+          "log_filtered": {
+            "ms": 1.047,
+            "checksum": 100000
+          },
+          "log_file": {
+            "ms": 29.191,
+            "checksum": 2000
+          }
+        }
+      }
+    ]
+  },
+  "sqlite": {
+    "old": [
+      {
+        "wall_ms": 247.7489000884816,
+        "cases": {
+          "sqlite_insert": {
+            "ms": 14.902,
+            "checksum": 2000
+          },
+          "sqlite_read": {
+            "ms": 76.13,
+            "checksum": 20150000
+          },
+          "sqlite_savepoint": {
+            "ms": 2.636,
+            "checksum": 100
+          },
+          "sqlite_pool": {
+            "ms": 47.699,
+            "checksum": 4200
+          },
+          "sqlite_async": {
+            "ms": 66.581,
+            "checksum": 4200
+          },
+          "migration_recheck": {
+            "ms": 2.489,
+            "checksum": 100
+          }
+        }
+      },
+      {
+        "wall_ms": 245.39369996637106,
+        "cases": {
+          "sqlite_insert": {
+            "ms": 12.045,
+            "checksum": 2000
+          },
+          "sqlite_read": {
+            "ms": 79.349,
+            "checksum": 20150000
+          },
+          "sqlite_savepoint": {
+            "ms": 2.948,
+            "checksum": 100
+          },
+          "sqlite_pool": {
+            "ms": 46.093,
+            "checksum": 4200
+          },
+          "sqlite_async": {
+            "ms": 65.752,
+            "checksum": 4200
+          },
+          "migration_recheck": {
+            "ms": 2.633,
+            "checksum": 100
+          }
+        }
+      },
+      {
+        "wall_ms": 240.2496999129653,
+        "cases": {
+          "sqlite_insert": {
+            "ms": 11.437,
+            "checksum": 2000
+          },
+          "sqlite_read": {
+            "ms": 74.991,
+            "checksum": 20150000
+          },
+          "sqlite_savepoint": {
+            "ms": 2.708,
+            "checksum": 100
+          },
+          "sqlite_pool": {
+            "ms": 48.912,
+            "checksum": 4200
+          },
+          "sqlite_async": {
+            "ms": 62.754,
+            "checksum": 4200
+          },
+          "migration_recheck": {
+            "ms": 2.197,
+            "checksum": 100
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "wall_ms": 210.73759999126196,
+        "cases": {
+          "sqlite_insert": {
+            "ms": 11.752,
+            "checksum": 2000
+          },
+          "sqlite_read": {
+            "ms": 30.456,
+            "checksum": 20150000
+          },
+          "sqlite_savepoint": {
+            "ms": 3.055,
+            "checksum": 100
+          },
+          "sqlite_pool": {
+            "ms": 52.639,
+            "checksum": 4200
+          },
+          "sqlite_async": {
+            "ms": 68.264,
+            "checksum": 4200
+          },
+          "migration_recheck": {
+            "ms": 2.136,
+            "checksum": 100
+          }
+        }
+      },
+      {
+        "wall_ms": 196.51849998626858,
+        "cases": {
+          "sqlite_insert": {
+            "ms": 11.43,
+            "checksum": 2000
+          },
+          "sqlite_read": {
+            "ms": 28.788,
+            "checksum": 20150000
+          },
+          "sqlite_savepoint": {
+            "ms": 3.051,
+            "checksum": 100
+          },
+          "sqlite_pool": {
+            "ms": 48.738,
+            "checksum": 4200
+          },
+          "sqlite_async": {
+            "ms": 63.34,
+            "checksum": 4200
+          },
+          "migration_recheck": {
+            "ms": 2.126,
+            "checksum": 100
+          }
+        }
+      },
+      {
+        "wall_ms": 212.09160005673766,
+        "cases": {
+          "sqlite_insert": {
+            "ms": 11.392,
+            "checksum": 2000
+          },
+          "sqlite_read": {
+            "ms": 28.507,
+            "checksum": 20150000
+          },
+          "sqlite_savepoint": {
+            "ms": 2.964,
+            "checksum": 100
+          },
+          "sqlite_pool": {
+            "ms": 63.312,
+            "checksum": 4200
+          },
+          "sqlite_async": {
+            "ms": 67.839,
+            "checksum": 4200
+          },
+          "migration_recheck": {
+            "ms": 2.274,
+            "checksum": 100
+          }
+        }
+      }
+    ]
+  }
+}

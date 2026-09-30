@@ -1,0 +1,56 @@
+{
+  "warmups": 1,
+  "rounds": 5,
+  "checksums": {
+    "graph_copy": "12800",
+    "graph_gc": "25600"
+  },
+  "samples_ms": {
+    "tx_runtime": {
+      "graph_copy": [
+        8.967,
+        8.672,
+        8.386,
+        8.897,
+        9.01
+      ],
+      "graph_gc": [
+        8.575,
+        8.545,
+        8.473,
+        8.715,
+        9.026
+      ]
+    },
+    "cpp": {
+      "graph_copy": [
+        1.794,
+        1.754,
+        1.709,
+        1.792,
+        1.853
+      ],
+      "graph_gc": [
+        6.252,
+        5.884,
+        5.77,
+        5.827,
+        6.032
+      ]
+    }
+  },
+  "medians_ms": {
+    "tx_runtime": {
+      "graph_copy": 8.897,
+      "graph_gc": 8.575
+    },
+    "cpp": {
+      "graph_copy": 1.792,
+      "graph_gc": 5.884
+    }
+  },
+  "program_sha256": {
+    "tx_runtime": "00510bad357c31663a817b91d19966cb4bf644023459641d36b13486d8d8077c",
+    "cpp": "00510bad357c31663a817b91d19966cb4bf644023459641d36b13486d8d8077c"
+  }
+}

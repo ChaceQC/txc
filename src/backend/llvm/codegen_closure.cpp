@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include <algorithm>
 
 namespace tx
 {
@@ -202,7 +203,21 @@ llvm_code_generator::ir_value llvm_code_generator::emit_bind_call(
     const auto& parent_type = call.arguments.front().value->type;
     const auto captured_count = call.arguments.size() - 1;
     const auto wrapper = "@tx_bind_" + std::to_string(next_bind_++);
-    emit_typed_bind_wrapper(wrapper, parent_type, captured_count);
+    const auto* parent_name = std::get_if<name_reference>(&call.arguments.front().value->data);
+    const function_decl* direct_target = nullptr;
+    if (parent_name && parent_name->function_value)
+    {
+        const auto* candidate = functions_.at(parent_name->function_symbol).front();
+        if (!candidate->external && std::none_of(candidate->parameters.begin(),
+            candidate->parameters.end(), [&](const parameter& value)
+            {
+                return parameter_is_nullable(value);
+            }))
+        {
+            direct_target = candidate;
+        }
+    }
+    emit_typed_bind_wrapper(wrapper, parent_type, captured_count, direct_target);
 
     const auto parent = expression_value(*call.arguments.front().value);
     std::vector<ir_value> captures;

@@ -293,6 +293,7 @@ add_executable(txc
     src/backend/llvm/codegen_thread.cpp
     src/backend/llvm/codegen_task.cpp
     src/backend/llvm/codegen_sync.cpp
+    src/backend/llvm/codegen_log.cpp
     src/backend/llvm/codegen_channel.cpp
     src/backend/llvm/codegen_serde.cpp
     src/backend/llvm/codegen_format.cpp
@@ -568,6 +569,7 @@ add_library(txstdlib STATIC
     src/stdlib/x509_pkcs12.cpp
     src/stdlib/x509_pkcs8.cpp
     src/stdlib/x509_verify.cpp
+    src/stdlib/x509_verification_context.cpp
     src/stdlib/tls_identity.cpp
     src/stdlib/tls_stream_handshake.cpp
     src/stdlib/tls_stream_io.cpp

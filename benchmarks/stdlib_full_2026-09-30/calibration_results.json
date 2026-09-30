@@ -1,0 +1,620 @@
+{
+  "diagnostics": {
+    "cases": {
+      "test_parameterized": {
+        "TX": {
+          "median_ms": 4.361,
+          "samples_ms": [
+            4.367,
+            3.976,
+            4.43,
+            4.033,
+            4.361
+          ],
+          "checksum": 199990000
+        },
+        "C++": {
+          "median_ms": 0.0583,
+          "samples_ms": [
+            0.1177,
+            0.0615,
+            0.0559,
+            0.053899999999999997,
+            0.0583
+          ],
+          "checksum": 199990000
+        },
+        "Java": {
+          "median_ms": 0.8382000000000001,
+          "samples_ms": [
+            1.0002,
+            0.8165,
+            0.8258,
+            1.1599000000000002,
+            0.8382000000000001
+          ],
+          "checksum": 199990000
+        },
+        "Python": {
+          "median_ms": 1.5620999999999998,
+          "samples_ms": [
+            1.4989000000000001,
+            1.7152,
+            1.5677,
+            1.5620999999999998,
+            1.5349000000000002
+          ],
+          "checksum": 199990000
+        }
+      },
+      "test_property": {
+        "TX": {
+          "median_ms": 4.389,
+          "samples_ms": [
+            4.666,
+            4.492,
+            4.265,
+            4.22,
+            4.389
+          ],
+          "checksum": 20000
+        },
+        "C++": {
+          "median_ms": 0.056,
+          "samples_ms": [
+            0.0719,
+            0.056,
+            0.055600000000000004,
+            0.056,
+            0.056
+          ],
+          "checksum": 20000
+        },
+        "Java": {
+          "median_ms": 1.1069,
+          "samples_ms": [
+            1.1675,
+            1.1069,
+            1.1012,
+            1.1005,
+            1.1344
+          ],
+          "checksum": 20000
+        },
+        "Python": {
+          "median_ms": 2.3272,
+          "samples_ms": [
+            2.3165999999999998,
+            2.3272,
+            2.4038000000000004,
+            2.3256,
+            2.3621
+          ],
+          "checksum": 20000
+        }
+      },
+      "log_filtered": {
+        "TX": {
+          "median_ms": 45.575,
+          "samples_ms": [
+            48.5,
+            49.549,
+            45.402,
+            44.685,
+            45.575
+          ],
+          "checksum": 100000
+        },
+        "C++": {
+          "median_ms": 0.4428,
+          "samples_ms": [
+            0.4166,
+            0.4525,
+            0.4402,
+            0.4428,
+            0.4428
+          ],
+          "checksum": 100000
+        },
+        "Java": {
+          "median_ms": 4.1523,
+          "samples_ms": [
+            5.2331,
+            4.1732,
+            4.1523,
+            3.9604,
+            3.6378000000000004
+          ],
+          "checksum": 100000
+        },
+        "Python": {
+          "median_ms": 6.5266,
+          "samples_ms": [
+            6.416,
+            6.798100000000001,
+            6.5266,
+            7.501,
+            6.481
+          ],
+          "checksum": 100000
+        }
+      },
+      "log_file": {
+        "TX": {
+          "median_ms": 37.05,
+          "samples_ms": [
+            36.269,
+            36.632,
+            38.459,
+            37.05,
+            133.526
+          ],
+          "checksum": 2000
+        },
+        "C++": {
+          "median_ms": 29.157400000000003,
+          "samples_ms": [
+            29.714599999999997,
+            29.8741,
+            28.9428,
+            29.157400000000003,
+            29.0596
+          ],
+          "checksum": 2000
+        },
+        "Java": {
+          "median_ms": 51.9587,
+          "samples_ms": [
+            54.889300000000006,
+            50.4118,
+            51.9169,
+            51.9587,
+            86.35719999999999
+          ],
+          "checksum": 2000
+        },
+        "Python": {
+          "median_ms": 32.7804,
+          "samples_ms": [
+            30.726,
+            32.7804,
+            30.969,
+            66.4559,
+            76.8389
+          ],
+          "checksum": 2000
+        }
+      }
+    },
+    "samples": {
+      "TX": [
+        {
+          "wall_ms": 131.43040001159534,
+          "cases": {
+            "test_parameterized": {
+              "ms": 4.367,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 4.666,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 48.5,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 36.269,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 135.36630000453442,
+          "cases": {
+            "test_parameterized": {
+              "ms": 3.976,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 4.492,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 49.549,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 36.632,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 126.98719999752939,
+          "cases": {
+            "test_parameterized": {
+              "ms": 4.43,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 4.265,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 45.402,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 38.459,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 126.74719997448847,
+          "cases": {
+            "test_parameterized": {
+              "ms": 4.033,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 4.22,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 44.685,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 37.05,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 227.81029995530844,
+          "cases": {
+            "test_parameterized": {
+              "ms": 4.361,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 4.389,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 45.575,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 133.526,
+              "checksum": 2000
+            }
+          }
+        }
+      ],
+      "C++": [
+        {
+          "wall_ms": 77.96150003559887,
+          "cases": {
+            "test_parameterized": {
+              "ms": 0.1177,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.0719,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.4166,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 29.714599999999997,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 75.94499998958781,
+          "cases": {
+            "test_parameterized": {
+              "ms": 0.0615,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.056,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.4525,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 29.8741,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 71.71220000600442,
+          "cases": {
+            "test_parameterized": {
+              "ms": 0.0559,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.055600000000000004,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.4402,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 28.9428,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 72.13889999547973,
+          "cases": {
+            "test_parameterized": {
+              "ms": 0.053899999999999997,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.056,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.4428,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 29.157400000000003,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 76.16830000188202,
+          "cases": {
+            "test_parameterized": {
+              "ms": 0.0583,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.056,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.4428,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 29.0596,
+              "checksum": 2000
+            }
+          }
+        }
+      ],
+      "Java": [
+        {
+          "wall_ms": 342.6511000143364,
+          "cases": {
+            "test_parameterized": {
+              "ms": 1.0002,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 1.1675,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 5.2331,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 54.889300000000006,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 278.5659999935888,
+          "cases": {
+            "test_parameterized": {
+              "ms": 0.8165,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 1.1069,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 4.1732,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 50.4118,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 291.6293000453152,
+          "cases": {
+            "test_parameterized": {
+              "ms": 0.8258,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 1.1012,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 4.1523,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 51.9169,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 301.88399995677173,
+          "cases": {
+            "test_parameterized": {
+              "ms": 1.1599000000000002,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 1.1005,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 3.9604,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 51.9587,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 329.2015999904834,
+          "cases": {
+            "test_parameterized": {
+              "ms": 0.8382000000000001,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 1.1344,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 3.6378000000000004,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 86.35719999999999,
+              "checksum": 2000
+            }
+          }
+        }
+      ],
+      "Python": [
+        {
+          "wall_ms": 180.0482000107877,
+          "cases": {
+            "test_parameterized": {
+              "ms": 1.4989000000000001,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 2.3165999999999998,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 6.416,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 30.726,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 184.86869998741895,
+          "cases": {
+            "test_parameterized": {
+              "ms": 1.7152,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 2.3272,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 6.798100000000001,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 32.7804,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 180.6079000234604,
+          "cases": {
+            "test_parameterized": {
+              "ms": 1.5677,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 2.4038000000000004,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 6.5266,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 30.969,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 241.2050999701023,
+          "cases": {
+            "test_parameterized": {
+              "ms": 1.5620999999999998,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 2.3256,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 7.501,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 66.4559,
+              "checksum": 2000
+            }
+          }
+        },
+        {
+          "wall_ms": 221.65620001032948,
+          "cases": {
+            "test_parameterized": {
+              "ms": 1.5349000000000002,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 2.3621,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 6.481,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 76.8389,
+              "checksum": 2000
+            }
+          }
+        }
+      ]
+    }
+  }
+}

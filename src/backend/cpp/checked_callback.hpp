@@ -40,17 +40,30 @@ result_type invoke_typed_callback(const void* operation, arguments... values)
             throw runtime_failure(std::move(error));
         }
     };
+    // 内部入口与原生适配器具有相同的参数拥有规则，直接传入当前执行
+    // 线程的 context 和稳定 view，避免适配器重复提取 TLS 与闭包句柄。
+    using internal_callback_type = result_type (*)(void*, const void*, arguments...);
     using callback_type = result_type (*)(void*, arguments...);
-    const auto callback = reinterpret_cast<callback_type>(
-        const_cast<void*>(closure.data().target));
+    const auto& view = closure.data().view;
+    const auto invoke = [&]() -> result_type
+    {
+        if (view.code)
+        {
+            return reinterpret_cast<internal_callback_type>(
+                const_cast<void*>(view.code))(&context, &view, values...);
+        }
+        return reinterpret_cast<callback_type>(
+            const_cast<void*>(closure.data().target))(
+                const_cast<void*>(operation), values...);
+    };
     if constexpr (std::is_void_v<result_type>)
     {
-        callback(const_cast<void*>(operation), values...);
+        invoke();
         check();
     }
     else
     {
-        auto result = callback(const_cast<void*>(operation), values...);
+        auto result = invoke();
         check();
         return result;
     }

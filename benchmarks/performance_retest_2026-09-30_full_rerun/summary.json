@@ -1,0 +1,11 @@
+{
+  "head": "bc483e587ba3dea1fb2f566339d227fd216ca59f",
+  "all_suites_completed": true,
+  "measure_minutes": 6.4964937166666665,
+  "tx_process_wall_ms": 126.22439995175228,
+  "cpp_process_wall_ms": 59.73099998664111,
+  "tx_cpp_process_ratio": 2.1132142435248444,
+  "tx_process_peak_mib": 8.10546875,
+  "comparison_rows": 195,
+  "gap_rows": 64
+}

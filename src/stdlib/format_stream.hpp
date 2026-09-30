@@ -29,6 +29,7 @@ public:
     int peek(std::size_t ahead = 0);
     char get();
     bool take(char expected);
+    std::string_view take_json_ascii();
     void begin_value(std::uint64_t limit);
     void end_value();
     [[noreturn]] void fail(const char* code, std::string_view reason) const;

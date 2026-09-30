@@ -1,0 +1,94 @@
+{
+  "manifest": {
+    "started_utc": "2026-09-30T04:56:39.918635+00:00",
+    "warmups": 1,
+    "rounds": 3,
+    "compiler_sha256": "5f8bfcb29a79e4ccbb504f43056ad4a629ff13cfd66a509d15be0c02b6351afb",
+    "stdlib_sha256": "902d13054e5f930e78301f02d61f287de1b9a9b75b38af58f54db3f19d514ba0",
+    "completed_utc": "2026-09-30T04:57:01.297411+00:00"
+  },
+  "http": {
+    "old": [
+      {
+        "cases": {
+          "httpx_get": {
+            "ms": 1198.14,
+            "checksum": "100"
+          },
+          "requests_get": {
+            "ms": 1163.179,
+            "checksum": "100"
+          }
+        }
+      },
+      {
+        "cases": {
+          "httpx_get": {
+            "ms": 1148.07,
+            "checksum": "100"
+          },
+          "requests_get": {
+            "ms": 1208.572,
+            "checksum": "100"
+          }
+        }
+      },
+      {
+        "cases": {
+          "httpx_get": {
+            "ms": 1122.578,
+            "checksum": "100"
+          },
+          "requests_get": {
+            "ms": 1265.687,
+            "checksum": "100"
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "cases": {
+          "httpx_get": {
+            "ms": 1164.434,
+            "checksum": "100"
+          },
+          "requests_get": {
+            "ms": 1202.814,
+            "checksum": "100"
+          }
+        }
+      },
+      {
+        "cases": {
+          "httpx_get": {
+            "ms": 1214.553,
+            "checksum": "100"
+          },
+          "requests_get": {
+            "ms": 1176.092,
+            "checksum": "100"
+          }
+        }
+      },
+      {
+        "cases": {
+          "httpx_get": {
+            "ms": 1186.496,
+            "checksum": "100"
+          },
+          "requests_get": {
+            "ms": 1296.934,
+            "checksum": "100"
+          }
+        }
+      }
+    ],
+    "source": "tx_build\\perf_audit_20260927\\http.tx",
+    "source_sha256": "a3434b56e44129f3137a87313786939eb4897c06199db84d37e2e816d78c72d9",
+    "program_sha256": {
+      "old": "90c3278c2e28d219e7aa38328ce8260f3bca77710e5cd75d5d8924884a98e0f4",
+      "new": "b51530dc2c04438bf6299edb7ace846c938bdce9af2db27c8267e5ae72f9c731"
+    }
+  }
+}

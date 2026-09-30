@@ -1,0 +1,1136 @@
+{
+  "manifest": {
+    "started_utc": "2026-09-30T04:47:33.886698+00:00",
+    "warmups": 1,
+    "rounds": 5,
+    "compiler_sha256": "5f8bfcb29a79e4ccbb504f43056ad4a629ff13cfd66a509d15be0c02b6351afb",
+    "stdlib_sha256": "e34978fc84811469550a93c6567bc2bdfb10916e4e949e04108ccfdf486665bf",
+    "completed_utc": "2026-09-30T04:47:43.060686+00:00"
+  },
+  "network": {
+    "old": [
+      {
+        "wall_ms": 474.5431001065299,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.383,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 46.903,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 17.508,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 368.066,
+            "checksum": 10
+          }
+        }
+      },
+      {
+        "wall_ms": 330.854200059548,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.3,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 38.304,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 14.207,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 241.901,
+            "checksum": 10
+          }
+        }
+      },
+      {
+        "wall_ms": 407.56360010709614,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.339,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 36.028,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 14.067,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 321.565,
+            "checksum": 10
+          }
+        }
+      },
+      {
+        "wall_ms": 347.85389993339777,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.32,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 40.353,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 14.303,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 250.601,
+            "checksum": 10
+          }
+        }
+      },
+      {
+        "wall_ms": 332.91019999887794,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.308,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 38.076,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 14.781,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 243.092,
+            "checksum": 10
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "wall_ms": 230.11140001472086,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.302,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 39.58,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 13.463,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 128.801,
+            "checksum": 10
+          }
+        }
+      },
+      {
+        "wall_ms": 232.91329992935061,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.345,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 37.992,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 14.27,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 136.677,
+            "checksum": 10
+          }
+        }
+      },
+      {
+        "wall_ms": 208.90279999002814,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.521,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 36.275,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 13.508,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 116.375,
+            "checksum": 10
+          }
+        }
+      },
+      {
+        "wall_ms": 204.6328999567777,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.295,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 38.371,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 14.057,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 108.114,
+            "checksum": 10
+          }
+        }
+      },
+      {
+        "wall_ms": 199.80729999952018,
+        "cases": {
+          "dns_localhost": {
+            "ms": 0.301,
+            "checksum": 100
+          },
+          "udp_echo": {
+            "ms": 37.82,
+            "checksum": 512000
+          },
+          "ipc_echo": {
+            "ms": 14.406,
+            "checksum": 21000
+          },
+          "tls_handshake": {
+            "ms": 106.283,
+            "checksum": 10
+          }
+        }
+      }
+    ],
+    "source": "benchmarks\\stdlib_full_2026-09-30\\network.tx",
+    "source_sha256": "a095c194ec432eabfd311f4437a4d693e725895393a7d43d328dd98b15094e79",
+    "program_sha256": {
+      "old": "3effa723d0315ad44b4de14ede4238471a8cec6a01f87d28a8748d1f57067ad3",
+      "new": "a0d591f6f30a74781906c3660eec0f897315f06beb48767553625e35c4eaceb4"
+    }
+  },
+  "diverse": {
+    "old": [
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.272,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 2.542,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.304,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.362,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 1.735,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.51,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.517,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.265,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.357,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.937,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 7.283,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 7.656,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 13.805,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 12.396,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 8.063,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 27.462,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.335,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 0.964,
+            "checksum": "100000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.278,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 2.591,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.306,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.377,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 2.155,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 3.485,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.249,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.207,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.646,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 1.457,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 8.778,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 10.532,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 15.783,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 14.145,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 8.36,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 27.553,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.522,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 1.298,
+            "checksum": "100000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.264,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 2.65,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.331,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.381,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 1.696,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.197,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.246,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.232,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.474,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.935,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 6.854,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 7.188,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 13.123,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 13.097,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 8.944,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 25.636,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.066,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 1.006,
+            "checksum": "100000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.386,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 2.525,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.299,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.372,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 1.687,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.13,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.259,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.182,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.45,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 1.453,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 6.937,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 6.491,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 12.128,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 12.737,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 9.374,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 28.11,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.038,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 0.953,
+            "checksum": "100000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.287,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 3.408,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.311,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.363,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 1.725,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.234,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.45,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.255,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.926,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.912,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 7.263,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 6.77,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 14.332,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 14.055,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 9.845,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 33.299,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 0.995,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 0.971,
+            "checksum": "100000"
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.394,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 2.684,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.304,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.363,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 1.689,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.123,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.48,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.223,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.298,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.916,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 7.494,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 8.348,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 12.945,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 13.279,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 7.413,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 9.798,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.018,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 0.989,
+            "checksum": "100000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.264,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 2.462,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.298,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.357,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 1.973,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.625,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.217,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.163,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.242,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.897,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 7.353,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 7.568,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 12.448,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 12.173,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 7.939,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 9.852,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.073,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 1.176,
+            "checksum": "100000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.266,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 2.445,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.302,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.359,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 1.831,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.305,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.427,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.265,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.269,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 1.222,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 8.065,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 7.472,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 11.937,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 11.709,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 7.041,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 9.007,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.006,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 0.994,
+            "checksum": "100000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.263,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 2.665,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.301,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.36,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 2.037,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.381,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.327,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 1.207,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.434,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 0.914,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 11.551,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 7.959,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 12.76,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 12.596,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 9.078,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 12.136,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.655,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 1.258,
+            "checksum": "100000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "vector_scan_1k": {
+            "ms": 0.494,
+            "checksum": "3000000"
+          },
+          "vector_scan_100k": {
+            "ms": 4.471,
+            "checksum": "30000000"
+          },
+          "vector_index_sequential": {
+            "ms": 0.567,
+            "checksum": "47857475"
+          },
+          "vector_index_strided": {
+            "ms": 0.562,
+            "checksum": "47857965"
+          },
+          "map_hit_128": {
+            "ms": 2.645,
+            "checksum": "31748464"
+          },
+          "map_hit_8192": {
+            "ms": 2.854,
+            "checksum": "2047690384"
+          },
+          "map_hit_10_percent": {
+            "ms": 2.3,
+            "checksum": "50000"
+          },
+          "dictionary_int_hit": {
+            "ms": 2.535,
+            "checksum": "200000"
+          },
+          "dictionary_text_hit": {
+            "ms": 5.588,
+            "checksum": "200000"
+          },
+          "dictionary_mostly_miss": {
+            "ms": 1.685,
+            "checksum": "1"
+          },
+          "format_literal": {
+            "ms": 11.271,
+            "checksum": "488890"
+          },
+          "format_dynamic": {
+            "ms": 9.082,
+            "checksum": "488890"
+          },
+          "encoding_literal": {
+            "ms": 14.581,
+            "checksum": "900000"
+          },
+          "encoding_dynamic": {
+            "ms": 13.757,
+            "checksum": "900000"
+          },
+          "serde_short_text": {
+            "ms": 7.869,
+            "checksum": "40000"
+          },
+          "serde_long_text": {
+            "ms": 10.722,
+            "checksum": "655000"
+          },
+          "parse_valid": {
+            "ms": 1.105,
+            "checksum": "100000"
+          },
+          "parse_invalid": {
+            "ms": 1.014,
+            "checksum": "100000"
+          }
+        }
+      }
+    ],
+    "source": "benchmarks\\diverse_performance.tx",
+    "source_sha256": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+    "program_sha256": {
+      "old": "37d797184b11d5136842e560d8e3553bfd49d9f4091741660c0833e905bd3f77",
+      "new": "da9a62fa24c7b52bb66162f2c07de94d654d6508c1f5549f90bc4ca314346c7d"
+    }
+  },
+  "format": {
+    "old": [
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 22.767,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 24.327,
+            "checksum": "520000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 22.765,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 31.537,
+            "checksum": "520000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 22.282,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 22.924,
+            "checksum": "520000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 22.239,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 22.647,
+            "checksum": "520000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 21.848,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 22.954,
+            "checksum": "520000"
+          }
+        }
+      }
+    ],
+    "new": [
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 16.602,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 17.315,
+            "checksum": "520000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 18.678,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 17.976,
+            "checksum": "520000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 16.671,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 17.379,
+            "checksum": "520000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 16.475,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 16.855,
+            "checksum": "520000"
+          }
+        }
+      },
+      {
+        "cases": {
+          "format_alternating": {
+            "ms": 16.423,
+            "checksum": "520000"
+          },
+          "format_parameter": {
+            "ms": 17.736,
+            "checksum": "520000"
+          }
+        }
+      }
+    ],
+    "source": "benchmarks\\performance_completion_2026-09-30\\format_contract.tx",
+    "source_sha256": "95e32ec9837a19981c4d25bf850e10c61d8e63aac9bea5bcc12d5f9e40896f8b",
+    "program_sha256": {
+      "old": "b7647bedc6336718826f0a1bc2e5692432661fdf648b61658b3261ad0383d08d",
+      "new": "991672f3ef7d0bbd439e9ce745ecd46b461463840f6844ba51a21af5f3494cb2"
+    }
+  }
+}

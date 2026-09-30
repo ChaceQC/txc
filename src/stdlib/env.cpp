@@ -2,6 +2,7 @@
 #include "stdlib/encoding.hpp"
 
 #include <optional>
+#include <array>
 #include <stdexcept>
 #include <string_view>
 #include <utility>
@@ -54,13 +55,16 @@ bool contains_environment(const std::wstring& name)
 std::optional<std::string> read_environment(const std::string& name)
 {
     const auto wide_name = environment_name(name);
-    std::wstring buffer(256, L'\0');
+    std::array<wchar_t, 256> local{};
+    std::wstring overflow;
+    auto* buffer = local.data();
+    std::size_t capacity = local.size();
     while (true)
     {
         // 空值与缺失都可能返回零，必须同时检查已清零的系统错误码。
         SetLastError(ERROR_SUCCESS);
         const auto length = GetEnvironmentVariableW(wide_name.c_str(),
-            buffer.data(), static_cast<DWORD>(buffer.size()));
+            buffer, static_cast<DWORD>(capacity));
         if (length == 0)
         {
             const auto error = GetLastError();
@@ -73,13 +77,14 @@ std::optional<std::string> read_environment(const std::string& name)
                 environment_error("读取", error);
             }
         }
-        if (length < buffer.size())
+        if (length < capacity)
         {
-            buffer.resize(length);
-            return detail::wide_to_utf8(buffer);
+            return detail::wide_to_utf8(std::wstring_view(buffer, length));
         }
         // 变量可能在查询期间变长，按 API 返回的所需容量重新读取。
-        buffer.resize(length);
+        overflow.resize(length);
+        buffer = overflow.data();
+        capacity = overflow.size();
     }
 }
 

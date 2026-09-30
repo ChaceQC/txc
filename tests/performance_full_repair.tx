@@ -1,0 +1,124 @@
+import "test.txh" as test
+import "format.txh" as fmt
+import "sync.txh" as sync
+import "log.txh" as log
+import "channel.txh" as channel
+import "cancel.txh" as cancel
+import "error.txh" as errors
+import "env.txh" as env
+
+def unpack_snapshot() -> int
+{
+    array pair = [7, 8]
+    left, right = pair
+    pair[0] = 40
+    pair[1] = 50
+    return (left as int) + (right as int)
+}
+
+def unpack_reassignment() -> int
+{
+    array pair = [7, 8]
+    left, right = pair
+    pair[0] = 40
+    left, right = pair
+    return (left as int) + (right as int)
+}
+
+def message_effect(values: vector<int>) -> str
+{
+    values[0] += 1
+    return "filtered"
+}
+
+def forbidden_fields() -> dict
+{
+    test.assert_true(false, "过滤的惰性日志不能调用字段工厂")
+    return {}
+}
+
+def integer_format(template: str, value: int) -> str
+{
+    return fmt.format(template, value)
+}
+
+def check_scalar_errors()
+{
+    auto owner = sync.new_mutex(0)
+    auto guard = sync.lock(owner)
+    sync.guard_set(guard, sync.guard_get(guard) + 1)
+    test.assert_equal(1, sync.guard_get(guard))
+    sync.guard_close(guard)
+    bool failed = false
+    try
+    {
+        sync.guard_get(guard)
+    }
+    exception errors.runtime_error as error
+    {
+        failed = error.code == "invalid_state"
+    }
+    test.assert_true(failed)
+    auto atomic = sync.new_atomic(9223372036854775807)
+    failed = false
+    try
+    {
+        sync.atomic_fetch_add(atomic, 1, 4)
+    }
+    exception errors.runtime_error as error
+    {
+        failed = error.code == "overflow"
+    }
+    test.assert_true(failed)
+    test.assert_equal(9223372036854775807, sync.atomic_load(atomic, 4))
+    auto source = cancel.source()
+    auto token = cancel.token(source)
+    channel<int> queue = channel.bounded(1)
+    channel.close(queue)
+    failed = false
+    try
+    {
+        channel.recv(queue, 0, token).value()
+    }
+    exception errors.runtime_error as error
+    {
+        failed = error.code == "invalid_state"
+    }
+    test.assert_true(failed)
+}
+
+def main() -> int
+{
+    test.assert_equal(15, unpack_snapshot())
+    test.assert_equal(48, unpack_reassignment())
+    test.assert_equal("-0000042", integer_format("{:08d}", -42))
+    test.assert_equal("+0000042", integer_format("{:+08d}", 42))
+    test.assert_equal(" 0000042", integer_format("{: 08d}", 42))
+    test.assert_equal("***42***", integer_format("{:*^8d}", 42))
+    test.assert_equal("42******", integer_format("{:*<8d}", 42))
+    test.assert_equal("******2A", integer_format("{:*>8X}", 42))
+    test.assert_equal("-9223372036854775808", integer_format("{:d}", -9223372036854775808))
+    test.assert_equal("9223372036854775807", integer_format("{:d}", 9223372036854775807))
+    auto effects = vector<int>([0])
+    log.set_level("error")
+    log.event_lazy("debug", message_effect(effects), forbidden_fields)
+    log.event_lazy("debug", "literal", forbidden_fields)
+    test.assert_equal(1, effects[0])
+    check_scalar_errors()
+    str variable = "TX_FULL_REPAIR_ENV"
+    env.set(variable, "")
+    test.assert_equal("", env.get(variable, "fallback"))
+    str large = ""
+    for i in 1..=300
+    {
+        large += "甲🌍"
+    }
+    env.set(variable, large)
+    test.assert_equal(large, env.get(variable))
+    env.set(variable, "short")
+    test.assert_equal("short", env.get(variable))
+    env.remove(variable)
+    test.assert_equal("fallback", env.get(variable, "fallback"))
+    print("FULL_REPAIR_OK")
+    return 0
+}

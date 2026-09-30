@@ -91,6 +91,12 @@ std::string json_parser::parse_string()
     std::string output;
     while (input_.peek() >= 0)
     {
+        const auto plain = input_.take_json_ascii();
+        if (!plain.empty())
+        {
+            output.append(plain);
+            continue;
+        }
         const auto lead = input_.peek();
         if (input_.take('"'))
         {

@@ -2,6 +2,7 @@
 #include "stdlib/error.hpp"
 
 #include <utility>
+#include <algorithm>
 
 namespace tx_generated
 {
@@ -134,6 +135,33 @@ bool format_input::take(char expected)
     }
     (void)get();
     return true;
+}
+
+std::string_view format_input::take_json_ascii()
+{
+    if (peek() < 0)
+    {
+        return {};
+    }
+    const std::string_view buffer = source_ ? std::string_view(buffer_) : memory_;
+    const auto available = std::min<std::uint64_t>(buffer.size() - cursor_,
+        std::min(limit_ - offset_, value_limit_ - (offset_ - value_start_)));
+    const auto start = cursor_;
+    const auto end = start + static_cast<std::size_t>(available);
+    while (cursor_ < end)
+    {
+        const auto byte = static_cast<unsigned char>(buffer[cursor_]);
+        if (byte < 0x20 || byte >= 0x80 || byte == '"' || byte == '\\')
+        {
+            break;
+        }
+        ++cursor_;
+    }
+    const auto count = cursor_ - start;
+    // 仅消费无换行的 ASCII；位置与逐字节 get 完全一致，限额处仍由 get 报错。
+    offset_ += count;
+    column_ += count;
+    return buffer.substr(start, count);
 }
 
 void format_input::begin_value(std::uint64_t limit)

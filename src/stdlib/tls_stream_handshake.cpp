@@ -132,6 +132,13 @@ void secure_connection::initialize(std::int64_t timeout_ms)
     {
         security_error("operation_failed", "TLS 连接或密码学组件不可用");
     }
+    // 握手包含多个短记录；关闭 Nagle，避免等待对端延迟 ACK 才发送下一记录。
+    const int no_delay = 1;
+    if (setsockopt(native_->get(), IPPROTO_TCP, TCP_NODELAY,
+            reinterpret_cast<const char*>(&no_delay), sizeof(no_delay)) != 0)
+    {
+        network::fail("operation_failed", "配置 TLS TCP_NODELAY 失败");
+    }
     mbedtls_entropy_init(&entropy_);
     mbedtls_ctr_drbg_init(&rng_);
     mbedtls_x509_crt_init(&cert_);

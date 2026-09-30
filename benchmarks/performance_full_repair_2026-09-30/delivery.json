@@ -1,0 +1,65 @@
+{
+  "compiler_sha256": "5f8bfcb29a79e4ccbb504f43056ad4a629ff13cfd66a509d15be0c02b6351afb",
+  "stdlib_sha256": "902d13054e5f930e78301f02d61f287de1b9a9b75b38af58f54db3f19d514ba0",
+  "measured_stdlib_sha256": "e34978fc84811469550a93c6567bc2bdfb10916e4e949e04108ccfdf486665bf",
+  "raw_stdlib_unchanged": false,
+  "http_measured_stdlib_sha256": "902d13054e5f930e78301f02d61f287de1b9a9b75b38af58f54db3f19d514ba0",
+  "build_directory_removed": true,
+  "covered_unique_gaps": 51,
+  "executable_section_comparisons": {
+    "network": {
+      "measured_sha256": "a0d591f6f30a74781906c3660eec0f897315f06beb48767553625e35c4eaceb4",
+      "packaged_sha256": "5fc3b58b08cafbb398a3f0984dd789494ce3bdef8661c60a3abeb49ac2a9aba8",
+      "changed_sections": [],
+      "sections_sha256": {
+        ".text": "96477cd4cfacaba364d3d6014b944077e6dc7686498cac5247573bf179eaf23e",
+        ".data": "a071fc4ae9770d6eee5a13ab0f1667f8fc5387683a66dbc1f5669c2926ec03c3",
+        ".rdata": "f70e8d4325bd9ed7e61f5452b800416e966d21d27fd86b171109d6637dceb3a7",
+        ".pdata": "9a45adfd4ecd36909c95088da78d8db53df98938fa7238d4f47b9ea3dc99a068",
+        ".xdata": "6eb96ffaa413376ee10fd2a21560dc98ed32722dbb0993037eb45a0aa009992c",
+        ".bss": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        ".idata": "922669ba93d20ac21a01016fe431cb0bc5d39f8dad3e31df9485a32ed9c3d171",
+        ".CRT": "a657458cef74a9b61df9cf68f4f4350522d8e2e1a47b85a4b6978cc2895782e6",
+        ".tls": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+        ".rsrc": "556be33092d27270ed20a8f35b084b29e1917a5099b37f467674f3d1704d72d4",
+        ".reloc": "212c3e2c6510a3737dc97d2e487dbe720c7d35b8f19d498bce794ffa124392ae"
+      }
+    },
+    "diverse": {
+      "measured_sha256": "da9a62fa24c7b52bb66162f2c07de94d654d6508c1f5549f90bc4ca314346c7d",
+      "packaged_sha256": "441e93a260fc09d024b0d287e08860cc7c0ef88e6d1d7460367b04a92abcfa0d",
+      "changed_sections": [],
+      "sections_sha256": {
+        ".text": "768e1631daf480a6b33294b6548e6513a34c9c51b3c4246b3788e53dd987b280",
+        ".data": "b0bb028c279e18f102eb384c385e3188b127befbfcd8ba57979f1b22c0dfc313",
+        ".rdata": "35a1304a0345e556ad3e453817f591267e7e7959c4bf29618125eef9fadf55ea",
+        ".pdata": "b9dcb5960031bace92ca95c67582677d20cc0e0b250d1dd78a333fa9ca656547",
+        ".xdata": "09b72a906b451012c94a4eb1aa95b9ed406206c3a8a4026ace0eb33fcf77b630",
+        ".bss": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        ".idata": "c7d6a9760d95f21971415619b796de6157bdd8a807737893d2c3b57dbdd87e1e",
+        ".CRT": "4410a1e09f109ae33e5aa07aa23293daff9ff10ba78297a7a9f950b0bad4e809",
+        ".tls": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+        ".rsrc": "6b7204b788e2613fa2d8522755bee118563a75bba20b4f8aceedd86ac556f1df",
+        ".reloc": "536fe830dce09538964374b4405ffd1f5e7c79208ab59b3d90e0ec8e4fc7be38"
+      }
+    },
+    "http": {
+      "measured_sha256": "b51530dc2c04438bf6299edb7ace846c938bdce9af2db27c8267e5ae72f9c731",
+      "packaged_sha256": "5c1b8201e9630bfc02e7c680e4947444ca6f3a8c847ab7e70581fa8761c9ac90",
+      "changed_sections": [],
+      "sections_sha256": {
+        ".text": "f1cae623b7bb9ccaa23ee8a679bf784f265cdeaefe5574260923a704d9e12686",
+        ".data": "c2288470621d6bc3c950bceb68b5d7e38689e93616ed4362a24b31d09c0f6e78",
+        ".rdata": "4c5278923ac36fda33ff125c29152be37ee8023bbdebbe53edb51ce5bd3cd6bd",
+        ".pdata": "078515df26ce8e5a9d43024eadadc277ed918cb1c97b2380c36ac04678d8c719",
+        ".xdata": "7b03701a097260b384021b55c02d3ecebe26c80fc6763bfbf0ad9c7b5f702f20",
+        ".bss": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        ".idata": "0c4e42f5a257958046da88505e31e5cdb27f1a21d3e1f92626c99c63922b5238",
+        ".CRT": "c84331968f64594d4c43029ce664fa288c6da46984e6c0ecd5bdbf4ebb275b8d",
+        ".tls": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+        ".rsrc": "7d3e4e978b89ba8f5a118e458ae37cee04a51acc6f23e3d36aeffb5428843bf4",
+        ".reloc": "d9898910ee8e9eff53034dc76dc44043c968483cce513a3aacd0a3ab892ac07b"
+      }
+    }
+  }
+}

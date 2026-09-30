@@ -72,7 +72,7 @@ void llvm_code_generator::cache_closure_local(variable_slot& slot,
 }
 
 void llvm_code_generator::emit_typed_bind_wrapper(const std::string& name,
-    const value_type& parent_type, std::size_t captured)
+    const value_type& parent_type, std::size_t captured, const function_decl* direct_target)
 {
     const auto argument_count = parent_type.parameters.size() - 1;
     const auto result = llvm_type(parent_type.parameters.back(), {});
@@ -89,7 +89,12 @@ void llvm_code_generator::emit_typed_bind_wrapper(const std::string& name,
             << "  %code = load ptr, ptr %parent\n"
             << "  %capture_slot = getelementptr inbounds %tx_closure_view, ptr %environment, i32 0, i32 2\n"
             << "  %captures = load ptr, ptr %capture_slot\n";
-    std::string arguments = "ptr %tx_context, ptr %parent";
+    const auto borrowed_capture = [&](std::size_t index)
+    {
+        return direct_target && is_value_handle(parent_type.parameters[index]) &&
+            ordinary_parameter_borrowed(*direct_target, index);
+    };
+    std::string arguments = direct_target ? "ptr %tx_context" : "ptr %tx_context, ptr %parent";
     for (std::size_t index = 0; index < captured; ++index)
     {
         const auto& type = parent_type.parameters[index];
@@ -97,7 +102,7 @@ void llvm_code_generator::emit_typed_bind_wrapper(const std::string& name,
         const auto native = llvm_type(type, {});
         module_ << "  %slot_" << index << " = getelementptr inbounds i64, ptr %captures, i64 " << index << '\n'
                 << "  %capture_" << index << " = load " << native << ", ptr %slot_" << index << '\n';
-        if (type == value_type::str_type || is_value_handle(type))
+        if ((type == value_type::str_type || is_value_handle(type)) && !borrowed_capture(index))
         {
             module_ << "  %owned_" << index << " = alloca ptr\n"
                     << "  store ptr null, ptr %owned_" << index << '\n';
@@ -108,7 +113,12 @@ void llvm_code_generator::emit_typed_bind_wrapper(const std::string& name,
     for (std::size_t index = 0; index < captured; ++index)
     {
         const auto& type = parent_type.parameters[index];
-        if (type == value_type::str_type || is_value_handle(type))
+        if (borrowed_capture(index))
+        {
+            module_ << "  %value_" << index << " = select i1 true, ptr %capture_"
+                    << index << ", ptr %capture_" << index << '\n';
+        }
+        else if (type == value_type::str_type || is_value_handle(type))
         {
             module_ << "  %status_" << index << " = call i32 @"
                     << (type == value_type::str_type ? "txrt_value_to_str" : "txrt_value_clone")
@@ -131,13 +141,30 @@ void llvm_code_generator::emit_typed_bind_wrapper(const std::string& name,
             " %argument_" + std::to_string(index);
     }
     module_ << "  " << (result == "void" ? "" : "%result = ") << "call "
-            << result << " %code(" << arguments << ")\n"
-            << (result == "void" ? "  ret void\n" : "  ret " + result + " %result\n");
+            << result << ' ' << (direct_target ? function_name(direct_target->name, 0) : "%code")
+            << '(' << arguments << ")\n";
+    if (direct_target)
+    {
+        for (std::size_t index = 0; index < argument_count; ++index)
+        {
+            const auto& type = parent_type.parameters[index];
+            if ((type == value_type::str_type || is_value_handle(type)) &&
+                ordinary_parameter_borrowed(*direct_target, index) &&
+                (index >= captured || !borrowed_capture(index)))
+            {
+                module_ << "  call void @" << (type == value_type::str_type ?
+                    "txrt_str_release" : "txrt_value_release") << "(ptr %"
+                    << (index < captured ? "value_" : "argument_") << index << ")\n";
+            }
+        }
+    }
+    module_ << (result == "void" ? "  ret void\n" : "  ret " + result + " %result\n");
     module_ << "failed:\n";
     for (std::size_t index = 0; index < argument_count; ++index)
     {
         const auto& type = parent_type.parameters[index];
-        if (type != value_type::str_type && !is_value_handle(type))
+        if ((type != value_type::str_type && !is_value_handle(type)) ||
+            (index < captured && borrowed_capture(index)))
         {
             continue;
         }

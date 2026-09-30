@@ -86,7 +86,8 @@ std::string apply_width(std::string text, const format_spec& spec,
     {
         throw std::runtime_error("format 数字零填充只支持右对齐");
     }
-    const auto length = static_cast<std::size_t>(tx_len(text));
+    // 数字格式器只产生 ASCII；文本仍通过 tx_len 验证 UTF-8 并按标量计宽。
+    const auto length = numeric ? text.size() : static_cast<std::size_t>(tx_len(text));
     if (length >= spec.width)
     {
         return text;

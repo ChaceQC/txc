@@ -1,0 +1,1562 @@
+[
+  {
+    "suite": "语言特性",
+    "name": "scalar_control",
+    "previous_ms": 0.169,
+    "current_ms": 0.166,
+    "change_percent": -1.7751479289940808,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "updates",
+    "previous_ms": 1.4060000000000001,
+    "current_ms": 1.41,
+    "change_percent": 0.2844950213371167,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "while_logic",
+    "previous_ms": 0.176,
+    "current_ms": 0.176,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "float_arithmetic",
+    "previous_ms": 0.358,
+    "current_ms": 0.355,
+    "change_percent": -0.8379888268156388,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "overloads",
+    "previous_ms": 0.188,
+    "current_ms": 0.188,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "named_arguments",
+    "previous_ms": 0.422,
+    "current_ms": 0.429,
+    "change_percent": 1.65876777251186,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "recursion",
+    "previous_ms": 0.607,
+    "current_ms": 0.041,
+    "change_percent": -93.24546952224053,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "previous_ms": 8.807,
+    "current_ms": 8.583,
+    "change_percent": -2.543431361417059,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_destructure",
+    "previous_ms": 3.012,
+    "current_ms": 2.994,
+    "change_percent": -0.5976095617529764,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_padded",
+    "previous_ms": 0.024,
+    "current_ms": 0.024,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "dict_iteration",
+    "previous_ms": 9.73,
+    "current_ms": 9.577,
+    "change_percent": -1.5724563206577669,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "struct_operators",
+    "previous_ms": 75.968,
+    "current_ms": 0.524,
+    "change_percent": -99.31023588879529,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_methods",
+    "previous_ms": 0.669,
+    "current_ms": 0.609,
+    "change_percent": -8.968609865470857,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "virtual_interface",
+    "previous_ms": 0.923,
+    "current_ms": 0.897,
+    "change_percent": -2.8169014084507116,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_operator",
+    "previous_ms": 0.856,
+    "current_ms": 0.784,
+    "change_percent": -8.411214953271017,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "runtime_cast",
+    "previous_ms": 15.81,
+    "current_ms": 0.259,
+    "change_percent": -98.3617963314358,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "module_call",
+    "previous_ms": 17.639,
+    "current_ms": 0.024,
+    "change_percent": -99.86393786495833,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "string_conversion",
+    "previous_ms": 12.683,
+    "current_ms": 13.364,
+    "change_percent": 5.369392099660963,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deep_copy",
+    "previous_ms": 22.996000000000002,
+    "current_ms": 20.569,
+    "change_percent": -10.554009392937914,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "copy_cycle",
+    "previous_ms": 10.677,
+    "current_ms": 9.566,
+    "change_percent": -10.405544628640994,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "previous_ms": 14.486,
+    "current_ms": 12.106,
+    "change_percent": -16.429656219798428,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "cycle_gc",
+    "previous_ms": 1.465,
+    "current_ms": 1.151,
+    "change_percent": -21.43344709897611,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "math",
+    "previous_ms": 2.0,
+    "current_ms": 2.0,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "random",
+    "previous_ms": 1.0,
+    "current_ms": 1.0,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "string",
+    "previous_ms": 7.0,
+    "current_ms": 7.0,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "array",
+    "previous_ms": 13.0,
+    "current_ms": 14.0,
+    "change_percent": 7.692307692307687,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "dict",
+    "previous_ms": 3.0,
+    "current_ms": 3.0,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "path",
+    "previous_ms": 17.0,
+    "current_ms": 17.0,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "fs",
+    "previous_ms": 39.0,
+    "current_ms": 38.0,
+    "change_percent": -2.564102564102566,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "file",
+    "previous_ms": 1251.0,
+    "current_ms": 1244.0,
+    "change_percent": -0.5595523581135131,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "io",
+    "previous_ms": 8.0,
+    "current_ms": 7.0,
+    "change_percent": -12.5,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "time",
+    "previous_ms": 4.0,
+    "current_ms": 4.0,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "algorithm_sort",
+    "previous_ms": 5.067,
+    "current_ms": 5.103,
+    "change_percent": 0.7104795737122416,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "bytes_hex",
+    "previous_ms": 6.394,
+    "current_ms": 6.675,
+    "change_percent": 4.394745073506412,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "cancel_status",
+    "previous_ms": 0.504,
+    "current_ms": 0.5,
+    "change_percent": -0.7936507936507908,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "cbor_roundtrip",
+    "previous_ms": 19.556,
+    "current_ms": 19.284,
+    "change_percent": -1.3908774800572843,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "crypto_sha256",
+    "previous_ms": 7.854,
+    "current_ms": 7.8,
+    "change_percent": -0.6875477463712754,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "csv_parse",
+    "previous_ms": 19.449,
+    "current_ms": 20.203,
+    "change_percent": 3.8768060054501507,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "decimal_add",
+    "previous_ms": 12.081,
+    "current_ms": 11.954,
+    "change_percent": -1.0512374803410274,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "dictionary_contains",
+    "previous_ms": 0.404,
+    "current_ms": 0.369,
+    "change_percent": -8.663366336633672,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "encoding_utf8",
+    "previous_ms": 4.596,
+    "current_ms": 3.464,
+    "change_percent": -24.630113141862488,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "env_get",
+    "previous_ms": 9.052,
+    "current_ms": 9.019,
+    "change_percent": -0.36456031816172185,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "format_text",
+    "previous_ms": 1.073,
+    "current_ms": 1.058,
+    "change_percent": -1.397949673811738,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "json_parse",
+    "previous_ms": 19.549,
+    "current_ms": 20.962,
+    "change_percent": 7.227991201595985,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "math_sqrt",
+    "previous_ms": 2.151,
+    "current_ms": 2.172,
+    "change_percent": 0.976290097629029,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "parse_int",
+    "previous_ms": 8.149,
+    "current_ms": 8.049,
+    "change_percent": -1.227144434899985,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "random_int",
+    "previous_ms": 1.314,
+    "current_ms": 1.335,
+    "change_percent": 1.5981735159817267,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "regex_search",
+    "previous_ms": 38.285,
+    "current_ms": 45.314,
+    "change_percent": 18.359670889382286,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "serde_json",
+    "previous_ms": 19.478,
+    "current_ms": 17.068,
+    "change_percent": -12.37293356607454,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "statistics_mean",
+    "previous_ms": 9.203,
+    "current_ms": 11.139,
+    "change_percent": 21.03661849396936,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "test_assert",
+    "previous_ms": 6.401,
+    "current_ms": 6.983,
+    "change_percent": 9.092329323543202,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "unicode_nfc",
+    "previous_ms": 4.667,
+    "current_ms": 5.074,
+    "change_percent": 8.720805656738806,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "xml_parse",
+    "previous_ms": 30.764,
+    "current_ms": 35.601,
+    "change_percent": 15.722922896892477,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_push",
+    "previous_ms": 1.941,
+    "current_ms": 1.821,
+    "change_percent": -6.18238021638331,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_index",
+    "previous_ms": 0.223,
+    "current_ms": 0.175,
+    "change_percent": -21.52466367713005,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "map_lookup",
+    "previous_ms": 0.346,
+    "current_ms": 0.343,
+    "change_percent": -0.867052023121373,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "set_contains",
+    "previous_ms": 0.298,
+    "current_ms": 0.302,
+    "change_percent": 1.342281879194629,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "heap_push_pop",
+    "previous_ms": 7.977,
+    "current_ms": 7.573,
+    "change_percent": -5.064560611758806,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "queue_push_pop",
+    "previous_ms": 1.352,
+    "current_ms": 1.259,
+    "change_percent": -6.878698224852087,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "iterator_snapshot",
+    "previous_ms": 0.155,
+    "current_ms": 0.161,
+    "change_percent": 3.8709677419354938,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "option_value",
+    "previous_ms": 0.026,
+    "current_ms": 0.026,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "function_value",
+    "previous_ms": 0.144,
+    "current_ms": 0.141,
+    "change_percent": -2.083333333333337,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "closure_bind",
+    "previous_ms": 0.284,
+    "current_ms": 0.322,
+    "change_percent": 13.38028169014085,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "debug_location",
+    "previous_ms": 4.637,
+    "current_ms": 4.232,
+    "change_percent": -8.734095320250146,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "error_stack",
+    "previous_ms": 2.281,
+    "current_ms": 1.794,
+    "change_percent": -21.350284962735643,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "file_stream_rw",
+    "previous_ms": 880.463,
+    "current_ms": 847.947,
+    "change_percent": -3.693056948446438,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "log_event",
+    "previous_ms": 5.255,
+    "current_ms": 6.116,
+    "change_percent": 16.38439581351094,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "process_spawn",
+    "previous_ms": 589.167,
+    "current_ms": 557.503,
+    "change_percent": -5.374367539254576,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "system_os",
+    "previous_ms": 2.084,
+    "current_ms": 1.692,
+    "change_percent": -18.809980806142036,
+    "note": ""
+  },
+  {
+    "suite": "network/http",
+    "name": "httpx_get",
+    "previous_ms": 916.993,
+    "current_ms": 965.279,
+    "change_percent": 5.265689051061462,
+    "note": ""
+  },
+  {
+    "suite": "network/http",
+    "name": "requests_get",
+    "previous_ms": 929.302,
+    "current_ms": 965.789,
+    "change_percent": 3.926280154352413,
+    "note": ""
+  },
+  {
+    "suite": "network/websocket",
+    "name": "websocket_echo",
+    "previous_ms": 959.788,
+    "current_ms": 949.375,
+    "change_percent": -1.0849270880652795,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_1k",
+    "previous_ms": 0.277,
+    "current_ms": 0.261,
+    "change_percent": -5.77617328519856,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_100k",
+    "previous_ms": 2.503,
+    "current_ms": 2.381,
+    "change_percent": -4.874151018777484,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_sequential",
+    "previous_ms": 0.303,
+    "current_ms": 0.296,
+    "change_percent": -2.310231023102316,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_strided",
+    "previous_ms": 0.439,
+    "current_ms": 0.351,
+    "change_percent": -20.045558086560366,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_128",
+    "previous_ms": 2.362,
+    "current_ms": 1.892,
+    "change_percent": -19.898391193903475,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_8192",
+    "previous_ms": 2.372,
+    "current_ms": 2.152,
+    "change_percent": -9.274873524451932,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_10_percent",
+    "previous_ms": 2.359,
+    "current_ms": 2.359,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_int_hit",
+    "previous_ms": 1.237,
+    "current_ms": 1.177,
+    "change_percent": -4.850444624090544,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_text_hit",
+    "previous_ms": 19.257,
+    "current_ms": 5.126,
+    "change_percent": -73.38110816845823,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_mostly_miss",
+    "previous_ms": 1.033,
+    "current_ms": 0.92,
+    "change_percent": -10.939012584704733,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_literal",
+    "previous_ms": 6.302,
+    "current_ms": 5.469,
+    "change_percent": -13.218026023484597,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_dynamic",
+    "previous_ms": 6.37,
+    "current_ms": 5.212,
+    "change_percent": -18.178963893249612,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_literal",
+    "previous_ms": 15.706,
+    "current_ms": 8.619,
+    "change_percent": -45.12288297465936,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_dynamic",
+    "previous_ms": 15.69,
+    "current_ms": 8.514,
+    "change_percent": -45.73613766730402,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_short_text",
+    "previous_ms": 11.316,
+    "current_ms": 7.237,
+    "change_percent": -36.04630611523507,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_long_text",
+    "previous_ms": 28.168,
+    "current_ms": 24.103,
+    "change_percent": -14.431269525702916,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_valid",
+    "previous_ms": 1.115,
+    "current_ms": 0.986,
+    "change_percent": -11.569506726457401,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_invalid",
+    "previous_ms": 1.047,
+    "current_ms": 0.974,
+    "change_percent": -6.972301814708692,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_scan_1k",
+    "previous_ms": 0.264,
+    "current_ms": 0.269,
+    "change_percent": 1.8939393939394034,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_1k",
+    "previous_ms": 0.265,
+    "current_ms": 0.268,
+    "change_percent": 1.132075471698113,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_scan_100k",
+    "previous_ms": 2.571,
+    "current_ms": 2.497,
+    "change_percent": -2.878257487359015,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_100k",
+    "previous_ms": 2.501,
+    "current_ms": 2.461,
+    "change_percent": -1.5993602558976416,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_index_sequential",
+    "previous_ms": 0.305,
+    "current_ms": 0.305,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_index_sequential",
+    "previous_ms": 0.305,
+    "current_ms": 0.297,
+    "change_percent": -2.622950819672132,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_index_strided",
+    "previous_ms": 0.374,
+    "current_ms": 0.355,
+    "change_percent": -5.080213903743324,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_index_strided",
+    "previous_ms": 0.362,
+    "current_ms": 0.363,
+    "change_percent": 0.2762430939226457,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_128",
+    "previous_ms": 1.693,
+    "current_ms": 1.929,
+    "change_percent": 13.93975191966923,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_128",
+    "previous_ms": 1.71,
+    "current_ms": 2.052,
+    "change_percent": 19.999999999999996,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_8192",
+    "previous_ms": 2.315,
+    "current_ms": 2.182,
+    "change_percent": -5.745140388768899,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_8192",
+    "previous_ms": 2.274,
+    "current_ms": 2.352,
+    "change_percent": 3.430079155672816,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_10_percent",
+    "previous_ms": 2.271,
+    "current_ms": 2.432,
+    "change_percent": 7.089387934830471,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_10_percent",
+    "previous_ms": 2.37,
+    "current_ms": 2.524,
+    "change_percent": 6.497890295358655,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_int_hit",
+    "previous_ms": 1.281,
+    "current_ms": 1.209,
+    "change_percent": -5.620608899297408,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_int_hit",
+    "previous_ms": 1.296,
+    "current_ms": 1.179,
+    "change_percent": -9.027777777777779,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_text_hit",
+    "previous_ms": 18.25,
+    "current_ms": 5.216,
+    "change_percent": -71.41917808219178,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_text_hit",
+    "previous_ms": 19.571,
+    "current_ms": 5.323,
+    "change_percent": -72.80159419549332,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_mostly_miss",
+    "previous_ms": 1.042,
+    "current_ms": 0.918,
+    "change_percent": -11.900191938579653,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_mostly_miss",
+    "previous_ms": 0.959,
+    "current_ms": 0.928,
+    "change_percent": -3.232533889468192,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "format_literal",
+    "previous_ms": 7.2,
+    "current_ms": 5.729,
+    "change_percent": -20.43055555555555,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "format_literal",
+    "previous_ms": 6.421,
+    "current_ms": 5.53,
+    "change_percent": -13.87634324871515,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "format_dynamic",
+    "previous_ms": 6.851,
+    "current_ms": 5.237,
+    "change_percent": -23.558604583272512,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "format_dynamic",
+    "previous_ms": 7.545,
+    "current_ms": 5.397,
+    "change_percent": -28.469184890656063,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "encoding_literal",
+    "previous_ms": 16.011,
+    "current_ms": 8.974,
+    "change_percent": -43.951033664355755,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "encoding_literal",
+    "previous_ms": 18.399,
+    "current_ms": 9.224,
+    "change_percent": -49.86684058916245,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "encoding_dynamic",
+    "previous_ms": 15.731,
+    "current_ms": 9.239,
+    "change_percent": -41.2688322420698,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "encoding_dynamic",
+    "previous_ms": 19.579,
+    "current_ms": 8.991,
+    "change_percent": -54.07834925174932,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "serde_short_text",
+    "previous_ms": 10.439,
+    "current_ms": 7.532,
+    "change_percent": -27.847494970782638,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "serde_short_text",
+    "previous_ms": 10.06,
+    "current_ms": 7.894,
+    "change_percent": -21.530815109343937,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "serde_long_text",
+    "previous_ms": 28.494,
+    "current_ms": 24.358,
+    "change_percent": -14.515336562083247,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "serde_long_text",
+    "previous_ms": 31.405,
+    "current_ms": 25.374,
+    "change_percent": -19.203948415857354,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "parse_valid",
+    "previous_ms": 1.04,
+    "current_ms": 1.004,
+    "change_percent": -3.4615384615384603,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "parse_valid",
+    "previous_ms": 1.016,
+    "current_ms": 1.042,
+    "change_percent": 2.5590551181102317,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "parse_invalid",
+    "previous_ms": 1.034,
+    "current_ms": 0.968,
+    "change_percent": -6.382978723404264,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "parse_invalid",
+    "previous_ms": 1.015,
+    "current_ms": 1.027,
+    "change_percent": 1.1822660098522286,
+    "note": ""
+  },
+  {
+    "suite": "校准/heap",
+    "name": "heap_push_pop",
+    "previous_ms": 7.982,
+    "current_ms": 7.48,
+    "change_percent": -6.289150588824855,
+    "note": ""
+  },
+  {
+    "suite": "校准/heap_clang",
+    "name": "heap_push_pop",
+    "previous_ms": 7.67,
+    "current_ms": 8.037,
+    "change_percent": 4.784876140808358,
+    "note": ""
+  },
+  {
+    "suite": "校准/statistics",
+    "name": "statistics_mean",
+    "previous_ms": 9.707,
+    "current_ms": 9.235,
+    "change_percent": -4.862470382198425,
+    "note": ""
+  },
+  {
+    "suite": "校准/statistics_clang",
+    "name": "statistics_mean",
+    "previous_ms": 9.812,
+    "current_ms": 9.289,
+    "change_percent": -5.330207908683238,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "previous_ms": 9.848,
+    "current_ms": 10.047,
+    "change_percent": 2.020714865962625,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "deep-pwd-2000",
+    "previous_ms": 12.854,
+    "current_ms": 12.514,
+    "change_percent": -2.645091022249879,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "previous_ms": 4.738,
+    "current_ms": 4.896,
+    "change_percent": 3.334740396791891,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "previous_ms": 5.252,
+    "current_ms": 5.192,
+    "change_percent": -1.1424219345011366,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "linklong-2000",
+    "previous_ms": 29.393,
+    "current_ms": 29.753,
+    "change_percent": 1.2247814105399213,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "all-free-max",
+    "previous_ms": 1.024,
+    "current_ms": 1.009,
+    "change_percent": -1.464843750000011,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "previous_ms": 4.863,
+    "current_ms": 4.866,
+    "change_percent": 0.061690314620599374,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-decreasing-max",
+    "previous_ms": 1.002,
+    "current_ms": 1.01,
+    "change_percent": 0.7984031936127733,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "shuffled-tight-max-1",
+    "previous_ms": 3.044,
+    "current_ms": 3.056,
+    "change_percent": 0.3942181340341744,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "alternating-tight-max",
+    "previous_ms": 2.9,
+    "current_ms": 2.909,
+    "change_percent": 0.3103448275862064,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "dictionary",
+    "previous_ms": 3.619,
+    "current_ms": 3.712,
+    "change_percent": 2.569770654877046,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "map",
+    "previous_ms": 3.842,
+    "current_ms": 3.349,
+    "change_percent": -12.831858407079643,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "set",
+    "previous_ms": 2.575,
+    "current_ms": 2.6,
+    "change_percent": 0.9708737864077666,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "queue",
+    "previous_ms": 1.628,
+    "current_ms": 1.467,
+    "change_percent": -9.889434889434877,
+    "note": ""
+  },
+  {
+    "suite": "专项/borrowing",
+    "name": "cancel",
+    "previous_ms": 4.776,
+    "current_ms": 4.815,
+    "change_percent": 0.816582914572872,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "vector_foreach",
+    "previous_ms": 1.195,
+    "current_ms": 1.209,
+    "change_percent": 1.171548117154808,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "serde_json",
+    "previous_ms": 17.353,
+    "current_ms": 14.464,
+    "change_percent": -16.648418140955457,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "format_text",
+    "previous_ms": 10.914,
+    "current_ms": 11.26,
+    "change_percent": 3.1702400586402835,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "statistics_mean",
+    "previous_ms": 18.392,
+    "current_ms": 18.271,
+    "change_percent": -0.6578947368421018,
+    "note": ""
+  },
+  {
+    "suite": "专项/static_runtime",
+    "name": "encoding_utf8",
+    "previous_ms": 27.185,
+    "current_ms": 16.645,
+    "change_percent": -38.77138127643921,
+    "note": ""
+  },
+  {
+    "suite": "专项/parse_paths",
+    "name": "local_valid",
+    "previous_ms": 1.175,
+    "current_ms": 1.014,
+    "change_percent": -13.70212765957447,
+    "note": ""
+  },
+  {
+    "suite": "专项/parse_paths",
+    "name": "local_invalid",
+    "previous_ms": 0.975,
+    "current_ms": 0.975,
+    "change_percent": 0.0,
+    "note": ""
+  },
+  {
+    "suite": "专项/parse_paths",
+    "name": "full_valid",
+    "previous_ms": 2.127,
+    "current_ms": 2.076,
+    "change_percent": -2.3977433004231163,
+    "note": ""
+  },
+  {
+    "suite": "专项/parse_paths",
+    "name": "full_invalid",
+    "previous_ms": 5.471,
+    "current_ms": 5.491,
+    "change_percent": 0.3655638822884111,
+    "note": ""
+  },
+  {
+    "suite": "专项/format_paths",
+    "name": "format_literal",
+    "previous_ms": 5.763,
+    "current_ms": 5.552,
+    "change_percent": -3.6612875238591025,
+    "note": ""
+  },
+  {
+    "suite": "专项/format_paths",
+    "name": "format_local",
+    "previous_ms": 5.49,
+    "current_ms": 5.387,
+    "change_percent": -1.8761384335154951,
+    "note": ""
+  },
+  {
+    "suite": "专项/format_paths",
+    "name": "format_dynamic",
+    "previous_ms": 15.837,
+    "current_ms": 16.224,
+    "change_percent": 2.4436446296647096,
+    "note": ""
+  },
+  {
+    "suite": "专项/serde_paths",
+    "name": "serde_json_short",
+    "previous_ms": 9.933,
+    "current_ms": 7.552,
+    "change_percent": -23.970603040370484,
+    "note": ""
+  },
+  {
+    "suite": "专项/serde_paths",
+    "name": "serde_cbor_short",
+    "previous_ms": 5.669,
+    "current_ms": 3.842,
+    "change_percent": -32.227906156288576,
+    "note": ""
+  },
+  {
+    "suite": "专项/serde_paths",
+    "name": "serde_json_long",
+    "previous_ms": 26.613,
+    "current_ms": 23.864,
+    "change_percent": -10.329538195618682,
+    "note": ""
+  },
+  {
+    "suite": "专项/serde_paths",
+    "name": "serde_cbor_long",
+    "previous_ms": 9.777,
+    "current_ms": 7.929,
+    "change_percent": -18.90150352868978,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "struct_fields",
+    "previous_ms": 0.662,
+    "current_ms": 0.661,
+    "change_percent": -0.15105740181269312,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "class_methods",
+    "previous_ms": 1.642,
+    "current_ms": 1.581,
+    "change_percent": -3.7149817295980436,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "module_call",
+    "previous_ms": 17.733,
+    "current_ms": 0.027,
+    "change_percent": -99.84774149890036,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "function_value",
+    "previous_ms": 1.446,
+    "current_ms": 1.41,
+    "change_percent": -2.4896265560165998,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "closure_bind",
+    "previous_ms": 3.067,
+    "current_ms": 2.828,
+    "change_percent": -7.792631235735259,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_09_11",
+    "name": "heap_push_pop",
+    "previous_ms": 7.673,
+    "current_ms": 7.618,
+    "change_percent": -0.7167991659064232,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "snapshot",
+    "previous_ms": 3.644,
+    "current_ms": 3.26,
+    "change_percent": -10.537870472008793,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "vector_1k",
+    "previous_ms": 0.243,
+    "current_ms": 0.238,
+    "change_percent": -2.0576131687242816,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "vector_100k",
+    "previous_ms": 0.315,
+    "current_ms": 0.277,
+    "change_percent": -12.063492063492054,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "division",
+    "previous_ms": 0.41,
+    "current_ms": 0.394,
+    "change_percent": -3.9024390243902363,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "recursion",
+    "previous_ms": 7.056,
+    "current_ms": 0.001,
+    "change_percent": -99.9858276643991,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "static_spread",
+    "previous_ms": 18.478,
+    "current_ms": 16.448,
+    "change_percent": -10.986037449940477,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "dynamic_spread",
+    "previous_ms": 18.249,
+    "current_ms": 15.436,
+    "change_percent": -15.41454326264452,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_12_14",
+    "name": "deep_copy",
+    "previous_ms": 87.996,
+    "current_ms": 63.184,
+    "change_percent": -28.196736215282513,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "hex_encode_short",
+    "previous_ms": 14.156,
+    "current_ms": 13.325,
+    "change_percent": -5.870302345295286,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "hex_decode_short",
+    "previous_ms": 21.549,
+    "current_ms": 21.509,
+    "change_percent": -0.1856234628056952,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "hex_encode_large",
+    "previous_ms": 4.586,
+    "current_ms": 4.883,
+    "change_percent": 6.4762320104666316,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "hex_decode_large",
+    "previous_ms": 6.714,
+    "current_ms": 8.852,
+    "change_percent": 31.843908251414945,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "utf8_encode_short",
+    "previous_ms": 20.468,
+    "current_ms": 15.277,
+    "change_percent": -25.361539964823145,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "utf8_decode_short",
+    "previous_ms": 11.782,
+    "current_ms": 9.442,
+    "change_percent": -19.86080461721269,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "utf8_encode_large",
+    "previous_ms": 2.06,
+    "current_ms": 1.972,
+    "change_percent": -4.27184466019418,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "utf8_decode_large",
+    "previous_ms": 3.635,
+    "current_ms": 3.54,
+    "change_percent": -2.6134800550206227,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "mean_short",
+    "previous_ms": 9.831,
+    "current_ms": 9.257,
+    "change_percent": -5.838673583562204,
+    "note": ""
+  },
+  {
+    "suite": "专项/paths_15_16",
+    "name": "mean_large",
+    "previous_ms": 41.526,
+    "current_ms": 40.292,
+    "change_percent": -2.971632230409871,
+    "note": ""
+  },
+  {
+    "suite": "专项/file_io",
+    "name": "file_stream_rw",
+    "previous_ms": 886.938,
+    "current_ms": 842.342,
+    "change_percent": -5.028085390410608,
+    "note": ""
+  },
+  {
+    "suite": "专项",
+    "name": "random_long",
+    "previous_ms": 35.0,
+    "current_ms": 34.0,
+    "change_percent": -2.857142857142858,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_alternating",
+    "previous_ms": 18.438,
+    "current_ms": 16.818,
+    "change_percent": -8.786202408070276,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_parameter",
+    "previous_ms": 18.933,
+    "current_ms": 17.295,
+    "change_percent": -8.651560766914901,
+    "note": ""
+  },
+  {
+    "suite": "契约/graph_contract",
+    "name": "graph_copy",
+    "previous_ms": 9.246,
+    "current_ms": 8.897,
+    "change_percent": -3.7746052346960823,
+    "note": ""
+  },
+  {
+    "suite": "契约/graph_contract",
+    "name": "graph_gc",
+    "previous_ms": 8.739,
+    "current_ms": 8.575,
+    "change_percent": -1.8766449250486539,
+    "note": ""
+  },
+  {
+    "suite": "进程运行",
+    "name": "TX",
+    "previous_ms": 179.75719994865358,
+    "current_ms": 120.69190002512187,
+    "change_percent": -32.858377823198914,
+    "note": ""
+  },
+  {
+    "suite": "空程序启动",
+    "name": "TX",
+    "previous_ms": 31.563399999868125,
+    "current_ms": 24.311200017109513,
+    "change_percent": -22.9766120975209,
+    "note": ""
+  },
+  {
+    "suite": "编译",
+    "name": "TX check",
+    "previous_ms": 170.86230003042147,
+    "current_ms": 152.21530001144856,
+    "change_percent": -10.913466584292063,
+    "note": ""
+  },
+  {
+    "suite": "编译",
+    "name": "TX full",
+    "previous_ms": 978.4156999667175,
+    "current_ms": 830.5104000028223,
+    "change_percent": -15.116815886021296,
+    "note": ""
+  }
+]

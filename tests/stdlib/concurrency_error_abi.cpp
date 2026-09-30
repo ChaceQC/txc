@@ -65,7 +65,7 @@ void set_original_error()
     context.active_frame = nullptr;
 }
 
-std::string* null_text(const void*)
+tx_generated::detail::text_handle_record* null_text(const void*)
 {
     return nullptr;
 }
@@ -75,7 +75,7 @@ std::any* null_value(const void*)
     return nullptr;
 }
 
-std::string* original_text_then_throw(const void*)
+tx_generated::detail::text_handle_record* original_text_then_throw(const void*)
 {
     set_original_error();
     throw std::runtime_error("后续 C++ 异常");
@@ -87,12 +87,12 @@ std::any* original_value_then_throw(const void*)
     throw 7;
 }
 
-std::string* good_text(const void*)
+tx_generated::detail::text_handle_record* good_text(const void*)
 {
     return tx_generated::detail::make_handle<std::string>("正常结果");
 }
 
-std::string* nested_wait_after_error(const void*)
+tx_generated::detail::text_handle_record* nested_wait_after_error(const void*)
 {
     auto scope = tx_generated::current_task_scope();
     auto child = tx_generated::submit_task(scope,

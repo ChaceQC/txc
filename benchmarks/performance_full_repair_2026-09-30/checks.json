@@ -1,0 +1,15 @@
+{
+  "completed_utc": "2026-09-30T04:42:18.545706+00:00",
+  "checks": {
+    "performance_full_repair": "FULL_REPAIR_OK",
+    "strings/format_optimized": "FORMAT_OPTIMIZED_OK",
+    "decimal/arithmetic": "",
+    "statistics/basic": "",
+    "ir": "unpack snapshot stays scalar; required recv and literal log paths emitted",
+    "check_concurrency_errors.py": "TX thread.join/task.wait 原始错误与后续正常任务: PASS\nCONCURRENCY_ERROR_ABI_OK",
+    "check_db.py": "PASS tests/db/values.tx: DB 值和类型契约通过\nPASS 静态诊断 wrong_parameter.tx\nPASS 静态诊断 wrong_send.tx\n12.1 公共契约定向验证：3/3\nPASS examples/sqlite.tx: 1 1\n1 第一条记录\nPASS tests/db/sqlite.tx: SQLite 绑定、行读取、事务和资源通过\nPASS tests/db/sqlite_errors.tx: SQLite 失败路径和关闭状态通过\nPASS tests/db/sqlite_file.tx: SQLite 文件、WAL、只读和忙等待通过\nPASS Python SQLite 互操作：WAL、提交结果和关闭回滚\nSQLite native thread, alias cleanup, nonfinite: PASS\n12.2 SQLite 定向验证：6/6",
+    "check_package_compatibility.py": "兼容指纹正常与 4 种错配场景通过"
+  },
+  "compiler_sha256": "5f8bfcb29a79e4ccbb504f43056ad4a629ff13cfd66a509d15be0c02b6351afb",
+  "stdlib_sha256": "96d912ab102b5d422103fea1cd730223f28a037cd18c657a3c9cf56020c19874"
+}

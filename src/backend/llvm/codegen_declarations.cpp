@@ -407,6 +407,7 @@ void llvm_code_generator::write_external_declarations()
             << "declare i32 @txrt_log_flush()\n"
             << "declare i32 @txrt_log_set_level(ptr)\n"
             << "declare i32 @txrt_log_enabled(ptr, ptr)\n"
+            << "declare i32 @txrt_log_enabled_literal(ptr, i64, ptr)\n"
             << "declare i32 @txrt_log_set_secret_keys(ptr)\n"
             << "declare i32 @txrt_log_event_lazy(ptr, ptr, ptr)\n";
     module_ << "declare i32 @txrt_debug_stack_trace(ptr)\n"

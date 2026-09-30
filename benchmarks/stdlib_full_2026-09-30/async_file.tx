@@ -1,0 +1,27 @@
+import "async_file.txh" as async_file
+import "task.txh" as task
+import "file.txh" as file
+import "time.txh" as time
+
+def work(scope: task_scope) -> int
+{
+    auto payload = file.read_bytes("block.bin")
+    auto total = 0
+    auto start = time.monotonic_micros()
+    for i in 0..=31
+    {
+        auto written = task.wait(async_file.write_at("async.bin", i * 65536, payload, task.token(scope)))
+        auto read = task.wait(async_file.read_at("async.bin", i * 65536, 65536, task.token(scope)))
+        if written.error_code == "" && read.error_code == "" && read.data == payload
+        {
+            total += written.written + len(read.data)
+        }
+    }
+    print("async_file_rw", time.monotonic_micros() - start, total)
+    return 0
+}
+
+def main() -> int
+{
+    return task.scope(work, 8, -1)
+}

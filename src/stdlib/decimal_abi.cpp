@@ -59,10 +59,12 @@ void* make(value number, const char* type_name)
     object->owned_ancestors.push_back(type_name);
     object->ancestors = object->owned_ancestors.data();
     object->ancestor_count = 1;
+    object->fields.reserve(3);
     object->fields.emplace_back(number.negative);
     object->fields.emplace_back(number.digits.text());
     object->fields.emplace_back(static_cast<std::int64_t>(number.scale));
-    register_class_gc(object);
+    // decimal 的三个私有字段固定为 bool/str/int，没有对象边，也无用户析构。
+    // 原生构造无需登记弱引用节点；普通类和可形成环的子类仍走各自构造路径。
     return detail::make_handle<std::any>(class_handle(std::move(object)));
 }
 

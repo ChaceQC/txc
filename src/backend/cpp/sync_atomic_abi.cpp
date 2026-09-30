@@ -10,7 +10,7 @@
 namespace
 {
 
-using tx_generated::detail::invoke_checked;
+using tx_generated::detail::invoke_leaf;
 using tx_generated::detail::make_handle;
 
 std::memory_order parse_order(std::int64_t value)
@@ -53,7 +53,7 @@ std::memory_order store_order(std::int64_t value)
 }
 
 template<class value_type>
-std::shared_ptr<std::atomic<value_type>> atomic_of(const void* value)
+const std::shared_ptr<std::atomic<value_type>>& atomic_of(const void* value)
 {
     return std::any_cast<const std::shared_ptr<std::atomic<value_type>>&>(
         *static_cast<const std::any*>(value));
@@ -62,7 +62,7 @@ std::shared_ptr<std::atomic<value_type>> atomic_of(const void* value)
 template<class value_type>
 int new_atomic(value_type initial, void** result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         *result = make_handle<std::any>(
             std::make_shared<std::atomic<value_type>>(initial));
@@ -73,7 +73,7 @@ template<class value_type>
 int atomic_load(const void* value, std::int64_t order,
                 value_type* result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         *result = atomic_of<value_type>(value)->load(load_order(order));
     });
@@ -83,7 +83,7 @@ template<class value_type>
 int atomic_store(const void* value, value_type next,
                  std::int64_t order) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         atomic_of<value_type>(value)->store(next, store_order(order));
     });
@@ -93,7 +93,7 @@ template<class value_type>
 int atomic_exchange(const void* value, value_type next,
                     std::int64_t order, value_type* result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         *result = atomic_of<value_type>(value)->exchange(
             next, parse_order(order));
@@ -104,7 +104,7 @@ template<class value_type>
 int atomic_compare_exchange(const void* value, value_type expected,
     value_type desired, std::int64_t order, bool* result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         // 失败读取使用 relaxed，成功顺序由调用方明确选择。
         *result = atomic_of<value_type>(value)->compare_exchange_strong(
@@ -181,9 +181,9 @@ extern "C" int txrt_sync_atomic_compare_exchange_bool(const void* value,
 extern "C" int txrt_sync_atomic_fetch_add_i64(const void* value,
     std::int64_t delta, std::int64_t order, std::int64_t* result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
-        auto owner = atomic_of<std::int64_t>(value);
+        const auto& owner = atomic_of<std::int64_t>(value);
         const auto memory_order = parse_order(order);
         auto current = owner->load(std::memory_order_relaxed);
         while (true)

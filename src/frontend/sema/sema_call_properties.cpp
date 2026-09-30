@@ -1,6 +1,8 @@
 #include "frontend/sema/sema.hpp"
 #include "frontend/ast/call_properties.hpp"
 
+#include <algorithm>
+
 namespace tx
 {
 
@@ -46,6 +48,27 @@ void semantic_analyzer::annotate_call_properties(call_expression& call) const
         return;
     }
     const auto& name = signature.external_name;
+    const bool typed_format = name == "format.format" &&
+        std::all_of(call.arguments.begin(), call.arguments.end(), [](const call_argument& argument)
+        {
+            const auto& type = argument.value->type;
+            return (argument.kind == argument_kind::positional || argument.kind == argument_kind::keyword) &&
+                (type == value_type::int_type || type == value_type::float_type ||
+                 type == value_type::bool_type || type == value_type::str_type);
+        });
+    if (typed_format || name.starts_with("decimal.") || name == "statistics.mean")
+    {
+        // 基础类型格式化、decimal 原生运算和均值遍历不会调用用户代码。
+        // 均值的迭代器入口会推进游标，但只处理 float，不能释放用户对象。
+        properties.effects = {name != "statistics.mean", false, false, false,
+            name == "statistics.mean" && !call.arguments.empty() &&
+                call.arguments.front().value->type.is_iterator(), false};
+        for (auto& ownership : properties.arguments)
+        {
+            ownership = argument_ownership::borrowed;
+        }
+        return;
+    }
     if (name == "serde.serialize_json" || name == "serde.serialize_cbor" ||
         name == "serde.deserialize_json" || name == "serde.deserialize_cbor")
     {
@@ -67,9 +90,52 @@ void semantic_analyzer::annotate_call_properties(call_expression& call) const
         name == "bytes.to_hex" || name == "bytes.to_base64" ||
         name == "bytes.to_base64_url" || name == "bytes.to_hex_chunk" ||
         name == "bytes.to_base64_chunk";
-    if (read_only_input)
+    // 这里只登记不会回调 TX、不会释放用户对象的入口。状态可以修改，
+    // 但局部根在整个同步调用期间有效；保存的值由原生实现独立持有。
+    const bool scalar_sync = name.starts_with("sync.atomic_") ||
+        (!call.arguments.empty() &&
+         call.arguments.front().value->type.is_sync_value() &&
+         !call.arguments.front().value->type.parameters.empty() &&
+         (call.arguments.front().value->type.parameters.front() == value_type::int_type ||
+          call.arguments.front().value->type.parameters.front() == value_type::float_type ||
+          call.arguments.front().value->type.parameters.front() == value_type::bool_type) &&
+         (name == "sync.lock" || name == "sync.guard_get" ||
+          name == "sync.guard_set" || name == "sync.guard_close" ||
+          name == "sync.read_lock" || name == "sync.write_lock" ||
+          name == "sync.read_get" || name == "sync.write_get" ||
+          name == "sync.write_set" || name == "sync.read_close" ||
+          name == "sync.write_close"));
+    const bool native_query = name.starts_with("db.get_") ||
+        name.starts_with("db.as_") || name.starts_with("db.column_") ||
+        name == "db.next" || name == "db.value_kind" ||
+        name == "regex.search" || name == "regex.match" ||
+        name == "regex.full_match" || name == "regex.find_all" ||
+        name == "regex.split" || name == "regex.replace" ||
+        name == "env.get" || name == "env.contains" ||
+        name == "log.enabled" || name == "log.set_level" ||
+        name == "string.contains" || name == "string.starts_with" ||
+        name == "string.ends_with" || name == "string.find" ||
+        name == "string.slice" || name == "string.replace" ||
+        name == "string.split" || name == "string.split_vector" ||
+        name == "string.trim" || name == "string.lower" || name == "string.upper";
+    const bool scalar_channel = name.starts_with("channel.") &&
+        !call.arguments.empty() &&
+        call.arguments.front().value->type.container_name() == "channel" &&
+        !call.arguments.front().value->type.parameters.empty() &&
+        (call.arguments.front().value->type.parameters.front() == value_type::int_type ||
+         call.arguments.front().value->type.parameters.front() == value_type::float_type ||
+         call.arguments.front().value->type.parameters.front() == value_type::bool_type) &&
+        (name == "channel.send" || name == "channel.recv" || name == "channel.close");
+    if (read_only_input || scalar_sync || native_query || scalar_channel)
     {
-        properties.effects = {true, false, false, false, false, false};
+        const bool sync_query = name == "sync.guard_get" || name == "sync.read_get" ||
+            name == "sync.write_get" || name == "sync.atomic_load";
+        const bool sync_allocates = name == "sync.lock" || name == "sync.read_lock" ||
+            name == "sync.write_lock";
+        // 成功的标量读写不分配；失败立即退出当前表达式，仍保留错误路径。
+        properties.effects = {!scalar_sync || sync_allocates, name == "db.next", false, false,
+            (scalar_sync && !sync_query) || scalar_channel || name == "db.next" || name == "log.set_level",
+            scalar_channel && name == "channel.send"};
         for (auto& ownership : properties.arguments)
         {
             ownership = argument_ownership::borrowed;

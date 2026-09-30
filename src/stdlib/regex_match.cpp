@@ -143,6 +143,9 @@ regex_match_value capture_result(const regex_state& state,
     if (include_groups)
     {
         result.group_names = state.group_names;
+        result.groups.reserve(state.group_names.size());
+        result.group_start_bytes.reserve(state.group_names.size());
+        result.group_end_bytes.reserve(state.group_names.size());
         for (std::size_t index = 0; index < state.group_names.size(); ++index)
         {
             const auto start = offsets[index * 2];
@@ -163,8 +166,9 @@ regex_match_value capture_result(const regex_state& state,
     {
         result.start_scalar = scalar_offset(text,
             static_cast<std::size_t>(result.start_byte));
-        result.end_scalar = scalar_offset(text,
-            static_cast<std::size_t>(result.end_byte));
+        result.end_scalar = result.start_scalar + scalar_offset(
+            text.substr(static_cast<std::size_t>(result.start_byte)),
+            static_cast<std::size_t>(result.end_byte - result.start_byte));
     }
     return result;
 }

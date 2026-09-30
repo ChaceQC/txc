@@ -151,3 +151,65 @@ extern "C" int txrt_db_get_bytes(const void* row, std::int64_t index,
         return db_as_bytes(db_column(input<db_row>(row), index));
     });
 }
+
+namespace
+{
+
+template<class value_type, class getter>
+int required_value(value_type* result, getter get) noexcept
+{
+    return detail::invoke_leaf([&]
+    {
+        const auto value = get();
+        if (!value)
+        {
+            throw runtime_failure({tx::error_kind::runtime,
+                "invalid_state", "空 option 没有值"});
+        }
+        *result = *value;
+    }, tx::error_kind::database);
+}
+
+} // namespace
+
+extern "C" int txrt_db_get_int_required(const void* row, std::int64_t index,
+    std::int64_t* result) noexcept
+{
+    return required_value(result, [&]
+    {
+        return db_as_int(db_column(input<db_row>(row), index));
+    });
+}
+
+extern "C" int txrt_db_get_float_required(const void* row, std::int64_t index,
+    double* result) noexcept
+{
+    return required_value(result, [&]
+    {
+        return db_as_float(db_column(input<db_row>(row), index));
+    });
+}
+
+extern "C" int txrt_db_get_bool_required(const void* row, std::int64_t index,
+    bool* result) noexcept
+{
+    return required_value(result, [&]
+    {
+        return db_as_bool(db_column(input<db_row>(row), index));
+    });
+}
+
+extern "C" int txrt_db_get_str_required(const void* row, std::int64_t index,
+    void** result) noexcept
+{
+    return detail::invoke_leaf([&]
+    {
+        auto value = db_as_str(db_column(input<db_row>(row), index));
+        if (!value)
+        {
+            throw runtime_failure({tx::error_kind::runtime,
+                "invalid_state", "空 option 没有值"});
+        }
+        *result = make_handle<std::string>(std::move(*value));
+    }, tx::error_kind::database);
+}

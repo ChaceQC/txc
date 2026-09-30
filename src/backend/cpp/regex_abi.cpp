@@ -22,14 +22,14 @@ const tx_generated::regex_pattern& pattern_value(const void* value)
         *static_cast<const std::any*>(value));
 }
 
-tx_generated::string_vector text_vector(const std::vector<std::string>& source)
+tx_generated::string_vector text_vector(std::vector<std::string> source)
 {
     tx_generated::string_vector result;
     auto& values = result.data().values;
     values.reserve(source.size());
-    for (const auto& item : source)
+    for (auto& item : source)
     {
-        auto* handle = tx_generated::detail::make_handle<std::string>(item);
+        auto* handle = tx_generated::detail::make_handle<std::string>(std::move(item));
         values.emplace_back(handle);
         tx_generated::detail::destroy_handle(handle);
     }
@@ -38,10 +38,10 @@ tx_generated::string_vector text_vector(const std::vector<std::string>& source)
 }
 
 tx_generated::int_vector number_vector(
-    const std::vector<std::int64_t>& source)
+    std::vector<std::int64_t> source)
 {
     tx_generated::int_vector result;
-    result.data().values = source;
+    result.data().values = std::move(source);
     result.data().refresh();
     return result;
 }
@@ -56,10 +56,10 @@ tx_generated::dynamic_struct match_struct(const char* type_name,
     fields[3] = {"end_byte", value.end_byte};
     fields[4] = {"start_scalar", value.start_scalar};
     fields[5] = {"end_scalar", value.end_scalar};
-    fields[6] = {"groups", text_vector(value.groups)};
-    fields[7] = {"group_names", text_vector(value.group_names)};
-    fields[8] = {"group_start_bytes", number_vector(value.group_start_bytes)};
-    fields[9] = {"group_end_bytes", number_vector(value.group_end_bytes)};
+    fields[6] = {"groups", text_vector(std::move(value.groups))};
+    fields[7] = {"group_names", text_vector(std::move(value.group_names))};
+    fields[8] = {"group_start_bytes", number_vector(std::move(value.group_start_bytes))};
+    fields[9] = {"group_end_bytes", number_vector(std::move(value.group_end_bytes))};
     return tx_generated::dynamic_struct(tx_generated::dynamic_struct_data{
         type_name, "regex_match", std::move(fields)});
 }

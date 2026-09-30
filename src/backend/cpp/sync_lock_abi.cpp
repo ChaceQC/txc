@@ -9,11 +9,11 @@
 namespace
 {
 
-using tx_generated::detail::invoke_checked;
+using tx_generated::detail::invoke_leaf;
 using tx_generated::detail::make_handle;
 
 template<class value_type>
-std::shared_ptr<tx_generated::mutex_state<value_type>> mutex_of(
+const std::shared_ptr<tx_generated::mutex_state<value_type>>& mutex_of(
     const void* value)
 {
     return std::any_cast<const std::shared_ptr<
@@ -22,7 +22,7 @@ std::shared_ptr<tx_generated::mutex_state<value_type>> mutex_of(
 }
 
 template<class value_type>
-std::shared_ptr<tx_generated::mutex_guard_state<value_type>> guard_of(
+const std::shared_ptr<tx_generated::mutex_guard_state<value_type>>& guard_of(
     const void* value)
 {
     return std::any_cast<const std::shared_ptr<
@@ -31,7 +31,7 @@ std::shared_ptr<tx_generated::mutex_guard_state<value_type>> guard_of(
 }
 
 template<class value_type>
-std::shared_ptr<tx_generated::rw_lock_state<value_type>> rw_of(
+const std::shared_ptr<tx_generated::rw_lock_state<value_type>>& rw_of(
     const void* value)
 {
     return std::any_cast<const std::shared_ptr<
@@ -40,7 +40,7 @@ std::shared_ptr<tx_generated::rw_lock_state<value_type>> rw_of(
 }
 
 template<class value_type, bool write>
-std::shared_ptr<tx_generated::rw_guard_state<value_type, write>> rw_guard_of(
+const std::shared_ptr<tx_generated::rw_guard_state<value_type, write>>& rw_guard_of(
     const void* value)
 {
     return std::any_cast<const std::shared_ptr<
@@ -61,7 +61,7 @@ void require_locked(const guard_type& guard)
 template<class value_type>
 int new_mutex(value_type initial, void** result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         auto owner = std::make_shared<tx_generated::mutex_state<value_type>>();
         owner->value = initial;
@@ -72,7 +72,7 @@ int new_mutex(value_type initial, void** result) noexcept
 template<class value_type>
 int lock_mutex(const void* owner, void** result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         auto guard = std::make_shared<tx_generated::mutex_guard_state<value_type>>(
             mutex_of<value_type>(owner));
@@ -83,9 +83,9 @@ int lock_mutex(const void* owner, void** result) noexcept
 template<class value_type>
 int get_mutex(const void* guard, value_type* result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
-        auto state = guard_of<value_type>(guard);
+        const auto& state = guard_of<value_type>(guard);
         require_locked(state);
         *result = state->owner->value;
     });
@@ -94,9 +94,9 @@ int get_mutex(const void* guard, value_type* result) noexcept
 template<class value_type>
 int set_mutex(const void* guard, value_type value) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
-        auto state = guard_of<value_type>(guard);
+        const auto& state = guard_of<value_type>(guard);
         require_locked(state);
         state->owner->value = value;
     });
@@ -105,9 +105,9 @@ int set_mutex(const void* guard, value_type value) noexcept
 template<class value_type>
 int close_mutex(const void* guard) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
-        auto state = guard_of<value_type>(guard);
+        const auto& state = guard_of<value_type>(guard);
         require_locked(state);
         state->lock.unlock();
     });
@@ -116,7 +116,7 @@ int close_mutex(const void* guard) noexcept
 template<class value_type>
 int new_rw_lock(value_type initial, void** result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         auto owner = std::make_shared<tx_generated::rw_lock_state<value_type>>();
         owner->value = initial;
@@ -127,7 +127,7 @@ int new_rw_lock(value_type initial, void** result) noexcept
 template<class value_type, bool write>
 int lock_rw(const void* owner, void** result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
         auto guard = std::make_shared<
             tx_generated::rw_guard_state<value_type, write>>(
@@ -139,9 +139,9 @@ int lock_rw(const void* owner, void** result) noexcept
 template<class value_type, bool write>
 int get_rw(const void* guard, value_type* result) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
-        auto state = rw_guard_of<value_type, write>(guard);
+        const auto& state = rw_guard_of<value_type, write>(guard);
         require_locked(state);
         *result = state->owner->value;
     });
@@ -150,9 +150,9 @@ int get_rw(const void* guard, value_type* result) noexcept
 template<class value_type>
 int set_rw(const void* guard, value_type value) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
-        auto state = rw_guard_of<value_type, true>(guard);
+        const auto& state = rw_guard_of<value_type, true>(guard);
         require_locked(state);
         state->owner->value = value;
     });
@@ -161,9 +161,9 @@ int set_rw(const void* guard, value_type value) noexcept
 template<class value_type, bool write>
 int close_rw(const void* guard) noexcept
 {
-    return invoke_checked([&]
+    return invoke_leaf([&]
     {
-        auto state = rw_guard_of<value_type, write>(guard);
+        const auto& state = rw_guard_of<value_type, write>(guard);
         require_locked(state);
         state->lock.unlock();
     });

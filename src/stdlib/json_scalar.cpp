@@ -22,6 +22,25 @@ void append_string(output_buffer& output, std::string_view text)
     output.push_back('"');
     for (std::size_t offset = 0; offset < text.size();)
     {
+        // 普通 ASCII 连续写入，避免每字节重复做输出限额、容量和流检查。
+        const auto start = offset;
+        while (offset < text.size())
+        {
+            const auto next = static_cast<unsigned char>(text[offset]);
+            if (next < 0x20 || next >= 0x80 || next == '"' || next == '\\')
+            {
+                break;
+            }
+            ++offset;
+        }
+        if (offset != start)
+        {
+            output.append(text.substr(start, offset - start));
+            if (offset == text.size())
+            {
+                break;
+            }
+        }
         const auto byte = static_cast<unsigned char>(text[offset]);
         if (byte >= 0x80)
         {

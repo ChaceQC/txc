@@ -1,0 +1,12 @@
+[
+  "TLS_PROFILE setup=1479 handshake=4603 verify=21608 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=50 handshake=3279 verify=295 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=42 handshake=3076 verify=226 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=27 handshake=3335 verify=269 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=48 handshake=3483 verify=280 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=43 handshake=3807 verify=310 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=129 handshake=3343 verify=312 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=51 handshake=3309 verify=196 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=28 handshake=3413 verify=262 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384",
+  "TLS_PROFILE setup=68 handshake=3357 verify=261 us cipher=TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384"
+]

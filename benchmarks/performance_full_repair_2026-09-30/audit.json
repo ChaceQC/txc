@@ -1,0 +1,512 @@
+[
+  {
+    "name": "mutex_uncontended",
+    "group": "concurrency",
+    "source": "src/frontend/sema/sema_call_properties.cpp",
+    "action": "修复标量借用和读写效果；ABI 借用 shared_ptr；通道临时 option 直接取值。guard 身份/关闭检查、取消和溢出检查保留。",
+    "old_ms": 88.85,
+    "new_ms": 21.294,
+    "speedup": 4.172536864844557,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "atomic_add",
+    "group": "concurrency",
+    "source": "src/frontend/sema/sema_call_properties.cpp",
+    "action": "修复标量借用和读写效果；ABI 借用 shared_ptr；通道临时 option 直接取值。guard 身份/关闭检查、取消和溢出检查保留。",
+    "old_ms": 20.191,
+    "new_ms": 0.291,
+    "speedup": 69.38487972508591,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "log_filtered",
+    "group": "diagnostics",
+    "source": "src/backend/cpp/checked_callback.hpp",
+    "action": "回调使用内部入口及当前上下文；已知 bind 目标直接调用，安全引用捕获借用；过滤字面量日志推迟字段闭包和文本句柄构造。保留回调错误与副作用顺序。",
+    "old_ms": 48.423,
+    "new_ms": 1.032,
+    "speedup": 46.92151162790698,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "test_property",
+    "group": "diagnostics",
+    "source": "src/backend/cpp/checked_callback.hpp",
+    "action": "回调使用内部入口及当前上下文；已知 bind 目标直接调用，安全引用捕获借用；过滤字面量日志推迟字段闭包和文本句柄构造。保留回调错误与副作用顺序。",
+    "old_ms": 4.301,
+    "new_ms": 0.665,
+    "speedup": 6.467669172932331,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "test_parameterized",
+    "group": "diagnostics",
+    "source": "src/backend/cpp/checked_callback.hpp",
+    "action": "回调使用内部入口及当前上下文；已知 bind 目标直接调用，安全引用捕获借用；过滤字面量日志推迟字段闭包和文本句柄构造。保留回调错误与副作用顺序。",
+    "old_ms": 4.065,
+    "new_ms": 0.376,
+    "speedup": 10.811170212765958,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "channel_send_recv",
+    "group": "concurrency",
+    "source": "src/frontend/sema/sema_call_properties.cpp",
+    "action": "修复标量借用和读写效果；ABI 借用 shared_ptr；通道临时 option 直接取值。guard 身份/关闭检查、取消和溢出检查保留。",
+    "old_ms": 23.152,
+    "new_ms": 2.038,
+    "speedup": 11.360157016683024,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "deinit",
+    "group": "language",
+    "source": "src/backend/cpp/class_abi.cpp",
+    "action": "已检查析构视图、根释放和循环登记。仍需保证继承析构、复活及可变引用图；没有用显式 close 或仅删除自环替代通用语义。该项差距仍在。",
+    "old_ms": 16.479,
+    "new_ms": 16.636,
+    "speedup": 0.9905626352488579,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "cycle_gc",
+    "group": "language",
+    "source": "src/backend/cpp/class_abi.cpp",
+    "action": "已检查析构视图、根释放和循环登记。仍需保证继承析构、复活及可变引用图；没有用显式 close 或仅删除自环替代通用语义。该项差距仍在。",
+    "old_ms": 1.597,
+    "new_ms": 1.527,
+    "speedup": 1.045841519318926,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "variadic_unpack",
+    "group": "language",
+    "source": "src/backend/cpp/call_abi.cpp",
+    "action": "目标符号已静态绑定，动态 *array/**dict 仍须按运行时键绑定、检查重名并独立持有可变参数包；当前源值可变，不能按字面量展开。差距仍在。",
+    "old_ms": 11.82,
+    "new_ms": 12.169,
+    "speedup": 0.9713205686580656,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "deep_copy",
+    "group": "language",
+    "source": "src/backend/cpp/deep_copy.cpp",
+    "action": "把常见数组/字典图分派提前，减少依次试探向量和外部资源类型；保留共享身份表、环、资源和类析构规则。",
+    "old_ms": 27.881,
+    "new_ms": 26.015,
+    "speedup": 1.0717278493177014,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "format_literal",
+    "group": "diverse",
+    "source": "src/stdlib/format_append.cpp",
+    "action": "保留已有静态格式计划和单次执行入口；文本直接验证 UTF-8 并追加。对照固定拼接不是完整格式器，残余调用和字符串所有权成本保留。",
+    "old_ms": 7.263,
+    "new_ms": 8.065,
+    "speedup": 0.9005579665220087,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "tls_handshake",
+    "group": "network",
+    "source": "src/stdlib/x509_verification_context.cpp",
+    "action": "阶段计时定位到重复证书引擎初始化。仅缓存完全一致的叶/中间证书/显式根输入，每次重新验证时间、用途、主机名；系统根实时读取。",
+    "old_ms": 250.601,
+    "new_ms": 116.375,
+    "speedup": 2.153392051557465,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "serde_short_text",
+    "group": "diverse",
+    "source": "src/stdlib/format_stream.cpp",
+    "action": "JSON 普通 ASCII 连续片段批量读取/追加，保持转义、Unicode、位置与字节限额；沿用静态 schema 直接编解码。",
+    "old_ms": 8.944,
+    "new_ms": 7.869,
+    "speedup": 1.1366120218579236,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "sqlite_read",
+    "group": "sqlite",
+    "source": "src/backend/cpp/db_value_abi.cpp",
+    "action": "同步读取借用行句柄；get_int/float/bool/str(...).value() 合并为受检取值，删除临时 option；行快照仍独立持有。",
+    "old_ms": 70.293,
+    "new_ms": 26.857,
+    "speedup": 2.617306475034442,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "fanout-2000",
+    "group": "mini",
+    "source": "src/backend/llvm/codegen_ownership.cpp",
+    "action": "使用原题源码和原始输入输出验证编译器改动，不修改题解算法；字符串、容器身份和受检操作构成端到端余量。",
+    "old_ms": 13.877,
+    "new_ms": 12.306,
+    "speedup": 1.1276613034292216,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "random-2000-1",
+    "group": "mini",
+    "source": "src/backend/llvm/codegen_ownership.cpp",
+    "action": "使用原题源码和原始输入输出验证编译器改动，不修改题解算法；字符串、容器身份和受检操作构成端到端余量。",
+    "old_ms": 7.412,
+    "new_ms": 6.924,
+    "speedup": 1.070479491623339,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "format_dynamic",
+    "group": "diverse",
+    "source": "src/stdlib/format_append.cpp",
+    "action": "保留已有静态格式计划和单次执行入口；文本直接验证 UTF-8 并追加。对照固定拼接不是完整格式器，残余调用和字符串所有权成本保留。",
+    "old_ms": 7.188,
+    "new_ms": 7.959,
+    "speedup": 0.9031285337353939,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "regex_search",
+    "group": "compute",
+    "source": "src/backend/cpp/regex_abi.cpp",
+    "action": "借用 pattern/text；捕获文本和边界数组转移所有权；结束标量偏移仅扫描匹配区。仍返回完整捕获组、组名、字节/标量位置并保留限额取消。",
+    "old_ms": 56.946,
+    "new_ms": 52.551,
+    "speedup": 1.083633042187589,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "decimal_add",
+    "group": "compute",
+    "source": "src/stdlib/decimal_abi.cpp",
+    "action": "固定私有 bool/str/int 字段不登记循环 GC，预留字段容量并借用原生运算输入；保留 38 位十进制与舍入、范围检查。",
+    "old_ms": 19.231,
+    "new_ms": 12.181,
+    "speedup": 1.578770215910024,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "format_parameter",
+    "group": "format",
+    "source": "src/stdlib/format_append.cpp",
+    "action": "补齐基础类型动态格式化的借用；整数进制、符号、填充直接追加到结果，避免临时数字字符串及对 ASCII 数字重复计码点。",
+    "old_ms": 22.954,
+    "new_ms": 17.379,
+    "speedup": 1.3207894585419184,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "format_alternating",
+    "group": "format",
+    "source": "src/stdlib/format_append.cpp",
+    "action": "补齐基础类型动态格式化的借用；整数进制、符号、填充直接追加到结果，避免临时数字字符串及对 ASCII 数字重复计码点。",
+    "old_ms": 22.282,
+    "new_ms": 16.602,
+    "speedup": 1.3421274545235513,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "moves-2000",
+    "group": "mini",
+    "source": "src/backend/llvm/codegen_ownership.cpp",
+    "action": "使用原题源码和原始输入输出验证编译器改动，不修改题解算法；字符串、容器身份和受检操作构成端到端余量。",
+    "old_ms": 6.588,
+    "new_ms": 6.329,
+    "speedup": 1.040922736609259,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "copy_cycle",
+    "group": "language",
+    "source": "src/backend/cpp/deep_copy.cpp",
+    "action": "把常见数组/字典图分派提前，减少依次试探向量和外部资源类型；保留共享身份表、环、资源和类析构规则。",
+    "old_ms": 11.95,
+    "new_ms": 10.037,
+    "speedup": 1.1905947992428014,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "random",
+    "group": "library",
+    "source": "src/stdlib/random.cpp",
+    "action": "与 random_int 相同路径；原组合负载仅整数毫秒计时，附带长负载验证，不解释成精确微小差距。",
+    "old_ms": 2.0,
+    "new_ms": 2.0,
+    "speedup": 1.0,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "serde_long_text",
+    "group": "diverse",
+    "source": "src/stdlib/format_stream.cpp",
+    "action": "JSON 普通 ASCII 连续片段批量读取/追加，保持转义、Unicode、位置与字节限额；沿用静态 schema 直接编解码。",
+    "old_ms": 27.553,
+    "new_ms": 9.852,
+    "speedup": 2.7966910272025984,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "string_conversion",
+    "group": "language",
+    "source": "src/stdlib/format_spec.cpp",
+    "action": "沿用原有文本/数字转换路径，数字宽度无需再次按 Unicode 扫描；字符串结果的独立所有权及浮点显示规则保留，未改写基准。",
+    "old_ms": 17.805,
+    "new_ms": 17.238,
+    "speedup": 1.0328924469195961,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "sqlite_insert",
+    "group": "sqlite",
+    "source": "src/stdlib/db_query.cpp",
+    "action": "核实同后端 C++ 原差距低于 1.4 倍；Python 批次/包装路径不同。保留事务协调、insert_id 判断和错误契约，没有删除这些工作。",
+    "old_ms": 11.313,
+    "new_ms": 11.424,
+    "speedup": 0.9902836134453783,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "bytes_hex",
+    "group": "compute",
+    "source": "src/stdlib/bytes.cpp",
+    "action": "沿用 bytes 直接编码/解码与只读借用；结果拥有独立存储，输入格式检查保留。对照未包含全部 TX 句柄成本。",
+    "old_ms": 9.809,
+    "new_ms": 9.803,
+    "speedup": 1.0006120575334079,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "postgres_read",
+    "group": "postgres",
+    "source": "src/backend/llvm/codegen_sum.cpp",
+    "action": "复用数据库直接取值与 option/result 已知引用类型直接交付根；保留 libpq 单行读取与行快照。",
+    "old_ms": 99.238,
+    "new_ms": 42.899,
+    "speedup": 2.313294016177533,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "env_get",
+    "group": "compute",
+    "source": "src/stdlib/env.cpp",
+    "action": "256 wchar 短值使用栈缓冲，长值按需扩容并在并发增长时重读；每次查询实际 Windows 环境，不缓存可能变化的值。",
+    "old_ms": 12.857,
+    "new_ms": 10.911,
+    "speedup": 1.1783521217120336,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "parse_int",
+    "group": "compute",
+    "source": "src/backend/llvm/codegen_native_parse.cpp",
+    "action": "确认已使用静态标量解析结果和惰性错误文本；保留失败类型、进制与无效输入校验，没有把受检解析换成不校验转换。",
+    "old_ms": 11.318,
+    "new_ms": 12.537,
+    "speedup": 0.9027678072904203,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "map_hit_128",
+    "group": "diverse",
+    "source": "src/stdlib/typed_map.hpp",
+    "action": "确认是整数特化 unordered_map、标量槽位和借用接收者；保留缺键异常与可能 rehash 的边界。C++ 内联查找与 TX ABI 的成本仍有差异。",
+    "old_ms": 1.725,
+    "new_ms": 1.973,
+    "speedup": 0.8743030917384693,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "queue_push_pop",
+    "group": "features",
+    "source": "src/frontend/ast/call_properties.cpp",
+    "action": "确认标量容器特化、借用和静态效果已生效；扩容、空队列检查与独立迭代快照按契约保留，没有把快照改成借用视图。",
+    "old_ms": 1.514,
+    "new_ms": 1.566,
+    "speedup": 0.966794380587484,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "encoding_dynamic",
+    "group": "diverse",
+    "source": "src/backend/cpp/encoding_memory_abi.cpp",
+    "action": "确认编码名静态绑定、32 字节短载荷内嵌和字面量借用已有；保留 UTF-8 验证、BOM 与不可变 bytes/文本的拥有关系。没有新增改变编码语义的捷径。",
+    "old_ms": 13.097,
+    "new_ms": 12.596,
+    "speedup": 1.0397745315973324,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "encoding_literal",
+    "group": "diverse",
+    "source": "src/backend/cpp/encoding_memory_abi.cpp",
+    "action": "确认编码名静态绑定、32 字节短载荷内嵌和字面量借用已有；保留 UTF-8 验证、BOM 与不可变 bytes/文本的拥有关系。没有新增改变编码语义的捷径。",
+    "old_ms": 13.805,
+    "new_ms": 12.76,
+    "speedup": 1.081896551724138,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "graph_copy",
+    "group": "graph",
+    "source": "src/backend/cpp/deep_copy.cpp",
+    "action": "同一通用图复制分派修复，并沿用保留共享和环的原生图对照；仍有动态节点和身份表成本。",
+    "old_ms": 9.673,
+    "new_ms": 7.322,
+    "speedup": 1.3210871346626605,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "string",
+    "group": "library",
+    "source": "src/frontend/sema/sema_call_properties.cpp",
+    "action": "只读 string 操作借用同步实参，保留 Unicode 切片、验证、结果分配。该组合包含多种字符串操作，不能按单次 C++ 拼接解释。",
+    "old_ms": 9.0,
+    "new_ms": 9.0,
+    "speedup": 1.0,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "class_methods",
+    "group": "language",
+    "source": "src/backend/llvm/codegen_gc.cpp",
+    "action": "确认生成代码使用固定槽位、直接调用和受检算术；没有发现运行时名称分派。保留共享对象身份与错误语义，短负载受跨 ABI 调用成本影响。",
+    "old_ms": 0.679,
+    "new_ms": 0.648,
+    "speedup": 1.0478395061728396,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "vector_scan_1k",
+    "group": "diverse",
+    "source": "src/backend/llvm/codegen_vector.cpp",
+    "action": "确认扫描为原生连续元素和只读借用，保留受检累计；千元素重复短负载与跨 ABI 边界成本仍在。",
+    "old_ms": 0.278,
+    "new_ms": 0.266,
+    "speedup": 1.0451127819548873,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "random_long",
+    "group": "random_long",
+    "source": "src/stdlib/random.cpp",
+    "action": "五百万次固定种子同序列验证；保留范围检查和分布行为。该路径已有直接 context 入口，本轮未引入新算法。",
+    "old_ms": 34.0,
+    "new_ms": 35.0,
+    "speedup": 0.9714285714285714,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "requests_get / http_get",
+    "group": "http",
+    "source": "src/stdlib/httpx_client.cpp",
+    "action": "单次便捷 API 每次建立 WinHTTP 会话并采用自动代理；对照库及客户端生命周期不同。保留单次会话隔离，不把全局长连接池当作等价修复。",
+    "old_ms": 1208.572,
+    "new_ms": 1202.814,
+    "speedup": 1.0047871075660908,
+    "sample_file": "delivery_http.json"
+  },
+  {
+    "name": "map_hit_8192",
+    "group": "diverse",
+    "source": "src/stdlib/typed_map.hpp",
+    "action": "确认是整数特化 unordered_map、标量槽位和借用接收者；保留缺键异常与可能 rehash 的边界。C++ 内联查找与 TX ABI 的成本仍有差异。",
+    "old_ms": 2.234,
+    "new_ms": 2.381,
+    "speedup": 0.9382612347753045,
+    "sample_file": "calibration.json"
+  },
+  {
+    "name": "sqlite_savepoint",
+    "group": "sqlite",
+    "source": "src/stdlib/db_query.cpp",
+    "action": "核实同后端 C++ 原差距低于 1.4 倍；Python 批次/包装路径不同。保留事务协调、insert_id 判断和错误契约，没有删除这些工作。",
+    "old_ms": 2.86,
+    "new_ms": 2.785,
+    "speedup": 1.0269299820466786,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "vector_push",
+    "group": "features",
+    "source": "src/frontend/ast/call_properties.cpp",
+    "action": "确认标量容器特化、借用和静态效果已生效；扩容、空队列检查与独立迭代快照按契约保留，没有把快照改成借用视图。",
+    "old_ms": 1.933,
+    "new_ms": 1.893,
+    "speedup": 1.0211304807184363,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "array_destructure",
+    "group": "language",
+    "source": "src/backend/llvm/codegen_ownership.cpp",
+    "action": "修复首次解构声明被计为重绑定，标量快照不再立即装箱；真实重赋值仍物化根，已检查快照独立性与后续覆盖。",
+    "old_ms": 4.12,
+    "new_ms": 0.114,
+    "speedup": 36.14035087719298,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "statistics_mean",
+    "group": "compute",
+    "source": "src/stdlib/statistics_internal.hpp",
+    "action": "补齐向量/迭代器均值输入借用和无分配效果；保留有限值检查及 long double 补偿求和，避免大数抵消丢失小项。",
+    "old_ms": 9.714,
+    "new_ms": 8.238,
+    "speedup": 1.1791697013838311,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "httpx_get / http_get",
+    "group": "http",
+    "source": "src/stdlib/httpx_client.cpp",
+    "action": "单次便捷 API 每次建立 WinHTTP 会话并采用自动代理；对照库及客户端生命周期不同。保留单次会话隔离，不把全局长连接池当作等价修复。",
+    "old_ms": 1148.07,
+    "new_ms": 1186.496,
+    "speedup": 0.9676138815470089,
+    "sample_file": "delivery_http.json"
+  },
+  {
+    "name": "random_int",
+    "group": "compute",
+    "source": "src/stdlib/random.cpp",
+    "action": "已采用当前上下文直接入口；保留 mt19937_64 的固定种子序列、均匀分布及边界检查，没有替换随机算法。",
+    "old_ms": 1.396,
+    "new_ms": 1.479,
+    "speedup": 0.9438810006761325,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "forced-increasing-max",
+    "group": "stage",
+    "source": "src/backend/llvm/codegen_map.cpp",
+    "action": "使用原题源码和原始输入输出复测，核实容器直接特化及受检整数路径；没有更改题意、输入或解法来压低耗时。",
+    "old_ms": 5.012,
+    "new_ms": 5.076,
+    "speedup": 0.987391646966115,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "class_operator",
+    "group": "language",
+    "source": "src/backend/llvm/codegen_gc.cpp",
+    "action": "确认生成代码使用固定槽位、直接调用和受检算术；没有发现运行时名称分派。保留共享对象身份与错误语义，短负载受跨 ABI 调用成本影响。",
+    "old_ms": 0.866,
+    "new_ms": 0.787,
+    "speedup": 1.1003811944091486,
+    "sample_file": "final.json"
+  },
+  {
+    "name": "iterator_snapshot",
+    "group": "features",
+    "source": "src/frontend/ast/call_properties.cpp",
+    "action": "确认标量容器特化、借用和静态效果已生效；扩容、空队列检查与独立迭代快照按契约保留，没有把快照改成借用视图。",
+    "old_ms": 0.171,
+    "new_ms": 0.174,
+    "speedup": 0.9827586206896554,
+    "sample_file": "final.json"
+  }
+]
