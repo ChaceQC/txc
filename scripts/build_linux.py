@@ -30,7 +30,8 @@ def compile_lto(entry, destination, clang, cache):
         index += 1
     source = Path(entry["file"])
     output = destination / (source.relative_to(root).as_posix().replace("/", "_") + ".bc")
-    command = [clang, *flags, "-flto=thin", "-c", source, "-o", output]
+    command = [clang, "-target", "x86_64-unknown-linux-gnu", *flags,
+               "-flto=thin", "-c", source, "-o", output]
     if cache:
         command.insert(0, cache)
     run(*command)
@@ -90,9 +91,14 @@ def main():
     entries = [entry for entry in entries if "CMakeFiles/txstdlib.dir/" in entry["command"]]
     if not entries:
         raise RuntimeError("编译数据库缺少标准库源文件")
+    print(f"开始 ThinLTO 标准库：{len(entries)} 个模块", flush=True)
     with ThreadPoolExecutor(max_workers=jobs) as executor:
-        objects = list(executor.map(lambda entry: compile_lto(entry, lto_dir, clang,
-            shutil.which("ccache")), entries))
+        objects = []
+        for count, output in enumerate(executor.map(lambda entry: compile_lto(entry, lto_dir, clang,
+            shutil.which("ccache")), entries), 1):
+            objects.append(output)
+            if count % 50 == 0 or count == len(entries):
+                print(f"ThinLTO 标准库：{count}/{len(entries)}", flush=True)
     merge_archive(tool_dir / "libtxstdlib_lto.a", dependencies, [*objects, *bridge_bitcode], llvm / "llvm-ar")
     for source, name in ((build / "_deps/mbedtls-src/LICENSE", "MBEDTLS-LICENSE"),
                          (build / "_deps/nghttp2-src/COPYING", "NGHTTP2-LICENSE"),

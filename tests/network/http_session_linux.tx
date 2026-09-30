@@ -43,8 +43,8 @@ def main() -> int
     {
         return 1
     }
-    if fetch(session, root + "/set") != "set" ||
-        fetch(session, root + "/cookies") != ""
+    if (fetch(session, root + "/set") != "set" ||
+        fetch(session, root + "/cookies") != "")
     {
         return 2
     }
@@ -58,8 +58,8 @@ def main() -> int
     }
     httpx.client_request upload = httpx.begin_request(session, "POST",
         root + "/echo", map<str, str>(), 32768, 32768, 3000, false)
-    if httpx.write_request(upload, block) != 16384 ||
-        httpx.write_request(upload, block) != 16384
+    if (httpx.write_request(upload, block) != 16384 ||
+        httpx.write_request(upload, block) != 16384)
     {
         return 3
     }

@@ -127,8 +127,10 @@ def main():
                      "http3_binary_server", "http3_binary_client",
                      "http3_lifetime_server"):
             source = ROOT / "tests/network" / f"{name}.tx"
-            subprocess.run([TXC, source, "-o", directory / f"{name}.exe"],
-                           cwd=ROOT, env=env, check=True, timeout=90)
+            compiled = subprocess.run([TXC, source, "-o", directory / f"{name}.exe"],
+                cwd=ROOT, env=env, capture_output=True, timeout=90)
+            if compiled.returncode:
+                raise AssertionError((compiled.stdout + compiled.stderr).decode("utf-8", "replace"))
         for client_name in ("aioquic", "tx", "binary", "untrusted"):
             server_name = ("http3_untrusted_server" if client_name == "untrusted"
                 else "http3_binary_server" if client_name == "binary"
@@ -141,7 +143,8 @@ def main():
                 time.sleep(0.5)
                 if server.poll() is not None:
                     output, _ = server.communicate()
-                    raise AssertionError(output.decode("utf-8", "replace"))
+                    raise AssertionError(output.decode("utf-8", "replace") or
+                        f"{server_name} exit={server.returncode}")
                 if client_name == "aioquic":
                     asyncio.run(abort_partial_body())
                     asyncio.run(request())
@@ -157,7 +160,8 @@ def main():
                             (result.stdout + result.stderr).decode("utf-8", "replace"))
                 output, _ = server.communicate(timeout=12)
                 if server.returncode != 0:
-                    raise AssertionError(output.decode("utf-8", "replace"))
+                    raise AssertionError(output.decode("utf-8", "replace") or
+                        f"{server_name} exit={server.returncode}")
                 print("HTTP/3 未知根证书拒绝通过" if client_name == "untrusted"
                       else f"HTTP/3 {client_name} 客户端往返通过")
             finally:

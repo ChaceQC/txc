@@ -24,10 +24,13 @@ quic_api::quic_api()
 #ifdef _WIN32
     module_ = LoadLibraryW(L"msquic.dll");
 #else
-    module_ = dlopen("libmsquic.so.2", RTLD_NOW | RTLD_LOCAL);
+    // MsQuic 的 OpenSSL 提供者在进程退出时仍有清理回调。保留代码映射，
+    // 防止 quic_api 析构先卸载库后 OPENSSL_cleanup 跳入已释放的地址。
+    constexpr int flags = RTLD_NOW | RTLD_LOCAL | RTLD_NODELETE;
+    module_ = dlopen("libmsquic.so.2", flags);
     if (!module_)
     {
-        module_ = dlopen("libmsquic.so", RTLD_NOW | RTLD_LOCAL);
+        module_ = dlopen("libmsquic.so", flags);
     }
 #endif
     if (!module_)

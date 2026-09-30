@@ -24,4 +24,8 @@ POSIX 发送使用 `MSG_NOSIGNAL`，连接关闭产生可捕获的错误而不�
 
 `scripts/check_linux_network.py` 使用 `TXC_TOOL_DIR` 指定的工具包，执行已有 DNS 和 socket 行为用例，以及回环 HTTP 会话和 WebSocket 客户端用例。HTTP 检查连接复用、Cookie、连续分块上传、chunked 下载、解压大小限制和读取超时；WebSocket 检查客户端掩码、文本分片中的 ping/pong、二进制收发和关闭握手。`scripts/check_http_session_proxy.py` 继续检查显式代理与解压限额；`scripts/check_ws_11_7.py` 检查共享 Upgrade、WSS 与任务接口。
 
-本文描述已实现路径。Linux 全部依赖链接、端到端测试和 GitHub 工作流结果应以当前执行日志为准，不能把语法检查视为远端 CI 或生产网络环境验收。
+2026-10-01 在 WSL Ubuntu 24.04、Clang 18 构建的独立 Linux 工具包上完成以上四组定向检查。初次运行发现生成程序缺少异常展开头，驱动修复后 DNS 与 socket 用例通过；修正新增 TX 用例的跨行条件括号后，以 `--cases http ws` 只重跑剩余两组，输出 `LINUX_NETWORK_OK`。此轮网络运行时无需额外修复。`--cases dns socket http ws` 可选择需要验证的部分，CI 默认执行全部。
+
+同日补充运行 `check_http_session_proxy.py`，验证本机显式 HTTP 代理的 gzip 正文和解压限额，退出码为 0。代理脚本使用显式临时输出路径，避免依赖嵌套工具包的默认产物位置。`check_ws_11_7.py` 输出 `WS_11_7_OK`，覆盖共享 HTTP Upgrade、临时证书的 WSS 服务端握手及文本往返、结构化任务收发、TX 客户端关闭码和原因。
+
+该证据限 WSL 本机回环与上述用例；公网 DNS、WSS 客户端的系统信任路径和远端 GitHub 工作流不能据此视为已验收。构建期的 LLVM target vendor 告警不影响此轮行为检查，由统一工具链构建消除。

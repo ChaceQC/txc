@@ -5,6 +5,7 @@ import http.server
 import os
 import pathlib
 import subprocess
+import tempfile
 import threading
 
 
@@ -38,9 +39,11 @@ def main():
     thread.start()
     try:
         source = ROOT / "tests/network/http_session_proxy.tx"
-        subprocess.run([TOOL_DIR / f"txc{SUFFIX}", source], cwd=ROOT, check=True)
-        subprocess.run([ROOT / f"tx_build/http_session_proxy{SUFFIX}"], cwd=ROOT,
-                       check=True, timeout=15)
+        with tempfile.TemporaryDirectory(prefix="tx-http-proxy-") as directory:
+            target = pathlib.Path(directory) / f"http_session_proxy{SUFFIX}"
+            subprocess.run([TOOL_DIR / f"txc{SUFFIX}", source, "-o", target],
+                           cwd=ROOT, check=True)
+            subprocess.run([target], cwd=ROOT, check=True, timeout=15)
     finally:
         server.shutdown()
         server.server_close()

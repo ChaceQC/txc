@@ -137,7 +137,7 @@ int compile_llvm_native(const std::string& generated_source,
     {
         return code;
     }
-    std::vector<std::string> link{"-m", "elf_x86_64", "--dynamic-linker",
+    std::vector<std::string> link{"-m", "elf_x86_64", "--eh-frame-hdr", "--dynamic-linker",
         "/lib64/ld-linux-x86-64.so.2", "-o", output_path.string(),
         (link_dir / "crt1.o").string(), (link_dir / "crti.o").string(),
         (link_dir / "crtbegin.o").string(), "-L" + link_dir.string(),

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import argparse
 import gzip
 import hashlib
 import http.server
@@ -150,22 +151,28 @@ def websocket(program: Path) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cases", nargs="+", choices=("dns", "socket", "http", "ws"),
+                        default=("dns", "socket", "http", "ws"))
+    selected = set(parser.parse_args().cases)
     with tempfile.TemporaryDirectory(prefix="tx-linux-network-") as directory:
         directory = Path(directory)
-        for name in ("dns", "socket_behavior"):
-            run(compile_case(name, directory))
-        http_program = compile_case("http_session_linux", directory)
-        ws = compile_case("ws_linux_client", directory)
-        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-        worker = threading.Thread(target=server.serve_forever, daemon=True)
-        worker.start()
-        try:
-            run(http_program, server.server_port)
-        finally:
-            server.shutdown()
-            server.server_close()
-            worker.join()
-        websocket(ws)
+        for case, name in (("dns", "dns"), ("socket", "socket_behavior")):
+            if case in selected:
+                run(compile_case(name, directory))
+        if "http" in selected:
+            http_program = compile_case("http_session_linux", directory)
+            server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            try:
+                run(http_program, server.server_port)
+            finally:
+                server.shutdown()
+                server.server_close()
+                worker.join()
+        if "ws" in selected:
+            websocket(compile_case("ws_linux_client", directory))
     print("LINUX_NETWORK_OK")
 
 

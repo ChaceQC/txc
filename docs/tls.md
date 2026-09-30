@@ -111,3 +111,7 @@ def close(peer: secure_stream, timeout_ms: int) -> void
 ## 11.3 定向验证（2026-09-28）
 
 Windows x64 增量构建通过。`scripts/check_tls_stream.py` 使用临时生成的根证书、服务端/客户端证书和 PKCS#12，验证客户端与服务端双向握手、ALPN、二进制数据收发、`close_notify` EOF、握手后关闭身份仍可使用安全流，以及错误主机名、无关 CA、缺客户端证书和 ALPN 不匹配的拒绝路径。`tests/network/tls_preflight.tx` 验证非法 ALPN 在消费 TCP 前拒绝；`tests/network/tls_bad_send.tx` 在源码位置拒绝跨线程传递安全流。原 9.6 的 `scripts/check_tls.py` 同轮复核通过。验证使用本机回环与自定义 CA；系统根的实际公网握手和非 Windows 平台不在本次定向范围内。证书撤销仍未检查。
+
+## Linux 定向验证（2026-10-01）
+
+Ubuntu 24.04 x64（WSL）使用独立 Linux 包运行 `scripts/check_tls_stream.py` 通过：双向 TLS、ALPN、加密收发与正常关闭、错误主机名、无关 CA、缺少客户端证书、ALPN 不匹配及随机源并发用例均通过。脚本支持 `TXC_TOOL_DIR` 指定待验证包，使用临时 CA 和本机回环；未将此结果解释为公网根证书或撤销检查验证。
