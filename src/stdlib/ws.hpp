@@ -38,9 +38,11 @@ struct ws_close_status_data
 
 struct ws_connection_state
 {
+#ifdef _WIN32
     network::http_handle session;
     network::http_handle connection;
     network::http_handle websocket;
+#endif
     std::unique_ptr<network::tcp_stream> stream;
     std::shared_ptr<void> listener_slot;
     ws_close_status_data close_status;

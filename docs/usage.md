@@ -10,6 +10,25 @@ GitHub 自动构建和 tag 发布方式见 [CI/CD 说明](releasing.md)。
 
 ## 从源码构建
 
+Linux 使用 Ubuntu 24.04 x86_64，执行：
+
+```bash
+sudo python3 scripts/setup_linux.py
+python3 scripts/build_linux.py
+./tx/txc example.tx
+./tx_build/example
+```
+
+安装脚本添加 PostgreSQL 与 Microsoft 官方签名软件源，安装 LLVM 18、libpq 17 以上版本、固定 MsQuic 2.6.1 和原生开发库。
+Mbed TLS 3.6.5、nghttp2 1.68.0、nghttp3 1.18.0、SQLite 由 CMake 下载固定版本；普通与 ThinLTO 库使用同套 Clang。
+`--incremental` 保留 `build/linux/`；默认成功后清理该临时目录，失败保留。
+在同一工作区保留 Windows 产物时可用 `python3 scripts/build_linux.py --incremental --output tx/linux`，运行 `./tx/linux/txc`。
+自定义工具目录下默认输出相对工具包根目录；也可始终通过 `-o` 指定输出。
+
+Linux `tx/` 包含 `txc`、`clang`、两套静态库、`link/`、`lib/`、`licenses/` 与 `stdlib/`。
+编译生成的程序使用同目录 `tx_lib/`，迁移时一起复制。编译 `.tx` 不需要系统 C++ 编译器，宿主仍需满足 glibc 2.39 基线。
+完整系统语义差异和验证状态见 [Linux 适配说明](linux_port.md)。下列其余示例使用 Windows PowerShell，Linux 去掉可执行文件后缀并使用 `/` 路径分隔符。
+
 本文命令在 Windows 的 PowerShell 7 中执行，工作目录为本仓库根目录。构建 txc 和运行时库需要支持 C++23 的 g++、CMake 3.21 或更高版本以及 Ninja；构建脚本还需要同版本 LLVM 的 `clang.exe`、`llvm-ar.exe` 和 `ld.lld.exe`，通过 `TX_LLVM_BIN` 指定完整 LLVM 的 bin 目录。当前已用 LLVM 23.1.2 验证。运行构建好的 txc 编译 `.tx` 时，不需要在 PATH 中安装 g++、LLVM 或链接器。
 
 ## 构建编译器

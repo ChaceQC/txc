@@ -24,17 +24,29 @@ void profile_register_thread(detail::runtime_context** context) noexcept
     {
         auto& current = profiling::state();
         std::lock_guard lock(current.mutex);
+#ifdef _WIN32
         const auto id = GetCurrentThreadId();
+#else
+        const auto id = pthread_self();
+#endif
         if (current.threads.contains(id))
         {
             return;
         }
+#ifdef _WIN32
         HANDLE handle = OpenThread(THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT |
             THREAD_QUERY_INFORMATION, FALSE, id);
         if (handle)
         {
             current.threads.emplace(id, profiling::sampled_thread{handle, context, 0});
         }
+#else
+        clockid_t cpu_clock;
+        if (pthread_getcpuclockid(id, &cpu_clock) == 0)
+        {
+            current.threads.emplace(id, profiling::sampled_thread{id, cpu_clock, context, 0});
+        }
+#endif
     }
     catch (...)
     {
@@ -47,10 +59,16 @@ void profile_unregister_thread() noexcept
     profiling::internal_guard guard;
     auto& current = profiling::state();
     std::lock_guard lock(current.mutex);
+#ifdef _WIN32
     const auto found = current.threads.find(GetCurrentThreadId());
+#else
+    const auto found = current.threads.find(pthread_self());
+#endif
     if (found != current.threads.end())
     {
+#ifdef _WIN32
         CloseHandle(found->second.handle);
+#endif
         current.threads.erase(found);
     }
 }
@@ -82,12 +100,18 @@ void profile_start(std::int64_t interval_ms, std::int64_t maximum)
     for (auto& [id, thread] : current.threads)
     {
         (void)id;
+#ifdef _WIN32
         FILETIME created{}, exited{}, kernel{}, user{};
         GetThreadTimes(thread.handle, &created, &exited, &kernel, &user);
         current.start = profiling::clock_type::now();
         thread.cpu = (static_cast<std::uint64_t>(kernel.dwHighDateTime) << 32) +
             kernel.dwLowDateTime + (static_cast<std::uint64_t>(user.dwHighDateTime) << 32) +
             user.dwLowDateTime;
+#else
+        timespec cpu{};
+        clock_gettime(thread.cpu_clock, &cpu);
+        thread.cpu = static_cast<std::uint64_t>(cpu.tv_sec) * 10000000 + cpu.tv_nsec / 100;
+#endif
     }
     current.start = profiling::clock_type::now();
     current.sampler = std::jthread(profiling::sample_loop);

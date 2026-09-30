@@ -18,7 +18,11 @@ namespace tx_generated
 struct ipc_listener_state
 {
     std::mutex mutex;
+#ifdef _WIN32
     std::wstring name;
+#else
+    std::string name;
+#endif
     process_detail::native_handle pending;
     std::size_t max_bytes = 0;
     bool closed = false;

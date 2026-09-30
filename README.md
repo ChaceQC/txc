@@ -9,6 +9,11 @@ Windows x64 用户可从 [GitHub Releases](https://github.com/ChaceQC/txc/releas
 ZIP 同时包含本文、[说明文档](docs/usage.md)、[语法文档](docs/syntax.md)、标准库文档及示例。
 自动构建与 tag 发布流程见 [GitHub CI/CD](docs/releasing.md)。
 
+Linux x86_64 原生适配与构建方式见 [Linux 平台说明](docs/linux_port.md)。
+Linux 发行格式为 `txc-vX.Y.Z-linux-x64.tar.gz`，运行基线是 Ubuntu 24.04 / glibc 2.39。
+解压后执行 `./tx/txc example.tx`，再执行 `./tx_build/example`；需要把程序旁的 `tx_lib/` 一起保留。
+Windows 和 Linux 包独立构建，不能混用其中的标准库与链接组件。
+
 运行 `scripts/build.ps1` 构建 txc 后，在仓库根目录执行：
 
 ```powershell

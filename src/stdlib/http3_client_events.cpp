@@ -6,6 +6,10 @@
 #include <algorithm>
 #include <cstring>
 #include <limits>
+#ifndef _WIN32
+#include "stdlib/x509_openssl.hpp"
+#include <openssl/pkcs7.h>
+#endif
 
 namespace tx_generated::http3
 {
@@ -89,6 +93,7 @@ QUIC_STATUS QUIC_API client_connection::on_connection(HQUIC, void* context,
 
 void client_connection::validate_peer(QUIC_CONNECTION_EVENT* event)
 {
+#ifdef _WIN32
     const auto* certificate = static_cast<PCCERT_CONTEXT>(
         event->PEER_CERTIFICATE_RECEIVED.Certificate);
     if (!certificate || validation_thread_.joinable())
@@ -119,6 +124,41 @@ void client_connection::validate_peer(QUIC_CONNECTION_EVENT* event)
             }
         }
     }
+#else
+    const auto* certificate = reinterpret_cast<const QUIC_BUFFER*>(
+        event->PEER_CERTIFICATE_RECEIVED.Certificate);
+    if (!certificate || !certificate->Buffer || certificate->Length == 0 ||
+        certificate->Length > x509::max_certificate_bytes || validation_thread_.joinable())
+    {
+        network::fail("security_error", "HTTP/3 服务端证书缺失、过大或重复");
+    }
+    auto leaf = make_bytes({certificate->Buffer, certificate->Buffer + certificate->Length});
+    std::vector<byte_value> intermediates;
+    const auto* chain = reinterpret_cast<const QUIC_BUFFER*>(event->PEER_CERTIFICATE_RECEIVED.Chain);
+    if (chain && chain->Length > 0)
+    {
+        if (!chain->Buffer || chain->Length > x509::max_input_bytes)
+        {
+            network::fail("security_error", "HTTP/3 证书链大小无效");
+        }
+        const auto* cursor = chain->Buffer;
+        std::unique_ptr<PKCS7, decltype(&PKCS7_free)> parsed(
+            d2i_PKCS7(nullptr, &cursor, chain->Length), PKCS7_free);
+        if (!parsed || cursor != chain->Buffer + chain->Length || !PKCS7_type_is_signed(parsed.get()))
+        {
+            network::fail("security_error", "HTTP/3 证书链编码无效");
+        }
+        const auto* certificates = parsed->d.sign->cert;
+        if (sk_X509_num(certificates) > 64)
+        {
+            network::fail("security_error", "HTTP/3 证书链超过 64 张");
+        }
+        for (int index = 0; index < sk_X509_num(certificates); ++index)
+        {
+            intermediates.push_back(x509::certificate_bytes(sk_X509_value(certificates, index)));
+        }
+    }
+#endif
     validation_thread_ = std::thread([this, leaf,
         intermediates = std::move(intermediates)]
     {

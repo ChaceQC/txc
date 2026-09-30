@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "common/platform.hpp"
 #include "backend/llvm/target_attributes.hpp"
 
 #include <algorithm>
@@ -552,7 +553,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
     }
     program_analysis_.analyze(source);
     prepare_static_functions();
-    module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
+    module_ << "target triple = \"" << tx::target_triple << "\"\n\n"
             << "%tx_record_field = type { ptr, ptr, i64, i64, i64 }\n"
             << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr, ptr, ptr, ptr, ptr }\n"
             << "%tx_record_view = type { ptr, ptr }\n"

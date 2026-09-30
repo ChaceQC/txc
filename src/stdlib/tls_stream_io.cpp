@@ -73,7 +73,7 @@ int secure_connection::tls_send(void* context, const unsigned char* data,
                                 std::size_t size)
 {
     const auto* self = static_cast<secure_connection*>(context);
-    const int sent = send(self->native_->get(),
+    const int sent = network::socket_send(self->native_->get(),
         reinterpret_cast<const char*>(data),
         static_cast<int>(std::min<std::size_t>(size, INT_MAX)), 0);
     if (sent >= 0)
@@ -88,7 +88,7 @@ int secure_connection::tls_recv(void* context, unsigned char* data,
                                 std::size_t size)
 {
     const auto* self = static_cast<secure_connection*>(context);
-    const int received = recv(self->native_->get(),
+    const int received = network::socket_receive(self->native_->get(),
         reinterpret_cast<char*>(data),
         static_cast<int>(std::min<std::size_t>(size, INT_MAX)), 0);
     if (received >= 0)
@@ -112,12 +112,8 @@ void secure_connection::wait_io(bool write,
         const auto remaining = std::chrono::duration_cast<
             std::chrono::milliseconds>(deadline - now).count();
         const auto slice = std::min<std::int64_t>(remaining + 1, 10);
-        fd_set ready;
-        FD_ZERO(&ready);
-        FD_SET(native_->get(), &ready);
-        timeval limit{0, static_cast<long>(slice * 1000)};
-        const int selected = select(0, write ? nullptr : &ready,
-            write ? &ready : nullptr, nullptr, &limit);
+        const int selected = network::wait_socket(native_->get(), write,
+            static_cast<int>(slice));
         if (selected > 0)
         {
             return;

@@ -210,11 +210,7 @@ std::int64_t accept(std::int64_t listener, const binary_stream& destination,
         }
         if (state->sessions.size() < 16)
         {
-            fd_set ready;
-            FD_ZERO(&ready);
-            FD_SET(state->socket.get(), &ready);
-            timeval wait{0, 0};
-            const int selected = select(0, &ready, nullptr, nullptr, &wait);
+            const int selected = network::wait_socket(state->socket.get(), false, 0);
             if (selected < 0)
             {
                 network::socket_failure("等待 HTTP/2 连接");

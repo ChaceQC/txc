@@ -10,13 +10,16 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 namespace tx_generated
 {
 namespace
 {
 
+#ifdef _WIN32
 bool is_console(DWORD stream)
 {
     const HANDLE handle = GetStdHandle(stream);
@@ -74,10 +77,14 @@ struct console_utf8
     }
 };
 
+#endif
+
 void prepare_console()
 {
+#ifdef _WIN32
     static const console_utf8 state;
     (void)state;
+#endif
 }
 
 void write_checked(std::ostream& stream, std::string_view text,

@@ -3,6 +3,9 @@
 #include "stdlib/network_common.hpp"
 
 #include <string>
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
 
 namespace tx_generated::http3
 {
@@ -18,17 +21,30 @@ void require_quic(QUIC_STATUS status, std::string_view action)
 
 quic_api::quic_api()
 {
+#ifdef _WIN32
     module_ = LoadLibraryW(L"msquic.dll");
+#else
+    module_ = dlopen("libmsquic.so.2", RTLD_NOW | RTLD_LOCAL);
+    if (!module_)
+    {
+        module_ = dlopen("libmsquic.so", RTLD_NOW | RTLD_LOCAL);
+    }
+#endif
     if (!module_)
     {
         network::fail("unsupported_protocol", "HTTP/3 需要随工具链交付的 MsQuic 运行库");
     }
     try
     {
+#ifdef _WIN32
         const auto open = reinterpret_cast<MsQuicOpenVersionFn>(
             GetProcAddress(module_, "MsQuicOpenVersion"));
         close_ = reinterpret_cast<MsQuicCloseFn>(
             GetProcAddress(module_, "MsQuicClose"));
+#else
+        const auto open = reinterpret_cast<MsQuicOpenVersionFn>(dlsym(module_, "MsQuicOpenVersion"));
+        close_ = reinterpret_cast<MsQuicCloseFn>(dlsym(module_, "MsQuicClose"));
+#endif
         if (!open || !close_)
         {
             network::fail("unsupported_protocol", "MsQuic 运行库缺少版本 2 接口");
@@ -46,7 +62,11 @@ quic_api::quic_api()
         {
             close_(api_);
         }
+#ifdef _WIN32
         FreeLibrary(module_);
+#else
+        dlclose(module_);
+#endif
         throw;
     }
 }
@@ -63,7 +83,11 @@ quic_api::~quic_api() noexcept
     }
     if (module_)
     {
+#ifdef _WIN32
         FreeLibrary(module_);
+#else
+        dlclose(module_);
+#endif
     }
 }
 

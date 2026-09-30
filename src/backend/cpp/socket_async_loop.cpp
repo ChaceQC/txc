@@ -226,7 +226,7 @@ private:
             if (!value->finished && value->native)
             {
                 descriptors.push_back({value->native->get(),
-                    static_cast<SHORT>(value->write ? POLLWRNORM : POLLRDNORM),
+                    static_cast<short>(value->write ? POLLWRNORM : POLLRDNORM),
                     0});
                 polled.push_back(value);
             }

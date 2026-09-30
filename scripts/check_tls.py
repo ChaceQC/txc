@@ -2,7 +2,6 @@
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-import os
 import subprocess
 import sys
 import tempfile
@@ -12,6 +11,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
+from check_platform import TXC, environment
 
 
 root = Path(__file__).resolve().parents[1]
@@ -83,10 +83,9 @@ def fixtures(directory):
 
 
 def run(*command):
-    environment = os.environ.copy()
-    environment["PATH"] = str(root / "tx") + os.pathsep + environment["PATH"]
+    values = environment()
     result = subprocess.run([str(item) for item in command], cwd=root,
-                            env=environment, capture_output=True, timeout=90)
+                            env=values, capture_output=True, timeout=90)
     output = (result.stdout + result.stderr).decode("utf-8", errors="replace")
     if result.returncode:
         raise AssertionError(f"exit={result.returncode}\n{output}")
@@ -98,10 +97,10 @@ def main():
         directory = Path(location)
         fixtures(directory)
         program = directory / "tls_check.exe"
-        run(root / "tx/txc.exe", root / "tests/crypto/tls.tx", "-o", program)
+        run(TXC, root / "tests/crypto/tls.tx", "-o", program)
         print(run(program, directory))
         example = directory / "tls_example.exe"
-        run(root / "tx/txc.exe", root / "examples/tls_config.tx", "-o", example)
+        run(TXC, root / "examples/tls_config.tx", "-o", example)
         print(run(example, directory / "server.der", directory / "root.der"))
 
 

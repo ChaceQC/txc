@@ -4,6 +4,12 @@
 
 ## 7.5 启动与生命周期
 
+### Linux 后端
+
+Linux 使用 `posix_spawn`、`pipe2`、`poll` 与 `waitpid`，仍直接执行给定路径，不搜索 `PATH`，不隐式调用 shell。参数逐项传递给 `exec`，没有 Windows CRT 引号编码及 32767 UTF-16 单元限制，实际参数总量受系统 `ARG_MAX` 限制；环境变量名称区分大小写。只保留选择的三个标准流，空流使用 `/dev/null`。带有效 shebang 且有执行权限的脚本由内核加载。
+
+Linux 正常退出码为 0～255；信号退出返回 `state="terminated"`、`exit_code=128+信号编号`。`terminate` 向直接子进程发送 `SIGTERM`；启用 `new_process_group` 时发给该组。`kill` 只向直接子进程发 `SIGKILL`。关闭句柄不会终止子进程，由回收线程等待退出，避免僵尸进程。父侧管道非阻塞，三路有界捕获和超时、取消、部分写入语义与下文相同。
+
 `make_options(executable, args)` 返回可修改的 `options`：
 
 | 字段 | 默认值与规则 |

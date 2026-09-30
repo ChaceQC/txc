@@ -1,6 +1,6 @@
 # 性能分析
 
-Windows x64 提供 `profile.txh` 和 `txc profile`。报告只含源码位置、计数、大小和调用符号，不读取分配块内容、函数参数或配置值。
+Windows x64 和 Linux x64 提供 `profile.txh` 和 `txc profile`。报告只含源码位置、计数、大小和调用符号，不读取分配块内容、函数参数或配置值。
 
 ## API
 
@@ -9,6 +9,8 @@ Windows x64 提供 `profile.txh` 和 `txc profile`。报告只含源码位置、
 `begin_span(name) -> int` 返回本会话唯一标识；`end_span(id) -> int` 记录并返回单调时钟经过的微秒数，可跨线程结束。空名、无效/重复结束、会话未启动或超过 10000 个段时报 `invalid_profile_span`。尚未结束的段在报告内保留 `duration_us=-1`。
 
 ## 采样和统计边界
+
+Linux 用注册线程的 `pthread_getcpuclockid` / `clock_gettime` 取得 CPU 增量，通过 `process_vm_readv` 对 TX 诊断帧做两次一致性快照。不暂停应用线程，也不占用进程信号。帧切换、内存读取失败或访问限制时，把该次 CPU 时间保留为未归因样本并增加 `missed_samples`。Linux 不采集原生 PC，报告中的 `instruction_address` 为字符串 `"0"`，`sampler` 标记为 `thread_cpu_time_weighted_tx_frame`；源码归因仍是采样估计。下面关于暂停线程和原生 PC 的说明适用于 Windows 后端。两平台共用分配、存活堆、分段计时和报告格式；Linux 对齐分配使用 `posix_memalign`。
 
 后台采样线程读取注册 TX 线程的系统 CPU 时间，短暂暂停线程取得原生 PC 和当前 TX 诊断帧后立即恢复。暂停区间不分配、不取得应用锁；只有恢复后才归并报告。CPU 时间增量加权归因到该次观察的位置，阻塞等待不作为 CPU 时间。返回前已退出的短命线程可能没有样本；1 毫秒参数不是精度承诺，实际调度间隔受 Windows 定时器和负载影响。`missed_samples` 记录读取失败或超过 100000 个位置上限。
 

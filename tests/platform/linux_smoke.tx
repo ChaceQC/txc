@@ -1,0 +1,46 @@
+import "test.txh" as test
+import "system.txh" as system
+import "env.txh" as env
+import "path.txh" as path
+import "fs.txh" as fs
+import "file.txh" as file
+import "file_stream.txh" as streams
+
+def main() -> int
+{
+    test.assert_equal("linux", system.operating_system())
+    test.assert_equal("x86_64", system.architecture())
+    test.assert_true(system.cpu_count() > 0)
+    test.assert_true(system.process_id() > 0)
+    test.assert_true(path.is_absolute(system.executable_path()))
+    test.assert_false(path.compare("A", "a") == 0)
+    env.set("TXC_LINUX_SMOKE", "中文值")
+    test.assert_equal("中文值", env.get("TXC_LINUX_SMOKE"))
+    test.assert_true(env.remove("TXC_LINUX_SMOKE"))
+    env.set("TXC_LINUX_SMOKE", "")
+    test.assert_true(env.contains("TXC_LINUX_SMOKE"))
+    test.assert_equal("", env.get("TXC_LINUX_SMOKE"))
+    env.remove("TXC_LINUX_SMOKE")
+    str directory = test.temp_directory()
+    str target = path.join(directory, "中文 空格.txt")
+    file.atomic_write_text(target, "中文😀", "utf-16")
+    test.assert_equal("中文😀", file.read_text(target, "utf-16"))
+    file.atomic_write_text(target, "编码测试", "gb18030")
+    test.assert_equal("编码测试", file.read_text(target, "gb18030"))
+    file.atomic_write_text(target, "替换内容", "utf-8")
+    test.assert_equal("替换内容", file.read_text(target, "utf-8"))
+    fs.set_permissions(target, 384)
+    test.assert_equal(384, fs.stat(target).permissions)
+    auto stream = streams.open_binary(target, "update")
+    streams.lock(stream, "exclusive")
+    streams.sync(stream)
+    streams.unlock(stream)
+    streams.close(stream)
+    str link = path.join(directory, "链接")
+    fs.create_symlink(target, link, false)
+    test.assert_equal("symlink", fs.lstat(link).kind)
+    test.assert_true(path.equivalent(target, link))
+    fs.remove_all(directory)
+    print("linux-platform-ok")
+    return 0
+}

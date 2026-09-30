@@ -1,4 +1,5 @@
 #include "stdlib/ws_frames.hpp"
+#include "stdlib/crypto_internal.hpp"
 
 #include <algorithm>
 #include <array>
@@ -10,29 +11,51 @@ namespace tx_generated::network
 void send_ws_frame(tcp_stream& stream, std::uint8_t opcode,
                    std::string_view payload, bool final)
 {
-    // 服务端帧不掩码；客户端帧由 WinHTTP 按 RFC 6455 处理。
+    // RFC 6455 要求每个客户端帧使用独立的不可预测掩码。
+    const bool masked = stream.websocket_client();
+    const auto mask_flag = masked ? 0x80 : 0;
     std::string header;
     header.push_back(static_cast<char>((final ? 0x80 : 0) | opcode));
     if (payload.size() <= 125)
     {
-        header.push_back(static_cast<char>(payload.size()));
+        header.push_back(static_cast<char>(payload.size() | mask_flag));
     }
     else if (payload.size() <= 65535)
     {
-        header.push_back(126);
+        header.push_back(static_cast<char>(126 | mask_flag));
         header.push_back(static_cast<char>((payload.size() >> 8) & 0xff));
         header.push_back(static_cast<char>(payload.size() & 0xff));
     }
     else
     {
-        header.push_back(127);
+        header.push_back(static_cast<char>(127 | mask_flag));
         for (int shift = 56; shift >= 0; shift -= 8)
         {
             header.push_back(static_cast<char>((payload.size() >> shift) & 0xff));
         }
     }
+    std::array<std::uint8_t, 4> mask{};
+    if (masked)
+    {
+        crypto::fill_random(mask);
+        header.append(reinterpret_cast<const char*>(mask.data()), mask.size());
+    }
     stream.send_all(header);
-    stream.send_all(payload);
+    if (!masked)
+    {
+        stream.send_all(payload);
+        return;
+    }
+    for (std::size_t offset = 0; offset < payload.size();)
+    {
+        std::string block(payload.substr(offset, 16 * 1024));
+        for (std::size_t index = 0; index < block.size(); ++index)
+        {
+            block[index] ^= static_cast<char>(mask[(offset + index) % 4]);
+        }
+        stream.send_all(block);
+        offset += block.size();
+    }
 }
 
 ws_frame_header read_ws_frame_header(tcp_stream& stream,
@@ -44,9 +67,10 @@ ws_frame_header read_ws_frame_header(tcp_stream& stream,
     ws_frame_header result;
     result.final = (flags & 0x80) != 0;
     result.opcode = flags & 0x0f;
-    if ((flags & 0x70) != 0 || (length_flag & 0x80) == 0)
+    const bool masked = (length_flag & 0x80) != 0;
+    if ((flags & 0x70) != 0 || masked == stream.websocket_client())
     {
-        fail("protocol_error", "WebSocket 客户端帧必须掩码且不能使用保留位");
+        fail("protocol_error", "WebSocket 帧掩码方向或保留位无效");
     }
     std::uint64_t length = length_flag & 0x7f;
     if (length == 126)
@@ -79,8 +103,11 @@ ws_frame_header read_ws_frame_header(tcp_stream& stream,
         fail(length > max_payload ? "size_limit" : "protocol_error",
              "WebSocket 帧长度或控制帧格式无效");
     }
-    const auto mask = stream.read_exact(4);
-    std::copy_n(mask.begin(), 4, result.mask.begin());
+    if (masked)
+    {
+        const auto mask = stream.read_exact(4);
+        std::copy_n(mask.begin(), 4, result.mask.begin());
+    }
     result.length = static_cast<std::size_t>(length);
     return result;
 }

@@ -202,10 +202,10 @@ transport::~transport() noexcept
                 break;
             }
             const DWORD drain_timeout = static_cast<DWORD>(remaining);
-            setsockopt(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
+            network::set_socket_option(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
                        reinterpret_cast<const char*>(&drain_timeout),
                        sizeof(drain_timeout));
-            if (recv(socket_.get(), buffer, sizeof(buffer), 0) <= 0)
+            if (network::socket_receive(socket_.get(), buffer, sizeof(buffer), 0) <= 0)
             {
                 break;
             }
@@ -246,7 +246,7 @@ void transport::set_receive_timeout(std::int64_t timeout_ms)
         network::fail("invalid_argument", "HTTP/2 读取超时无效");
     }
     const DWORD value = static_cast<DWORD>(timeout_ms);
-    if (setsockopt(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
+    if (network::set_socket_option(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
                    reinterpret_cast<const char*>(&value), sizeof(value)) != 0)
     {
         network::socket_failure("设置 HTTP/2 读取超时");
@@ -257,7 +257,7 @@ int transport::tls_send(void* context, const unsigned char* data,
                         std::size_t size)
 {
     const auto socket = static_cast<transport*>(context)->socket_.get();
-    const int sent = send(socket, reinterpret_cast<const char*>(data),
+    const int sent = network::socket_send(socket, reinterpret_cast<const char*>(data),
                           static_cast<int>(std::min<std::size_t>(size, INT_MAX)), 0);
     return sent >= 0 ? sent : MBEDTLS_ERR_NET_SEND_FAILED;
 }
@@ -265,7 +265,7 @@ int transport::tls_send(void* context, const unsigned char* data,
 int transport::tls_recv(void* context, unsigned char* data, std::size_t size)
 {
     const auto socket = static_cast<transport*>(context)->socket_.get();
-    const int received = recv(socket, reinterpret_cast<char*>(data),
+    const int received = network::socket_receive(socket, reinterpret_cast<char*>(data),
                               static_cast<int>(std::min<std::size_t>(size, INT_MAX)), 0);
     if (received >= 0)
     {
@@ -293,7 +293,7 @@ std::string transport::read_some(std::size_t max_bytes)
     int received = 0;
     if (!tls_)
     {
-        received = recv(socket_.get(), result.data(),
+        received = network::socket_receive(socket_.get(), result.data(),
                         static_cast<int>(result.size()), 0);
         if (received < 0)
         {
@@ -339,7 +339,7 @@ void transport::write_all(std::string_view bytes)
         int written = 0;
         if (!tls_)
         {
-            written = send(socket_.get(), bytes.data(),
+            written = network::socket_send(socket_.get(), bytes.data(),
                 static_cast<int>(std::min<std::size_t>(bytes.size(), INT_MAX)), 0);
             if (written < 0)
             {

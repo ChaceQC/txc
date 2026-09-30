@@ -19,6 +19,8 @@
 
 `fs.watch(path, recursive)` 返回不透明 `fs_watcher`，只接受目录。`fs.watch_next(watcher, timeout_millis)` 返回 `watch_event { kind, path }`：`created/deleted/modified/renamed_old/renamed_new` 的 `path` 是相对路径；`timeout` 和 `overflow` 的 `path` 为空。超时 0 表示立即轮询，-1 表示无限等待，其他负数报 `io_error/invalid_argument`。监视事件可合并；缓冲溢出时返回 `overflow`，调用方必须重新扫描。等待超时保留尚未完成的系统请求，不丢弃后续事件。`fs.close_watch` 可重复调用；关闭后等待报 `io_error/closed_handle`。最后一个 TX 引用释放时会自动关闭原生句柄。监视器不支持跨线程转移或共享。Windows 监视队列和路径变动存在竞争，事件不是权限边界或可靠审计日志。
 
+Linux 目录监视使用非阻塞 `inotify`，关闭等待通过 `eventfd` 唤醒；内核队列保留两次调用之间的事件。递归监视为每个真实子目录登记监视，不跟随子目录符号链接。目录移出树时撤销对应监视，移入或新建时登记新子树，并额外返回 `overflow` 提醒调用方重新扫描安装监视期间的变化。内核队列溢出或根目录本身被移动、删除同样报告 `overflow`；此时调用方应检查路径并按需重建监视器。事件名与上文保持一致。
+
 ## 7.2 路径解析、分解和比较
 
 旧 `normalize/absolute/relative` 继续按词法处理，不读取磁盘。新增 `path.canonical(path)` 跟随链接并要求整个路径存在；`path.weakly_canonical(path)` 解析已存在的前缀，保留可能不存在的尾部。两者都返回绝对路径，发生访问失败时抛 `io_error`。它们反映调用时的文件系统状态，不能自动证明之后打开该路径是安全的；安全约束应使用目录句柄相对打开与不跟随链接选项。

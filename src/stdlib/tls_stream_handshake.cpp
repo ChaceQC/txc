@@ -136,7 +136,7 @@ void secure_connection::initialize(std::int64_t timeout_ms)
             "初始化 TLS 配置");
         mbedtls_ssl_conf_min_tls_version(&config_, MBEDTLS_SSL_VERSION_TLS1_2);
         mbedtls_ssl_conf_rng(&config_, tls_random, nullptr);
-        // 链验证统一交由现有 Windows X.509 信任引擎；握手时请求证书，
+        // 链验证统一交由平台 X.509 信任引擎；握手时请求证书，
         // 但绝不在应用层验证完成前返回安全流或交付明文。
         mbedtls_ssl_conf_authmode(&config_, MBEDTLS_SSL_VERIFY_OPTIONAL);
         load_identity();

@@ -11,7 +11,7 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <windows.h>
+#include "common/platform.hpp"
 
 namespace tx
 {
@@ -28,7 +28,7 @@ struct profile_workspace
         for (int index = 0; index < 100; ++index)
         {
             const auto candidate = std::filesystem::temp_directory_path() /
-                ("txc_profile_" + std::to_string(GetCurrentProcessId()) + "_" +
+                ("txc_profile_" + std::to_string(tx::process_id()) + "_" +
                  std::to_string(stamp) + "_" + std::to_string(index));
             if (std::filesystem::create_directory(candidate))
             {
@@ -75,8 +75,8 @@ int run_profile(const std::filesystem::path& source, const profile_options& opti
         throw std::runtime_error("性能报告不能覆盖源码文件");
     }
     profile_workspace workspace;
-    const auto baseline = workspace.path / "baseline.exe";
-    const auto profiled = workspace.path / "profiled.exe";
+    const auto baseline = workspace.path / tx::executable_name("baseline");
+    const auto profiled = workspace.path / tx::executable_name("profiled");
     if (compile(source, baseline, 0) || compile(source, profiled, options.interval_ms))
     {
         return 1;

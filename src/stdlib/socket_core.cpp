@@ -182,9 +182,8 @@ address_list numeric_addresses(std::string_view ip, std::int64_t port,
 
 network::socket_handle create_socket(const addrinfo& address)
 {
-    network::socket_handle result(WSASocketW(address.ai_family,
-        address.ai_socktype, address.ai_protocol, nullptr, 0,
-        WSA_FLAG_OVERLAPPED));
+    network::socket_handle result(network::create_native_socket(address.ai_family,
+        address.ai_socktype, address.ai_protocol));
     if (!result.valid())
     {
         socket_error("创建 socket");
@@ -219,12 +218,7 @@ void wait_ready(const std::shared_ptr<state>& value, SOCKET native,
         const auto remaining = std::chrono::duration_cast<
             std::chrono::milliseconds>(deadline - now).count();
         const auto slice = std::min<std::int64_t>(remaining + 1, 10);
-        fd_set ready;
-        FD_ZERO(&ready);
-        FD_SET(native, &ready);
-        timeval limit{0, static_cast<long>(slice * 1000)};
-        const int selected = select(0, write ? nullptr : &ready,
-            write ? &ready : nullptr, nullptr, &limit);
+        const int selected = network::wait_socket(native, write, static_cast<int>(slice));
         if (selected > 0)
         {
             if (value->closed)
@@ -244,7 +238,7 @@ std::int64_t local_port(const std::shared_ptr<state>& value)
 {
     const auto native = native_socket(value);
     sockaddr_storage address{};
-    int length = sizeof(address);
+    network::socket_length length = sizeof(address);
     if (getsockname(native->get(), reinterpret_cast<sockaddr*>(&address),
             &length) != 0)
     {
@@ -268,7 +262,7 @@ std::int64_t local_port(const std::shared_ptr<state>& value)
         code == WSAECONNRESET || code == WSAECONNABORTED ||
         code == WSAENOTCONN || code == WSAESHUTDOWN ? "connection_closed" :
         code == WSAEMSGSIZE ? "size_limit" : "operation_failed";
-    network::fail(stable, std::string(action) + "失败，Winsock 错误码 " +
+    network::fail(stable, std::string(action) + "失败，socket 错误码 " +
         std::to_string(code));
 }
 

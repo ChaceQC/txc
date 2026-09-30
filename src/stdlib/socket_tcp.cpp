@@ -50,17 +50,14 @@ resource listen_tcp(std::string_view ip, std::int64_t port,
     for (auto* item = addresses.get(); item; item = item->ai_next)
     {
         auto native = create_socket(*item);
-        const BOOL exclusive = TRUE;
-        if (setsockopt(native.get(), SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
-                reinterpret_cast<const char*>(&exclusive),
-                sizeof(exclusive)) != 0)
+        if (network::set_socket_exclusive(native.get()) != 0)
         {
             continue;
         }
         if (ip.empty() && item->ai_family == AF_INET6)
         {
             const DWORD dual_stack = 0;
-            setsockopt(native.get(), IPPROTO_IPV6, IPV6_V6ONLY,
+            network::set_socket_option(native.get(), IPPROTO_IPV6, IPV6_V6ONLY,
                 reinterpret_cast<const char*>(&dual_stack),
                 sizeof(dual_stack));
         }
@@ -104,7 +101,7 @@ resource connect_tcp(std::string_view ip, std::int64_t port,
                 cancellation);
             int error = 0;
             int length = sizeof(error);
-            if (getsockopt(pending->native->get(), SOL_SOCKET, SO_ERROR,
+            if (network::get_socket_option(pending->native->get(), SOL_SOCKET, SO_ERROR,
                     reinterpret_cast<char*>(&error), &length) != 0)
             {
                 socket_error("连接 TCP 目标");
@@ -132,7 +129,7 @@ resource accept_tcp(const std::shared_ptr<state>& listener,
     while (true)
     {
         wait_ready(listener, native->get(), false, deadline, cancellation);
-        network::socket_handle accepted(::accept(native->get(), nullptr, nullptr));
+        network::socket_handle accepted(network::accept_native_socket(native->get()));
         if (accepted.valid())
         {
             u_long nonblocking = 1;
@@ -177,7 +174,7 @@ read_result read(const std::shared_ptr<state>& peer,
     while (true)
     {
         wait_ready(peer, native->get(), false, deadline, cancellation);
-        const int received = recv(native->get(),
+        const int received = network::socket_receive(native->get(),
             reinterpret_cast<char*>(result.data.data()),
             static_cast<int>(result.data.size()), 0);
         if (received > 0)
@@ -224,7 +221,7 @@ std::int64_t write(const std::shared_ptr<state>& peer,
     while (true)
     {
         wait_ready(peer, native->get(), true, deadline, cancellation);
-        const int sent = send(native->get(), data.data(),
+        const int sent = network::socket_send(native->get(), data.data(),
             static_cast<int>(std::min(data.size(), transfer_chunk)), 0);
         if (sent > 0)
         {

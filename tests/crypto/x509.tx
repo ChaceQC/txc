@@ -87,6 +87,12 @@ def main() -> int
     {
         return 4
     }
+    bytes signing = x509.parse_der(file.read_bytes(directory + "/signing.der"))
+    if x509.verify(signing, middle, anchors, "", "code_signing", false).status != "valid" ||
+       x509.verify(leaf, middle, anchors, "", "code_signing", false).status != "wrong_purpose"
+    {
+        return 16
+    }
     if x509.verify(leaf, middle, vector<bytes>(), "service.example", "server_auth", false).status != "unknown_issuer"
     {
         return 5

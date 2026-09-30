@@ -8,7 +8,7 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <windows.h>
+#include "common/platform.hpp"
 
 namespace tx_generated
 {
@@ -75,7 +75,7 @@ std::string create_test_directory()
         for (std::uint64_t suffix = 0; suffix < 10000; ++suffix)
         {
             const auto candidate = base /
-                ("tx_test_" + std::to_string(GetCurrentProcessId()) + "_" +
+                ("tx_test_" + std::to_string(tx::process_id()) + "_" +
                  std::to_string(suffix));
             std::error_code error;
             if (fs::create_directory(candidate, error))

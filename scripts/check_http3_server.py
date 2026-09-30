@@ -20,6 +20,7 @@ from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 
 from check_tls import make_certificate, make_key
+from check_platform import TXC, CREATE_FLAGS, environment
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -120,21 +121,22 @@ def main():
     with tempfile.TemporaryDirectory(prefix="tx-http3-") as temporary:
         directory = pathlib.Path(temporary)
         fixtures(directory)
+        env = environment()
         for name in ("http3_server", "http3_client",
                      "http3_untrusted_server", "http3_untrusted_client",
                      "http3_binary_server", "http3_binary_client",
                      "http3_lifetime_server"):
             source = ROOT / "tests/network" / f"{name}.tx"
-            subprocess.run([ROOT / "tx/txc.exe", source], cwd=ROOT,
-                           check=True)
+            subprocess.run([TXC, source, "-o", directory / f"{name}.exe"],
+                           cwd=ROOT, env=env, check=True, timeout=90)
         for client_name in ("aioquic", "tx", "binary", "untrusted"):
             server_name = ("http3_untrusted_server" if client_name == "untrusted"
                 else "http3_binary_server" if client_name == "binary"
                 else "http3_server")
             server = subprocess.Popen(
-                [ROOT / "tx_build" / f"{server_name}.exe", directory],
-                cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                creationflags=subprocess.CREATE_NO_WINDOW)
+                [directory / f"{server_name}.exe", directory],
+                cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                creationflags=CREATE_FLAGS)
             try:
                 time.sleep(0.5)
                 if server.poll() is not None:
@@ -148,8 +150,8 @@ def main():
                         else "http3_binary_client" if client_name == "binary"
                         else "http3_client")
                     result = subprocess.run(
-                        [ROOT / "tx_build" / f"{program}.exe", directory],
-                        cwd=ROOT, capture_output=True, timeout=15)
+                        [directory / f"{program}.exe", directory],
+                        cwd=ROOT, env=env, capture_output=True, timeout=15)
                     if result.returncode != 0:
                         raise AssertionError(f"{program} exit={result.returncode}: " +
                             (result.stdout + result.stderr).decode("utf-8", "replace"))
@@ -164,9 +166,9 @@ def main():
                     server.wait()
 
         server = subprocess.Popen(
-            [ROOT / "tx_build" / "http3_lifetime_server.exe", directory],
-            cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            creationflags=subprocess.CREATE_NO_WINDOW)
+            [directory / "http3_lifetime_server.exe", directory],
+            cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            creationflags=CREATE_FLAGS)
         try:
             time.sleep(0.5)
             if server.poll() is not None:

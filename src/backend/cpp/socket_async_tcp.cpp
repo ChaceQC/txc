@@ -91,7 +91,7 @@ std::shared_ptr<operation> make_connect(std::string ip, std::int64_t port,
     {
         int error = 0;
         int length = sizeof(error);
-        if (getsockopt(pending.native->get(), SOL_SOCKET, SO_ERROR,
+        if (network::get_socket_option(pending.native->get(), SOL_SOCKET, SO_ERROR,
                 reinterpret_cast<char*>(&error), &length) != 0)
         {
             socket::socket_error("连接 TCP 目标");
@@ -185,7 +185,7 @@ std::shared_ptr<operation> make_read(std::shared_ptr<socket::state> peer,
             return task_result(std::any(socket_abi::read_value(
                 result_name.c_str(), {{}, true})));
         }
-        const int received = recv(pending.native->get(),
+        const int received = network::socket_receive(pending.native->get(),
             reinterpret_cast<char*>(buffer->data()),
             static_cast<int>(buffer->size()), 0);
         if (received > 0)
@@ -241,7 +241,7 @@ std::shared_ptr<operation> make_write(std::shared_ptr<socket::state> peer,
         {
             network::fail("connection_closed", "TCP 写入方向已关闭");
         }
-        const int sent = send(pending.native->get(),
+        const int sent = network::socket_send(pending.native->get(),
             reinterpret_cast<const char*>(bytes->data()),
             static_cast<int>(std::min(bytes->size(), transfer_chunk)), 0);
         if (sent > 0)

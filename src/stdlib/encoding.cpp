@@ -9,7 +9,16 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <unicode/ucnv.h>
+#include <unicode/ucnv_err.h>
+#include <memory>
+#include <vector>
+using UINT = unsigned;
+constexpr UINT CP_UTF8 = 65001;
+#endif
 
 namespace tx_generated::detail
 {
@@ -28,6 +37,7 @@ int checked_length(std::size_t size)
     return static_cast<int>(size);
 }
 
+#ifdef _WIN32
 std::wstring decode_code_page(std::string_view bytes, UINT code_page)
 {
     if (bytes.empty())
@@ -84,6 +94,82 @@ std::string encode_code_page(std::wstring_view text, UINT code_page)
     }
     return result;
 }
+
+
+#else
+using converter_handle = std::unique_ptr<UConverter, decltype(&ucnv_close)>;
+
+converter_handle open_converter(UINT code_page)
+{
+    UErrorCode error = U_ZERO_ERROR;
+    converter_handle converter(ucnv_open(code_page == CP_UTF8 ? "UTF-8" :
+        code_page == gbk_code_page ? "GBK" : "GB18030", &error), &ucnv_close);
+    if (U_SUCCESS(error))
+    {
+        ucnv_setToUCallBack(converter.get(), UCNV_TO_U_CALLBACK_STOP,
+            nullptr, nullptr, nullptr, &error);
+        ucnv_setFromUCallBack(converter.get(), UCNV_FROM_U_CALLBACK_STOP,
+            nullptr, nullptr, nullptr, &error);
+    }
+    if (U_FAILURE(error))
+    {
+        throw std::runtime_error("无法初始化字符集转换");
+    }
+    return converter;
+}
+
+std::wstring decode_code_page(std::string_view bytes, UINT code_page)
+{
+    auto converter = open_converter(code_page);
+    UErrorCode error = U_ZERO_ERROR;
+    const auto size = ucnv_toUChars(converter.get(), nullptr, 0, bytes.data(),
+        checked_length(bytes.size()), &error);
+    if (error != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(error))
+    {
+        throw std::runtime_error("文本包含无效的字符集字节序列");
+    }
+    error = U_ZERO_ERROR;
+    std::vector<UChar> units(size);
+    ucnv_toUChars(converter.get(), units.data(), size, bytes.data(),
+        checked_length(bytes.size()), &error);
+    if (U_FAILURE(error))
+    {
+        throw std::runtime_error("文本字符集解码失败");
+    }
+    // 编码模块内部的 wide 字符串统一存 UTF-16 单元；不传给 Linux 原生路径 API。
+    return {units.begin(), units.end()};
+}
+
+std::string encode_code_page(std::wstring_view text, UINT code_page)
+{
+    auto converter = open_converter(code_page);
+    std::vector<UChar> units;
+    for (const auto unit : text)
+    {
+        if (static_cast<std::uint32_t>(unit) > 0xffff)
+        {
+            throw std::runtime_error("UTF-16 单元超出范围");
+        }
+        units.push_back(static_cast<UChar>(unit));
+    }
+    UErrorCode error = U_ZERO_ERROR;
+    const auto size = ucnv_fromUChars(converter.get(), nullptr, 0, units.data(),
+        checked_length(units.size()), &error);
+    if (error != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(error))
+    {
+        throw std::runtime_error("目标字符集无法表示文本");
+    }
+    error = U_ZERO_ERROR;
+    std::string result(size, '\0');
+    ucnv_fromUChars(converter.get(), result.data(), size, units.data(),
+        checked_length(units.size()), &error);
+    if (U_FAILURE(error))
+    {
+        throw std::runtime_error("目标字符集无法表示文本");
+    }
+    return result;
+}
+#endif
 
 bool has_prefix(std::string_view bytes, std::string_view prefix)
 {
@@ -238,7 +324,12 @@ std::filesystem::path path_from_utf8(std::string_view text)
     {
         throw std::runtime_error("文件路径不能为空或包含 NUL 字符");
     }
+#ifdef _WIN32
     return std::filesystem::path(utf8_to_wide(text));
+#else
+    validate_utf8(text);
+    return std::filesystem::path(text);
+#endif
 }
 
 std::string decode_text(std::string_view bytes, text_encoding encoding)

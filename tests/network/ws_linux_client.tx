@@ -1,0 +1,24 @@
+import "bytes.txh" as byte_values
+import "system.txh" as system
+import "websocket.txh" as ws
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    ws.connection peer = ws.connect("ws://127.0.0.1:" + args[0] + "/", 3000)
+    ws.send_text(peer, "你好")
+    ws.message message = ws.receive(peer, 3000)
+    if !message.open || message.text != "你好!"
+    {
+        return 1
+    }
+    bytes payload = byte_values.from_hex("00ff80")
+    ws.send_binary(peer, payload)
+    ws.binary_message reply = ws.receive_binary(peer, 3000)
+    if !reply.open || reply.data != payload
+    {
+        return 2
+    }
+    ws.close(peer)
+    return 0
+}

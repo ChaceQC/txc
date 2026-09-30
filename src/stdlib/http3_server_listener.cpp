@@ -5,15 +5,21 @@
 #include <algorithm>
 #include <array>
 #include <limits>
+#ifdef _WIN32
 #include <ncrypt.h>
-#include <utility>
 #include <ws2tcpip.h>
+#else
+#include "stdlib/x509.hpp"
+#include <arpa/inet.h>
+#endif
+#include <utility>
 
 namespace tx_generated::http3
 {
 namespace
 {
 
+#ifdef _WIN32
 class password_text
 {
 public:
@@ -64,6 +70,36 @@ public:
 private:
     std::vector<wchar_t> value_;
 };
+#else
+class password_text
+{
+public:
+    explicit password_text(const secret::handle& password)
+    {
+        if (!password)
+        {
+            network::fail("invalid_argument", "HTTP/3 身份密码未提供");
+        }
+        const auto bytes = password->view();
+        if (bytes.size() > 4096 || std::find(bytes.begin(), bytes.end(), 0) != bytes.end())
+        {
+            network::fail("invalid_argument", "HTTP/3 身份密码长度无效");
+        }
+        network::validate_utf8({reinterpret_cast<const char*>(bytes.data()), bytes.size()});
+        value_ = std::make_shared<secret::buffer>(bytes.size() + 1);
+        std::copy(bytes.begin(), bytes.end(), value_->writable().begin());
+        value_->writable().back() = 0;
+    }
+
+    const char* data() const
+    {
+        return reinterpret_cast<const char*>(value_->view().data());
+    }
+
+private:
+    secret::handle value_;
+};
+#endif
 
 QUIC_ADDR bind_address(std::string_view host, std::int64_t port)
 {
@@ -94,6 +130,7 @@ QUIC_ADDR bind_address(std::string_view host, std::int64_t port)
     return result;
 }
 
+#ifdef _WIN32
 void delete_imported_keys(HCERTSTORE store) noexcept
 {
     if (!store)
@@ -145,6 +182,7 @@ void delete_imported_keys(HCERTSTORE store) noexcept
         // 析构路径不能再抛异常；后续仍会关闭证书存储。
     }
 }
+#endif
 
 } // namespace
 
@@ -159,6 +197,7 @@ server_listener::server_listener(std::string_view host, std::int64_t port,
     const auto address = bind_address(host, port);
     try
     {
+#ifdef _WIN32
         CRYPT_DATA_BLOB blob{static_cast<DWORD>(package->size()),
             const_cast<BYTE*>(package->data())};
         if (!PFXIsPFXBlob(&blob))
@@ -192,6 +231,13 @@ server_listener::server_listener(std::string_view host, std::int64_t port,
         {
             network::fail("invalid_argument", "HTTP/3 身份缺少关联私钥");
         }
+#else
+        // 先执行统一 PKCS#12 校验，拒绝多私钥及证书不匹配，再把包交给 MsQuic。
+        (void)x509::parse_pkcs12(package, password);
+        auto private_key = x509::pkcs12_private_key(package, password);
+        secret::close(private_key);
+        const password_text converted(password);
+#endif
         QUIC_SETTINGS settings{};
         settings.IsSet.PeerBidiStreamCount = TRUE;
         settings.PeerBidiStreamCount = 16;
@@ -209,9 +255,17 @@ server_listener::server_listener(std::string_view host, std::int64_t port,
             1, &settings, sizeof(settings), nullptr, &configuration_),
             "配置 HTTP/3 服务端");
         QUIC_CREDENTIAL_CONFIG credential{};
+#ifdef _WIN32
         credential.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_CONTEXT;
         credential.CertificateContext =
             const_cast<CERT_CONTEXT*>(certificate_);
+#else
+        // 同步加载把凭据复制进 TLS 上下文，不创建私钥文件或持久化容器。
+        QUIC_CERTIFICATE_PKCS12 identity{package->data(),
+            static_cast<std::uint32_t>(package->size()), converted.data()};
+        credential.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_PKCS12;
+        credential.CertificatePkcs12 = &identity;
+#endif
         require_quic(api_->ConfigurationLoadCredential(configuration_,
             &credential), "加载 HTTP/3 服务端证书");
         require_quic(api_->ListenerOpen(library_.registration(), on_listener,
@@ -233,6 +287,7 @@ server_listener::server_listener(std::string_view host, std::int64_t port,
         {
             api_->ConfigurationClose(configuration_);
         }
+#ifdef _WIN32
         if (certificate_)
         {
             CertFreeCertificateContext(certificate_);
@@ -242,6 +297,7 @@ server_listener::server_listener(std::string_view host, std::int64_t port,
             delete_imported_keys(certificate_store_);
             CertCloseStore(certificate_store_, 0);
         }
+#endif
         throw;
     }
 }
@@ -253,6 +309,7 @@ server_listener::~server_listener() noexcept
     {
         api_->ConfigurationClose(configuration_);
     }
+#ifdef _WIN32
     if (certificate_)
     {
         CertFreeCertificateContext(certificate_);
@@ -262,6 +319,7 @@ server_listener::~server_listener() noexcept
         delete_imported_keys(certificate_store_);
         CertCloseStore(certificate_store_, 0);
     }
+#endif
 }
 
 void server_listener::close() noexcept
