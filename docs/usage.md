@@ -1,5 +1,15 @@
 # 编译与运行 .tx 文件
 
+## 下载发行包
+
+从 [GitHub Releases](https://github.com/ChaceQC/txc/releases) 下载 Windows x64 ZIP，
+解压后在包顶层执行 `./tx/txc.exe example.tx`，再运行 `./tx_build/example.exe`。
+保留整个 `tx/` 目录即可使用，不需要安装 g++、LLVM 或链接器。
+包内提供本说明、[语法文档](syntax.md)、全部模块文档和示例；校验文件为 `SHA256SUMS.txt`。
+GitHub 自动构建和 tag 发布方式见 [CI/CD 说明](releasing.md)。
+
+## 从源码构建
+
 本文命令在 Windows 的 PowerShell 7 中执行，工作目录为本仓库根目录。构建 txc 和运行时库需要支持 C++23 的 g++、CMake 3.21 或更高版本以及 Ninja；构建脚本还需要同版本 LLVM 的 `clang.exe`、`llvm-ar.exe` 和 `ld.lld.exe`，通过 `TX_LLVM_BIN` 指定完整 LLVM 的 bin 目录。当前已用 LLVM 23.1.2 验证。运行构建好的 txc 编译 `.tx` 时，不需要在 PATH 中安装 g++、LLVM 或链接器。
 
 ## 构建编译器

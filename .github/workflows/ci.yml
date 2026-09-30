@@ -1,0 +1,114 @@
+name: CI and Release
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: txc-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  build:
+    name: Windows x64 build and package
+    runs-on: windows-2022
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      PYTHONUTF8: '1'
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 2G
+      CCACHE_BASEDIR: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restore pinned toolchains
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/txc-toolchains
+          key: windows-2022-toolchains-${{ hashFiles('scripts/setup_ci.ps1') }}
+      - name: Set up GCC and LLVM
+        run: ./scripts/setup_ci.ps1
+      - name: Restore compiler cache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: windows-2022-ccache-${{ hashFiles('scripts/setup_ci.ps1', 'CMakeLists.txt', 'cmake/**') }}-${{ github.sha }}
+          restore-keys: |
+            windows-2022-ccache-${{ hashFiles('scripts/setup_ci.ps1', 'CMakeLists.txt', 'cmake/**') }}-
+      - name: Build compiler and both standard libraries
+        run: ./scripts/build.ps1
+      - name: Check package compatibility
+        run: python -X utf8 scripts/check_package_compatibility.py
+      - name: Create release ZIP
+        env:
+          TXC_REF: ${{ github.ref_name }}
+          TXC_REF_TYPE: ${{ github.ref_type }}
+          TXC_COMMIT: ${{ github.sha }}
+        run: python -X utf8 scripts/package_release.py
+      - name: Verify extracted ZIP without the build toolchain
+        run: python -X utf8 scripts/check_ci_package.py
+      - name: Upload verified package
+        uses: actions/upload-artifact@v4
+        with:
+          name: txc-windows-x64
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+      - name: Preserve build diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-diagnostics
+          path: |
+            build/CMakeFiles/CMakeConfigureLog.yaml
+            build/CMakeCache.txt
+            build/compile_commands.json
+          if-no-files-found: ignore
+
+  release:
+    name: Publish tag release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: txc-windows-x64
+          path: dist
+      - name: Verify and publish the built assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum --check SHA256SUMS.txt
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'This tag already has a release; refusing to replace published assets.' >&2
+            exit 1
+          fi
+          options=()
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            options+=(--prerelease)
+          fi
+          gh release create "$RELEASE_TAG" ./*.zip SHA256SUMS.txt \
+            --verify-tag --title "TX Compiler $RELEASE_TAG" \
+            --generate-notes "${options[@]}"

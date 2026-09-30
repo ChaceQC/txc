@@ -4,6 +4,11 @@
 
 ## 快速使用
 
+Windows x64 用户可从 [GitHub Releases](https://github.com/ChaceQC/txc/releases) 下载
+`txc-vX.Y.Z-windows-x64.zip`，解压后直接使用其中完整的 `tx/` 目录，无需安装构建工具。
+ZIP 同时包含本文、[说明文档](docs/usage.md)、[语法文档](docs/syntax.md)、标准库文档及示例。
+自动构建与 tag 发布流程见 [GitHub CI/CD](docs/releasing.md)。
+
 运行 `scripts/build.ps1` 构建 txc 后，在仓库根目录执行：
 
 ```powershell

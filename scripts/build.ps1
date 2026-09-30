@@ -30,7 +30,7 @@ else
 }
 
 & $cmake_exe --log-level=WARNING -Wno-deprecated -S $project_root -B $build_dir -G Ninja `
-    '-DCMAKE_CXX_COMPILER=g++' '-DCMAKE_BUILD_TYPE=Release'
+    '-DCMAKE_C_COMPILER=gcc' '-DCMAKE_CXX_COMPILER=g++' '-DCMAKE_BUILD_TYPE=Release'
 if ($LASTEXITCODE -ne 0)
 {
     throw 'CMake 配置失败；build/ 已保留。'
@@ -123,10 +123,13 @@ foreach ($name in @(
     }
     Copy-Item -LiteralPath $source -Destination (Join-Path $link_dir $name) -Force
 }
-foreach ($name in @('ld.exe', 'libssp-0.dll'))
+Copy-Item -LiteralPath (Join-Path $gcc_bin 'ld.exe') `
+    -Destination (Join-Path $link_dir 'ld.exe') -Force
+# CLion 的链接器附带 libssp；上游 MinGW 的链接器不依赖此 DLL。
+$ssp_runtime = Join-Path $gcc_bin 'libssp-0.dll'
+if (Test-Path -LiteralPath $ssp_runtime -PathType Leaf)
 {
-    Copy-Item -LiteralPath (Join-Path $gcc_bin $name) `
-        -Destination (Join-Path $link_dir $name) -Force
+    Copy-Item -LiteralPath $ssp_runtime -Destination (Join-Path $link_dir 'libssp-0.dll') -Force
 }
 # libstdc++-6.dll 与 libwinpthread-1.dll 必须来自同一套 MinGW 运行时。
 Copy-Item -LiteralPath (Join-Path $gcc_bin 'libwinpthread-1.dll') `

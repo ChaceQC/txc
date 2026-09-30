@@ -1,4 +1,6 @@
 /build/
+/.ccache/
+/dist/
 /tx/*
 !/tx/stdlib/
 /tx/stdlib/*
