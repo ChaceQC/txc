@@ -3,6 +3,7 @@
 #include "stdlib/stdlib.hpp"
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_set>
 
@@ -40,11 +41,18 @@ void report(tx_dict event)
     detail::current_runtime_context().last_error_stack.clear();
 }
 
-bool predicate_holds(const void* predicate, std::int64_t value, std::string& code)
+using predicate_callback = bound_typed_callback<bool, std::int64_t>;
+
+bool predicate_holds(const void* predicate, std::optional<predicate_callback>& bound,
+    std::int64_t value, std::string& code)
 {
     try
     {
-        return invoke_typed_callback<bool>(predicate, value);
+        if (!bound)
+        {
+            bound.emplace(predicate);
+        }
+        return (*bound)(value);
     }
     catch (const runtime_failure& error)
     {
@@ -62,11 +70,14 @@ bool check_property(const std::string& name, std::int64_t seed, std::int64_t cou
         throw runtime_failure({tx::error_kind::runtime, "invalid_test_options",
             "反例缩减步数必须在 0 到 4096 之间"});
     }
+    const bound_typed_callback<std::int64_t, std::int64_t, std::int64_t> generator(generate);
+    std::optional<predicate_callback> bound_predicate;
+    std::optional<bound_typed_callback<std::int64_t, std::int64_t>> bound_shrink;
     for (std::int64_t index = 0; index < count; ++index)
     {
-        auto original = invoke_typed_callback<std::int64_t>(generate, seed, index);
+        auto original = generator(seed, index);
         std::string code;
-        if (predicate_holds(predicate, original, code))
+        if (predicate_holds(predicate, bound_predicate, original, code))
         {
             continue;
         }
@@ -75,13 +86,17 @@ bool check_property(const std::string& name, std::int64_t seed, std::int64_t cou
         std::unordered_set<std::int64_t> visited{original};
         while (steps < maximum)
         {
-            const auto candidate = invoke_typed_callback<std::int64_t>(shrink, minimal);
+            if (!bound_shrink)
+            {
+                bound_shrink.emplace(shrink);
+            }
+            const auto candidate = (*bound_shrink)(minimal);
             if (!visited.insert(candidate).second)
             {
                 break;
             }
             ++steps;
-            if (predicate_holds(predicate, candidate, code))
+            if (predicate_holds(predicate, bound_predicate, candidate, code))
             {
                 break;
             }
@@ -112,11 +127,16 @@ extern "C" int txrt_test_parameterized(const void* name_value, std::int64_t coun
         const auto& name = detail::text_value(name_value);
         validate(name, count, 0);
         *result = true;
+        std::optional<bound_typed_callback<void, std::int64_t>> bound;
         for (std::int64_t index = 0; index < count; ++index)
         {
             try
             {
-                invoke_typed_callback<void>(operation, index);
+                if (!bound)
+                {
+                    bound.emplace(operation);
+                }
+                (*bound)(index);
             }
             catch (const runtime_failure& error)
             {

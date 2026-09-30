@@ -3,6 +3,7 @@ param([switch]$Incremental)
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$env:PYTHONUTF8 = '1'
 
 $project_root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $build_dir = [System.IO.Path]::GetFullPath((Join-Path $project_root 'build'))
@@ -68,6 +69,14 @@ if (-not $clang_exe)
     if (Test-Path -LiteralPath $candidate -PathType Leaf)
     {
         $clang_exe = $candidate
+    }
+}
+if (-not $clang_exe)
+{
+    $candidate = Join-Path $project_root '../.llvm-dev/extracted/LLVM/bin/clang.exe'
+    if (Test-Path -LiteralPath $candidate -PathType Leaf)
+    {
+        $clang_exe = [System.IO.Path]::GetFullPath($candidate)
     }
 }
 if (-not $clang_exe)
@@ -200,6 +209,29 @@ if ($LASTEXITCODE -ne 0 -or
     throw '无法归档 HTTP/2 静态依赖；build/ 已保留。'
 }
 Copy-Item -LiteralPath $merged_library -Destination $library_path -Force
+$llvm_bin = Split-Path $clang_exe
+foreach ($name in @('ld.lld.exe', 'llvm-ar.exe'))
+{
+    if (-not (Test-Path -LiteralPath (Join-Path $llvm_bin $name) -PathType Leaf))
+    {
+        throw "ThinLTO 需要与 clang 同版本的 $name；请设置 TX_LLVM_BIN。build/ 已保留。"
+    }
+}
+$lto_arguments = @((Join-Path $project_root 'scripts/build_lto.py'),
+    '--build', $build_dir, '--llvm-bin', $llvm_bin,
+    '--mingw', (Split-Path $gcc_bin), '--output', (Join-Path $tool_dir 'libtxstdlib_lto.a'),
+    '--jobs', $parallel_jobs)
+foreach ($archive in $dependency_archives)
+{
+    $lto_arguments += @('--dependency', $archive)
+}
+& python @lto_arguments
+if ($LASTEXITCODE -ne 0)
+{
+    throw 'ThinLTO 标准库构建失败；build/ 已保留。'
+}
+Copy-Item -LiteralPath (Join-Path $llvm_bin 'ld.lld.exe') `
+    -Destination (Join-Path $link_dir 'ld.lld.exe') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/nghttp2-src/COPYING') `
     -Destination (Join-Path $tool_dir 'NGHTTP2-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $build_dir '_deps/nghttp3-src/COPYING') `
@@ -330,7 +362,10 @@ $abi_fingerprint = (Get-Content -LiteralPath (Join-Path $build_dir 'compatibilit
     -Encoding utf8 -Raw).Trim()
 $compiler_hash = (Get-FileHash -LiteralPath $compiler_path -Algorithm SHA256).Hash.ToLowerInvariant()
 $library_hash = (Get-FileHash -LiteralPath $library_path -Algorithm SHA256).Hash.ToLowerInvariant()
-$compatibility_manifest = "tx-package-v2`nabi $abi_fingerprint`ntxc $compiler_hash`nstdlib $library_hash`n"
+$lto_digest = (Get-FileHash -LiteralPath (Join-Path $tool_dir 'libtxstdlib_lto.a') -Algorithm SHA256).Hash.ToLowerInvariant()
+$clang_digest = (Get-FileHash -LiteralPath $bundled_clang -Algorithm SHA256).Hash.ToLowerInvariant()
+$lld_digest = (Get-FileHash -LiteralPath (Join-Path $link_dir 'ld.lld.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+$compatibility_manifest = "tx-package-v3`nabi $abi_fingerprint`ntxc $compiler_hash`nstdlib $library_hash`nstdlib_lto $lto_digest`nclang $clang_digest`nlld $lld_digest`n"
 foreach ($name in @('libgcc_s_seh-1.dll', 'libstdc++-6.dll',
                     'libwinpthread-1.dll', 'libstdc++-u.dll',
                     'libwinpthread-u.dll',

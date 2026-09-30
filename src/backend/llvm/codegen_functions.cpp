@@ -36,6 +36,7 @@ void llvm_code_generator::emit_function(const function_decl& function, bool nati
     next_label_ = 0;
     current_method_owner_ = function.owner_class;
     current_function_body_ = &function.body;
+    current_analysis_ = program_analysis_.find(function);
     current_statement_position_ = &function.position;
     last_stack_position_.reset();
     entry_scalar_field_cache_.clear();
@@ -150,6 +151,7 @@ void llvm_code_generator::emit_function(const function_decl& function, bool nati
     }
     current_method_owner_.clear();
     current_function_body_ = nullptr;
+    current_analysis_ = nullptr;
     current_statement_position_ = nullptr;
     native_result_type_ = value_type::void_type;
     proven_integer_function_ = nullptr;

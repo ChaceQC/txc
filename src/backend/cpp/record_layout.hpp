@@ -36,10 +36,13 @@ struct record_type
     const slot_kind* kinds;
     const void* const* view_virtual_targets;
     const void* const* view_destructors = nullptr;
+    gc_trace trace_slots = nullptr;
+    using copy_reference = void (*)(const std::any&, std::any&, std::uint64_t, void*);
+    void (*copy_slots)(const void*, void*, copy_reference, void*) = nullptr;
 };
 
 static_assert(sizeof(record_field) == 40 && offsetof(record_field, offset) == 16);
-static_assert(sizeof(record_type) == 128 && offsetof(record_type, virtual_targets) == 56 &&
+static_assert(sizeof(record_type) == 144 && offsetof(record_type, virtual_targets) == 56 &&
               offsetof(record_type, view_virtual_targets) == 112);
 
 struct record_storage

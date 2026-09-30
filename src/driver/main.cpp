@@ -53,13 +53,14 @@ struct command_line
 {
     enum class action
     {
-        compile, check, emit_llvm, emit_library_llvm, test, profile
+        compile, check, emit_llvm, emit_library_llvm, emit_analysis, test, profile
     } mode = action::compile;
     fs::path source_path;
     fs::path output_path;
     std::optional<fs::path> test_case;
     tx::test_options test_options;
     tx::profile_options profile_options;
+    bool lto = true;
 
     command_line(action selected_mode, fs::path selected_source,
                  fs::path selected_output)
@@ -186,7 +187,8 @@ std::optional<command_line> parse_command_line(int argc, wchar_t* argv[])
         return command_line{command_line::action::check, argv[2], {}};
     }
     if (argc >= 3 && (std::wstring(argv[1]) == L"emit-llvm" ||
-                      std::wstring(argv[1]) == L"emit-library-llvm"))
+                      std::wstring(argv[1]) == L"emit-library-llvm" ||
+                      std::wstring(argv[1]) == L"emit-analysis"))
     {
         if (argc != 3 && (argc != 5 || std::wstring(argv[3]) != L"-o"))
         {
@@ -196,23 +198,41 @@ std::optional<command_line> parse_command_line(int argc, wchar_t* argv[])
         const fs::path output_path = argc == 5
             ? fs::path(argv[4])
             : executable_path().parent_path().parent_path() /
-              "tx_build" / (source_path.stem().wstring() + L".ll");
+              "tx_build" / (source_path.stem().wstring() +
+                (std::wstring(argv[1]) == L"emit-analysis" ? L".analysis.json" : L".ll"));
         return command_line{std::wstring(argv[1]) == L"emit-library-llvm"
                 ? command_line::action::emit_library_llvm
+                : std::wstring(argv[1]) == L"emit-analysis" ? command_line::action::emit_analysis
                 : command_line::action::emit_llvm,
                             source_path, output_path};
     }
-    if (argc != 2 && (argc != 4 || std::wstring(argv[2]) != L"-o"))
+    if (argc < 2)
     {
         return std::nullopt;
     }
     const fs::path source_path = argv[1];
-    const fs::path output_path = argc == 4
-        ? fs::path(argv[3])
-        : executable_path().parent_path().parent_path() /
-          "tx_build" / (source_path.stem().wstring() + L".exe");
-    return command_line{command_line::action::compile,
-                        source_path, output_path};
+    command_line result{command_line::action::compile, source_path,
+        executable_path().parent_path().parent_path() / "tx_build" /
+        (source_path.stem().wstring() + L".exe")};
+    bool has_output = false;
+    for (int index = 2; index < argc; ++index)
+    {
+        const std::wstring option = argv[index];
+        if (option == L"-o" && !has_output && index + 1 < argc)
+        {
+            result.output_path = argv[++index];
+            has_output = true;
+        }
+        else if (option == L"--no-lto" && result.lto)
+        {
+            result.lto = false;
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
+    return result;
 }
 
 fs::path executable_path()
@@ -359,11 +379,11 @@ void place_runtime_dependency(const fs::path& source,
 }
 
 int compile_llvm_native(const std::string& generated_source,
-                        const fs::path& output_path)
+                        const fs::path& output_path, bool lto)
 {
     const auto tool_dir = executable_path().parent_path();
     const auto link_dir = tool_dir / "link";
-    const auto library = tool_dir / "libtxstdlib.a";
+    const auto library = tool_dir / (lto ? "libtxstdlib_lto.a" : "libtxstdlib.a");
     if (!fs::exists(library))
     {
         throw std::runtime_error("缺少标准库二进制：" + path_text(library));
@@ -378,9 +398,14 @@ int compile_llvm_native(const std::string& generated_source,
             throw std::runtime_error("无法写入临时 LLVM IR 文件");
         }
     }
-    const auto emit_result = run_local_tool(tool_dir / "clang.exe",
-        {L"-target", L"x86_64-w64-windows-gnu", L"-x", L"ir", L"-c",
-         L"-O3", L"-o", object_file.path.wstring(), ir_file.path.wstring()});
+    std::vector<std::wstring> compile_arguments{
+        L"-target", L"x86_64-w64-windows-gnu", L"-x", L"ir", L"-c",
+        L"-O3", L"-o", object_file.path.wstring(), ir_file.path.wstring()};
+    if (lto)
+    {
+        compile_arguments.push_back(L"-flto=thin");
+    }
+    const auto emit_result = run_local_tool(tool_dir / "clang.exe", compile_arguments);
     if (emit_result != 0)
     {
         return emit_result;
@@ -402,7 +427,12 @@ int compile_llvm_native(const std::string& generated_source,
         L"-lkernel32", (link_dir / "default-manifest.o").wstring(),
         (link_dir / "crtend.o").wstring()
     };
-    const auto link_result = run_local_tool(link_dir / "ld.exe", arguments);
+    if (lto)
+    {
+        arguments.push_back(L"--lto-O3");
+        arguments.push_back(L"--thinlto-jobs=8");
+    }
+    const auto link_result = run_local_tool(link_dir / (lto ? "ld.lld.exe" : "ld.exe"), arguments);
     if (link_result != 0)
     {
         return link_result;
@@ -444,7 +474,7 @@ int run_check(const fs::path& source_path)
 
 
 int run_emit_llvm(const fs::path& source_path, const fs::path& output_path,
-                  bool library_mode = false)
+                  bool library_mode = false, bool analysis_mode = false)
 {
     if (source_path.extension() == ".txh")
     {
@@ -455,8 +485,18 @@ int run_emit_llvm(const fs::path& source_path, const fs::path& output_path,
         throw std::runtime_error("输出路径不能覆盖源码文件");
     }
     auto syntax = parse_and_check(source_path, library_mode);
-    tx::llvm_code_generator generator;
-    const auto generated_source = generator.generate(syntax, library_mode);
+    std::string generated_source;
+    if (analysis_mode)
+    {
+        tx::program_analysis analysis;
+        analysis.analyze(syntax);
+        generated_source = analysis.dump();
+    }
+    else
+    {
+        tx::llvm_code_generator generator;
+        generated_source = generator.generate(syntax, library_mode);
+    }
     if (!output_path.parent_path().empty())
     {
         fs::create_directories(output_path.parent_path());
@@ -472,7 +512,7 @@ int run_emit_llvm(const fs::path& source_path, const fs::path& output_path,
 }
 
 int run_compiler(const fs::path& source_path, const fs::path& output_path,
-                 bool quiet = false, int profile_interval_ms = 0)
+                 bool quiet = false, int profile_interval_ms = 0, bool lto = true)
 {
     if (source_path.extension() == ".txh")
     {
@@ -489,7 +529,7 @@ int run_compiler(const fs::path& source_path, const fs::path& output_path,
     {
         fs::create_directories(output_path.parent_path());
     }
-    const auto result = compile_llvm_native(generated_source, output_path);
+    const auto result = compile_llvm_native(generated_source, output_path, lto);
     if (result != 0)
     {
         std::cerr << "LLVM 后端编译失败（退出码 " << result << "）\n";
@@ -518,10 +558,11 @@ int main()
         command = parse_command_line(argc, arguments.values);
         if (!command)
         {
-            std::cerr << "用法：txc <源码.tx> [-o <输出.exe>]\n"
+            std::cerr << "用法：txc <源码.tx> [-o <输出.exe>] [--no-lto]\n"
                       << "      txc check <源码.tx>\n"
                       << "      txc emit-llvm <源码.tx> [-o <输出.ll>]\n"
                       << "      txc emit-library-llvm <源码.tx> -o <输出.ll>\n"
+                      << "      txc emit-analysis <源码.tx> [-o <分析.json>]\n"
                       << "      txc test <目录或源码.tx> [--case <相对路径>] [--format json]\n"
                       << "          [--jobs 1..64] [--timeout-ms 1..86400000] [--isolation workspace|source]\n"
                       << "      txc profile <源码.tx> [-o 报告.json] [--warmup 次数] [--samples 次数]\n"
@@ -545,8 +586,10 @@ int main()
             return run_emit_llvm(command->source_path, command->output_path);
         case command_line::action::emit_library_llvm:
             return run_emit_llvm(command->source_path, command->output_path, true);
+        case command_line::action::emit_analysis:
+            return run_emit_llvm(command->source_path, command->output_path, false, true);
         case command_line::action::compile:
-            return run_compiler(command->source_path, command->output_path);
+            return run_compiler(command->source_path, command->output_path, false, 0, command->lto);
         case command_line::action::test:
             return tx::run_test_suite(command->source_path,
                 command->test_case, command->test_options,

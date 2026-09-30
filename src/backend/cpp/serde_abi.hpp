@@ -65,6 +65,8 @@ struct serde_schema
     const std::uint64_t* cbor_order;
     const record_type* layout = nullptr;
     const serde_schema_codec* specialized = nullptr;
+    void (*write_fields)(void*, const void*, std::uint64_t, std::uint64_t, bool) = nullptr;
+    void (*read_field)(void*, void*, std::uint64_t, std::uint64_t, std::uint64_t) = nullptr;
 
     [[nodiscard]] std::span<const serde_field> fields() const noexcept
     {
@@ -73,7 +75,7 @@ struct serde_schema
 };
 
 // 与编译器生成的只读 LLVM 常量一致，不依赖 C++ 容器布局。
-static_assert(std::is_standard_layout_v<serde_schema> && sizeof(serde_schema) == 104);
+static_assert(std::is_standard_layout_v<serde_schema> && sizeof(serde_schema) == 120);
 static_assert(offsetof(serde_schema, field_data) == 56);
 static_assert(sizeof(serde_type) == 40 && sizeof(serde_default) == 32);
 static_assert(sizeof(serde_field) == 96 && offsetof(serde_field, default_value) == 64);

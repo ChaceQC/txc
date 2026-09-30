@@ -274,7 +274,7 @@ extern "C" int txrt_sync_run_once(const void* value,
             const auto& closure = std::any_cast<const tx_generated::closure_handle&>(
                 *static_cast<const std::any*>(callback));
             reinterpret_cast<void (*)(const void*)>(
-                closure.data().target)(callback);
+                const_cast<void*>(closure.data().target))(callback);
         }
         catch (...)
         {

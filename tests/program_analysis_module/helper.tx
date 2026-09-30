@@ -1,0 +1,27 @@
+def other_alias(values: vector<int>, depth: int) -> vector<int>
+{
+    if depth == 0
+    {
+        return values
+    }
+    return recursive_alias(values, depth - 1)
+}
+
+def recursive_alias(values: vector<int>, depth: int) -> vector<int>
+{
+    if depth == 0
+    {
+        return values
+    }
+    return other_alias(values, depth - 1)
+}
+
+def store(owner: bucket, values: vector<int>) -> void
+{
+    owner.values = values
+}
+
+def return_container(values: vector<int>) -> bucket
+{
+    return bucket(values)
+}

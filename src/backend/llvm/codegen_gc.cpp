@@ -495,6 +495,12 @@ bool llvm_code_generator::gc_neutral_function(const function_decl& function)
         // 外部调用按已绑定调用点的属性判断；没有调用点时保持保守。
         return false;
     }
+    if (const auto* analysis = program_analysis_.find(function);
+        analysis && !analysis->summary.effects.needs_gc_safepoint() &&
+        static_function_body(function))
+    {
+        return true;
+    }
     if (const auto found = gc_neutral_cache_.find(&function);
         found != gc_neutral_cache_.end())
     {

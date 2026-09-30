@@ -468,6 +468,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_callback_call(
 llvm_code_generator::ir_value llvm_code_generator::emit_call(
     const expression& item, const call_expression& call)
 {
+    if (const auto local = emit_local_guard_call(item, call))
+    {
+        return *local;
+    }
     if (!scalar_record_type(item.type))
     {
         if (const auto* target = native_record_target(call))

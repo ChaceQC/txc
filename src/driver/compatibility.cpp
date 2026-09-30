@@ -204,13 +204,16 @@ void verify_tool_package(const fs::path& tool_dir)
     {
         header.pop_back();
     }
-    if (header != "tx-package-v2")
+    if (header != "tx-package-v3")
     {
         throw std::runtime_error("工具链兼容清单版本无效");
     }
     const auto abi = manifest_field(manifest, "abi");
     const auto compiler = manifest_field(manifest, "txc");
     const auto library = manifest_field(manifest, "stdlib");
+    const auto lto_library = manifest_field(manifest, "stdlib_lto");
+    const auto clang = manifest_field(manifest, "clang");
+    const auto lld = manifest_field(manifest, "lld");
     for (const auto* name : {"libgcc_s_seh-1.dll", "libstdc++-6.dll",
                              "libwinpthread-1.dll", "libstdc++-u.dll",
                              "libwinpthread-u.dll",
@@ -232,6 +235,9 @@ void verify_tool_package(const fs::path& tool_dir)
     }
     require_digest(tool_dir / "txc.exe", compiler, "txc");
     require_digest(tool_dir / "libtxstdlib.a", library, "标准库静态库");
+    require_digest(tool_dir / "libtxstdlib_lto.a", lto_library, "ThinLTO 标准库");
+    require_digest(tool_dir / "clang.exe", clang, "LLVM 编译器");
+    require_digest(tool_dir / "link" / "ld.lld.exe", lld, "LLVM 链接器");
 }
 
 } // namespace tx

@@ -1,5 +1,7 @@
 #include "backend/llvm/codegen.hpp"
 
+#include <algorithm>
+
 namespace tx
 {
 namespace
@@ -11,7 +13,9 @@ bool scalar(const value_type& type)
         type == value_type::bool_type;
 }
 
-bool scalar_expression(const expression& item)
+} // namespace
+
+bool llvm_code_generator::stable_scalar_expression(const expression& item)
 {
     if (!scalar(item.type))
     {
@@ -26,12 +30,12 @@ bool scalar_expression(const expression& item)
     }
     if (const auto* binary = std::get_if<binary_operation>(&item.data))
     {
-        return !binary->binding && scalar_expression(*binary->left) &&
-            scalar_expression(*binary->right);
+        return !binary->binding && stable_scalar_expression(*binary->left) &&
+            stable_scalar_expression(*binary->right);
     }
     if (const auto* unary = std::get_if<unary_operation>(&item.data))
     {
-        return !unary->binding && scalar_expression(*unary->operand);
+        return !unary->binding && stable_scalar_expression(*unary->operand);
     }
     if (const auto* update = std::get_if<update_expression>(&item.data))
     {
@@ -41,12 +45,26 @@ bool scalar_expression(const expression& item)
     {
         return index->object->type.is_vector() &&
             std::holds_alternative<name_reference>(index->object->data) &&
-            scalar_expression(*index->index);
+            stable_scalar_expression(*index->index);
+    }
+    if (const auto* call = std::get_if<call_expression>(&item.data))
+    {
+        const auto found = functions_.find(call->name);
+        if (call->indirect || call->receiver || call->is_constructor || !call->overload_index ||
+            found == functions_.end() || *call->overload_index >= found->second.size())
+        {
+            return false;
+        }
+        const auto& target = *found->second[*call->overload_index];
+        // 同一个函数摘要证明辅助函数不保存或修改对象；GC 摘要再排除分配触发析构。
+        return static_function_body(target) && gc_neutral_function(target) &&
+            std::all_of(call->arguments.begin(), call->arguments.end(), [&](const call_argument& argument)
+            {
+                return stable_scalar_expression(*argument.value);
+            });
     }
     return false;
 }
-
-} // namespace
 
 bool llvm_code_generator::stable_vector_loop(const std::vector<stmt_ptr>& body)
 {
@@ -55,7 +73,7 @@ bool llvm_code_generator::stable_vector_loop(const std::vector<stmt_ptr>& body)
     {
         if (const auto* declaration = std::get_if<variable_declaration>(&item->data))
         {
-            if (!declaration->initializer || !scalar_expression(*declaration->initializer))
+            if (!declaration->initializer || !stable_scalar_expression(*declaration->initializer))
             {
                 return false;
             }
@@ -63,21 +81,21 @@ bool llvm_code_generator::stable_vector_loop(const std::vector<stmt_ptr>& body)
         else if (const auto* assignment = std::get_if<variable_assignment>(&item->data))
         {
             if (!std::holds_alternative<name_reference>(assignment->target->data) ||
-                !scalar(assignment->target->type) || !scalar_expression(*assignment->value))
+                !scalar(assignment->target->type) || !stable_scalar_expression(*assignment->value))
             {
                 return false;
             }
         }
         else if (const auto* expression = std::get_if<expression_statement>(&item->data))
         {
-            if (!scalar_expression(*expression->value))
+            if (!stable_scalar_expression(*expression->value))
             {
                 return false;
             }
         }
         else if (const auto* branch = std::get_if<if_statement>(&item->data))
         {
-            if (!scalar_expression(*branch->condition) || !stable_vector_loop(branch->then_body) ||
+            if (!stable_scalar_expression(*branch->condition) || !stable_vector_loop(branch->then_body) ||
                 !stable_vector_loop(branch->else_body))
             {
                 return false;

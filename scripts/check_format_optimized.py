@@ -21,7 +21,7 @@ def run(args):
 
 
 def body(ir, name):
-    match = re.search(rf"^define [^\n]* @tx_fn_m0_{name}_0\([^\n]*\) \{{\n(.*?)^\}}",
+    match = re.search(rf"^define [^\n]* @tx_fn_m0_{name}_0\([^\n]*\)[^\n]*\{{\n(.*?)^\}}",
                       ir, re.MULTILINE | re.DOTALL)
     assert match, name
     return match.group(1)

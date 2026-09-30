@@ -1,6 +1,6 @@
 # 编译与运行 .tx 文件
 
-本文命令在 Windows 的 PowerShell 7 中执行，工作目录为本仓库根目录。构建 txc 和运行时库需要支持 C++23 的 g++、CMake 3.21 或更高版本以及 Ninja；构建脚本还需要 LLVM 的 `clang.exe`，可通过 `TX_LLVM_BIN` 指定其 bin 目录或加入 PATH。当前已用 LLVM 23.1.2 验证。运行构建好的 txc 编译 `.tx` 时，不需要在 PATH 中安装 g++、LLVM 或链接器。
+本文命令在 Windows 的 PowerShell 7 中执行，工作目录为本仓库根目录。构建 txc 和运行时库需要支持 C++23 的 g++、CMake 3.21 或更高版本以及 Ninja；构建脚本还需要同版本 LLVM 的 `clang.exe`、`llvm-ar.exe` 和 `ld.lld.exe`，通过 `TX_LLVM_BIN` 指定完整 LLVM 的 bin 目录。当前已用 LLVM 23.1.2 验证。运行构建好的 txc 编译 `.tx` 时，不需要在 PATH 中安装 g++、LLVM 或链接器。
 
 ## 构建编译器
 
@@ -24,10 +24,11 @@ CMake 在 `build/libtxstdlib.a` 保存未合并的原生库；构建脚本每次
 命令格式：
 
 ```text
-txc <源码.tx> [-o <输出.exe>]
+txc <源码.tx> [-o <输出.exe>] [--no-lto]
 txc check <源码.tx>
 txc test <目录或源码.tx> [--case <相对路径>] [--format json]
 txc emit-library-llvm <库源码.tx> -o <输出.ll>
+txc emit-analysis <源码.tx> [-o <输出.analysis.json>]
 ```
 
 编译仓库中的示例；默认输出到 tx_build/：
@@ -50,7 +51,9 @@ txc 启动 clang 和链接器时会为各个参数添加必要的引号并处理
 
 `emit-library-llvm` 用于构建标准库：允许无 `main` 的 TX 模块，输出不含程序入口的 LLVM IR。`scripts/build.ps1` 再把 IR 编成目标文件并归档到 `libtxstdlib.a`。预编译标准库接口使用稳定内部类型符号，使库对象与不同导入顺序的用户程序共享相同的结构体类型身份。
 
-编译器先解析并检查 .tx，再生成 LLVM IR，由同目录的 `clang.exe` 将 IR 编为 Windows 目标文件，最后用 `tx/link/ld.exe` 与运行时库链接为原生可执行文件。生成程序需要的 MinGW 运行时 DLL 会复制到输出目录。语法或类型错误会以“文件:行:列: 错误：原因”的形式报告；后端失败时会显示目标文件生成器或链接器的输出。
+编译器先解析并检查 .tx，为所有函数建立 SSA/CFG 与别名、逃逸、调用效果及移动分析，再生成 LLVM IR。默认由同目录 `clang.exe` 生成 ThinLTO bitcode，以 `tx/link/ld.lld.exe` 与 `libtxstdlib_lto.a` 共同优化并链接为原生可执行文件。`--no-lto` 显式使用普通目标文件、`libtxstdlib.a` 和 GNU ld；两种路径均使用同一套 MinGW ABI。生成程序需要的运行时 DLL 会复制到输出目录。语法或类型错误会以“文件:行:列: 错误：原因”的形式报告；后端失败时会显示编译器或链接器的输出。
+
+`emit-analysis` 只输出 JSON 分析记录，不调用链接器。记录包含每个函数的控制流块、异常边、支配关系、SSA phi 与输入、别名集合、参数修改/保存/返回关系和移动候选；默认保存到 `tx_build/<源码名>.analysis.json`。分析覆盖本次加载的所有模块，未知动态行为保守处理，细节见[静态执行体系](static_execution_architecture.md)。工具包兼容清单 v3 还校验 ThinLTO 静态库、clang 和 ld.lld 的指纹，交付时需要整体替换 `tx/`。
 
 程序参数传给生成的可执行文件，通过 `system.args()` 读取，不写在 txc 编译命令后：
 

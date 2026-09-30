@@ -97,6 +97,30 @@ extern "C" int txrt_format_begin(void** result, std::uint64_t capacity,
     });
 }
 
+extern "C" void tx_format_tail(std::string& output, const char* text, std::uint64_t length)
+{
+    output.append(text, length);
+}
+
+extern "C" int txrt_format_specialized(
+    void (*execute)(std::string&, const std::uint64_t*), const std::uint64_t* arguments,
+    const char* prefix, std::uint64_t length, std::uint64_t capacity, void** result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        // 生成函数不持有资源；任何 append 异常都回到此处销毁尚未发布的输出。
+        std::string output;
+        if (capacity > output.max_size())
+        {
+            throw std::length_error("format 输出长度过大");
+        }
+        output.reserve(capacity);
+        output.append(prefix, length);
+        execute(output, arguments);
+        *result = tx_generated::detail::make_handle<std::string>(std::move(output));
+    });
+}
+
 extern "C" int txrt_format_append_i64(void* result, std::int64_t value,
     const tx::format_spec* spec, char conversion, const char* tail, std::uint64_t length) noexcept
 {

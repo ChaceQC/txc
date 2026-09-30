@@ -1,6 +1,7 @@
 #pragma once
 
 #include "frontend/ast/ast.hpp"
+#include "backend/analysis/program_analysis.hpp"
 
 #include <optional>
 #include <sstream>
@@ -25,6 +26,9 @@ public:
 
 private:
     bool profile_mode_ = false;
+    program_analysis program_analysis_;
+    const function_analysis* current_analysis_ = nullptr;
+    void prepare_static_functions();
     using integer_interval = std::pair<std::int64_t, std::int64_t>;
     struct ir_value
     {
@@ -66,6 +70,8 @@ private:
         const variable_declaration* parse_declaration = nullptr;
         std::string readonly_parse_error;
         bool stable_class_owner = false;
+        std::string local_guard;
+        std::unordered_map<std::string, std::string> projected_fields;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -85,6 +91,8 @@ private:
         }
     };
 
+    [[nodiscard]] std::optional<ir_value> inferred_move(const expression& item,
+        const variable_slot& variable);
     [[nodiscard]] static std::string llvm_type(const value_type& type,
                                                source_pos position);
     [[nodiscard]] static value_type parameter_abi_type(const parameter& value);
@@ -102,6 +110,7 @@ private:
         value_type type;
         std::string address;
         std::size_t depth;
+        std::string cleanup = {};
     };
     struct error_target
     {
@@ -131,6 +140,12 @@ private:
         const expression& item, bool read_only = false);
     [[nodiscard]] bool confined_local(const variable_declaration& declaration,
                                      bool fields_only) const;
+    [[nodiscard]] bool confined_guard_local(const variable_declaration& declaration) const;
+    [[nodiscard]] bool emit_local_guard(const statement& item, const variable_declaration& declaration);
+    [[nodiscard]] bool emit_regex_projection(const statement& item, const variable_declaration& declaration);
+    [[nodiscard]] std::optional<ir_value> emit_projected_field(const expression& item);
+    [[nodiscard]] std::optional<ir_value> emit_local_guard_call(const expression& item,
+        const call_expression& call);
     [[nodiscard]] bool readonly_local_fields(const variable_declaration& declaration,
         const variable_declaration* allowed_alias = nullptr) const;
     [[nodiscard]] bool emit_parse_error_declaration(const statement& item,
@@ -143,6 +158,9 @@ private:
         const expression& item) const;
     [[nodiscard]] bool static_record_type(const value_type& type) const;
     void emit_record_metadata(const value_type& type);
+    void emit_record_operations(const std::string& symbol,
+        const std::vector<std::pair<std::string, value_type>>& fields,
+        const std::vector<std::size_t>& scans);
     void cache_record_view(variable_slot& slot, const std::string& value);
     void refresh_record_view(const variable_slot& slot, const std::string& value);
     [[nodiscard]] std::string record_view_value(const ir_value& object);
@@ -158,7 +176,13 @@ private:
     [[nodiscard]] bool emit_stack_record(const statement& item,
                                          const variable_declaration& declaration);
     [[nodiscard]] bool scalar_record_type(const value_type& type) const;
+    [[nodiscard]] bool emit_serde_static(const struct_decl& definition, const std::string& schema);
+    [[nodiscard]] std::string static_format_executor(const call_expression& call,
+        const std::vector<static_format_part>& plan,
+        const std::vector<std::optional<std::string>>& bytes, const std::string& steps);
     [[nodiscard]] bool native_record_function(const function_decl& function) const;
+    [[nodiscard]] bool static_function_body(const function_decl& function) const;
+    std::unordered_map<const function_decl*, bool> static_function_cache_;
     [[nodiscard]] const function_decl* native_record_target(const call_expression& call) const;
     [[nodiscard]] const function_decl* native_record_target(const operator_binding& binding) const;
     [[nodiscard]] bool native_record_expression(const expression& item) const;
@@ -233,7 +257,8 @@ private:
     void cache_vector_reference(variable_slot& variable, const std::string& handle);
     void refresh_vector_reference(const variable_slot& variable, const std::string& handle);
     [[nodiscard]] std::string load_vector_reference(const variable_slot& variable);
-    [[nodiscard]] static bool stable_vector_loop(const std::vector<stmt_ptr>& body);
+    [[nodiscard]] bool stable_vector_loop(const std::vector<stmt_ptr>& body);
+    [[nodiscard]] bool stable_scalar_expression(const expression& item);
     [[nodiscard]] static bool stable_value_expression(const expression& item);
     [[nodiscard]] ir_value container_value(const expression& item, bool allow_borrow,
                                          bool& borrowed);
@@ -464,8 +489,8 @@ private:
         const function_decl& function);
     [[nodiscard]] static bool init_parameter_borrowed(
         const function_decl& function, std::size_t index);
-    [[nodiscard]] static bool ordinary_parameter_borrowed(
-        const function_decl& function, std::size_t index);
+    [[nodiscard]] bool ordinary_parameter_borrowed(
+        const function_decl& function, std::size_t index) const;
     [[nodiscard]] static bool rebinds_name(const std::vector<stmt_ptr>& body,
                                            std::string_view name);
     [[nodiscard]] bool operator_parameter_borrowed(

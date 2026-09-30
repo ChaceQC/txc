@@ -1,5 +1,6 @@
 #include "backend/llvm/codegen.hpp"
 #include "backend/llvm/codegen_format_plan.hpp"
+#include "common/slot_layout.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -109,12 +110,15 @@ std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_static_fo
     const std::string prefix = !plan->empty() && !plan->front().argument ? plan->front().literal : "";
     const auto steps = static_format_steps(call, *plan, bytes);
     const auto arguments = static_format_arguments(values, bytes);
-    const auto count = std::count_if(plan->begin(), plan->end(), [](const static_format_part& part)
+    const auto count = static_cast<std::size_t>(std::count_if(plan->begin(), plan->end(), [](const static_format_part& part)
     {
         return part.argument.has_value();
-    });
-    write_instruction(created + " = call i32 @txrt_format_execute(ptr " + steps +
-        ", i64 " + std::to_string(count) + ", ptr " + arguments + ", ptr " + global_bytes(prefix) +
+    }));
+    const auto invocation = count <= static_format_budget
+        ? "@txrt_format_specialized(ptr " + static_format_executor(call, *plan, bytes, steps)
+        : "@txrt_format_execute(ptr " + steps + ", i64 " + std::to_string(count);
+    write_instruction(created + " = call i32 " + invocation +
+        ", ptr " + arguments + ", ptr " + global_bytes(prefix) +
         ", i64 " + std::to_string(prefix.size()) + ", i64 " + std::to_string(capacity) +
         ", ptr " + output + ")");
     write_instruction("call void @txrt_require_success(i32 " + created + ")");

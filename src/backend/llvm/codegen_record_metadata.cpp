@@ -1,5 +1,6 @@
 #include "backend/llvm/codegen.hpp"
 #include "common/record_copy_kind.hpp"
+#include "common/slot_layout.hpp"
 
 #include <algorithm>
 
@@ -120,13 +121,14 @@ void llvm_code_generator::emit_record_metadata(const value_type& type)
     for (std::size_t index = 0; index < fields.size(); ++index)
     {
         const auto& [name, field_type] = fields[index];
-        const auto kind = field_type == value_type::int_type ? 1 :
-            field_type == value_type::float_type ? 2 : field_type == value_type::bool_type ? 3 : 0;
+        const auto kind = static_cast<unsigned>(field_type == value_type::int_type ? slot_kind::integer :
+            field_type == value_type::float_type ? slot_kind::floating :
+            field_type == value_type::bool_type ? slot_kind::boolean : slot_kind::reference);
         kinds += static_cast<char>(kind);
         field_values += (index ? ", " : "") + std::string("%tx_record_field { ptr ") +
             (name.empty() ? "null" : global_bytes(name)) + ", ptr " +
             (name.empty() ? "null" : global_bytes(field_type.name)) +
-            ", i64 " + std::to_string(index * 8) + ", i64 " + std::to_string(kind) +
+            ", i64 " + std::to_string(index * slot_bytes) + ", i64 " + std::to_string(kind) +
             ", i64 " + std::to_string(record_copy_tag(field_type)) + " }";
         const bool value_sequence = (field_type.is_vector() || field_type.is_iterator()) &&
             (field_type.parameters.front() == value_type::int_type ||
@@ -144,6 +146,11 @@ void llvm_code_generator::emit_record_metadata(const value_type& type)
     const auto name = global_bytes(type.name);
     const auto display_name = global_bytes(display);
     const auto kind_data = global_bytes(kinds);
+    const bool generated = fields.size() <= native_record_budget / slot_bytes;
+    if (generated)
+    {
+        emit_record_operations(symbol, fields, scans);
+    }
     globals_ << symbol << ".fields = private constant [" << fields.size()
              << " x %tx_record_field] [" << field_values << "]\n"
              << symbol << ".scan = private constant [" << scans.size() << " x i64] [";
@@ -168,6 +175,8 @@ void llvm_code_generator::emit_record_metadata(const value_type& type)
              << ", ptr " << kind_data << ", ptr "
              << (is_class && virtual_slot_count_ ? "@tx_class_view_vtable_" + type.name : "null")
              << ", ptr " << (destructors ? "@tx_class_view_destructors_" + type.name : "null")
+             << ", ptr " << (generated ? symbol + ".trace" : "null")
+             << ", ptr " << (generated ? symbol + ".copy" : "null")
              << " }\n";
 }
 

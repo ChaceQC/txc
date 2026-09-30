@@ -26,6 +26,16 @@ std::string suffix(const value_type& type)
 
 void llvm_code_generator::write_sync_declarations()
 {
+    for (const auto* kind : {"i64", "f64", "bool"})
+    {
+        const std::string scalar = std::string(kind) == "i64" ? "i64" :
+            std::string(kind) == "f64" ? "double" : "i1";
+        module_ << "declare i32 @txrt_sync_local_lock_" << kind << "(ptr, ptr)\n"
+                << "declare i32 @txrt_sync_local_get_" << kind << "(ptr, ptr)\n"
+                << "declare i32 @txrt_sync_local_set_" << kind << "(ptr, " << scalar << ")\n"
+                << "declare i32 @txrt_sync_local_close_" << kind << "(ptr)\n"
+                << "declare void @txrt_sync_local_destroy_" << kind << "(ptr)\n";
+    }
     for (const auto* kind : {"i64", "f64", "bool", "str", "value"})
     {
         const std::string scalar = std::string(kind) == "i64" ? "i64" :

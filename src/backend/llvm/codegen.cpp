@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "backend/llvm/target_attributes.hpp"
 
 #include <algorithm>
 #include <iomanip>
@@ -331,6 +332,19 @@ void llvm_code_generator::release(const ir_value& value)
 
 void llvm_code_generator::release_slot(const variable_slot& variable)
 {
+    if (!variable.projected_fields.empty())
+    {
+        const auto held = temporary();
+        write_instruction(held + " = load ptr, ptr " + variable.address);
+        release({value_type::str_type, held});
+        return;
+    }
+    if (!variable.local_guard.empty())
+    {
+        write_instruction("call void @txrt_sync_local_destroy_" + variable.local_guard +
+            "(ptr " + variable.address + ")");
+        return;
+    }
     if (!variable.native_parse_ok.empty())
     {
         const auto held = temporary();
@@ -477,6 +491,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
         profile_mode_ |= function.external_name.starts_with("profile.");
     }
     gc_visiting_.clear();
+    static_function_cache_.clear();
     gc_neutral_cache_.clear();
     bounded_integer_results_.clear();
     functions_.clear();
@@ -526,9 +541,11 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
                 .push_back(&method);
         }
     }
+    program_analysis_.analyze(source);
+    prepare_static_functions();
     module_ << "target triple = \"x86_64-w64-windows-gnu\"\n\n"
             << "%tx_record_field = type { ptr, ptr, i64, i64, i64 }\n"
-            << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr, ptr, ptr }\n"
+            << "%tx_record_type = type { ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i64, ptr, i64, ptr, i64, ptr, ptr, ptr, ptr, ptr }\n"
             << "%tx_record_view = type { ptr, ptr }\n"
             << "declare ptr @txrt_record_view(ptr)\n"
             << "declare ptr @txrt_record_struct_view(ptr)\n"
@@ -775,7 +792,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "  ret i32 %exit\n}\n";
     }
     module_ << globals_.str();
-    return module_.str();
+    return finish_llvm_module(module_.str());
 }
 
 } // namespace tx

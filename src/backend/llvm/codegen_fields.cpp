@@ -25,6 +25,11 @@ std::string llvm_code_generator::scalar_field_address(
     const auto& member = std::get<member_expression>(item.data);
     const auto& name = std::get<name_reference>(member.object->data);
     const auto variable = find_variable(name.name, item.position);
+    if (const auto found = variable.projected_fields.find(member.field);
+        found != variable.projected_fields.end())
+    {
+        return found->second;
+    }
     if (static_record_type(member.object->type))
     {
         const auto index = member.field_slot.value_or(classes_.contains(member.object->type.name)

@@ -98,15 +98,19 @@ bool llvm_code_generator::init_parameter_borrowed(
 }
 
 bool llvm_code_generator::ordinary_parameter_borrowed(
-    const function_decl& function, std::size_t index)
+    const function_decl& function, std::size_t index) const
 {
+    const auto* analysis = program_analysis_.find(function);
+    const bool rebound = analysis && index < analysis->summary.parameters.size()
+        ? analysis->summary.parameters[index].rebound
+        : rebinds_name(function.body, index < function.parameters.size() ? function.parameters[index].name : "");
     return function.owner_class.empty() &&
         index < function.parameters.size() &&
         !parameter_is_nullable(function.parameters[index]) &&
         function.parameters[index].kind == parameter_kind::ordinary &&
         (is_value_handle(function.parameters[index].type) ||
          function.parameters[index].type == value_type::str_type) &&
-        !rebinds_name(function.body, function.parameters[index].name);
+        !rebound;
 }
 
 bool llvm_code_generator::operator_parameter_borrowed(

@@ -39,6 +39,8 @@ regex_match_value regex_search(const regex_pattern& pattern,
     std::string_view text, std::int64_t start_byte);
 regex_match_value regex_match(const regex_pattern& pattern,
     std::string_view text, bool full);
+regex_match_value regex_projected_match(const regex_pattern& pattern,
+    std::string_view text, std::int64_t start_byte, std::int64_t mode);
 std::vector<std::string> regex_find_all(const regex_pattern& pattern,
     std::string_view text);
 std::string regex_replace(const regex_pattern& pattern,

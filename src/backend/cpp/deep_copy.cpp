@@ -342,6 +342,16 @@ private:
     void copy_slots(const typed_slots& source, typed_slots& result,
         const record_type* type = nullptr)
     {
+        if (type && type->copy_slots)
+        {
+            type->copy_slots(source.data(), result.data(),
+                [](const std::any& value, std::any& destination, std::uint64_t kind, void* context)
+                {
+                    destination = static_cast<copy_context*>(context)->copy_field(
+                        value, static_cast<tx::record_copy_kind>(kind));
+                }, this);
+            return;
+        }
         for (std::size_t index = 0; index < source.size(); ++index)
         {
             if (source.kind(index) != slot_kind::reference)

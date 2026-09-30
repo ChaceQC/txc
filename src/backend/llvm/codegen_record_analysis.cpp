@@ -1,7 +1,7 @@
 #include "backend/llvm/codegen.hpp"
+#include "common/slot_layout.hpp"
 
 #include <algorithm>
-#include <functional>
 
 namespace tx
 {
@@ -10,7 +10,7 @@ bool llvm_code_generator::scalar_record_type(const value_type& type) const
 {
     const auto found = structs_.find(type.name);
     return found != structs_.end() && static_record_type(type) &&
-        found->second->fields.size() <= 4 && std::all_of(
+        found->second->fields.size() <= native_record_budget / slot_bytes && std::all_of(
             found->second->fields.begin(), found->second->fields.end(), [](const struct_field& field)
             {
                 return field.type == value_type::int_type || field.type == value_type::float_type ||
@@ -18,71 +18,20 @@ bool llvm_code_generator::scalar_record_type(const value_type& type) const
             });
 }
 
+bool llvm_code_generator::static_function_body(const function_decl& function) const
+{
+    const auto found = static_function_cache_.find(&function);
+    return found != static_function_cache_.end() && found->second;
+}
+
 bool llvm_code_generator::native_record_function(const function_decl& function) const
 {
-    const auto scalar = [](const value_type& type)
-    {
-        return type == value_type::int_type || type == value_type::float_type || type == value_type::bool_type;
-    };
-    if (function.external || function.is_async || function.body.size() != 1 ||
-        (!function.owner_class.empty() && !scalar_record_type(value_type(function.owner_class))) ||
-        (!scalar(function.return_type) && !scalar_record_type(function.return_type)) ||
-        !std::all_of(function.parameters.begin(), function.parameters.end(), [&](const parameter& parameter)
-        {
-            return parameter.kind == parameter_kind::ordinary && !parameter_is_nullable(parameter) &&
-                (scalar(parameter.type) || scalar_record_type(parameter.type));
-        }))
-    {
-        return false;
-    }
-    const auto* result = std::get_if<return_statement>(&function.body.front()->data);
-    if (!result || !result->value)
-    {
-        return false;
-    }
-    // 可证明的效果摘要：只读取标量/字段，不保存、捕获或修改参数；结构体结果必须新建。
-    std::function<bool(const expression&)> pure = [&](const expression& item)
-    {
-        if (std::holds_alternative<integer_literal>(item.data) ||
-            std::holds_alternative<floating_literal>(item.data) ||
-            std::holds_alternative<boolean_literal>(item.data))
-        {
-            return true;
-        }
-        if (const auto* name = std::get_if<name_reference>(&item.data))
-        {
-            return !name->function_value && scalar(item.type);
-        }
-        if (const auto* member = std::get_if<member_expression>(&item.data))
-        {
-            return scalar(item.type) && scalar_record_type(member->object->type) &&
-                std::holds_alternative<name_reference>(member->object->data);
-        }
-        if (const auto* binary = std::get_if<binary_operation>(&item.data))
-        {
-            return !binary->binding && pure(*binary->left) && pure(*binary->right);
-        }
-        if (const auto* unary = std::get_if<unary_operation>(&item.data))
-        {
-            return !unary->binding && pure(*unary->operand);
-        }
-        if (const auto* cast = std::get_if<cast_expression>(&item.data))
-        {
-            return scalar(item.type) && pure(*cast->value);
-        }
-        const auto* call = std::get_if<call_expression>(&item.data);
-        return call && call->is_constructor && native_record_expression(item) &&
-            std::all_of(call->arguments.begin(), call->arguments.end(), [&](const call_argument& argument)
-            {
-                return pure(*argument.value);
-            });
-    };
     const bool records = !function.owner_class.empty() || scalar_record_type(function.return_type) ||
         std::any_of(function.parameters.begin(), function.parameters.end(), [&](const parameter& parameter)
         {
             return scalar_record_type(parameter.type);
         });
-    return records && pure(*result->value);
+    return records && static_function_body(function);
 }
 
 const function_decl* llvm_code_generator::native_record_target(const call_expression& call) const

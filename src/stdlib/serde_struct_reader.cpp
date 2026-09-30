@@ -142,7 +142,12 @@ std::any serde_read_struct(serde_reader& reader, const serde_schema& schema, ser
             {
                 serde_decode_error("duplicate_key", "serde JSON 对象包含重复字段名");
             }
-            if (fixed && field->type.codec->decode_slot)
+            if (fixed && schema.read_field)
+            {
+                const auto child = depth.child();
+                schema.read_field(&reader, (*fixed)->view.data, field->index, child.logical, child.wire);
+            }
+            else if (fixed && field->type.codec->decode_slot)
             {
                 field->type.codec->decode_slot(reader, (*fixed)->view.data[field->index],
                                                field->type, depth.child());

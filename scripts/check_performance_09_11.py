@@ -25,7 +25,7 @@ def run(*arguments, expected=0):
 
 
 def function(ir, name):
-    match = re.search(rf"^define [^\n]* @tx_fn_m0_{name}_0\([^\n]*\) \{{\n(.*?)^\}}",
+    match = re.search(rf"^define [^\n]* @tx_fn_m0_{name}_0\([^\n]*\)[^\n]*\{{\n(.*?)^\}}",
                       ir, re.MULTILINE | re.DOTALL)
     assert match, name
     return match.group(1)
@@ -73,7 +73,7 @@ def main():
     calls = function(ir, "bench_calls")
     assert "call ptr @txrt_closure_code" not in calls
     assert "@tx_callback_m0_double_value_0_internal(ptr %tx_context" in calls
-    internal = re.findall(r"^define [^\n]*_internal\([^\n]*\) \{\n(.*?)^\}",
+    internal = re.findall(r"^define [^\n]*_internal\([^\n]*\)[^\n]*\{\n(.*?)^\}",
                           ir, re.MULTILINE | re.DOTALL)
     assert internal and all("call ptr @txrt_runtime_context" not in body for body in internal)
     assert "@txrt_closure_capture" not in "\n".join(internal)

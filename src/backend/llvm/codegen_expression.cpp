@@ -129,7 +129,12 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
             write_instruction(result + " = load ptr, ptr " + output);
             return {item.type, result};
         }
-        return load(find_variable(name->name, item.position));
+        const auto variable = find_variable(name->name, item.position);
+        if (auto moved = inferred_move(item, variable))
+        {
+            return *moved;
+        }
+        return load(variable);
     }
     if (const auto* access = std::get_if<index_expression>(&item.data))
     {
@@ -284,6 +289,10 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
     }
     if (const auto* access = std::get_if<member_expression>(&item.data))
     {
+        if (const auto projected = emit_projected_field(item))
+        {
+            return *projected;
+        }
         if (auto error_field = emit_parse_error_field(item))
         {
             return *error_field;

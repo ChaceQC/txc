@@ -172,15 +172,18 @@ std::string llvm_code_generator::serde_schema_constant(const value_type& type)
             specialized = "@tx_serde_pair_" + suffix;
         }
     }
+    const bool direct = static_record_type(type) && policy == 0 && emit_serde_static(definition, symbol);
     globals_ << symbol << ".fields = private constant [" << count << " x "
              << field_layout << "] [" << fields << "]\n"
-             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64, ptr, ptr, ptr, ptr } "
+             << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64, ptr, ptr, ptr, ptr, ptr, ptr } "
              << "{ ptr " << type_name << ", ptr " << display << ", i64 " << metadata.version
              << ", i64 " << policy << ", i64 " << definition.fields.size()
              << ", i64 " << unknown_index << ", ptr " << unknown << ", ptr "
              << symbol << ".fields, i64 " << count << ", ptr " << symbol
              << ".json_order, ptr " << symbol << ".cbor_order, ptr "
-             << (static_record_type(type) ? "@tx_record_" + type.name : "null") << ", ptr " << specialized << " }\n";
+             << (static_record_type(type) ? "@tx_record_" + type.name : "null") << ", ptr "
+             << (direct ? "null" : specialized) << ", ptr " << (direct ? symbol + ".write" : "null")
+             << ", ptr " << (direct ? symbol + ".read" : "null") << " }\n";
     return symbol;
 }
 

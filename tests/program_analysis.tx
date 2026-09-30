@@ -1,0 +1,203 @@
+import "test.txh" as test
+import "error.txh" as errors
+import "program_analysis_module/helper.txh" as helper
+
+struct scalar_pair
+{
+    first: int
+    second: float
+}
+
+class destruction_witness
+{
+    public:
+        events: vector<int>
+
+        def init(events: vector<int>) -> void
+        {
+            self.events = events
+        }
+
+        def deinit() -> void
+        {
+            self.events.push_back(1)
+        }
+}
+
+def replace_witness(value: destruction_witness, replacement: destruction_witness) -> void
+{
+    value = replacement
+}
+
+def witness_scope(events: vector<int>, replacements: vector<int>) -> void
+{
+    auto value = destruction_witness(events)
+    auto replacement = destruction_witness(replacements)
+    replace_witness(value, replacement)
+    test.assert_equal(0, events.size(), "最后使用不能提前析构类对象")
+}
+
+def recursive_score(value: scalar_pair, depth: int) -> int
+{
+    if depth > 0
+    {
+        return recursive_score(value, depth - 1)
+    }
+    return value.first
+}
+
+def native_recursive() -> int
+{
+    auto value = scalar_pair(42, 1.5)
+    return recursive_score(value, 4)
+}
+
+def branch_text(choice: bool) -> str
+{
+    str value = "初始"
+    if choice
+    {
+        value = "真"
+    }
+    else
+    {
+        value = "假"
+    }
+    return value
+}
+
+def loop_text(count: int) -> str
+{
+    str value = "仍然有效"
+    int index = 0
+    while index < count
+    {
+        str copy = value
+        test.assert_equal("仍然有效", copy)
+        index += 1
+    }
+    return value
+}
+
+def move_text() -> str
+{
+    str first = "甲🌍"
+    str second = first
+    return second
+}
+
+def owned_text(value: str) -> str
+{
+    if len(value) > 0
+    {
+        value = "修改后的值"
+    }
+    return value
+}
+
+def failed_number() -> int
+{
+    errors.fail_io("evaluation_failed", "求值失败")
+    return 0
+}
+
+def consume_text(value: str, number: int) -> int
+{
+    value = "已接收"
+    return len(value) + number
+}
+
+def exception_text() -> void
+{
+    str value = "处理器仍需读取"
+    try
+    {
+        str copy = value
+        test.assert_equal("处理器仍需读取", copy)
+        errors.fail_io("interrupted", "中断")
+    }
+    exception errors.io_error as error
+    {
+        test.assert_equal("处理器仍需读取", value)
+        test.assert_equal("中断", error.message)
+    }
+}
+
+def moved_argument_failure() -> void
+{
+    str value = "可转移的实参"
+    try
+    {
+        consume_text(value, failed_number())
+        test.assert_true(false, "应当捕获错误")
+    }
+    exception errors.io_error as error
+    {
+        test.assert_equal("求值失败", error.message)
+    }
+}
+
+def loop_alias(values: vector<int>, count: int) -> vector<int>
+{
+    auto current = values
+    int index = 0
+    while index < count
+    {
+        auto temporary = helper.recursive_alias(current, index)
+        current = temporary
+        index += 1
+    }
+    return current
+}
+
+def check_aliases() -> void
+{
+    auto values = vector<int>([1, 2])
+    auto alias = helper.recursive_alias(values, 5)
+    alias.push_back(3)
+    test.assert_equal(3, values.size())
+    auto owner = helper.bucket(vector<int>([8]))
+    helper.store(owner, values)
+    owner.values.push_back(4)
+    test.assert_equal(4, values.size())
+    auto returned = helper.return_container(values)
+    returned.values.push_back(5)
+    test.assert_equal(5, values.size())
+    auto merged = loop_alias(values, 3)
+    merged.push_back(6)
+    test.assert_equal(6, values.size())
+}
+
+def store_then_read(owner: helper.bucket, values: vector<int>) -> vector<int>
+{
+    helper.store(owner, values)
+    return owner.values
+}
+
+def main() -> int
+{
+    test.assert_equal(42, native_recursive())
+    test.assert_equal("真", branch_text(true))
+    test.assert_equal("假", branch_text(false))
+    test.assert_equal("仍然有效", loop_text(0))
+    test.assert_equal("仍然有效", loop_text(3))
+    test.assert_equal("甲🌍", move_text())
+    str persistent = "调用后仍存活"
+    test.assert_equal("修改后的值", owned_text(persistent))
+    test.assert_equal("调用后仍存活", persistent)
+    exception_text()
+    moved_argument_failure()
+    check_aliases()
+    auto values = vector<int>([8])
+    auto owner = helper.bucket(vector<int>())
+    auto shared = store_then_read(owner, values)
+    shared.push_back(9)
+    test.assert_equal(2, values.size())
+    auto events = vector<int>()
+    auto replacements = vector<int>()
+    witness_scope(events, replacements)
+    test.assert_equal(1, events.size())
+    test.assert_equal(1, replacements.size())
+    print("PROGRAM_ANALYSIS_OK")
+    return 0
+}

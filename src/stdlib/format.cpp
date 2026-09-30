@@ -1,6 +1,7 @@
 #include "stdlib/format_internal.hpp"
 #include "stdlib/format_plan_cache.hpp"
 #include "stdlib/format_arguments.hpp"
+#include "stdlib/format_binding_cache.hpp"
 #include "stdlib/stdlib.hpp"
 
 #include <charconv>
@@ -164,14 +165,55 @@ std::string format_values(const std::string& text, const arguments_type& args)
         std::string result;
         result.reserve(plan->literal_bytes);
         field_state state;
+        std::shared_ptr<const format_binding_plan> binding;
+        std::vector<format_binding_slot> slots;
+        bool save_binding = false;
+        if constexpr (std::is_same_v<arguments_type, direct_format_arguments>)
+        {
+            binding = find_format_binding(plan, args);
+            save_binding = !binding && cacheable_format_binding(*plan, args);
+        }
+        std::size_t field_index = 0;
         for (const auto& part : plan->parts)
         {
             result += part.literal;
             if (part.field)
             {
+                if constexpr (std::is_same_v<arguments_type, direct_format_arguments>)
+                {
+                    if (binding)
+                    {
+                        const auto slot = binding->slots[field_index++];
+                        const auto& value = slot.keyword ? args.keywords[slot.index] : args[slot.index];
+                        append_format_value(result, value, part.spec, part.conversion);
+                        continue;
+                    }
+                }
                 const field selected{part.name, {}, part.conversion};
                 const auto& value = resolve_field(selected, args, state);
                 append_format_value(result, value, part.spec, part.conversion);
+                if constexpr (std::is_same_v<arguments_type, direct_format_arguments>)
+                {
+                    if (save_binding)
+                    {
+                        try
+                        {
+                            slots.push_back(locate_format_argument(args, value));
+                        }
+                        catch (const std::bad_alloc&)
+                        {
+                            save_binding = false;
+                            slots.clear();
+                        }
+                    }
+                }
+            }
+        }
+        if constexpr (std::is_same_v<arguments_type, direct_format_arguments>)
+        {
+            if (save_binding)
+            {
+                remember_format_binding(plan, args, std::move(slots));
             }
         }
         return result;

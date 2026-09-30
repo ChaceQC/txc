@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
 project(tx_compiler LANGUAGES C CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
@@ -198,9 +200,12 @@ file(GLOB _tx_interface_files CONFIGURE_DEPENDS
 file(GLOB _tx_abi_files CONFIGURE_DEPENDS
     RELATIVE "${CMAKE_SOURCE_DIR}"
     "${CMAKE_SOURCE_DIR}/src/backend/cpp/*.hpp"
-    "${CMAKE_SOURCE_DIR}/src/backend/llvm/*.cpp")
+    "${CMAKE_SOURCE_DIR}/src/backend/llvm/*.cpp"
+    "${CMAKE_SOURCE_DIR}/src/backend/analysis/*.cpp"
+    "${CMAKE_SOURCE_DIR}/src/backend/analysis/*.hpp")
 list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hpp"
     "src/common/record_copy_kind.hpp"
+    "src/common/slot_layout.hpp" "src/common/local_resource_layout.hpp"
     "src/common/text_encoding.hpp" "src/stdlib/parse.hpp" "src/stdlib/serde_direct.hpp"
     "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp" "src/stdlib/iterator.hpp")
 list(APPEND _tx_abi_files "src/stdlib/container_scalar.hpp" "src/stdlib/typed_map.hpp")
@@ -241,6 +246,16 @@ if(MINGW)
 endif()
 
 add_executable(txc
+    src/backend/analysis/program_ir.cpp
+    src/backend/analysis/ir_expression.cpp
+    src/backend/analysis/ir_statement.cpp
+    src/backend/analysis/ir_cleanup.cpp
+    src/backend/analysis/ssa.cpp
+    src/backend/analysis/ir_verify.cpp
+    src/backend/analysis/analysis_sets.cpp
+    src/backend/analysis/program_analysis.cpp
+    src/backend/analysis/call_analysis.cpp
+    src/backend/analysis/analysis_dump.cpp
     src/common/format_spec.cpp
     src/common/text_encoding.cpp
     src/frontend/lexer/lexer.cpp
@@ -309,6 +324,8 @@ add_executable(txc
     src/backend/llvm/codegen_sequence_declarations.cpp
     src/backend/llvm/codegen_map.cpp
     src/backend/llvm/codegen_functions.cpp
+    src/backend/llvm/codegen_program_analysis.cpp
+    src/backend/llvm/target_attributes.cpp
     src/backend/llvm/codegen_callback.cpp
     src/backend/llvm/codegen_exception.cpp
     src/backend/llvm/codegen_context.cpp
@@ -339,6 +356,11 @@ add_executable(txc
     src/backend/llvm/codegen_record_metadata.cpp
     src/backend/llvm/codegen_record.cpp
     src/backend/llvm/codegen_record_analysis.cpp
+    src/backend/llvm/codegen_sync_local.cpp
+    src/backend/llvm/codegen_result_projection.cpp
+    src/backend/llvm/codegen_serde_static.cpp
+    src/backend/llvm/codegen_record_operations.cpp
+    src/backend/analysis/static_function.cpp
     src/backend/llvm/codegen_record_calls.cpp
     src/backend/llvm/codegen_record_assignment.cpp
     src/backend/llvm/codegen_record_method.cpp
@@ -379,6 +401,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/json_stream_abi.cpp
     src/backend/cpp/cbor_abi.cpp
     src/backend/cpp/serde_abi.cpp
+    src/backend/cpp/serde_static_abi.cpp
     src/backend/cpp/csv_abi.cpp
     src/backend/cpp/xml_reader_abi.cpp
     src/backend/cpp/xml_tree_abi.cpp
@@ -434,6 +457,7 @@ add_library(txstdlib STATIC
     src/backend/cpp/task_executor.cpp
     src/backend/cpp/task_abi.cpp
     src/backend/cpp/sync_lock_abi.cpp
+    src/backend/cpp/sync_local_abi.cpp
     src/backend/cpp/sync_lock_generic_abi.cpp
     src/backend/cpp/sync_primitive_abi.cpp
     src/backend/cpp/sync_atomic_abi.cpp
@@ -498,6 +522,7 @@ add_library(txstdlib STATIC
     src/stdlib/format.cpp
     src/stdlib/format_append.cpp
     src/stdlib/format_plan_cache.cpp
+    src/stdlib/format_binding_cache.cpp
     src/stdlib/format_spec.cpp
     src/common/format_spec.cpp
     src/common/text_encoding.cpp

@@ -130,7 +130,7 @@ int scope_value(const void* callback, std::int64_t max_pending,
         value_type value{};
         try
         {
-            const auto target = closure.data().target;
+            auto* target = const_cast<void*>(closure.data().target);
             if constexpr (std::is_same_v<value_type, std::monostate>)
             {
                 reinterpret_cast<void (*)(const void*, const void*)>(target)(

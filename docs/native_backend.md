@@ -1,5 +1,13 @@
 # 不依赖 g++ 的原生后端
 
+默认链接路径现使用 ThinLTO：`clang.exe` 将程序 IR 编成带摘要的 bitcode，
+`link/ld.lld.exe` 将它与 `libtxstdlib_lto.a` 中的运行时、标准库及 TX 桥接模块
+共同优化。C++ bitcode 延续 MinGW GNU-target、libstdc++ 和 SEH ABI；第三方
+本机依赖一起归档，运行编译器无需安装 g++ 或外部 LLVM。`--no-lto` 可显式
+选择普通 `libtxstdlib.a` 与 GNU ld。全部生成函数及适配器带一致的目标 CPU
+和指令集属性，使 LLVM 可以跨 TX/C++ 模块内联。构建与分析入口见
+[编译与运行](usage.md)和[静态执行体系](static_execution_architecture.md)。
+
 可恢复错误使用同一 C ABI 状态通道：编译期确定 `exception` 的类别编号和分支，运行时只检查实际失败类别。包含 `try` 的程序在 LLVM 中生成跨函数传播和句柄槽清理，快速 ABI 在使用返回值前检查错误状态；捕获时将错误信息构造成静态选定的结构体。临时句柄、转移给被调用函数的实参、返回值和外层变量分别按原所有权管理，错误不会回滚已经完成的赋值。此模式暂时关闭动态局部标量数组优化，使用统一句柄路径；没有 try 的程序保留原有错误出口。`parse` 与文件 try 接口直接返回具体结构体，其静态类型名称由代码生成传入，调用目标不经过运行时名称分派。规则见[解析与可恢复错误](errors_and_parse.md)。
 
 类型化 `map<K, V>`、`set<T>`、`heap<T>`、`queue<T>` 使用 C++23 哈希容器、二叉堆和 deque 保存原生标量或不可变文本引用。LLVM 按完整类型选定 C ABI，普通元素操作不经过 any 装箱；map 索引更新不保存跨实参求值的哈希槽位地址。class 默认容器字段也在生成代码中直接调用已确定的构造入口。遍历转成独立类型化 vector 快照，再复用向量循环生成；动态打印、len、显式转换和 deep_copy 通过统一容器句柄接入。规则见[类型化容器](typed_containers.md)。

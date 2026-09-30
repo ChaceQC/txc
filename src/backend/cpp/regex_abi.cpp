@@ -69,6 +69,21 @@ tx_generated::dynamic_struct match_struct(const char* type_name,
 using tx_generated::detail::invoke_checked;
 using tx_generated::detail::make_handle;
 
+extern "C" int txrt_regex_projected(const void* pattern, const void* input,
+    std::int64_t start, std::int64_t mode, bool* found, void** text, std::int64_t* offsets) noexcept
+{
+    return invoke_checked([&]
+    {
+        auto result = tx_generated::regex_projected_match(pattern_value(pattern), text_value(input), start, mode);
+        *text = make_handle<std::string>(std::move(result.text));
+        *found = result.found;
+        offsets[0] = result.start_byte;
+        offsets[1] = result.end_byte;
+        offsets[2] = result.start_scalar;
+        offsets[3] = result.end_scalar;
+    });
+}
+
 extern "C" int txrt_regex_compile(const void* pattern, const void* flags,
     std::int64_t max_input, std::int64_t match_limit, std::int64_t depth_limit,
     void** result) noexcept

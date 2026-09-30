@@ -246,7 +246,8 @@ def main():
                  ("综合", "format_literal"), ("契约/format_contract", "format_parameter"),
                  ("契约/format_contract", "format_alternating"), ("契约/graph_contract", "graph_copy"),
                  ("综合", "serde_long_text"), ("audit/compute", "regex_search")]
-    selected = [next(row for row in gaps if row["suite"] == group and row["name"] == name and row["reference"] == "C++") for group, name in selection]
+    selected = [row for group, name in selection for row in gaps
+                if row["suite"] == group and row["name"] == name and row["reference"] == "C++"]
     highlights += table(["项目", "TX ms", "C++ ms", "倍率", "说明"], [[row["name"], fmt(row["tx_ms"]), fmt(row["reference_ms"]), f"{row['ratio']:.2f}×", row["note"]] for row in selected])
     highlights += ["单节点自环 GC 17.60×、已知形状深拷贝 9.36×及可变实参展开 5.25×（C++）都有参考语义边界，不能换算成通用机制的倍率。通用图 GC 本轮为 1.46×，图复制为 4.96×。",
                    "接近阈值的编码项目随采样和参考编译器变化：字面量编码综合轮为 3.11×，GCC / clang 校准为 2.95× / 2.86×；不可变编码名综合轮为 3.25×，GCC / clang 校准为 3.32× / 2.98×。", "",

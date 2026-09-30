@@ -21,6 +21,7 @@ public:
     std::function<bool(const call_expression&)> native_call = {};
     std::function<bool(const operator_binding&)> native_operator = {};
     std::function<bool(const expression&)> native_result = {};
+    std::function<bool(const call_expression&)> guard_call = {};
 
     bool field_owner(const expression& item) const
     {
@@ -55,6 +56,15 @@ public:
         }
         if (const auto* call = std::get_if<call_expression>(&item.data))
         {
+            if (guard_call && guard_call(*call))
+            {
+                return !call->receiver && std::all_of(call->arguments.begin(), call->arguments.end(),
+                    [&](const call_argument& argument)
+                    {
+                        return (&argument == &call->arguments.front() && named(*argument.value)) ||
+                            expression_safe(*argument.value);
+                    });
+            }
             if (native_call && native_call(*call))
             {
                 return (!call->receiver || named(*call->receiver) || expression_safe(*call->receiver)) &&
@@ -209,6 +219,10 @@ public:
 bool llvm_code_generator::confined_local(
     const variable_declaration& declaration, bool fields_only) const
 {
+    if (current_analysis_ && !current_analysis_->confined(declaration))
+    {
+        return false;
+    }
     auto checker = local_use_checker{declaration, fields_only};
     if (fields_only && declaration.initializer && scalar_record_type(declaration.initializer->type))
     {
@@ -233,6 +247,24 @@ bool llvm_code_generator::borrowed_class_local(const variable_declaration& decla
     auto checker = local_use_checker{declaration, false, true};
     // 非异常模式的显式 return 从外层开始清理；此时保留拥有的转换结果。
     checker.reject_returns = !recoverable_errors_;
+    return current_function_body_ && checker.body_safe(*current_function_body_);
+}
+
+bool llvm_code_generator::confined_guard_local(const variable_declaration& declaration) const
+{
+    auto checker = local_use_checker{declaration, true};
+    checker.guard_call = [this](const call_expression& call)
+    {
+        const auto found = functions_.find(call.name);
+        if (call.indirect || call.receiver || !call.overload_index || found == functions_.end() ||
+            *call.overload_index >= found->second.size())
+        {
+            return false;
+        }
+        const auto& target = *found->second[*call.overload_index];
+        return target.external && (target.external_name == "sync.guard_get" ||
+            target.external_name == "sync.guard_set" || target.external_name == "sync.guard_close");
+    };
     return current_function_body_ && checker.body_safe(*current_function_body_);
 }
 

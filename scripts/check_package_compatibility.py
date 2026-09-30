@@ -30,8 +30,10 @@ def check(package: Path, expected: str | None) -> None:
 def main() -> None:
     with tempfile.TemporaryDirectory(prefix="tx_compat_") as temporary:
         package = Path(temporary)
-        for name in ("txc.exe", "libtxstdlib.a", "package.compat"):
+        for name in ("txc.exe", "libtxstdlib.a", "libtxstdlib_lto.a", "clang.exe", "package.compat"):
             shutil.copy2(TOOL_DIR / name, package / name)
+        (package / "link").mkdir()
+        shutil.copy2(TOOL_DIR / "link/ld.lld.exe", package / "link/ld.lld.exe")
         for dependency in TOOL_DIR.glob("*.dll"):
             shutil.copy2(dependency, package / dependency.name)
         shutil.copytree(TOOL_DIR / "stdlib", package / "stdlib")
@@ -59,8 +61,17 @@ def main() -> None:
         library = package / "libtxstdlib.a"
         library.write_bytes(library.read_bytes() + b"\x00")
         check(package, "标准库静态库 与当前工具链不匹配")
+        shutil.copy2(TOOL_DIR / "libtxstdlib.a", library)
 
-    print("兼容指纹正常与 4 种错配场景通过")
+        for name, message in (("libtxstdlib_lto.a", "ThinLTO 标准库"),
+                              ("clang.exe", "LLVM 编译器"),
+                              ("link/ld.lld.exe", "LLVM 链接器")):
+            target = package / name
+            target.write_bytes(target.read_bytes() + b"\x00")
+            check(package, message + " 与当前工具链不匹配")
+            shutil.copy2(TOOL_DIR / name, target)
+
+    print("兼容指纹正常与 7 种错配场景通过")
 
 
 if __name__ == "__main__":

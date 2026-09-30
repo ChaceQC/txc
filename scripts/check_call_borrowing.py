@@ -23,7 +23,7 @@ def run(arguments):
 
 def function_body(ir, name):
     match = re.search(
-        rf"^define [^\n]* @tx_fn_m0_{re.escape(name)}_0\([^\n]*\) \{{\n(.*?)^\}}",
+        rf"^define [^\n]* @tx_fn_m0_{re.escape(name)}_0\([^\n]*\)[^\n]*\{{\n(.*?)^\}}",
         ir, re.MULTILINE | re.DOTALL,
     )
     assert match, f"缺少函数 {name}"

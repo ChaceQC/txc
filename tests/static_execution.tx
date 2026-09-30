@@ -1,0 +1,273 @@
+import "test.txh" as test
+import "sync.txh" as sync
+import "format.txh" as fmt
+import "serde.txh" as serde
+import "regex.txh" as regex
+import "error.txh" as errors
+import "cancel.txh" as cancel
+
+struct wide_value
+{
+    a: int
+    b: int
+    c: int
+    d: int
+    e: int
+    f: int
+}
+
+struct message serde(version=2)
+{
+    z: str serde(4)
+    a: int serde(1)
+    enabled: bool serde(3)
+    score: float serde(2)
+}
+
+def twice(value: int) -> int
+{
+    return value * 2
+}
+
+def native_score(value: wide_value) -> int
+{
+    int total = value.a + value.b + value.c + value.d + value.e
+    if value.a > 0
+    {
+        total += value.a
+    }
+    else
+    {
+        total -= value.a
+    }
+    for index in 0..=1
+    {
+        total += index
+    }
+    return twice(total) + value.f
+}
+
+def wide_local() -> int
+{
+    auto value = wide_value(1, 2, 3, 4, 5, 6)
+    return native_score(value)
+}
+
+def echo_record(value: wide_value) -> wide_value
+{
+    return value
+}
+
+def check_alias() -> void
+{
+    auto value = wide_value(1, 2, 3, 4, 5, 6)
+    auto alias = echo_record(value)
+    alias.a = 9
+    test.assert_equal(9, value.a)
+}
+
+def vector_helper_sum(values: vector<int>) -> int
+{
+    int total = 0
+    for value in values
+    {
+        total += twice(value)
+    }
+    return total
+}
+
+def grow_vector(values: vector<int>, value: int) -> int
+{
+    values.push_back(value)
+    return value
+}
+
+def vector_mutating_sum(values: vector<int>) -> int
+{
+    int total = 0
+    for value in values
+    {
+        total += grow_vector(values, value)
+    }
+    return total
+}
+
+def guard_failure(owner: mutex<int>, divisor: int) -> int
+{
+    auto guard = sync.lock(owner)
+    sync.guard_set(guard, 9)
+    return 1 / divisor
+}
+
+def check_guards() -> void
+{
+    auto owner = sync.new_mutex(0)
+    bool failed = false
+    try
+    {
+        guard_failure(owner, 0)
+    }
+    exception errors.runtime_error as error
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+    for index in 0..=2
+    {
+        auto guard = sync.lock(owner)
+        test.assert_equal(9 + index, sync.guard_get(guard))
+        sync.guard_set(guard, 10 + index)
+        sync.guard_close(guard)
+        failed = false
+        try
+        {
+            sync.guard_close(guard)
+        }
+        exception errors.runtime_error as error
+        {
+            failed = error.code == "invalid_state"
+        }
+        test.assert_true(failed)
+    }
+}
+
+def guard_wait_fallback() -> int
+{
+    auto owner = sync.new_mutex(4)
+    auto signal = sync.new_condition()
+    auto source = cancel.source()
+    auto guard = sync.lock(owner)
+    test.assert_false(sync.wait(signal, guard, 0, cancel.token(source)))
+    int value = sync.guard_get(guard)
+    sync.guard_close(guard)
+    return value
+}
+
+def check_guard_scalars() -> void
+{
+    auto floating = sync.new_mutex(1.5)
+    auto floating_guard = sync.lock(floating)
+    sync.guard_set(floating_guard, 2.5)
+    test.assert_equal(2.5, sync.guard_get(floating_guard))
+    sync.guard_close(floating_guard)
+    auto boolean = sync.new_mutex(false)
+    auto boolean_guard = sync.lock(boolean)
+    sync.guard_set(boolean_guard, true)
+    test.assert_true(sync.guard_get(boolean_guard))
+    sync.guard_close(boolean_guard)
+    test.assert_equal(4, guard_wait_fallback())
+}
+
+def dynamic_format(pattern: str, value: int, text: str) -> str
+{
+    return fmt.format(pattern, value, x=text)
+}
+
+def positional_format(pattern: str, value: int, text: str) -> str
+{
+    return fmt.format(pattern, value, text)
+}
+
+def format_number(pattern: str, value: int) -> str
+{
+    return fmt.format(pattern, value)
+}
+
+def format_text(pattern: str, value: str) -> str
+{
+    return fmt.format(pattern, value)
+}
+
+def check_format() -> void
+{
+    for index in 0..=4
+    {
+        test.assert_equal("甲:7:甲", dynamic_format("{x}:{}:{x}", 7, "甲"))
+        test.assert_equal("乙:8:乙", dynamic_format("{x}:{}:{x}", 8, "乙"))
+        test.assert_equal("7:甲:7", positional_format("{x}:{}:{x}", 7, "甲"))
+        test.assert_equal("7", format_number("{:d}", 7))
+        test.assert_equal("+00007|甲🌍|true", fmt.format("{:+06d}|{}|{}", 7, "甲🌍", true))
+    }
+    bool failed = false
+    try
+    {
+        format_text("{:d}", "不能作为整数")
+    }
+    exception errors.runtime_error as error
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+}
+
+def check_serde() -> void
+{
+    auto value = message("甲🌍", 7, true, 1.5)
+    str text = serde.serialize_json(value)
+    auto restored = serde.deserialize_json<message>(text)
+    auto binary = serde.deserialize_cbor<message>(serde.serialize_cbor(value))
+    text = "输入已释放"
+    test.assert_equal("甲🌍", restored.z)
+    test.assert_equal(7, restored.a)
+    test.assert_equal(serde.serialize_json(value), serde.serialize_json(binary))
+    auto copied = deep_copy(value)
+    value.z = "新值"
+    test.assert_equal("甲🌍", copied.z)
+    bool failed = false
+    try
+    {
+        serde.deserialize_json<message>("{\"$schema\":2,\"z\":\"已构造\",\"a\":\"错误类型\"}")
+    }
+    exception errors.runtime_error as error
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        serde.deserialize_json<message>("{\"$schema\":2,\"a\":1,\"a\":2}")
+    }
+    exception errors.runtime_error as error
+    {
+        failed = error.code == "duplicate_key"
+    }
+    test.assert_true(failed)
+}
+
+def check_regex() -> void
+{
+    auto pattern = regex.compile("(甲)(🌍)", "", 1024, 10000, 1000)
+    str input = "x甲🌍y"
+    auto matched = regex.search(pattern, input, 0)
+    input = "替换输入"
+    test.assert_true(matched.found)
+    test.assert_equal("甲🌍", matched.text)
+    test.assert_equal(1, matched.start_byte)
+    test.assert_equal(8, matched.end_byte)
+    test.assert_equal(1, matched.start_scalar)
+    test.assert_equal(3, matched.end_scalar)
+    auto missing = regex.search(pattern, "no", 0)
+    test.assert_false(missing.found)
+    test.assert_equal("", missing.text)
+    test.assert_equal(-1, missing.start_byte)
+    auto full = regex.search(pattern, "甲🌍", 0)
+    test.assert_true(full.groups.size() > 0)
+}
+
+def main() -> int
+{
+    test.assert_equal(40, wide_local())
+    check_alias()
+    test.assert_equal(12, vector_helper_sum(vector<int>([1, 2, 3])))
+    auto growing = vector<int>([1, 2, 3])
+    test.assert_equal(6, vector_mutating_sum(growing))
+    test.assert_equal(6, growing.size())
+    check_guards()
+    check_guard_scalars()
+    check_format()
+    check_serde()
+    check_regex()
+    print("STATIC_EXECUTION_OK")
+    return 0
+}

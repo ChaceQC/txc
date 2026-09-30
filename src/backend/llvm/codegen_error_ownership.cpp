@@ -136,6 +136,11 @@ void llvm_code_generator::emit_error_cleanup(std::size_t minimum_depth)
         {
             continue;
         }
+        if (!root->cleanup.empty())
+        {
+            body_ << "  call void @" << root->cleanup << "(ptr " << root->address << ")\n";
+            continue;
+        }
         const auto value = temporary();
         // 先清槽再析构，避免析构再次失败时重复释放。同一槽在循环中可重复使用。
         body_ << "  " << value << " = load ptr, ptr " << root->address << '\n'

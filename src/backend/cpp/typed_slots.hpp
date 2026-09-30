@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/slot_layout.hpp"
+
 #include <any>
 #include <array>
 #include <cstddef>
@@ -12,13 +14,7 @@ namespace tx_generated
 {
 
 // LLVM 与运行时共享：每槽 8 字节、8 字节对齐，引用槽持有独立 any 值而非 GC 根。
-enum class slot_kind : std::uint8_t
-{
-    reference = 0,
-    integer = 1,
-    floating = 2,
-    boolean = 3
-};
+using slot_kind = tx::slot_kind;
 
 union alignas(8) typed_slot
 {
@@ -28,7 +24,7 @@ union alignas(8) typed_slot
     std::any* reference;
 };
 
-static_assert(sizeof(typed_slot) == 8 && alignof(typed_slot) == 8);
+static_assert(sizeof(typed_slot) == tx::slot_bytes && alignof(typed_slot) == tx::slot_alignment);
 
 class typed_slots
 {

@@ -315,4 +315,19 @@ regex_match_value regex_match(const regex_pattern& pattern,
     return regex_detail::execute_match(*pattern.state, text, 0, options);
 }
 
+regex_match_value regex_projected_match(const regex_pattern& pattern,
+    std::string_view text, std::int64_t start_byte, std::int64_t mode)
+{
+    if (start_byte < 0)
+    {
+        throw runtime_failure({tx::error_kind::runtime, "invalid_argument",
+                               "正则搜索起点不能为负"});
+    }
+    const auto options = mode == 2 ? PCRE2_ANCHORED | PCRE2_ENDANCHORED :
+        mode == 1 ? PCRE2_ANCHORED : 0U;
+    // 文本仍复制到拥有的结果；省略捕获容器不会留下输入视图。
+    return regex_detail::execute_match(*pattern.state, text,
+        static_cast<std::size_t>(start_byte), options, true, false);
+}
+
 } // namespace tx_generated

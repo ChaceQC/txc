@@ -1,0 +1,74 @@
+[
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "reference": "C++",
+    "tx_ms": 20.63,
+    "reference_ms": 0.3743,
+    "ratio": 55.11621693828479,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "reference": "C++",
+    "tx_ms": 0.664,
+    "reference_ms": 0.047200000000000006,
+    "ratio": 14.067796610169491,
+    "note": "固定 seed=1000，参考保留两个回调；本负载不执行失败缩减。TX 还保留受检回调及测试错误处理。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_insert",
+    "reference": "Python",
+    "tx_ms": 11.744,
+    "reference_ms": 1.923,
+    "ratio": 6.107124284971398,
+    "note": "C++ 直接调用 TX 的同一 C++ 数据库后端；Java SQLite JDBC；Python sqlite3。SQLite 版本不同，事务内逐条执行，不使用批插入。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "reference": "C++",
+    "tx_ms": 0.377,
+    "reference_ms": 0.062,
+    "ratio": 6.080645161290323,
+    "note": "参考使用 std::function / IntConsumer / Python 函数；TX 含真实测试框架和受检回调。参考没有 TX 错误上下文，不外推到失败报告。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "tls_handshake",
+    "reference": "C++",
+    "tx_ms": 114.903,
+    "reference_ms": 24.220200000000002,
+    "ratio": 4.744097901751431,
+    "note": "全部验证临时 CA 和 localhost，禁用服务端票据，Java 每次废弃 session；TX mbedTLS，C++/Python OpenSSL，Java JSSE。配置在计时外，库内部握手上下文分配计时。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_savepoint",
+    "reference": "Python",
+    "tx_ms": 2.71,
+    "reference_ms": 0.6451,
+    "ratio": 4.2008990854131145,
+    "note": "C++ 同后端；Java JDBC、Python sqlite3；在内存库中测量，不表示持久化落盘吞吐。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_pool",
+    "reference": "C++",
+    "tx_ms": 139.236,
+    "reference_ms": 38.4249,
+    "ratio": 3.6235878297666355,
+    "note": "TX 与 C++ 测真实池；其 SQLite 归还策略为关闭重开。Java/Python 参考每次连接关闭，保持生命周期，未复制完整池等待/别名检查。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "reference": "Java",
+    "tx_ms": 20.63,
+    "reference_ms": 5.8006,
+    "ratio": 3.556528634968796,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  }
+]

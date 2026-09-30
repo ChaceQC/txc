@@ -164,6 +164,14 @@ void serde_write_struct(serde_writer& writer, const std::any& value,
     depth.child(0, 1).check(true);
     writer.integer(schema.version);
     const auto* order = writer.format == serde_format::json ? schema.json_order : schema.cbor_order;
+    if (schema.write_fields && (*input)->fixed.type == schema.layout)
+    {
+        const auto child = depth.child();
+        schema.write_fields(&writer, (*input)->view.data, child.logical, child.wire,
+            writer.format == serde_format::json);
+        writer.end(true);
+        return;
+    }
     for (std::size_t index = 0; index < schema.field_size; ++index)
     {
         const auto& field = schema.field_data[order[index]];

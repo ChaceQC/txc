@@ -1,0 +1,9 @@
+struct bucket
+{
+    values: vector<int>
+}
+
+def recursive_alias(values: vector<int>, depth: int) -> vector<int>
+def other_alias(values: vector<int>, depth: int) -> vector<int>
+def store(owner: bucket, values: vector<int>) -> void
+def return_container(values: vector<int>) -> bucket
