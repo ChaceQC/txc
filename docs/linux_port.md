@@ -33,4 +33,17 @@
 
 ## 完成证据
 
-当前状态：实施中。完成后在此记录实际构建平台、最小功能验证和 GitHub Actions 结果。构建通过、运行验证和已发布是不同状态，不能互相替代。
+2026-10-01 已完成 Linux 原生实现及 WSL Ubuntu 24.04 x86_64 定向验证，使用 Clang/LLD 18。实际选入 Linux 标准库的 310 个翻译单元已编译，未选入 `unsupported_platform` / `iocp_unavailable` 占位实现。
+
+| 验证 | 结果 |
+| --- | --- |
+| 编译器、普通标准库、ThinLTO 标准库、三组 TX 桥接模块 | 原生构建通过 |
+| 实际 tar.gz 解压安装 | 清空工具 PATH 和动态库搜索环境后，通过中文空格路径、数值、Unicode、普通/ThinLTO、系统和文件验证 |
+| 进程、IPC、监控、定时器、profile、异步文件 | 定向行为验证通过 |
+| DNS、TCP/UDP、HTTP 会话、WebSocket、显式代理、WSS 服务端 | 本机回环验证通过 |
+| X.509 / PKCS#12 / PKCS#8 与 TLS | 证书用途、信任、资源回收、双向握手、ALPN 和并发随机源验证通过 |
+| HTTP/3 | aioquic 中断请求后 GET、TX 信任配置、二进制正文、未知根拒绝和监听器关闭后回复全部通过；进程正常退出 |
+
+运行验证修复了 Linux LLD 缺少 `--eh-frame-hdr` 导致可恢复异常终止进程的问题，以及 MsQuic 卸载后 OpenSSL 退出回调访问已卸载代码的问题。Linux MsQuic 使用 `RTLD_NODELETE` 保持回调代码映射，连接、注册和 API 资源仍正常释放。
+
+双平台 GitHub 工作流已在 `codex/linux-support` 分支通过：[运行 36788749124](https://github.com/ChaceQC/txc/actions/runs/36788749124)，对应实现提交 `dac5ad9`。Windows 与 Linux 的构建、实际压缩包安装以及 Linux 运行时/网络/安全门禁均成功。后续提交状态及可下载产物见 [GitHub Actions](https://github.com/ChaceQC/txc/actions/workflows/ci.yml)。源码分支产物为 Actions artifact；只有后续版本 tag 才发布 Release，本次没有创建版本 tag。

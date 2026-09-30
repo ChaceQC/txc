@@ -35,6 +35,10 @@ Linux 服务端先检查 PKCS#12 的证书、私钥数量和匹配关系，再�
 
 每条 QUIC 连接的服务端双向请求流上限为 16，单向控制/QPACK 流配置为 3；每个监听器最多同时接受 16 条连接，已完成待处理请求队列最多 64 条。HTTP/3 头限 64 KiB，单请求/响应的内存正文限 8 MiB，未交付的队列和数据不能无限积累。`Content-Length` 超限在读取正文前拒绝，正文实际长度仍逐块计数。服务端 `accept_stream/respond_stream` 复用接口，但当前 HTTP/3 适配在 8 MiB 内缓冲再写文件；超过 8 MiB 的真正网络分块传输应使用现有 HTTP/1.1 或 HTTP/2 路径。非法帧和超限请求会终止相应 QUIC 会话，错误以 `io_error` 报告，不以空结果代替。
 
+## Linux 定向验证（2026-10-01）
+
+Ubuntu 24.04 x64（WSL）使用独立 Linux 发布包运行 `scripts/check_http3_server.py`，五条路径全部通过：独立 aioquic 客户端在中止未完成请求后继续完成正常 GET、TX 客户端通过自定义根验证服务端、二进制正文往返、系统信任拒绝未知根证书，以及监听器关闭后已交付请求仍可完成回复。每个服务端进程均正常退出；MsQuic 动态库在 OpenSSL 退出清理完成前保留代码映射，修复了提供者清理回调访问已卸载代码导致的退出崩溃。验证使用临时证书与本机回环，不代表公网 UDP 可达性或跨网络迁移验证。脚本通过 `TXC_TOOL_DIR` 选择待测工具链。
+
 ## 依赖和定向验证（2026-09-28）
 
 MsQuic Schannel NuGet 2.6.1 包 SHA-256 为 `cf09771561c16dc823454c212fbf3bc1307c0a77b9d98326f1faa256685e2a3f`；nghttp3 1.18.0 源码归档 SHA-256 为 `aad782c23d3f01bd4bb52c8bac7a553b631ef8115fd1612703df6183449fef19`。两者均为 MIT 许可证，固定校验后分别随包交付 `msquic.dll` 和静态归档，以及 `MSQUIC-LICENSE`、`NGHTTP3-LICENSE`。缺少 MsQuic 运行库时明确报 `unsupported_protocol`。

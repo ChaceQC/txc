@@ -68,4 +68,3 @@ Linux 构建使用同一 LLVM 发射器，目标为 `x86_64-unknown-linux-gnu`�
 `tx/link/` 保存启动对象和链接器，`tx/lib/` 保存原生共享依赖。生成程序通过 `$ORIGIN/tx_lib` 定位同目录依赖，工具本身通过包内相对 RPATH 定位库；宿主 glibc 与动态加载器不打入包中，最低基线为 Ubuntu 24.04 / glibc 2.39。移动生成程序时必须连同 `tx_lib/` 复制。
 
 上文保留 Windows 工具链的具体布局与历史验证说明；Linux 平台范围及当前验证结果见 [Linux 适配](linux_port.md)。
-
