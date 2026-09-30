@@ -1,5 +1,7 @@
 # TCP/UDP Socket（11.2）
 
+Windows 使用 Winsock，Linux 使用 POSIX socket/poll；共享 TCP/UDP、取消和异步接口，平台细节见[Linux 网络实现](linux_network.md)。以下历史验证记录保留其原有平台边界。
+
 `socket.txh` 提供数值地址上的 TCP/UDP 接口；主机名先用 [`dns.resolve`](dns.md) 解析。IPv6 地址不带方括号。所有句柄只在当前进程有效，复制的 TX 结构体共享同一底层状态；`close` 使全部别名失效并可重复调用。句柄不满足 `Send/Sync`，异步入口在任务作用域中持有受控借用，作用域关闭前收束操作。进程退出和最后一个句柄对象释放时仍会兜底关闭。
 
 `connect_async/accept_async` 的新建连接只通过 `task<tcp_stream>` 单向交付到等待方；这是网络运行时的受控所有权移交。用户自己创建的任务回调仍不能返回或捕获非 `Send` 的 TCP 句柄。

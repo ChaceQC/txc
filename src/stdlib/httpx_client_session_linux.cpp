@@ -75,44 +75,20 @@ std::int64_t open_secure(std::string_view proxy_url, std::int64_t max_connection
     bool decompress, const bytes_vector& anchors, bool include_system,
     const byte_value& package, const secret::handle& password, bool allow_http2)
 {
-    return open_configured(proxy_url, max_connections, decompress, allow_http2,
-        httpx_client_tls::create(anchors, include_system, package, password));
+    std::shared_ptr<const httpx_client_tls::settings> tls;
+    if (!anchors.data().values.empty() || !package->empty())
+    {
+        tls = httpx_client_tls::create(anchors, include_system, package, password);
+    }
+    return open_configured(proxy_url, max_connections, decompress, allow_http2, std::move(tls));
 }
 
 void close(std::int64_t id) noexcept
 {
-    std::shared_ptr<httpx_curl::session> session;
-    std::vector<std::shared_ptr<httpx_curl::request>> requests;
-    {
-        auto& value = states();
-        std::lock_guard lock(value.mutex);
-        const auto found = value.sessions.find(id);
-        if (found == value.sessions.end())
-        {
-            return;
-        }
-        session = std::move(found->second);
-        value.sessions.erase(found);
-        for (auto item = value.requests.begin(); item != value.requests.end();)
-        {
-            if (item->second->owner == session)
-            {
-                requests.push_back(std::move(item->second));
-                item = value.requests.erase(item);
-            }
-            else
-            {
-                ++item;
-            }
-        }
-    }
-    std::lock_guard lock(session->mutex);
-    session->closed = true;
-    for (auto& request : requests)
-    {
-        request->detach();
-    }
-    requests.clear();
+    auto& value = states();
+    std::lock_guard lock(value.mutex);
+    // 活动请求继续持有会话；移除入口仅禁止新请求，保持现有句柄生命周期。
+    value.sessions.erase(id);
 }
 
 std::int64_t begin(std::int64_t id, std::string_view method, std::string_view url,
@@ -131,13 +107,13 @@ std::int64_t begin(std::int64_t id, std::string_view method, std::string_view ur
         owner = lookup(value.sessions, id);
     }
     std::lock_guard lock(owner->mutex);
-    if (owner->closed)
-    {
-        network::fail("connection_closed", "HTTP 会话已关闭");
-    }
     if (require_http2 && !owner->allow_http2)
     {
         network::fail("invalid_argument", "HTTP 会话未启用 HTTP/2");
+    }
+    if (require_http2 && !network::parse_url(url, false).secure)
+    {
+        network::fail("invalid_url", "会话 HTTP/2 请求只接受 HTTPS");
     }
     auto request = std::make_shared<httpx_curl::request>(owner);
     request->remaining_upload = body_length;

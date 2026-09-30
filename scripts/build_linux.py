@@ -56,7 +56,10 @@ def main():
     configure = ["cmake", "-S", str(root), "-B", str(build), "-G", "Ninja",
         "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_C_COMPILER=" + str(llvm / "clang"),
         "-DCMAKE_CXX_COMPILER=" + str(clang), "-DTX_TOOL_OUTPUT_DIR=" + str(tool_dir)]
-    subprocess.run(configure, check=True)
+    cache_path = build / "CMakeCache.txt"
+    cache = cache_path.read_text(encoding="utf-8") if cache_path.exists() else ""
+    if f"TX_TOOL_OUTPUT_DIR:PATH={tool_dir}" not in cache or str(clang) not in cache:
+        subprocess.run(configure, check=True)
     # 更换编译器时 CMake 可能清空缓存并丢失同次传入的输出路径。
     if f"TX_TOOL_OUTPUT_DIR:PATH={tool_dir}" not in (build / "CMakeCache.txt").read_text(encoding="utf-8"):
         subprocess.run(configure, check=True)

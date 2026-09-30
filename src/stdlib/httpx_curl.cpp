@@ -128,28 +128,20 @@ session::session(std::string_view proxy_url, std::int64_t max_connections,
         network::fail("operation_failed", "初始化 HTTP 客户端失败");
     }
     multi = curl_multi_init();
-    share = curl_share_init();
-    if (!multi || !share)
+    if (!multi)
     {
         if (multi)
         {
             curl_multi_cleanup(multi);
         }
-        if (share)
-        {
-            curl_share_cleanup(share);
-        }
         network::fail("operation_failed", "创建 HTTP 会话失败");
     }
     curl_multi_setopt(multi, CURLMOPT_MAX_HOST_CONNECTIONS, static_cast<long>(max_connections));
-    // 同一会话的所有 CURL 调用由 mutex 串行化，共享 Cookie 不需要额外锁。
-    curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE);
 }
 
 session::~session()
 {
     curl_multi_cleanup(multi);
-    curl_share_cleanup(share);
 }
 
 request::request(std::shared_ptr<session> value) : owner(std::move(value)), easy(curl_easy_init())
@@ -181,6 +173,10 @@ void configure(request& value, std::string_view method, std::string_view url,
 {
     network::validate_token(method, "HTTP 方法");
     const auto address = network::parse_url(url, false);
+    if (value.owner->tls && !address.secure)
+    {
+        network::fail("invalid_url", "自定义 TLS 配置只用于 HTTPS");
+    }
     auto* easy = value.easy;
     option(easy, CURLOPT_URL, std::string(url).c_str());
     option(easy, CURLOPT_CUSTOMREQUEST, std::string(method).c_str());
@@ -189,8 +185,7 @@ void configure(request& value, std::string_view method, std::string_view url,
     option(easy, CURLOPT_FOLLOWLOCATION, 0L);
     option(easy, CURLOPT_CONNECTTIMEOUT_MS, static_cast<long>(value.timeout_ms));
     option(easy, CURLOPT_USERAGENT, "TX/1.0");
-    option(easy, CURLOPT_SHARE, value.owner->share);
-    option(easy, CURLOPT_COOKIEFILE, "");
+    // Cookie 只由 requests 的 jar 或调用方显式头管理，禁止启用 curl 自带 jar。
     option(easy, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1L);
     option(easy, CURLOPT_PROTOCOLS_STR, "http,https");
     option(easy, CURLOPT_SSL_VERIFYPEER, 1L);
@@ -269,12 +264,9 @@ void configure(request& value, std::string_view method, std::string_view url,
 
 void check(request& value)
 {
-    if (value.owner->closed)
-    {
-        network::fail("connection_closed", "HTTP 会话已关闭");
-    }
     if (value.failure)
     {
+        value.detach();
         std::rethrow_exception(value.failure);
     }
     if (value.result != CURLE_OK)
@@ -291,7 +283,9 @@ void check(request& value)
     {
         curl_off_t encoded = 0;
         curl_easy_getinfo(value.easy, CURLINFO_SIZE_DOWNLOAD_T, &encoded);
-        if (encoded > 0 && static_cast<std::uint64_t>(value.received) >
+        if (encoded > 0 && static_cast<std::uint64_t>(encoded) <=
+            (std::numeric_limits<std::uint64_t>::max() - 1024) / 100 &&
+            static_cast<std::uint64_t>(value.received) >
             static_cast<std::uint64_t>(encoded) * 100 + 1024)
         {
             value.detach();

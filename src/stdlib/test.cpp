@@ -9,6 +9,9 @@
 #define NOMINMAX
 #endif
 #include "common/platform.hpp"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace tx_generated
 {
@@ -19,6 +22,7 @@ namespace fs = std::filesystem;
 
 fs::path executable_directory()
 {
+#ifdef _WIN32
     std::wstring buffer(MAX_PATH, L'\0');
     while (true)
     {
@@ -35,6 +39,15 @@ fs::path executable_directory()
         }
         buffer.resize(buffer.size() * 2);
     }
+#else
+    std::error_code error;
+    const auto executable = fs::read_symlink("/proc/self/exe", error);
+    if (error)
+    {
+        throw std::runtime_error("无法定位测试程序路径");
+    }
+    return executable.parent_path();
+#endif
 }
 
 struct temporary_directories

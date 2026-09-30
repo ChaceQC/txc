@@ -3,6 +3,7 @@ import "bytes.txh" as byte_values
 import "encoding.txh" as encoding
 import "error.txh" as errors
 import "system.txh" as system
+import "requests.txh" as requests
 
 def read_all(peer: httpx.client_request) -> bytes
 {
@@ -43,7 +44,7 @@ def main() -> int
         return 1
     }
     if fetch(session, root + "/set") != "set" ||
-        fetch(session, root + "/cookies") != "session=linux"
+        fetch(session, root + "/cookies") != ""
     {
         return 2
     }
@@ -106,5 +107,13 @@ def main() -> int
     {
         return 6
     }
+    auto client = requests.session()
+    dict direct = {"http": "direct"}
+    client.get(root + "/set", proxies=direct)
+    if client.get(root + "/cookies", proxies=direct).text() != "session=linux"
+    {
+        return 7
+    }
+    client.close()
     return 0
 }

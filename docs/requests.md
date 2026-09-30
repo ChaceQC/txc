@@ -4,15 +4,15 @@
 
 ## 11.8 扩展契约
 
-`session` 惰性创建客户端会话，连续请求使用同一连接池；无自定义 CA 时由 WinHTTP 提供连接池，自定义 CA 时由已验证 TLS 连接池复用同源连接。`session.close()` 关闭池，重复关闭无害，关闭后请求报 `connection_closed`。单次模块级调用使用临时会话。默认请求仍使用 HTTP/1.1；显式 `http2=true` 要求 HTTPS ALPN `h2`。池配置由代理、CA、客户端身份和协议选择确定；配置切换会关闭旧池，已返回的流式响应独立持有请求句柄。调用方须显式关闭流式响应。
+`session` 惰性创建客户端会话，连续请求使用同一连接池。Linux 使用 libcurl/OpenSSL，见[Linux 网络实现](linux_network.md)。Windows 无自定义 CA 时由 WinHTTP 提供连接池，自定义 CA 时由已验证 TLS 连接池复用同源连接。`session.close()` 关闭池，重复关闭无害，关闭后请求报 `connection_closed`。单次模块级调用使用临时会话。默认请求仍使用 HTTP/1.1；显式 `http2=true` 要求 HTTPS ALPN `h2`。池配置由代理、CA、客户端身份和协议选择确定；配置切换会关闭旧池，已返回的流式响应独立持有请求句柄。调用方须显式关闭流式响应。
 
 `stream=true` 在收到响应头后返回，`response.content` 初始为空；`response.next_chunk(max_bytes)` 每次读取 1～16384 字节，返回 `{data: bytes, eof: bool}`，空正文以 `eof=true` 表示。`response.read_all()` 在尚未逐块读取时把剩余正文读入 `content`，受 `max_response_bytes` 限制；`text()`、`json()` 和 `json_object()` 会先调用它。逐块读取后再调用整体读取或文本/JSON 方法报 `invalid_state`。`response.close()` 可重复调用，提前关闭会丢弃剩余正文。非流式调用自动读完并关闭请求句柄；默认正文上限保持 8 MiB。
 
-命名参数 `proxies` 接受字典或 `map<str, str>`，只允许 `http`、`https` 键；值为 `http://host:port`、`direct` 或空串（系统代理）。按当前目标 URL 协议选用代理，重定向后重新选择。`verify=true` 使用系统信任；`verify` 为 UTF-8 PEM CA 文件路径时使用自定义信任锚。客户端在同一 TLS 连接完成证书链、用途、有效期和主机名验证之后才发送 HTTP 请求头和正文；验证失败的连接会关闭，认证信息和正文不会到达服务端。`verify=false` 明确报 `unsupported_option`。`cert` 接受 PKCS#12 文件路径，或 `[路径, 密码]` 两元素数组；自定义 CA 与客户端证书可同时使用。仅配置客户端证书时仍走 WinHTTP 系统信任。无自定义 CA 的 WinHTTP 导入会创建当前用户的临时密钥容器，连接池释放时删除；进程异常终止可能留下该容器。密码不进入诊断。代理认证暂不提供，带凭据的代理 URL 明确拒绝。
+命名参数 `proxies` 接受字典或 `map<str, str>`，只允许 `http`、`https` 键；值为 `http://host:port`、`direct` 或空串（系统代理）。按当前目标 URL 协议选用代理，重定向后重新选择。`verify=true` 使用系统信任；`verify` 为 UTF-8 PEM CA 文件路径时使用自定义信任锚。客户端在同一 TLS 连接完成证书链、用途、有效期和主机名验证之后才发送 HTTP 请求头和正文；验证失败的连接会关闭，认证信息和正文不会到达服务端。`verify=false` 明确报 `unsupported_option`。`cert` 接受 PKCS#12 文件路径，或 `[路径, 密码]` 两元素数组；自定义 CA 与客户端证书可同时使用。Windows 仅配置客户端证书时仍走 WinHTTP 系统信任；Linux 使用 OpenSSL 系统信任与内存中的客户端身份。无自定义 CA 的 WinHTTP 导入会创建当前用户的临时密钥容器，连接池释放时删除；进程异常终止可能留下该容器。密码不进入诊断。代理认证暂不提供，带凭据的代理 URL 明确拒绝。
 
 `max_retries` 是 0～3 的显式整数，默认为 0；只在 GET/HEAD/OPTIONS/PUT/DELETE 且内存正文可重播时，对连接关闭、超时或网络操作失败重试。不会根据 HTTP 状态码重试，不会重试证书错误、参数错误、正文已开始交付或文件流上传；每次重试都重新创建请求句柄，重试次数不含首次尝试。`retry_backoff_ms` 为 0～1000，控制两次尝试之间的等待。旧 `hooks` 仍以 `unsupported_option` 拒绝，不接受后静默忽略。
 
-Cookie jar 匹配 Domain、Path、Secure、Max-Age 和常见 HTTP 日期 Expires，并处理删除语义、`__Host-`/`__Secure-` 前缀、单条 4096 字节和每会话 180 条上限。WinHTTP 自带 Cookie 状态已禁用，只有此 jar 会自动发送 Cookie。请求级显式 Cookie 只覆盖本次同名值；跨源重定向不转发显式 Cookie 或认证头，会按新目标重新匹配会话 Cookie。SameSite、HttpOnly 不按浏览器页面来源执行；当前没有公共后缀列表，Domain Cookie 仅应接收受信任站点的响应。
+Cookie jar 匹配 Domain、Path、Secure、Max-Age 和常见 HTTP 日期 Expires，并处理删除语义、`__Host-`/`__Secure-` 前缀、单条 4096 字节和每会话 180 条上限。WinHTTP 和 libcurl 自带 Cookie 状态均已禁用，只有此 jar 会自动发送 Cookie。请求级显式 Cookie 只覆盖本次同名值；跨源重定向不转发显式 Cookie 或认证头，会按新目标重新匹配会话 Cookie。SameSite、HttpOnly 不按浏览器页面来源执行；当前没有公共后缀列表，Domain Cookie 仅应接收受信任站点的响应。
 
 ## 定位与兼容范围
 

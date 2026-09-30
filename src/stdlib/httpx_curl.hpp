@@ -17,11 +17,9 @@ struct session
 {
     std::mutex mutex;
     CURLM* multi = nullptr;
-    CURLSH* share = nullptr;
     std::string proxy;
     bool decompress = false;
     bool allow_http2 = true;
-    bool closed = false;
     std::shared_ptr<const httpx_client_tls::settings> tls;
     session(std::string_view proxy_url, std::int64_t max_connections,
         bool decode, bool http2);

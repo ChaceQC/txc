@@ -1,6 +1,6 @@
 # DNS 地址解析（11.1）
 
-`dns.txh` 返回可用于 `socket` 模块的数值 IP 地址。当前实现面向 Windows x64，使用系统 DNS 配置和缓存；不绕过系统策略。`resolve` 和 `resolve_with_cancel` 均为严格接口，解析失败时不返回普通空列表。
+`dns.txh` 返回可用于 `socket` 模块的数值 IP 地址。Windows 使用系统 DNS 接口；Linux x86_64 使用 c-ares 异步解析，读取系统 DNS 和 hosts 配置。`resolve` 和 `resolve_with_cancel` 均为严格接口，解析失败时不返回普通空列表。
 
 ```tx
 struct address
@@ -19,7 +19,7 @@ def resolve_with_cancel(host: str, timeout_ms: int,
 
 `host` 为非空 UTF-8 主机名或数值 IP，不含端口、URL、路径及 NUL；`timeout_ms` 为 1～60000，限制 A 与 AAAA 两次查询的总时长。取消令牌可以来自 `cancel.source/token`，显式取消报 `cancelled_error/cancelled`，令牌截止时间报 `cancelled_error/deadline_exceeded`。查询已完成时保留成功结果；中途取消会请求系统取消并等待查询资源回收。DNS 不产生外部持久效果。
 
-`io_error/name_not_found` 表示域名不存在；`io_error/no_records` 表示域名存在但无可用 A/AAAA；`io_error/timeout` 表示调用超时；`io_error/invalid_argument`、`invalid_utf8`、`size_limit` 表示输入无效；其他系统解析失败报 `io_error/operation_failed`。错误信息为中文，不包含系统环境中的敏感配置。非 Windows 平台报 `io_error/unsupported_platform`。
+`io_error/name_not_found` 表示域名不存在；`io_error/no_records` 表示域名存在但无可用 A/AAAA；`io_error/timeout` 表示调用超时；`io_error/invalid_argument`、`invalid_utf8`、`size_limit` 表示输入无效；其他系统解析失败报 `io_error/operation_failed`。错误信息为中文，不包含系统环境中的敏感配置。Windows 和 Linux 使用相同错误码；Linux 实现与验证入口见[Linux 网络实现](linux_network.md)。
 
 ## 定向验证（2026-09-28）
 

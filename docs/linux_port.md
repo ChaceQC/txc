@@ -20,8 +20,16 @@
 - Linux 路径及环境变量按平台语义区分大小写，文件名通过 UTF-8 接口传递；不套用 Windows 盘符或命令行引号规则。
 - Linux 可执行文件无 `.exe` 后缀，编译目标为 `x86_64-unknown-linux-gnu`；Windows 继续使用 `x86_64-w64-windows-gnu`。
 - Linux 子进程直接传递参数数组，不隐式经 shell；信号、退出状态、超时和进程组行为必须明确映射。
+- 文件权限读取/设置 POSIX 位，文件系统不提供创建时间时 `created_millis` 返回 0。符号链接按 `stat` / `lstat` 区分跟随与不跟随。
+- Linux 异步文件使用有界工作线程执行 `pread` / `pwrite`，取消在块边界生效；定时器独立等待。性能分析采线程 CPU 时间和 TX 源码帧，不提供 Windows 原生 PC 采样。
 - 普通库和 ThinLTO 库必须分别验证；工具包需要记录目标平台和工具链，禁止跨平台或跨构建混装。
 - 发布包必须在离开源码和构建目录后进行编译、链接和运行验证；分支产物留在 Actions，只有版本 tag 才触发 Release。
+
+## 依赖与验证入口
+
+`python3 scripts/build_linux.py` 构建普通与 ThinLTO 静态库。`scripts/setup_linux.py` 提供 Ubuntu 24.04 安装入口，具体系统语义见 [进程](process.md)、[IPC](ipc.md)、[网络](linux_network.md)、[TLS](tls.md) 与 [HTTP/3](http3.md)。
+
+定向验证使用 `TXC_TOOL_DIR` 指定工具目录。安装包、进程与异步、网络、证书、TLS、HTTP/3 分别由 `check_linux_package.py`、`check_linux_runtime.py`、`check_linux_network.py`、`check_x509.py`、`check_tls_stream.py` 和 `check_http3_server.py` 覆盖。安全验证的 Python 依赖列在 `scripts/requirements_ci.txt`，不随工具包运行时分发。
 
 ## 完成证据
 

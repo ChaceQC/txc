@@ -1,5 +1,6 @@
 #include "stdlib/httpx.hpp"
 #include "stdlib/httpx_client_session.hpp"
+#include "stdlib/http2_client.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -21,6 +22,15 @@ response_registry& responses()
 {
     static response_registry value;
     return value;
+}
+
+std::int64_t register_response(http_response_data result)
+{
+    auto& registry = responses();
+    std::lock_guard lock(registry.mutex);
+    const auto id = registry.next_id++;
+    registry.values.emplace(id, std::move(result));
+    return id;
 }
 
 struct client_request
@@ -47,6 +57,12 @@ std::int64_t httpx_client_send(std::string_view method, std::string_view url,
     {
         network::fail("size_limit", "HTTP 请求正文超过 8 MiB");
     }
+    if (http2 && !network::parse_url(url, false).secure)
+    {
+        return register_response(http2::client_send(method, url, headers, body,
+            {}, static_cast<std::int64_t>(body.size()), {},
+            network::max_body_bytes, timeout_ms, binary));
+    }
     client_request current;
     current.request = httpx_session::begin(current.session, method, url, headers,
         body.size(), network::max_body_bytes, timeout_ms, http2);
@@ -66,11 +82,7 @@ std::int64_t httpx_client_send(std::string_view method, std::string_view url,
         network::validate_utf8(result.body);
     }
     result.body_length = static_cast<std::int64_t>(result.body.size());
-    auto& registry = responses();
-    std::lock_guard lock(registry.mutex);
-    const auto id = registry.next_id++;
-    registry.values.emplace(id, std::move(result));
-    return id;
+    return register_response(std::move(result));
 }
 
 http_response_data httpx_client_stream(std::string_view method,
@@ -88,6 +100,11 @@ http_response_data httpx_client_stream(std::string_view method,
     if (source_length > 0)
     {
         source->file.require_open();
+    }
+    if (http2 && !network::parse_url(url, false).secure)
+    {
+        return http2::client_send(method, url, headers, {}, source,
+            source_length, destination, max_response_bytes, timeout_ms, true);
     }
     client_request current;
     current.request = httpx_session::begin(current.session, method, url, headers,

@@ -146,6 +146,7 @@ std::vector<address> resolve(std::string_view host, std::int64_t timeout_ms,
     ares_addrinfo_hints hints{};
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = ARES_AI_NOSORT;
     // getaddrinfo 同时查询 A/AAAA，并遵循 c-ares 的系统 DNS 与 hosts 配置。
     ares_getaddrinfo(source.channel, name.c_str(), nullptr, &hints, collect, &result);
     const auto deadline = clock_type::now() + std::chrono::milliseconds(timeout_ms);
@@ -181,13 +182,16 @@ std::vector<address> resolve(std::string_view host, std::int64_t timeout_ms,
         }
         ares_process_fd(source.channel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
     }
-    check_token(token);
     if (result.failure)
     {
         std::rethrow_exception(result.failure);
     }
     if (!result.addresses.empty())
     {
+        std::stable_partition(result.addresses.begin(), result.addresses.end(), [](const address& item)
+        {
+            return item.family == "ipv4";
+        });
         return result.addresses;
     }
     if (result.status == ARES_ENOTFOUND)

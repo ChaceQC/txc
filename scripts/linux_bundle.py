@@ -75,7 +75,9 @@ def bundle_tools(tool_dir, clang, linker):
             if not match or system.match(match[1]):
                 continue
             dependency = Path(match[2])
-            shutil.copy2(dependency.resolve(), libraries / match[1])
+            destination = libraries / match[1]
+            if dependency.resolve() != destination.resolve():
+                shutil.copy2(dependency.resolve(), destination)
             pending.append(dependency)
     for path in libraries.iterdir():
         run("patchelf", "--set-rpath", "$ORIGIN", path)

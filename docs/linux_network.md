@@ -6,13 +6,15 @@ Linux x86_64 与 Windows 共用 `.txh` 网络接口、错误码和服务器协�
 | --- | --- | --- |
 | TCP / UDP / 异步 socket | POSIX socket、非阻塞 I/O、poll | 超时、取消、半关闭、EOF、UDP 来源地址和截断标志 |
 | DNS | c-ares 异步 getaddrinfo | A/AAAA、TTL、hosts 与系统 DNS 配置、最多 128 个去重地址、超时与取消 |
-| HTTP/1.1 / HTTP/2 客户端 | libcurl multi + OpenSSL | 连接复用、每主机连接上限、Cookie、流式上传下载、禁止自动重定向、响应大小和解压比例限制 |
+| HTTP/1.1 / HTTP/2 客户端 | libcurl multi + OpenSSL；明文 h2c 复用 nghttp2 | 连接复用、每主机连接上限、独立 Set-Cookie、流式上传下载、禁止自动重定向、响应大小和解压比例限制 |
 | HTTP/1.1 / HTTP/2 服务端 | 共享协议代码、nghttp2、mbedTLS | 复用现有解析、头字段限制和 TLS 逻辑 |
 | WebSocket 客户端 / 服务端 | 共享 RFC 6455 帧实现；WSS 使用 mbedTLS | 客户端独立随机掩码、分片、UTF-8 校验、ping/pong、关闭码与流式二进制消息 |
 
 `httpx.open_session` / `open_secure_session` 的代理参数保持三种语义：`"direct"` 强制直连，空字符串采用平台默认代理设置，`http://主机:端口` 使用显式 HTTP 代理。Linux 的默认代理来自 libcurl 支持的环境变量，例如 `http_proxy`、`https_proxy` 和 `no_proxy`；不读取 Windows IE/PAC 配置。WebSocket Linux 客户端直接连接目标，WSS 通过系统信任库验证证书；WebSocket 接口本身没有代理参数。
 
 HTTP 上传由 libcurl 回调按调用方提供的块推进，下载在调用方读取前暂停。实现不会为了模拟流式接口把完整正文读入内存或写入临时文件。`finish_request` 交付响应头，正文限额错误在读取正文时交付。解压后的总量遵循 `max_response_bytes`，并检查实际接收编码字节的 100 倍加 1024 字节容差限制。超时用于一次网络等待，调用方在分块调用之间的停顿不计入等待时间。
+
+底层 libcurl Cookie jar 保持禁用，`httpx` 仅发送调用方显式的 Cookie 头；`requests` 继续独立管理 Domain、Path、过期和删除规则。关闭会话会移除新请求入口，已开始的请求继续持有底层会话直到自身结束。
 
 自定义 CA 在 OpenSSL 握手过程中加入信任库，`include_system=false` 使用独立信任库。客户端 PKCS#12 身份沿用 TLS 身份接口，证书链与私钥只在内存中交给 TLS 后端，不能记录或输出密钥。Linux 的 libcurl 必须使用 OpenSSL 后端；HTTP/2 支持由其构建特性提供。
 
