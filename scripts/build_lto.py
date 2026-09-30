@@ -64,7 +64,8 @@ def compile_entry(entry, clang, mingw, destination, cache):
     object_path = destination / (source.relative_to(destination.parents[1]).as_posix()
                                  .replace("/", "_") + ".bc")
     command = [clang, "-target", "x86_64-w64-windows-gnu", "--sysroot=" + str(mingw),
-               *flags, "-flto=thin", "-c", source, "-o", object_path]
+               # 随包 GCC 的 thread_local 使用 emutls，Clang 必须采用相同 ABI。
+               *flags, "-femulated-tls", "-flto=thin", "-c", source, "-o", object_path]
     if cache:
         command.insert(0, cache)
     run(command, cwd=entry["directory"])
