@@ -108,7 +108,7 @@ $ar_exe = Join-Path $gcc_bin 'ar.exe'
 $link_dir = Join-Path $tool_dir 'link'
 New-Item -ItemType Directory -Path $link_dir -Force | Out-Null
 foreach ($name in @(
-    'crt2.o', 'crtbegin.o', 'crtend.o', 'default-manifest.o',
+    'crt2.o', 'crtbegin.o', 'crtend.o',
     'libstdc++.dll.a', 'libmingw32.a', 'libgcc_s.a', 'libgcc.a',
     'libmoldname.a', 'libmingwex.a', 'libmsvcrt.a', 'libkernel32.a',
     'libpthread.a', 'libadvapi32.a', 'libbcrypt.a', 'libcrypt32.a', 'libncrypt.a',
@@ -122,6 +122,22 @@ foreach ($name in @(
         throw "缺少链接依赖：$name；build/ 已保留。"
     }
     Copy-Item -LiteralPath $source -Destination (Join-Path $link_dir $name) -Force
+}
+$manifest_object = (& $gcc_exe '-print-file-name=default-manifest.o' | Select-Object -First 1).Trim()
+if (Test-Path -LiteralPath $manifest_object -PathType Leaf)
+{
+    Copy-Item -LiteralPath $manifest_object -Destination (Join-Path $link_dir 'default-manifest.o') -Force
+}
+else
+{
+    # 上游 MinGW 没有 CLion 自带的默认 manifest；保留相同的权限和系统兼容声明。
+    & (Join-Path $gcc_bin 'windres.exe') -I (Join-Path $project_root 'cmake') `
+        -i (Join-Path $project_root 'cmake/application_manifest.rc') -O coff `
+        -o (Join-Path $link_dir 'default-manifest.o')
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw '无法生成 Windows manifest；build/ 已保留。'
+    }
 }
 Copy-Item -LiteralPath (Join-Path $gcc_bin 'ld.exe') `
     -Destination (Join-Path $link_dir 'ld.exe') -Force
