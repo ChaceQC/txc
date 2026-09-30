@@ -210,7 +210,7 @@ if ($LASTEXITCODE -ne 0 -or
 }
 Copy-Item -LiteralPath $merged_library -Destination $library_path -Force
 $llvm_bin = Split-Path $clang_exe
-foreach ($name in @('ld.lld.exe', 'llvm-ar.exe'))
+foreach ($name in @('ld.lld.exe', 'llvm-ar.exe', 'llvm-nm.exe'))
 {
     if (-not (Test-Path -LiteralPath (Join-Path $llvm_bin $name) -PathType Leaf))
     {

@@ -69,6 +69,14 @@ def compile_entry(entry, clang, mingw, destination, cache):
     if cache:
         command.insert(0, cache)
     run(command, cwd=entry["directory"])
+    undefined = run([Path(clang).with_name("llvm-nm.exe"), "--undefined-only", object_path])
+    if re.search(r"\b_ZSt(?:15__once_callable|11__once_call)\b", undefined):
+        # ld.lld 在 emutls 降低前解析 bitcode 符号，无法匹配 MinGW 的导入名称。
+        # 标准库头文件也可能引入 call_once；保留同次 Release 构建的原生对象。
+        native_object = Path(entry["directory"]) / original[original.index("-o") + 1]
+        object_path = object_path.with_suffix(".o")
+        shutil.copy2(native_object, object_path)
+        print(f"ThinLTO ABI 原生对象：{source.name}", flush=True)
     return object_path
 
 
@@ -85,7 +93,7 @@ def main():
     llvm = options.llvm_bin.resolve()
     clang = llvm / "clang.exe"
     identity = llvm_identity(run([clang, "--version"]))
-    for name in ("ld.lld.exe", "llvm-ar.exe"):
+    for name in ("ld.lld.exe", "llvm-ar.exe", "llvm-nm.exe"):
         other = llvm_identity(run([llvm / name, "--version"]))
         if other[0] != identity[0] or (other[1] and identity[1] and other[1] != identity[1]):
             raise RuntimeError(f"clang 与 {name} 的版本或构建提交不一致")
@@ -124,7 +132,9 @@ def main():
     temporary = options.output.with_suffix(".tmp")
     shutil.copy2(staged, temporary)
     os.replace(temporary, options.output)
-    print(f"ThinLTO 标准库完成：{len(objects)} 个 bitcode 模块，LLVM {identity[0]}")
+    native_count = sum(path.suffix == ".o" for path in objects)
+    print(f"ThinLTO 标准库完成：{len(objects) - native_count} 个 bitcode 模块，"
+          f"{native_count} 个 ABI 原生对象，LLVM {identity[0]}")
 
 
 if __name__ == "__main__":
