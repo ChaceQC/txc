@@ -1,6 +1,7 @@
 #include "backend/cpp/value_abi.hpp"
 #include "backend/cpp/deep_copy.hpp"
 #include "backend/cpp/identity_table.hpp"
+#include "backend/cpp/deep_copy_identity.hpp"
 
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/value_format.hpp"
@@ -66,12 +67,13 @@ public:
             const auto found = copies_.find(vector.identity());
             if (found != copies_.end())
             {
-                vector_result = found->second;
+                vector_result = copy_identity_value(found->second);
             }
             else
             {
-                vector_result = vector.copy();
-                copies_.emplace(vector.identity(), vector_result);
+                const auto copied = vector.copy();
+                vector_result = copied;
+                copies_.emplace(vector.identity(), copied);
             }
         }))
         {
@@ -96,13 +98,18 @@ public:
         }
     }
 
+    [[nodiscard]] std::any copy_known(const std::any& value, tx::record_copy_kind kind)
+    {
+        return copy_field(value, kind);
+    }
+
 private:
     [[nodiscard]] std::any copy_container(const container_handle& source)
     {
         const auto found = copies_.find(source.get());
         if (found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
         if (const auto deque = std::dynamic_pointer_cast<object_deque_storage>(source))
         {
@@ -118,7 +125,7 @@ private:
             });
             return result;
         }
-        std::any result = source->copy();
+        auto result = source->copy();
         copies_.emplace(source.get(), result);
         return result;
     }
@@ -142,7 +149,7 @@ private:
         if (const auto found = copies_.find(source.identity());
             found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
         const auto& state = source.data();
         closure_handle result(closure_state{
@@ -171,7 +178,7 @@ private:
         if (const auto found = copies_.find(source.identity());
             found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
         const auto& state = source.data();
         tx_iterator result(iterator_state{{}, state.element_type,
@@ -185,7 +192,7 @@ private:
     {
         if (const auto found = copies_.find(source.identity()); found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
         object_vector result(source.data().type_name);
         copies_.emplace(source.identity(), result);
@@ -203,7 +210,7 @@ private:
     {
         if (const auto found = copies_.find(source.identity()); found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
         tx_array result;
         copies_.emplace(source.identity(), result);
@@ -219,10 +226,11 @@ private:
     {
         if (const auto found = copies_.find(source.identity()); found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
         tx_dict result;
         copies_.emplace(source.identity(), result);
+        result.reserve(source.size());
         source.for_each([&](const std::any& key, const std::any& item)
         {
             result.emplace_back(copy(key), copy(item));
@@ -234,7 +242,7 @@ private:
     {
         if (const auto found = copies_.find(source.identity()); found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
         dynamic_struct result(source->fixed.type ? dynamic_struct_data(source->fixed.type) :
             dynamic_struct_data{source->type_name, source->display_name,
@@ -265,7 +273,7 @@ private:
         if (const auto found = copies_.find(source.operator->());
             found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
         auto object = std::make_shared<dynamic_class>();
         object->type_name = source->type_name;
@@ -304,9 +312,9 @@ private:
         const auto& source = std::any_cast<const tx_vector<element>&>(value);
         if (const auto found = copies_.find(source.identity()); found != copies_.end())
         {
-            return found->second;
+            return copy_identity_value(found->second);
         }
-        std::any result = source.copy();
+        auto result = source.copy();
         copies_.emplace(source.identity(), result);
         return result;
     }
@@ -366,7 +374,7 @@ private:
         }
     }
 
-    identity_table<std::any> copies_;
+    identity_table<copied_object> copies_;
     std::vector<std::shared_ptr<dynamic_class>> classes_;
 };
 
@@ -380,13 +388,12 @@ std::any deep_copy_value(const std::any& value)
     return result;
 }
 
-} // namespace tx_generated
-
-extern "C" int txrt_value_deep_copy(const void* value, void** result) noexcept
+std::any deep_copy_known(const std::any& value, tx::record_copy_kind kind)
 {
-    return tx_generated::detail::invoke_checked([&]
-    {
-        *result = tx_generated::detail::make_handle<std::any>(tx_generated::deep_copy_value(
-            *static_cast<const std::any*>(value)));
-    });
+    copy_context context;
+    auto result = context.copy_known(value, kind);
+    context.finish();
+    return result;
 }
+
+} // namespace tx_generated

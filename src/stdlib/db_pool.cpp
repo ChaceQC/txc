@@ -144,6 +144,10 @@ db_connection db_acquire(const db_pool& pool, std::int64_t timeout_ms)
         pool->idle.pop_back();
         connection->owner = std::this_thread::get_id();
         connection->pool = pool;
+        if (connection->native)
+        {
+            db_install_sqlite_operation(connection, connection->sqlite_busy_timeout_ms);
+        }
         return connection;
     }
     const auto password = pool->password ? copy_secret(pool->password) : secret::handle{};

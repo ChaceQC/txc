@@ -1,0 +1,56 @@
+{
+  "warmups": 1,
+  "rounds": 5,
+  "checksums": {
+    "format_alternating": "520000",
+    "format_parameter": "520000"
+  },
+  "samples_ms": {
+    "tx": {
+      "format_alternating": [
+        17.156,
+        18.143,
+        20.614,
+        16.883,
+        16.632
+      ],
+      "format_parameter": [
+        17.784,
+        19.582,
+        17.288,
+        16.545,
+        16.686
+      ]
+    },
+    "cpp": {
+      "format_alternating": [
+        3.316,
+        3.295,
+        3.225,
+        3.194,
+        3.237
+      ],
+      "format_parameter": [
+        3.264,
+        3.213,
+        3.625,
+        4.286,
+        3.182
+      ]
+    }
+  },
+  "medians_ms": {
+    "tx": {
+      "format_alternating": 17.156,
+      "format_parameter": 17.288
+    },
+    "cpp": {
+      "format_alternating": 3.237,
+      "format_parameter": 3.264
+    }
+  },
+  "program_sha256": {
+    "tx": "e8590946badf5414eda3154f79415afd5bc0d1839b86b70044cec3c8033190b7",
+    "cpp": "fd4046b9446ccb7c7a058a756b7c7994e2494ab8336d8d4321fdabcda798a8b9"
+  }
+}

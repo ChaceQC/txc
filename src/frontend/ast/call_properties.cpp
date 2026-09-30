@@ -57,6 +57,18 @@ call_effects container_call_effects(
     {
         return {false, false, false, false, false, false};
     }
+    if ((type.is_iterator() || type.is_option() || type.is_result()) &&
+        !type.parameters.empty() && scalar_type(type.parameters.front()))
+    {
+        const bool construct = operation == "new";
+        const bool mutation = type.is_iterator();
+        const bool allocates = construct || operation == "next" || operation == "value_or" ||
+            operation == "error" || (operation == "value" &&
+                (type.is_result() || type.parameters.front() == value_type::str_type));
+        // 通用 sum 表示仍登记节点；只有发射器证明使用内联 option 时才能省略。
+        const bool registers = (construct && !type.is_iterator()) || operation == "next";
+        return {allocates, registers, false, false, mutation, construct};
+    }
     if (!scalar_container_type(type))
     {
         return {};
@@ -66,7 +78,8 @@ call_effects container_call_effects(
         operation == "read" || operation == "get" || operation == "front" ||
         operation == "back";
     const bool snapshot = operation == "keys" || operation == "values" ||
-        operation == "to_vector" || operation == "entries" || operation == "to_array";
+        operation == "to_vector" || operation == "entries" || operation == "to_array" ||
+        operation == "snapshot_iter" || operation == "live_iter";
     const bool saves = operation == "set" || operation == "push" ||
         operation == "push_front" || operation == "push_back" ||
         operation == "insert" || operation == "resize" || operation == "assign" ||

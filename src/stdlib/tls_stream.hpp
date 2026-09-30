@@ -2,6 +2,7 @@
 
 #include "stdlib/socket.hpp"
 #include "stdlib/tls.hpp"
+#include "stdlib/tls_material.hpp"
 #include "stdlib/vector.hpp"
 
 #include <mbedtls/ctr_drbg.h>
@@ -94,10 +95,8 @@ private:
     trust_options trust_;
     std::vector<std::string> protocols_;
     std::vector<const char*> protocol_pointers_;
-    mbedtls_entropy_context entropy_{};
-    mbedtls_ctr_drbg_context rng_{};
-    mbedtls_x509_crt cert_{};
-    mbedtls_pk_context key_{};
+    std::shared_ptr<const identity_state> identity_owner_;
+    std::shared_ptr<identity_material> identity_material_;
     mbedtls_ssl_config config_{};
     mbedtls_ssl_context ssl_{};
 };

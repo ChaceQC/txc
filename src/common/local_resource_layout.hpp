@@ -7,5 +7,7 @@ namespace tx
 
 inline constexpr std::size_t local_guard_bytes = 80;
 inline constexpr std::size_t local_guard_alignment = 16;
+inline constexpr std::size_t local_class_bytes = 192;
+inline constexpr std::size_t local_class_alignment = 16;
 
 } // namespace tx

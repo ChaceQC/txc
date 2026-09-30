@@ -57,6 +57,14 @@ def verify_client(config: server_config, leaf: bytes,
 
 `client` 要求非空的目标主机名，不接受 URL 或端口；该名称必须在后续握手中同时用于 SNI 和证书验证。默认没有客户端身份，`client_identity.id=0` 表示缺省；`with_client_identity` 添加已有身份。`server` 必须提供身份。`require_client_identity=true` 表示握手时必须收到客户端证书；若为 `false`，可以不发送，但只要提供证书就必须验证。身份句柄在构造和验证时均检查是否仍有效。配置结构的字段即使被调用方改写，验证入口也会重新检查，不把构造函数视为安全边界。
 
+TLS 随机输入复用密码学模块已有、带线程互斥的 PSA CSPRNG，每次握手仍生成新随机数。
+Mbed TLS 的 Curve25519 ECDH 启用随依赖提供的 Project Everest 已验证实现；
+曲线、密码套件和验证策略不变，其余曲线继续使用原实现。
+同一身份最多保留四份闲置的已解析证书/私钥状态，每份独占租给一个活动连接，避免
+私钥盲化等内部状态在并发握手间共享。关闭身份立即清空闲置状态及秘密字节；活动流
+持有的独立状态在流关闭时销毁，不再归还缓存。每条连接仍完整验证当前证书链、主机名、
+用途、有效期和 ALPN，不缓存握手成功结论，也不复用随机输出。
+
 `verify_server` 使用 `x509.verify(..., hostname, "server_auth", ...)`；`verify_client` 使用 `x509.verify(..., "", "client_auth", ...)`。仅当链、用途、主机名和当前有效期均合格时返回 `status="valid"`；其他结果抛出 `security_error`，`code` 为 `hostname_mismatch`、`wrong_purpose`、`unknown_issuer`、`expired`、`not_yet_valid` 或 `invalid_chain`。没有证书时报告 `certificate_required`。格式和参数错误沿用 X.509 的稳定错误码。返回的 `revocation="not_checked"` 明确表示没有 CRL/OCSP 查询；需要撤销检查的调用方必须拒绝该状态。验证入口不收发数据，不应被当作已完成的 TLS 握手。
 
 当前 X.509 链后端只在 Windows x64 实现。其他平台对需要证书解析或验证的操作报告 `security_error/unsupported_platform`。TLS 1.2/1.3、ALPN、握手失败清理和未经验证的数据不交付见[11.3 安全流契约](#113-安全流契约)。

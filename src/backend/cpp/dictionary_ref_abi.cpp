@@ -180,3 +180,27 @@ extern "C" void* txrt_dict_ref_get_str_literal(
 {
     return read_str(value, std::string_view(key, length));
 }
+
+#define TX_DICT_SCALAR_KEY(SUFFIX, TYPE) \
+extern "C" std::int64_t txrt_dict_ref_get_i64_key_##SUFFIX(const void* value, TYPE key) noexcept \
+{ \
+    return read_i64(value, key); \
+} \
+extern "C" double txrt_dict_ref_get_f64_key_##SUFFIX(const void* value, TYPE key) noexcept \
+{ \
+    return read_f64(value, key); \
+} \
+extern "C" void* txrt_dict_ref_get_str_key_##SUFFIX(const void* value, TYPE key) noexcept \
+{ \
+    return read_str(value, key); \
+} \
+extern "C" bool txrt_dict_ref_contains_##SUFFIX(const void* value, TYPE key) noexcept \
+{ \
+    return static_cast<const tx_dict*>(value)->find_value(key) != nullptr; \
+}
+
+TX_DICT_SCALAR_KEY(i64, std::int64_t)
+TX_DICT_SCALAR_KEY(f64, double)
+TX_DICT_SCALAR_KEY(bool, bool)
+
+#undef TX_DICT_SCALAR_KEY

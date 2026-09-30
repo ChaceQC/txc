@@ -1,0 +1,3512 @@
+[
+  {
+    "suite": "语言特性",
+    "name": "scalar_control",
+    "reference": "C++",
+    "tx_ms": 0.257,
+    "reference_ms": 0.2358,
+    "ratio": 1.0899067005937235,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "scalar_control",
+    "reference": "Python",
+    "tx_ms": 0.257,
+    "reference_ms": 24.3608,
+    "ratio": 0.010549735640865653,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "scalar_control",
+    "reference": "Java",
+    "tx_ms": 0.257,
+    "reference_ms": 3.0001,
+    "ratio": 0.08566381120629311,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "updates",
+    "reference": "C++",
+    "tx_ms": 1.418,
+    "reference_ms": 1.3043,
+    "ratio": 1.0871731963505329,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "updates",
+    "reference": "Python",
+    "tx_ms": 1.418,
+    "reference_ms": 64.536,
+    "ratio": 0.021972232552373867,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "updates",
+    "reference": "Java",
+    "tx_ms": 1.418,
+    "reference_ms": 5.6079,
+    "ratio": 0.2528575759196847,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "while_logic",
+    "reference": "C++",
+    "tx_ms": 0.177,
+    "reference_ms": 0.1759,
+    "ratio": 1.0062535531552017,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "while_logic",
+    "reference": "Python",
+    "tx_ms": 0.177,
+    "reference_ms": 31.584,
+    "ratio": 0.0056041033434650455,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "while_logic",
+    "reference": "Java",
+    "tx_ms": 0.177,
+    "reference_ms": 2.3983,
+    "ratio": 0.0738022766126006,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "float_arithmetic",
+    "reference": "C++",
+    "tx_ms": 0.355,
+    "reference_ms": 0.352,
+    "ratio": 1.0085227272727273,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "float_arithmetic",
+    "reference": "Python",
+    "tx_ms": 0.355,
+    "reference_ms": 26.2304,
+    "ratio": 0.013533914846895204,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "float_arithmetic",
+    "reference": "Java",
+    "tx_ms": 0.355,
+    "reference_ms": 1.7385,
+    "ratio": 0.20419902214552776,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "overloads",
+    "reference": "C++",
+    "tx_ms": 0.191,
+    "reference_ms": 0.1886,
+    "ratio": 1.0127253446447508,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "overloads",
+    "reference": "Python",
+    "tx_ms": 0.191,
+    "reference_ms": 19.8758,
+    "ratio": 0.009609676088509645,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "overloads",
+    "reference": "Java",
+    "tx_ms": 0.191,
+    "reference_ms": 3.9146,
+    "ratio": 0.04879170285597507,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "named_arguments",
+    "reference": "C++",
+    "tx_ms": 0.401,
+    "reference_ms": 0.3772,
+    "ratio": 1.0630965005302229,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "named_arguments",
+    "reference": "Python",
+    "tx_ms": 0.401,
+    "reference_ms": 27.1872,
+    "ratio": 0.014749588041431262,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "named_arguments",
+    "reference": "Java",
+    "tx_ms": 0.401,
+    "reference_ms": 3.2293,
+    "ratio": 0.12417551791409905,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "recursion",
+    "reference": "C++",
+    "tx_ms": 0.035,
+    "reference_ms": 0.0677,
+    "ratio": 0.5169867060561301,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "recursion",
+    "reference": "Python",
+    "tx_ms": 0.035,
+    "reference_ms": 12.4302,
+    "ratio": 0.002815722997216457,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "recursion",
+    "reference": "Java",
+    "tx_ms": 0.035,
+    "reference_ms": 1.1002,
+    "ratio": 0.03181239774586439,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "reference": "C++",
+    "tx_ms": 11.646,
+    "reference_ms": 1.639,
+    "ratio": 7.105552165954851,
+    "note": "参考不执行 TX 动态命名实参绑定"
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "reference": "Python",
+    "tx_ms": 11.646,
+    "reference_ms": 3.5899,
+    "ratio": 3.2441015070057664,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "reference": "Java",
+    "tx_ms": 11.646,
+    "reference_ms": 0.9281,
+    "ratio": 12.548216786984161,
+    "note": "参考不执行 TX 动态命名实参绑定"
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_destructure",
+    "reference": "C++",
+    "tx_ms": 0.01,
+    "reference_ms": 1.1092,
+    "ratio": 0.009015506671474938,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_destructure",
+    "reference": "Python",
+    "tx_ms": 0.01,
+    "reference_ms": 4.1874,
+    "ratio": 0.0023881167311458184,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_destructure",
+    "reference": "Java",
+    "tx_ms": 0.01,
+    "reference_ms": 5.0092,
+    "ratio": 0.0019963267587638747,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_padded",
+    "reference": "C++",
+    "tx_ms": 0.024,
+    "reference_ms": 2.1961,
+    "ratio": 0.01092846409544192,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_padded",
+    "reference": "Python",
+    "tx_ms": 0.024,
+    "reference_ms": 7.6024,
+    "ratio": 0.003156897821740503,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "array_padded",
+    "reference": "Java",
+    "tx_ms": 0.024,
+    "reference_ms": 9.3484,
+    "ratio": 0.0025672842411535663,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "dict_iteration",
+    "reference": "C++",
+    "tx_ms": 7.179,
+    "reference_ms": 4.4586,
+    "ratio": 1.6101466828152338,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "dict_iteration",
+    "reference": "Python",
+    "tx_ms": 7.179,
+    "reference_ms": 21.2235,
+    "ratio": 0.33825712064456853,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "dict_iteration",
+    "reference": "Java",
+    "tx_ms": 7.179,
+    "reference_ms": 53.8749,
+    "ratio": 0.13325314756964748,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "struct_operators",
+    "reference": "C++",
+    "tx_ms": 0.025,
+    "reference_ms": 13.4028,
+    "ratio": 0.001865281881397917,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "struct_operators",
+    "reference": "Python",
+    "tx_ms": 0.025,
+    "reference_ms": 88.3569,
+    "ratio": 0.0002829433807659617,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "struct_operators",
+    "reference": "Java",
+    "tx_ms": 0.025,
+    "reference_ms": 13.9398,
+    "ratio": 0.0017934260175899224,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_methods",
+    "reference": "C++",
+    "tx_ms": 0.652,
+    "reference_ms": 0.1631,
+    "ratio": 3.9975475168608217,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_methods",
+    "reference": "Python",
+    "tx_ms": 0.652,
+    "reference_ms": 47.2642,
+    "ratio": 0.013794796061289517,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_methods",
+    "reference": "Java",
+    "tx_ms": 0.652,
+    "reference_ms": 5.2398,
+    "ratio": 0.12443223023779534,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "virtual_interface",
+    "reference": "C++",
+    "tx_ms": 0.969,
+    "reference_ms": 0.4428,
+    "ratio": 2.1883468834688347,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "virtual_interface",
+    "reference": "Python",
+    "tx_ms": 0.969,
+    "reference_ms": 41.7288,
+    "ratio": 0.023221372289641686,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "virtual_interface",
+    "reference": "Java",
+    "tx_ms": 0.969,
+    "reference_ms": 4.284,
+    "ratio": 0.2261904761904762,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_operator",
+    "reference": "C++",
+    "tx_ms": 0.612,
+    "reference_ms": 0.245,
+    "ratio": 2.4979591836734696,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_operator",
+    "reference": "Python",
+    "tx_ms": 0.612,
+    "reference_ms": 17.4096,
+    "ratio": 0.035153019023986765,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_operator",
+    "reference": "Java",
+    "tx_ms": 0.612,
+    "reference_ms": 2.4686,
+    "ratio": 0.2479137972940128,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "runtime_cast",
+    "reference": "C++",
+    "tx_ms": 0.242,
+    "reference_ms": 1.9049,
+    "ratio": 0.12704078954275813,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "runtime_cast",
+    "reference": "Python",
+    "tx_ms": 0.242,
+    "reference_ms": 13.1807,
+    "ratio": 0.018360178139249055,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "runtime_cast",
+    "reference": "Java",
+    "tx_ms": 0.242,
+    "reference_ms": 2.6082,
+    "ratio": 0.09278429568284641,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "module_call",
+    "reference": "C++",
+    "tx_ms": 0.025,
+    "reference_ms": 3.4758,
+    "ratio": 0.007192588756545256,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "module_call",
+    "reference": "Python",
+    "tx_ms": 0.025,
+    "reference_ms": 27.9009,
+    "ratio": 0.0008960284435269114,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "module_call",
+    "reference": "Java",
+    "tx_ms": 0.025,
+    "reference_ms": 6.4571,
+    "ratio": 0.0038717071131003085,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "string_conversion",
+    "reference": "C++",
+    "tx_ms": 11.303,
+    "reference_ms": 3.1808,
+    "ratio": 3.5535085513078473,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "string_conversion",
+    "reference": "Python",
+    "tx_ms": 11.303,
+    "reference_ms": 10.5705,
+    "ratio": 1.0692966274064615,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "string_conversion",
+    "reference": "Java",
+    "tx_ms": 11.303,
+    "reference_ms": 15.0251,
+    "ratio": 0.7522745272909998,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deep_copy",
+    "reference": "C++",
+    "tx_ms": 20.827,
+    "reference_ms": 2.3434,
+    "ratio": 8.887513868737733,
+    "note": "参考只复制已知形状；通用图复制另见新增契约"
+  },
+  {
+    "suite": "语言特性",
+    "name": "deep_copy",
+    "reference": "Python",
+    "tx_ms": 20.827,
+    "reference_ms": 66.9805,
+    "ratio": 0.31094124409343016,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deep_copy",
+    "reference": "Java",
+    "tx_ms": 20.827,
+    "reference_ms": 6.8836,
+    "ratio": 3.0255970712999014,
+    "note": "参考只复制已知形状；通用图复制另见新增契约"
+  },
+  {
+    "suite": "语言特性",
+    "name": "copy_cycle",
+    "reference": "C++",
+    "tx_ms": 8.561,
+    "reference_ms": 1.9198,
+    "ratio": 4.4593186790290655,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "copy_cycle",
+    "reference": "Python",
+    "tx_ms": 8.561,
+    "reference_ms": 11.8321,
+    "ratio": 0.7235401999645034,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "copy_cycle",
+    "reference": "Java",
+    "tx_ms": 8.561,
+    "reference_ms": 4.3351,
+    "ratio": 1.9748102696592928,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "reference": "C++",
+    "tx_ms": 11.408,
+    "reference_ms": 0.7332,
+    "ratio": 15.559192580469176,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "reference": "Python",
+    "tx_ms": 11.408,
+    "reference_ms": 4.1454,
+    "ratio": 2.751966034640806,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "reference": "Java",
+    "tx_ms": 11.408,
+    "reference_ms": 1.8578,
+    "ratio": 6.14059640434923,
+    "note": "Java 显式 close 回调，不是 JVM 确定性析构"
+  },
+  {
+    "suite": "语言特性",
+    "name": "cycle_gc",
+    "reference": "C++",
+    "tx_ms": 1.449,
+    "reference_ms": 0.0739,
+    "ratio": 19.607577807848447,
+    "note": "参考仅处理单节点自环；通用图 GC 另见新增契约"
+  },
+  {
+    "suite": "语言特性",
+    "name": "cycle_gc",
+    "reference": "Python",
+    "tx_ms": 1.449,
+    "reference_ms": 1.434,
+    "ratio": 1.0104602510460252,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "cycle_gc",
+    "reference": "Java",
+    "tx_ms": 1.449,
+    "reference_ms": 2.5048,
+    "ratio": 0.5784893005429576,
+    "note": "参考只识别单节点自环；通用图 GC 见契约组"
+  },
+  {
+    "suite": "library/组合",
+    "name": "math",
+    "reference": "C++",
+    "tx_ms": 4.0,
+    "reference_ms": 2.1186,
+    "ratio": 1.8880392712168415,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "library/组合",
+    "name": "random",
+    "reference": "C++",
+    "tx_ms": 1.0,
+    "reference_ms": 0.3388,
+    "ratio": 2.95159386068477,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "library/组合",
+    "name": "string",
+    "reference": "C++",
+    "tx_ms": 10.0,
+    "reference_ms": 2.5869,
+    "ratio": 3.8656306776450577,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "library/组合",
+    "name": "array",
+    "reference": "C++",
+    "tx_ms": 18.0,
+    "reference_ms": 12.5148,
+    "ratio": 1.4382970562853583,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "library/组合",
+    "name": "path",
+    "reference": "C++",
+    "tx_ms": 22.0,
+    "reference_ms": 9.0402,
+    "ratio": 2.4335744784407423,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "library/组合",
+    "name": "fs",
+    "reference": "C++",
+    "tx_ms": 44.0,
+    "reference_ms": 37.9554,
+    "ratio": 1.159255336526555,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "library/组合",
+    "name": "file",
+    "reference": "C++",
+    "tx_ms": 1298.0,
+    "reference_ms": 1256.2534,
+    "ratio": 1.0332310344393894,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "library/组合",
+    "name": "io",
+    "reference": "C++",
+    "tx_ms": 8.0,
+    "reference_ms": 7.8381,
+    "ratio": 1.0206555160051543,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "library/组合",
+    "name": "time",
+    "reference": "C++",
+    "tx_ms": 3.0,
+    "reference_ms": 3.3472,
+    "ratio": 0.8962715105162524,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "audit/compute",
+    "name": "algorithm_sort",
+    "reference": "C++",
+    "tx_ms": 5.892,
+    "reference_ms": 3.175,
+    "ratio": 1.8557480314960633,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "algorithm_sort",
+    "reference": "Python",
+    "tx_ms": 5.892,
+    "reference_ms": 6.017,
+    "ratio": 0.9792255276715971,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "algorithm_sort",
+    "reference": "Java",
+    "tx_ms": 5.892,
+    "reference_ms": 5.961,
+    "ratio": 0.98842476094615,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "bytes_hex",
+    "reference": "C++",
+    "tx_ms": 8.792,
+    "reference_ms": 1.832,
+    "ratio": 4.7991266375545845,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "bytes_hex",
+    "reference": "Python",
+    "tx_ms": 8.792,
+    "reference_ms": 3.172,
+    "ratio": 2.771752837326608,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "bytes_hex",
+    "reference": "Java",
+    "tx_ms": 8.792,
+    "reference_ms": 3.865,
+    "ratio": 2.2747736093143596,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "cancel_status",
+    "reference": "C++",
+    "tx_ms": 0.553,
+    "reference_ms": 0.383,
+    "ratio": 1.443864229765013,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "cancel_status",
+    "reference": "Python",
+    "tx_ms": 0.553,
+    "reference_ms": 19.034,
+    "ratio": 0.02905327309025954,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "cancel_status",
+    "reference": "Java",
+    "tx_ms": 0.553,
+    "reference_ms": 0.616,
+    "ratio": 0.8977272727272728,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "crypto_sha256",
+    "reference": "C++",
+    "tx_ms": 8.804,
+    "reference_ms": 4.577,
+    "ratio": 1.9235306969630763,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "crypto_sha256",
+    "reference": "Python",
+    "tx_ms": 8.804,
+    "reference_ms": 7.01,
+    "ratio": 1.255920114122682,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "crypto_sha256",
+    "reference": "Java",
+    "tx_ms": 8.804,
+    "reference_ms": 11.307,
+    "ratio": 0.7786327054037322,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "csv_parse",
+    "reference": "Python",
+    "tx_ms": 24.769,
+    "reference_ms": 15.27,
+    "ratio": 1.6220694171578258,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "decimal_add",
+    "reference": "Python",
+    "tx_ms": 11.036,
+    "reference_ms": 4.136,
+    "ratio": 2.6682785299806575,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "decimal_add",
+    "reference": "Java",
+    "tx_ms": 11.036,
+    "reference_ms": 2.544,
+    "ratio": 4.338050314465408,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "dictionary_contains",
+    "reference": "C++",
+    "tx_ms": 0.287,
+    "reference_ms": 0.188,
+    "ratio": 1.526595744680851,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "dictionary_contains",
+    "reference": "Python",
+    "tx_ms": 0.287,
+    "reference_ms": 7.515,
+    "ratio": 0.03819028609447771,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "dictionary_contains",
+    "reference": "Java",
+    "tx_ms": 0.287,
+    "reference_ms": 1.181,
+    "ratio": 0.24301439458086366,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "encoding_utf8",
+    "reference": "Python",
+    "tx_ms": 0.407,
+    "reference_ms": 1.827,
+    "ratio": 0.2227695675971538,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "encoding_utf8",
+    "reference": "Java",
+    "tx_ms": 0.407,
+    "reference_ms": 4.493,
+    "ratio": 0.09058535499666145,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "env_get",
+    "reference": "C++",
+    "tx_ms": 10.014,
+    "reference_ms": 52.092,
+    "ratio": 0.19223681179451738,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "env_get",
+    "reference": "Python",
+    "tx_ms": 10.014,
+    "reference_ms": 5.435,
+    "ratio": 1.8425022999080036,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "env_get",
+    "reference": "Java",
+    "tx_ms": 10.014,
+    "reference_ms": 1.836,
+    "ratio": 5.454248366013071,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "format_text",
+    "reference": "C++",
+    "tx_ms": 0.115,
+    "reference_ms": 0.79,
+    "ratio": 0.14556962025316456,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "format_text",
+    "reference": "Python",
+    "tx_ms": 0.115,
+    "reference_ms": 1.961,
+    "ratio": 0.05864354920958695,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "format_text",
+    "reference": "Java",
+    "tx_ms": 0.115,
+    "reference_ms": 8.455,
+    "ratio": 0.013601419278533413,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "json_parse",
+    "reference": "Python",
+    "tx_ms": 22.615,
+    "reference_ms": 14.088,
+    "ratio": 1.605266893810335,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "json_parse",
+    "reference": "Java",
+    "tx_ms": 22.615,
+    "reference_ms": 24.372,
+    "ratio": 0.9279090759888395,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "math_sqrt",
+    "reference": "C++",
+    "tx_ms": 4.109,
+    "reference_ms": 2.108,
+    "ratio": 1.9492409867172675,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "math_sqrt",
+    "reference": "Python",
+    "tx_ms": 4.109,
+    "reference_ms": 62.194,
+    "ratio": 0.06606746631507862,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "math_sqrt",
+    "reference": "Java",
+    "tx_ms": 4.109,
+    "reference_ms": 2.595,
+    "ratio": 1.5834296724470134,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "parse_int",
+    "reference": "C++",
+    "tx_ms": 11.754,
+    "reference_ms": 4.782,
+    "ratio": 2.4579673776662485,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "parse_int",
+    "reference": "Python",
+    "tx_ms": 11.754,
+    "reference_ms": 10.038,
+    "ratio": 1.17095038852361,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "parse_int",
+    "reference": "Java",
+    "tx_ms": 11.754,
+    "reference_ms": 1.759,
+    "ratio": 6.6822057987492895,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "random_int",
+    "reference": "C++",
+    "tx_ms": 0.998,
+    "reference_ms": 0.327,
+    "ratio": 3.0519877675840976,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "random_int",
+    "reference": "Python",
+    "tx_ms": 0.998,
+    "reference_ms": 69.969,
+    "ratio": 0.014263459532078493,
+    "note": "随机序列不同，仅作原始负载观察"
+  },
+  {
+    "suite": "audit/compute",
+    "name": "random_int",
+    "reference": "Java",
+    "tx_ms": 0.998,
+    "reference_ms": 2.316,
+    "ratio": 0.4309153713298791,
+    "note": "随机序列不同，仅作原始负载观察"
+  },
+  {
+    "suite": "audit/compute",
+    "name": "regex_search",
+    "reference": "C++",
+    "tx_ms": 12.787,
+    "reference_ms": 11.312,
+    "ratio": 1.130392503536068,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "regex_search",
+    "reference": "Python",
+    "tx_ms": 12.787,
+    "reference_ms": 11.909,
+    "ratio": 1.073725753631707,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "regex_search",
+    "reference": "Java",
+    "tx_ms": 12.787,
+    "reference_ms": 7.16,
+    "ratio": 1.7858938547486034,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "serde_json",
+    "reference": "Python",
+    "tx_ms": 12.42,
+    "reference_ms": 34.365,
+    "ratio": 0.3614142295940637,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "serde_json",
+    "reference": "Java",
+    "tx_ms": 12.42,
+    "reference_ms": 34.55,
+    "ratio": 0.35947901591895803,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "statistics_mean",
+    "reference": "Python",
+    "tx_ms": 4.54,
+    "reference_ms": 287.69,
+    "ratio": 0.015780875247662415,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "unicode_nfc",
+    "reference": "Python",
+    "tx_ms": 5.5,
+    "reference_ms": 2.13,
+    "ratio": 2.5821596244131455,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "unicode_nfc",
+    "reference": "Java",
+    "tx_ms": 5.5,
+    "reference_ms": 10.798,
+    "ratio": 0.5093535839970365,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "xml_parse",
+    "reference": "Python",
+    "tx_ms": 34.18,
+    "reference_ms": 75.14,
+    "ratio": 0.4548842161298909,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "xml_parse",
+    "reference": "Java",
+    "tx_ms": 34.18,
+    "reference_ms": 129.064,
+    "ratio": 0.2648298518564433,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_push",
+    "reference": "C++",
+    "tx_ms": 1.942,
+    "reference_ms": 0.5,
+    "ratio": 3.884,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_push",
+    "reference": "Python",
+    "tx_ms": 1.942,
+    "reference_ms": 3.906,
+    "ratio": 0.4971838197644649,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_push",
+    "reference": "Java",
+    "tx_ms": 1.942,
+    "reference_ms": 2.03,
+    "ratio": 0.9566502463054188,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_index",
+    "reference": "C++",
+    "tx_ms": 0.175,
+    "reference_ms": 0.209,
+    "ratio": 0.8373205741626794,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_index",
+    "reference": "Python",
+    "tx_ms": 0.175,
+    "reference_ms": 23.701,
+    "ratio": 0.007383654698114003,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_index",
+    "reference": "Java",
+    "tx_ms": 0.175,
+    "reference_ms": 2.127,
+    "ratio": 0.08227550540667607,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "map_lookup",
+    "reference": "C++",
+    "tx_ms": 0.327,
+    "reference_ms": 0.184,
+    "ratio": 1.7771739130434783,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "map_lookup",
+    "reference": "Python",
+    "tx_ms": 0.327,
+    "reference_ms": 5.263,
+    "ratio": 0.06213186395591868,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "map_lookup",
+    "reference": "Java",
+    "tx_ms": 0.327,
+    "reference_ms": 1.623,
+    "ratio": 0.20147874306839186,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "set_contains",
+    "reference": "C++",
+    "tx_ms": 0.258,
+    "reference_ms": 0.17,
+    "ratio": 1.5176470588235293,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "set_contains",
+    "reference": "Python",
+    "tx_ms": 0.258,
+    "reference_ms": 8.015,
+    "ratio": 0.03218964441671865,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "set_contains",
+    "reference": "Java",
+    "tx_ms": 0.258,
+    "reference_ms": 1.247,
+    "ratio": 0.20689655172413793,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "heap_push_pop",
+    "reference": "C++",
+    "tx_ms": 7.475,
+    "reference_ms": 3.001,
+    "ratio": 2.4908363878707096,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "heap_push_pop",
+    "reference": "Python",
+    "tx_ms": 7.475,
+    "reference_ms": 15.472,
+    "ratio": 0.4831308169596691,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "heap_push_pop",
+    "reference": "Java",
+    "tx_ms": 7.475,
+    "reference_ms": 8.96,
+    "ratio": 0.8342633928571427,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "queue_push_pop",
+    "reference": "C++",
+    "tx_ms": 1.165,
+    "reference_ms": 0.324,
+    "ratio": 3.595679012345679,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "queue_push_pop",
+    "reference": "Python",
+    "tx_ms": 1.165,
+    "reference_ms": 7.938,
+    "ratio": 0.14676240866717058,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "queue_push_pop",
+    "reference": "Java",
+    "tx_ms": 1.165,
+    "reference_ms": 3.437,
+    "ratio": 0.3389583939482107,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "iterator_snapshot",
+    "reference": "C++",
+    "tx_ms": 0.164,
+    "reference_ms": 0.047,
+    "ratio": 3.4893617021276597,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "iterator_snapshot",
+    "reference": "Python",
+    "tx_ms": 0.164,
+    "reference_ms": 3.854,
+    "ratio": 0.0425531914893617,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "iterator_snapshot",
+    "reference": "Java",
+    "tx_ms": 0.164,
+    "reference_ms": 0.824,
+    "ratio": 0.19902912621359226,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "option_value",
+    "reference": "C++",
+    "tx_ms": 0.025,
+    "reference_ms": 0.013,
+    "ratio": 1.9230769230769234,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "option_value",
+    "reference": "Python",
+    "tx_ms": 0.025,
+    "reference_ms": 18.095,
+    "ratio": 0.0013815971262779775,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "option_value",
+    "reference": "Java",
+    "tx_ms": 0.025,
+    "reference_ms": 0.999,
+    "ratio": 0.025025025025025027,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "function_value",
+    "reference": "C++",
+    "tx_ms": 0.282,
+    "reference_ms": 0.163,
+    "ratio": 1.7300613496932513,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "function_value",
+    "reference": "Python",
+    "tx_ms": 0.282,
+    "reference_ms": 6.395,
+    "ratio": 0.04409695074276779,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "function_value",
+    "reference": "Java",
+    "tx_ms": 0.282,
+    "reference_ms": 0.376,
+    "ratio": 0.7499999999999999,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "closure_bind",
+    "reference": "C++",
+    "tx_ms": 0.171,
+    "reference_ms": 0.163,
+    "ratio": 1.049079754601227,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "closure_bind",
+    "reference": "Python",
+    "tx_ms": 0.171,
+    "reference_ms": 8.21,
+    "ratio": 0.020828258221680877,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "closure_bind",
+    "reference": "Java",
+    "tx_ms": 0.171,
+    "reference_ms": 0.452,
+    "ratio": 0.3783185840707965,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "file_stream_rw",
+    "reference": "C++",
+    "tx_ms": 850.519,
+    "reference_ms": 846.952,
+    "ratio": 1.0042115727927912,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "file_stream_rw",
+    "reference": "Python",
+    "tx_ms": 850.519,
+    "reference_ms": 914.453,
+    "ratio": 0.9300849797638588,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "file_stream_rw",
+    "reference": "Java",
+    "tx_ms": 850.519,
+    "reference_ms": 943.169,
+    "ratio": 0.9017673396814357,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "process_spawn",
+    "reference": "C++",
+    "tx_ms": 913.913,
+    "reference_ms": 2103.749,
+    "ratio": 0.43442112153113327,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "process_spawn",
+    "reference": "Python",
+    "tx_ms": 913.913,
+    "reference_ms": 896.187,
+    "ratio": 1.0197793540856985,
+    "note": ""
+  },
+  {
+    "suite": "audit/system",
+    "name": "process_spawn",
+    "reference": "Java",
+    "tx_ms": 913.913,
+    "reference_ms": 7464.389,
+    "ratio": 0.12243641107128796,
+    "note": ""
+  },
+  {
+    "suite": "network/http",
+    "name": "requests_get",
+    "reference": "Python",
+    "tx_ms": 977.079,
+    "reference_ms": 1130.713,
+    "ratio": 0.8641264405733373,
+    "note": ""
+  },
+  {
+    "suite": "network/websocket",
+    "name": "websocket_echo",
+    "reference": "C++",
+    "tx_ms": 1003.761,
+    "reference_ms": 931.344,
+    "ratio": 1.0777553728804823,
+    "note": ""
+  },
+  {
+    "suite": "network/websocket",
+    "name": "websocket_echo",
+    "reference": "Python",
+    "tx_ms": 1003.761,
+    "reference_ms": 696.395,
+    "ratio": 1.4413673274506567,
+    "note": ""
+  },
+  {
+    "suite": "network/websocket",
+    "name": "websocket_echo",
+    "reference": "Java",
+    "tx_ms": 1003.761,
+    "reference_ms": 428.918,
+    "ratio": 2.3402165448873675,
+    "note": ""
+  },
+  {
+    "suite": "网络观察",
+    "name": "httpx_get / http_get",
+    "reference": "Java",
+    "tx_ms": 962.718,
+    "reference_ms": 235.224,
+    "ratio": 4.092771145801449,
+    "note": "客户端实现与生命周期不同，仅作 HTTP 端到端观察"
+  },
+  {
+    "suite": "网络观察",
+    "name": "requests_get / http_get",
+    "reference": "Java",
+    "tx_ms": 977.079,
+    "reference_ms": 235.224,
+    "ratio": 4.15382358942965,
+    "note": "客户端实现与生命周期不同，仅作 HTTP 端到端观察"
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_1k",
+    "reference": "C++",
+    "tx_ms": 0.261,
+    "reference_ms": 0.117,
+    "ratio": 2.230769230769231,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_1k",
+    "reference": "Python",
+    "tx_ms": 0.261,
+    "reference_ms": 23.458,
+    "ratio": 0.011126268224060024,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_1k",
+    "reference": "Java",
+    "tx_ms": 0.261,
+    "reference_ms": 2.111,
+    "ratio": 0.12363808621506395,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_100k",
+    "reference": "C++",
+    "tx_ms": 3.584,
+    "reference_ms": 1.187,
+    "ratio": 3.0193765796124685,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_100k",
+    "reference": "Python",
+    "tx_ms": 3.584,
+    "reference_ms": 235.644,
+    "ratio": 0.015209383646517628,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_scan_100k",
+    "reference": "Java",
+    "tx_ms": 3.584,
+    "reference_ms": 7.696,
+    "ratio": 0.4656964656964657,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_sequential",
+    "reference": "C++",
+    "tx_ms": 0.297,
+    "reference_ms": 0.317,
+    "ratio": 0.9369085173501577,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_sequential",
+    "reference": "Python",
+    "tx_ms": 0.297,
+    "reference_ms": 69.585,
+    "ratio": 0.004268161241646907,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_sequential",
+    "reference": "Java",
+    "tx_ms": 0.297,
+    "reference_ms": 2.764,
+    "ratio": 0.10745296671490594,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_strided",
+    "reference": "C++",
+    "tx_ms": 0.295,
+    "reference_ms": 0.303,
+    "ratio": 0.9735973597359736,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_strided",
+    "reference": "Python",
+    "tx_ms": 0.295,
+    "reference_ms": 70.261,
+    "ratio": 0.004198630819373479,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "vector_index_strided",
+    "reference": "Java",
+    "tx_ms": 0.295,
+    "reference_ms": 3.098,
+    "ratio": 0.09522272433828276,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_128",
+    "reference": "C++",
+    "tx_ms": 1.581,
+    "reference_ms": 0.856,
+    "ratio": 1.8469626168224298,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_128",
+    "reference": "Python",
+    "tx_ms": 1.581,
+    "reference_ms": 33.363,
+    "ratio": 0.04738782483589605,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_128",
+    "reference": "Java",
+    "tx_ms": 1.581,
+    "reference_ms": 10.948,
+    "ratio": 0.14440993788819875,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_8192",
+    "reference": "C++",
+    "tx_ms": 2.262,
+    "reference_ms": 0.843,
+    "ratio": 2.683274021352313,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_8192",
+    "reference": "Python",
+    "tx_ms": 2.262,
+    "reference_ms": 40.735,
+    "ratio": 0.05552964281330551,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_8192",
+    "reference": "Java",
+    "tx_ms": 2.262,
+    "reference_ms": 11.115,
+    "ratio": 0.20350877192982456,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_10_percent",
+    "reference": "C++",
+    "tx_ms": 1.967,
+    "reference_ms": 1.533,
+    "ratio": 1.2831050228310503,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_10_percent",
+    "reference": "Python",
+    "tx_ms": 1.967,
+    "reference_ms": 46.398,
+    "ratio": 0.04239406870985818,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "map_hit_10_percent",
+    "reference": "Java",
+    "tx_ms": 1.967,
+    "reference_ms": 9.488,
+    "ratio": 0.20731450252951097,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_int_hit",
+    "reference": "C++",
+    "tx_ms": 0.879,
+    "reference_ms": 0.76,
+    "ratio": 1.1565789473684212,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_int_hit",
+    "reference": "Python",
+    "tx_ms": 0.879,
+    "reference_ms": 14.664,
+    "ratio": 0.059942716857610476,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_int_hit",
+    "reference": "Java",
+    "tx_ms": 0.879,
+    "reference_ms": 4.209,
+    "ratio": 0.20883820384889523,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_text_hit",
+    "reference": "C++",
+    "tx_ms": 2.324,
+    "reference_ms": 4.372,
+    "ratio": 0.5315645013723697,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_text_hit",
+    "reference": "Python",
+    "tx_ms": 2.324,
+    "reference_ms": 14.456,
+    "ratio": 0.16076369673491975,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_text_hit",
+    "reference": "Java",
+    "tx_ms": 2.324,
+    "reference_ms": 3.425,
+    "ratio": 0.6785401459854015,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_mostly_miss",
+    "reference": "C++",
+    "tx_ms": 0.544,
+    "reference_ms": 0.747,
+    "ratio": 0.7282463186077645,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_mostly_miss",
+    "reference": "Python",
+    "tx_ms": 0.544,
+    "reference_ms": 15.293,
+    "ratio": 0.035571830249133594,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "dictionary_mostly_miss",
+    "reference": "Java",
+    "tx_ms": 0.544,
+    "reference_ms": 5.117,
+    "ratio": 0.10631229235880399,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_literal",
+    "reference": "C++",
+    "tx_ms": 0.591,
+    "reference_ms": 0.768,
+    "ratio": 0.76953125,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_literal",
+    "reference": "Python",
+    "tx_ms": 0.591,
+    "reference_ms": 5.123,
+    "ratio": 0.11536209252391176,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_literal",
+    "reference": "Java",
+    "tx_ms": 0.591,
+    "reference_ms": 15.081,
+    "ratio": 0.039188382733240504,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "format_dynamic",
+    "reference": "C++",
+    "tx_ms": 0.564,
+    "reference_ms": 1.059,
+    "ratio": 0.5325779036827195,
+    "note": "局部不可变模板，不能代表真正动态格式化"
+  },
+  {
+    "suite": "综合",
+    "name": "format_dynamic",
+    "reference": "Python",
+    "tx_ms": 0.564,
+    "reference_ms": 10.031,
+    "ratio": 0.05622570032898015,
+    "note": "局部不可变模板，不能代表真正动态格式化"
+  },
+  {
+    "suite": "综合",
+    "name": "format_dynamic",
+    "reference": "Java",
+    "tx_ms": 0.564,
+    "reference_ms": 29.213,
+    "ratio": 0.019306473145517405,
+    "note": "局部不可变模板，不能代表真正动态格式化"
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_literal",
+    "reference": "C++",
+    "tx_ms": 1.086,
+    "reference_ms": 2.833,
+    "ratio": 0.38333921637839746,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_literal",
+    "reference": "Python",
+    "tx_ms": 1.086,
+    "reference_ms": 4.915,
+    "ratio": 0.2209562563580875,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_literal",
+    "reference": "Java",
+    "tx_ms": 1.086,
+    "reference_ms": 5.747,
+    "ratio": 0.1889681572994606,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_dynamic",
+    "reference": "C++",
+    "tx_ms": 1.02,
+    "reference_ms": 2.684,
+    "ratio": 0.38002980625931443,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_dynamic",
+    "reference": "Python",
+    "tx_ms": 1.02,
+    "reference_ms": 4.899,
+    "ratio": 0.2082057562767912,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "encoding_dynamic",
+    "reference": "Java",
+    "tx_ms": 1.02,
+    "reference_ms": 4.708,
+    "ratio": 0.21665250637213254,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_short_text",
+    "reference": "C++",
+    "tx_ms": 6.436,
+    "reference_ms": 0.94,
+    "ratio": 6.846808510638298,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_short_text",
+    "reference": "Python",
+    "tx_ms": 6.436,
+    "reference_ms": 16.27,
+    "ratio": 0.3955746773202213,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_short_text",
+    "reference": "Java",
+    "tx_ms": 6.436,
+    "reference_ms": 14.253,
+    "ratio": 0.4515540587946397,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_long_text",
+    "reference": "C++",
+    "tx_ms": 8.192,
+    "reference_ms": 4.387,
+    "ratio": 1.8673353088671076,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_long_text",
+    "reference": "Python",
+    "tx_ms": 8.192,
+    "reference_ms": 18.435,
+    "ratio": 0.4443721182533225,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_long_text",
+    "reference": "Java",
+    "tx_ms": 8.192,
+    "reference_ms": 17.988,
+    "ratio": 0.4554147209250612,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_valid",
+    "reference": "C++",
+    "tx_ms": 0.758,
+    "reference_ms": 1.709,
+    "ratio": 0.44353423054417784,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_valid",
+    "reference": "Python",
+    "tx_ms": 0.758,
+    "reference_ms": 13.085,
+    "ratio": 0.057928926251432936,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_valid",
+    "reference": "Java",
+    "tx_ms": 0.758,
+    "reference_ms": 9.843,
+    "ratio": 0.07700904195875241,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_invalid",
+    "reference": "C++",
+    "tx_ms": 0.755,
+    "reference_ms": 6.493,
+    "ratio": 0.11627906976744186,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_invalid",
+    "reference": "Python",
+    "tx_ms": 0.755,
+    "reference_ms": 75.031,
+    "ratio": 0.01006250749690128,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "parse_invalid",
+    "reference": "Java",
+    "tx_ms": 0.755,
+    "reference_ms": 149.392,
+    "ratio": 0.005053818142872443,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_scan_1k",
+    "reference": "GCC C++",
+    "tx_ms": 0.255,
+    "reference_ms": 0.115,
+    "ratio": 2.217391304347826,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_scan_100k",
+    "reference": "GCC C++",
+    "tx_ms": 3.524,
+    "reference_ms": 1.162,
+    "ratio": 3.032702237521515,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_index_sequential",
+    "reference": "GCC C++",
+    "tx_ms": 0.292,
+    "reference_ms": 0.307,
+    "ratio": 0.9511400651465798,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "vector_index_strided",
+    "reference": "GCC C++",
+    "tx_ms": 0.292,
+    "reference_ms": 0.292,
+    "ratio": 1.0,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_128",
+    "reference": "GCC C++",
+    "tx_ms": 1.516,
+    "reference_ms": 0.816,
+    "ratio": 1.857843137254902,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_8192",
+    "reference": "GCC C++",
+    "tx_ms": 2.02,
+    "reference_ms": 0.822,
+    "ratio": 2.4574209245742096,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "map_hit_10_percent",
+    "reference": "GCC C++",
+    "tx_ms": 1.932,
+    "reference_ms": 1.484,
+    "ratio": 1.3018867924528301,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_int_hit",
+    "reference": "GCC C++",
+    "tx_ms": 0.874,
+    "reference_ms": 0.745,
+    "ratio": 1.1731543624161074,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_text_hit",
+    "reference": "GCC C++",
+    "tx_ms": 2.249,
+    "reference_ms": 4.247,
+    "ratio": 0.5295502707793737,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "dictionary_mostly_miss",
+    "reference": "GCC C++",
+    "tx_ms": 0.538,
+    "reference_ms": 0.725,
+    "ratio": 0.7420689655172414,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "format_literal",
+    "reference": "GCC C++",
+    "tx_ms": 0.567,
+    "reference_ms": 0.75,
+    "ratio": 0.7559999999999999,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "format_dynamic",
+    "reference": "GCC C++",
+    "tx_ms": 0.568,
+    "reference_ms": 1.012,
+    "ratio": 0.5612648221343873,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "encoding_literal",
+    "reference": "GCC C++",
+    "tx_ms": 1.076,
+    "reference_ms": 2.792,
+    "ratio": 0.38538681948424075,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "encoding_dynamic",
+    "reference": "GCC C++",
+    "tx_ms": 1.01,
+    "reference_ms": 2.69,
+    "ratio": 0.3754646840148699,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "serde_short_text",
+    "reference": "GCC C++",
+    "tx_ms": 6.05,
+    "reference_ms": 0.946,
+    "ratio": 6.395348837209302,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "serde_long_text",
+    "reference": "GCC C++",
+    "tx_ms": 7.882,
+    "reference_ms": 4.296,
+    "ratio": 1.8347299813780258,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "parse_valid",
+    "reference": "GCC C++",
+    "tx_ms": 0.744,
+    "reference_ms": 1.701,
+    "ratio": 0.43738977072310403,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse",
+    "name": "parse_invalid",
+    "reference": "GCC C++",
+    "tx_ms": 0.741,
+    "reference_ms": 6.047,
+    "ratio": 0.12254010253018026,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_1k",
+    "reference": "clang C++",
+    "tx_ms": 0.256,
+    "reference_ms": 0.064,
+    "ratio": 4.0,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_100k",
+    "reference": "clang C++",
+    "tx_ms": 3.554,
+    "reference_ms": 0.809,
+    "ratio": 4.3930778739184175,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_index_sequential",
+    "reference": "clang C++",
+    "tx_ms": 0.293,
+    "reference_ms": 0.23,
+    "ratio": 1.2739130434782608,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_index_strided",
+    "reference": "clang C++",
+    "tx_ms": 0.293,
+    "reference_ms": 0.231,
+    "ratio": 1.2683982683982682,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_128",
+    "reference": "clang C++",
+    "tx_ms": 1.583,
+    "reference_ms": 0.348,
+    "ratio": 4.5488505747126435,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_8192",
+    "reference": "clang C++",
+    "tx_ms": 2.006,
+    "reference_ms": 0.556,
+    "ratio": 3.6079136690647475,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_10_percent",
+    "reference": "clang C++",
+    "tx_ms": 1.959,
+    "reference_ms": 1.233,
+    "ratio": 1.5888077858880778,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_int_hit",
+    "reference": "clang C++",
+    "tx_ms": 0.918,
+    "reference_ms": 0.83,
+    "ratio": 1.1060240963855423,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_text_hit",
+    "reference": "clang C++",
+    "tx_ms": 2.317,
+    "reference_ms": 4.16,
+    "ratio": 0.5569711538461539,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "dictionary_mostly_miss",
+    "reference": "clang C++",
+    "tx_ms": 0.539,
+    "reference_ms": 0.854,
+    "ratio": 0.6311475409836066,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "format_literal",
+    "reference": "clang C++",
+    "tx_ms": 0.571,
+    "reference_ms": 0.624,
+    "ratio": 0.9150641025641025,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "format_dynamic",
+    "reference": "clang C++",
+    "tx_ms": 0.561,
+    "reference_ms": 0.888,
+    "ratio": 0.6317567567567568,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "encoding_literal",
+    "reference": "clang C++",
+    "tx_ms": 1.075,
+    "reference_ms": 2.957,
+    "ratio": 0.3635441325667907,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "encoding_dynamic",
+    "reference": "clang C++",
+    "tx_ms": 1.007,
+    "reference_ms": 2.873,
+    "ratio": 0.35050469892098846,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "serde_short_text",
+    "reference": "clang C++",
+    "tx_ms": 6.246,
+    "reference_ms": 0.973,
+    "ratio": 6.419321685508736,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "serde_long_text",
+    "reference": "clang C++",
+    "tx_ms": 7.939,
+    "reference_ms": 4.548,
+    "ratio": 1.7456024626209323,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "parse_valid",
+    "reference": "clang C++",
+    "tx_ms": 0.73,
+    "reference_ms": 0.952,
+    "ratio": 0.7668067226890757,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "parse_invalid",
+    "reference": "clang C++",
+    "tx_ms": 0.739,
+    "reference_ms": 5.339,
+    "ratio": 0.1384154336017981,
+    "note": ""
+  },
+  {
+    "suite": "校准/heap",
+    "name": "heap_push_pop",
+    "reference": "GCC C++",
+    "tx_ms": 7.519,
+    "reference_ms": 3.463,
+    "ratio": 2.171238810280104,
+    "note": ""
+  },
+  {
+    "suite": "校准/heap_clang",
+    "name": "heap_push_pop",
+    "reference": "clang C++",
+    "tx_ms": 7.447,
+    "reference_ms": 4.383,
+    "ratio": 1.6990645676477298,
+    "note": ""
+  },
+  {
+    "suite": "校准/statistics",
+    "name": "statistics_mean",
+    "reference": "GCC C++",
+    "tx_ms": 4.439,
+    "reference_ms": 2.785,
+    "ratio": 1.5938958707360862,
+    "note": ""
+  },
+  {
+    "suite": "校准/statistics_clang",
+    "name": "statistics_mean",
+    "reference": "clang C++",
+    "tx_ms": 4.398,
+    "reference_ms": 4.098,
+    "ratio": 1.0732064421669107,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "reference": "C++",
+    "tx_ms": 12.817,
+    "reference_ms": 1.826,
+    "ratio": 7.019167579408543,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "reference": "JavaScript",
+    "tx_ms": 12.817,
+    "reference_ms": 5.597,
+    "ratio": 2.289976773271395,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "reference": "Java",
+    "tx_ms": 12.817,
+    "reference_ms": 9.036,
+    "ratio": 1.4184373616644534,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "reference": "Python",
+    "tx_ms": 12.817,
+    "reference_ms": 4.399,
+    "ratio": 2.9136167310752445,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "deep-pwd-2000",
+    "reference": "C++",
+    "tx_ms": 11.564,
+    "reference_ms": 14.984,
+    "ratio": 0.7717565403096637,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "deep-pwd-2000",
+    "reference": "JavaScript",
+    "tx_ms": 11.564,
+    "reference_ms": 9.708,
+    "ratio": 1.1911825298722702,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "deep-pwd-2000",
+    "reference": "Java",
+    "tx_ms": 11.564,
+    "reference_ms": 32.458,
+    "ratio": 0.35627580257563624,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "deep-pwd-2000",
+    "reference": "Python",
+    "tx_ms": 11.564,
+    "reference_ms": 11.644,
+    "ratio": 0.9931295087598764,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "reference": "C++",
+    "tx_ms": 5.232,
+    "reference_ms": 1.006,
+    "ratio": 5.20079522862823,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "reference": "JavaScript",
+    "tx_ms": 5.232,
+    "reference_ms": 1.974,
+    "ratio": 2.650455927051672,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "reference": "Java",
+    "tx_ms": 5.232,
+    "reference_ms": 5.812,
+    "ratio": 0.9002064693737095,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "reference": "Python",
+    "tx_ms": 5.232,
+    "reference_ms": 1.935,
+    "ratio": 2.7038759689922482,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "reference": "C++",
+    "tx_ms": 5.999,
+    "reference_ms": 0.971,
+    "ratio": 6.17816683831102,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "reference": "JavaScript",
+    "tx_ms": 5.999,
+    "reference_ms": 1.977,
+    "ratio": 3.03439554881133,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "reference": "Java",
+    "tx_ms": 5.999,
+    "reference_ms": 5.856,
+    "ratio": 1.0244193989071038,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "reference": "Python",
+    "tx_ms": 5.999,
+    "reference_ms": 2.568,
+    "ratio": 2.3360591900311523,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "linklong-2000",
+    "reference": "C++",
+    "tx_ms": 31.15,
+    "reference_ms": 116.025,
+    "ratio": 0.2684766214177979,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "linklong-2000",
+    "reference": "JavaScript",
+    "tx_ms": 31.15,
+    "reference_ms": 120.678,
+    "ratio": 0.25812492749299787,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "linklong-2000",
+    "reference": "Java",
+    "tx_ms": 31.15,
+    "reference_ms": 278.662,
+    "ratio": 0.11178416863440298,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "linklong-2000",
+    "reference": "Python",
+    "tx_ms": 31.15,
+    "reference_ms": 458.638,
+    "ratio": 0.06791848909161474,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "all-free-max",
+    "reference": "C++",
+    "tx_ms": 1.025,
+    "reference_ms": 1.438,
+    "ratio": 0.7127955493741307,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "all-free-max",
+    "reference": "JavaScript",
+    "tx_ms": 1.025,
+    "reference_ms": 3.31,
+    "ratio": 0.30966767371601206,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "all-free-max",
+    "reference": "Java",
+    "tx_ms": 1.025,
+    "reference_ms": 4.496,
+    "ratio": 0.2279804270462633,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "all-free-max",
+    "reference": "Python",
+    "tx_ms": 1.025,
+    "reference_ms": 45.986,
+    "ratio": 0.02228939242378115,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "reference": "C++",
+    "tx_ms": 4.353,
+    "reference_ms": 1.442,
+    "ratio": 3.0187239944521496,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "reference": "JavaScript",
+    "tx_ms": 4.353,
+    "reference_ms": 4.684,
+    "ratio": 0.9293339026473099,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "reference": "Java",
+    "tx_ms": 4.353,
+    "reference_ms": 5.479,
+    "ratio": 0.7944880452637342,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "reference": "Python",
+    "tx_ms": 4.353,
+    "reference_ms": 78.369,
+    "ratio": 0.05554492209929947,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-decreasing-max",
+    "reference": "C++",
+    "tx_ms": 0.996,
+    "reference_ms": 1.426,
+    "ratio": 0.6984572230014026,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-decreasing-max",
+    "reference": "JavaScript",
+    "tx_ms": 0.996,
+    "reference_ms": 3.263,
+    "ratio": 0.3052405761569108,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-decreasing-max",
+    "reference": "Java",
+    "tx_ms": 0.996,
+    "reference_ms": 4.88,
+    "ratio": 0.20409836065573772,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-decreasing-max",
+    "reference": "Python",
+    "tx_ms": 0.996,
+    "reference_ms": 45.125,
+    "ratio": 0.02207202216066482,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "shuffled-tight-max-1",
+    "reference": "C++",
+    "tx_ms": 3.178,
+    "reference_ms": 1.89,
+    "ratio": 1.6814814814814816,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "shuffled-tight-max-1",
+    "reference": "JavaScript",
+    "tx_ms": 3.178,
+    "reference_ms": 4.396,
+    "ratio": 0.7229299363057324,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "shuffled-tight-max-1",
+    "reference": "Java",
+    "tx_ms": 3.178,
+    "reference_ms": 5.445,
+    "ratio": 0.5836547291092745,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "shuffled-tight-max-1",
+    "reference": "Python",
+    "tx_ms": 3.178,
+    "reference_ms": 64.999,
+    "ratio": 0.04889305989322913,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "alternating-tight-max",
+    "reference": "C++",
+    "tx_ms": 2.677,
+    "reference_ms": 1.447,
+    "ratio": 1.8500345542501728,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "alternating-tight-max",
+    "reference": "JavaScript",
+    "tx_ms": 2.677,
+    "reference_ms": 4.016,
+    "ratio": 0.6665836653386454,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "alternating-tight-max",
+    "reference": "Java",
+    "tx_ms": 2.677,
+    "reference_ms": 5.323,
+    "ratio": 0.5029118917903438,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "alternating-tight-max",
+    "reference": "Python",
+    "tx_ms": 2.677,
+    "reference_ms": 61.04,
+    "ratio": 0.0438564875491481,
+    "note": ""
+  },
+  {
+    "suite": "长随机数",
+    "name": "random_long",
+    "reference": "C++",
+    "tx_ms": 25.0,
+    "reference_ms": 8.5147,
+    "ratio": 2.936098746873055,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_alternating",
+    "reference": "C++",
+    "tx_ms": 17.156,
+    "reference_ms": 3.237,
+    "ratio": 5.299969107198022,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_parameter",
+    "reference": "C++",
+    "tx_ms": 17.288,
+    "reference_ms": 3.264,
+    "ratio": 5.296568627450981,
+    "note": ""
+  },
+  {
+    "suite": "契约/graph_contract",
+    "name": "graph_copy",
+    "reference": "C++",
+    "tx_ms": 4.798,
+    "reference_ms": 2.209,
+    "ratio": 2.172023540063377,
+    "note": "直接链接 TX 运行时；不代表前端生成代码的全部语义"
+  },
+  {
+    "suite": "契约/graph_contract",
+    "name": "graph_gc",
+    "reference": "C++",
+    "tx_ms": 7.531,
+    "reference_ms": 8.037,
+    "ratio": 0.9370411845215876,
+    "note": "直接链接 TX 运行时；不代表前端生成代码的全部语义"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "thread_spawn_join",
+    "reference": "C++",
+    "tx_ms": 13.873,
+    "reference_ms": 14.5894,
+    "ratio": 0.9508958558953761,
+    "note": "C++ std::thread；Java 平台线程；Python threading。含线程创建/退出。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "thread_spawn_join",
+    "reference": "Java",
+    "tx_ms": 13.873,
+    "reference_ms": 25.8168,
+    "ratio": 0.5373632673298007,
+    "note": "C++ std::thread；Java 平台线程；Python threading。含线程创建/退出。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "thread_spawn_join",
+    "reference": "Python",
+    "tx_ms": 13.873,
+    "reference_ms": 17.4495,
+    "ratio": 0.7950371070804321,
+    "note": "C++ std::thread；Java 平台线程；Python threading。含线程创建/退出。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "reference": "C++",
+    "tx_ms": 1.383,
+    "reference_ms": 0.3745,
+    "ratio": 3.692923898531375,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "reference": "Java",
+    "tx_ms": 1.383,
+    "reference_ms": 5.8211,
+    "ratio": 0.2375839617941626,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "reference": "Python",
+    "tx_ms": 1.383,
+    "reference_ms": 15.495700000000001,
+    "ratio": 0.08925056628613098,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "atomic_add",
+    "reference": "C++",
+    "tx_ms": 0.397,
+    "reference_ms": 0.1739,
+    "ratio": 2.282921219091432,
+    "note": "C++ std::atomic、Java AtomicLong；Python 没有对应公开原子整数，使用 Lock 实现线程安全加法，不能当成原子指令性能。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "atomic_add",
+    "reference": "Java",
+    "tx_ms": 0.397,
+    "reference_ms": 0.803,
+    "ratio": 0.4943960149439601,
+    "note": "C++ std::atomic、Java AtomicLong；Python 没有对应公开原子整数，使用 Lock 实现线程安全加法，不能当成原子指令性能。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "atomic_add",
+    "reference": "Python",
+    "tx_ms": 0.397,
+    "reference_ms": 15.4545,
+    "ratio": 0.025688310847973083,
+    "note": "C++ std::atomic、Java AtomicLong；Python 没有对应公开原子整数，使用 Lock 实现线程安全加法，不能当成原子指令性能。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "channel_send_recv",
+    "reference": "C++",
+    "tx_ms": 1.935,
+    "reference_ms": 0.7891,
+    "ratio": 2.4521606893929793,
+    "note": "C++ mutex/condition_variable 队列；Java ArrayBlockingQueue；Python Queue。都是立即成功路径；TX 另有取消及句柄规则，不代表多生产者吞吐。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "channel_send_recv",
+    "reference": "Java",
+    "tx_ms": 1.935,
+    "reference_ms": 3.6819,
+    "ratio": 0.5255438768027377,
+    "note": "C++ mutex/condition_variable 队列；Java ArrayBlockingQueue；Python Queue。都是立即成功路径；TX 另有取消及句柄规则，不代表多生产者吞吐。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "channel_send_recv",
+    "reference": "Python",
+    "tx_ms": 1.935,
+    "reference_ms": 31.627,
+    "ratio": 0.06118190153982357,
+    "note": "C++ mutex/condition_variable 队列；Java ArrayBlockingQueue；Python Queue。都是立即成功路径；TX 另有取消及句柄规则，不代表多生产者吞吐。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "task_spawn_wait",
+    "reference": "C++",
+    "tx_ms": 7.271,
+    "reference_ms": 7.0287,
+    "ratio": 1.03447294663309,
+    "note": "参考使用单工作线程池；TX 使用任务运行时和 scope。包含组内初次线程池启动，不代表饱和并发吞吐。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "task_spawn_wait",
+    "reference": "Java",
+    "tx_ms": 7.271,
+    "reference_ms": 22.781599999999997,
+    "ratio": 0.31916107736067706,
+    "note": "参考使用单工作线程池；TX 使用任务运行时和 scope。包含组内初次线程池启动，不代表饱和并发吞吐。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "task_spawn_wait",
+    "reference": "Python",
+    "tx_ms": 7.271,
+    "reference_ms": 17.372799999999998,
+    "ratio": 0.4185278135936637,
+    "note": "参考使用单工作线程池；TX 使用任务运行时和 scope。包含组内初次线程池启动，不代表饱和并发吞吐。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_insert",
+    "reference": "C++",
+    "tx_ms": 11.867,
+    "reference_ms": 8.7392,
+    "ratio": 1.3579046136946173,
+    "note": "C++ 直接调用 TX 的同一 C++ 数据库后端；Java SQLite JDBC；Python sqlite3。SQLite 版本不同，事务内逐条执行，不使用批插入。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_insert",
+    "reference": "Java",
+    "tx_ms": 11.867,
+    "reference_ms": 27.6023,
+    "ratio": 0.4299279407875431,
+    "note": "C++ 直接调用 TX 的同一 C++ 数据库后端；Java SQLite JDBC；Python sqlite3。SQLite 版本不同，事务内逐条执行，不使用批插入。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_insert",
+    "reference": "Python",
+    "tx_ms": 11.867,
+    "reference_ms": 1.9464000000000001,
+    "ratio": 6.096896835182902,
+    "note": "C++ 直接调用 TX 的同一 C++ 数据库后端；Java SQLite JDBC；Python sqlite3。SQLite 版本不同，事务内逐条执行，不使用批插入。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_read",
+    "reference": "C++",
+    "tx_ms": 24.775,
+    "reference_ms": 9.213700000000001,
+    "ratio": 2.68893061419408,
+    "note": "C++ 使用同一后端及行快照；Java JDBC、Python sqlite3。TX/C++ 差值包含 ABI、option、行读取接口与生成代码开销。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_read",
+    "reference": "Java",
+    "tx_ms": 24.775,
+    "reference_ms": 26.5943,
+    "ratio": 0.9315906040016093,
+    "note": "C++ 使用同一后端及行快照；Java JDBC、Python sqlite3。TX/C++ 差值包含 ABI、option、行读取接口与生成代码开销。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_read",
+    "reference": "Python",
+    "tx_ms": 24.775,
+    "reference_ms": 9.4339,
+    "ratio": 2.6261673327043957,
+    "note": "C++ 使用同一后端及行快照；Java JDBC、Python sqlite3。TX/C++ 差值包含 ABI、option、行读取接口与生成代码开销。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_savepoint",
+    "reference": "C++",
+    "tx_ms": 2.827,
+    "reference_ms": 2.0751,
+    "ratio": 1.3623439834224857,
+    "note": "C++ 同后端；Java JDBC、Python sqlite3；在内存库中测量，不表示持久化落盘吞吐。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_savepoint",
+    "reference": "Java",
+    "tx_ms": 2.827,
+    "reference_ms": 6.7986,
+    "ratio": 0.41582090430382723,
+    "note": "C++ 同后端；Java JDBC、Python sqlite3；在内存库中测量，不表示持久化落盘吞吐。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_savepoint",
+    "reference": "Python",
+    "tx_ms": 2.827,
+    "reference_ms": 0.6551,
+    "ratio": 4.3153716989772555,
+    "note": "C++ 同后端；Java JDBC、Python sqlite3；在内存库中测量，不表示持久化落盘吞吐。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_pool",
+    "reference": "C++",
+    "tx_ms": 1.691,
+    "reference_ms": 1.7434,
+    "ratio": 0.9699437880004589,
+    "note": "TX/C++ 使用当前同一数据库池后端，已证明无会话副作用的只读连接可复用；Java/Python 仍每次关闭连接。跨语言生命周期不同，仅作端到端观察。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_pool",
+    "reference": "Java",
+    "tx_ms": 1.691,
+    "reference_ms": 81.72710000000001,
+    "ratio": 0.020690811248655586,
+    "note": "TX/C++ 使用当前同一数据库池后端，已证明无会话副作用的只读连接可复用；Java/Python 仍每次关闭连接。跨语言生命周期不同，仅作端到端观察。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_pool",
+    "reference": "Python",
+    "tx_ms": 1.691,
+    "reference_ms": 69.7774,
+    "ratio": 0.024234207637429884,
+    "note": "TX/C++ 使用当前同一数据库池后端，已证明无会话副作用的只读连接可复用；Java/Python 仍每次关闭连接。跨语言生命周期不同，仅作端到端观察。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_async",
+    "reference": "C++",
+    "tx_ms": 3.34,
+    "reference_ms": 2.8478000000000003,
+    "ratio": 1.1728351710092,
+    "note": "TX 任务运行时；C++ 同异步数据库后端加单线程执行器；Java/Python 单线程池。TX/C++ 当前可复用安全的只读池连接，Java/Python 仍关闭连接；跨语言不代表相同连接生命周期。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_async",
+    "reference": "Java",
+    "tx_ms": 3.34,
+    "reference_ms": 70.60119999999999,
+    "ratio": 0.047307977768083265,
+    "note": "TX 任务运行时；C++ 同异步数据库后端加单线程执行器；Java/Python 单线程池。TX/C++ 当前可复用安全的只读池连接，Java/Python 仍关闭连接；跨语言不代表相同连接生命周期。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_async",
+    "reference": "Python",
+    "tx_ms": 3.34,
+    "reference_ms": 50.8491,
+    "ratio": 0.06568454505586135,
+    "note": "TX 任务运行时；C++ 同异步数据库后端加单线程执行器；Java/Python 单线程池。TX/C++ 当前可复用安全的只读池连接，Java/Python 仍关闭连接；跨语言不代表相同连接生命周期。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "migration_recheck",
+    "reference": "C++",
+    "tx_ms": 2.056,
+    "reference_ms": 2.1728,
+    "ratio": 0.9462444771723122,
+    "note": "C++ 同迁移后端；Java/Python 实现相同长度分帧 SHA-256、两次 IMMEDIATE 事务及账本读取；只覆盖幂等成功路径。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "migration_recheck",
+    "reference": "Java",
+    "tx_ms": 2.056,
+    "reference_ms": 10.212399999999999,
+    "ratio": 0.20132388077239438,
+    "note": "C++ 同迁移后端；Java/Python 实现相同长度分帧 SHA-256、两次 IMMEDIATE 事务及账本读取；只覆盖幂等成功路径。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "migration_recheck",
+    "reference": "Python",
+    "tx_ms": 2.056,
+    "reference_ms": 0.9688,
+    "ratio": 2.1222130470685383,
+    "note": "C++ 同迁移后端；Java/Python 实现相同长度分帧 SHA-256、两次 IMMEDIATE 事务及账本读取；只覆盖幂等成功路径。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_insert",
+    "reference": "C++",
+    "tx_ms": 185.869,
+    "reference_ms": 173.297,
+    "ratio": 1.0725459759834273,
+    "note": "C++ 同 libpq 后端；Java PostgreSQL JDBC；Python psycopg。驱动 prepare 缓存策略不同；共用临时 PostgreSQL 18.4，不连接已有数据库。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_insert",
+    "reference": "Java",
+    "tx_ms": 185.869,
+    "reference_ms": 268.5949,
+    "ratio": 0.6920049487164499,
+    "note": "C++ 同 libpq 后端；Java PostgreSQL JDBC；Python psycopg。驱动 prepare 缓存策略不同；共用临时 PostgreSQL 18.4，不连接已有数据库。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_insert",
+    "reference": "Python",
+    "tx_ms": 185.869,
+    "reference_ms": 262.0841,
+    "ratio": 0.7091960176141934,
+    "note": "C++ 同 libpq 后端；Java PostgreSQL JDBC；Python psycopg。驱动 prepare 缓存策略不同；共用临时 PostgreSQL 18.4，不连接已有数据库。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_read",
+    "reference": "C++",
+    "tx_ms": 38.771,
+    "reference_ms": 23.4438,
+    "ratio": 1.653784795980174,
+    "note": "TX/C++ libpq 单行模式；Java/Python 默认结果获取策略不同。C++ 同后端可用于定位包装层开销，跨驱动比例是端到端负载观察。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_read",
+    "reference": "Java",
+    "tx_ms": 38.771,
+    "reference_ms": 28.6221,
+    "ratio": 1.3545826476743497,
+    "note": "TX/C++ libpq 单行模式；Java/Python 默认结果获取策略不同。C++ 同后端可用于定位包装层开销，跨驱动比例是端到端负载观察。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_read",
+    "reference": "Python",
+    "tx_ms": 38.771,
+    "reference_ms": 19.0832,
+    "ratio": 2.0316823174310388,
+    "note": "TX/C++ libpq 单行模式；Java/Python 默认结果获取策略不同。C++ 同后端可用于定位包装层开销，跨驱动比例是端到端负载观察。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_savepoint",
+    "reference": "C++",
+    "tx_ms": 105.332,
+    "reference_ms": 129.209,
+    "ratio": 0.8152063710732224,
+    "note": "C++ 同后端；Java/Python 各自驱动。所有操作在真实服务器执行，受本机网络调度影响。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_savepoint",
+    "reference": "Java",
+    "tx_ms": 105.332,
+    "reference_ms": 109.7286,
+    "ratio": 0.9599320505319487,
+    "note": "C++ 同后端；Java/Python 各自驱动。所有操作在真实服务器执行，受本机网络调度影响。"
+  },
+  {
+    "suite": "新增/postgres",
+    "name": "postgres_savepoint",
+    "reference": "Python",
+    "tx_ms": 105.332,
+    "reference_ms": 164.485,
+    "ratio": 0.6403745022342462,
+    "note": "C++ 同后端；Java/Python 各自驱动。所有操作在真实服务器执行，受本机网络调度影响。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "secret_equal",
+    "reference": "C++",
+    "tx_ms": 14.277,
+    "reference_ms": 8.9041,
+    "ratio": 1.603418649835469,
+    "note": "C++ 同 secret 后端；Java MessageDigest.isEqual；Python hmac.compare_digest。Java/Python 普通字节数组没有 TX 秘密句柄的保护与清零生命周期。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "secret_equal",
+    "reference": "Java",
+    "tx_ms": 14.277,
+    "reference_ms": 27.0679,
+    "ratio": 0.5274513353455569,
+    "note": "C++ 同 secret 后端；Java MessageDigest.isEqual；Python hmac.compare_digest。Java/Python 普通字节数组没有 TX 秘密句柄的保护与清零生命周期。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "secret_equal",
+    "reference": "Python",
+    "tx_ms": 14.277,
+    "reference_ms": 11.825700000000001,
+    "ratio": 1.2072858266318272,
+    "note": "C++ 同 secret 后端；Java MessageDigest.isEqual；Python hmac.compare_digest。Java/Python 普通字节数组没有 TX 秘密句柄的保护与清零生命周期。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "argon2_hash_verify",
+    "reference": "C++",
+    "tx_ms": 150.038,
+    "reference_ms": 153.365,
+    "ratio": 0.9783066540605745,
+    "note": "m=19456 KiB、t=2、p=1、v=19、16 字节随机 salt、32 字节输出；C++ 同 Argon2 后端，Java BouncyCastle，Python argon2-cffi；含 PHC 编解码。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "argon2_hash_verify",
+    "reference": "Java",
+    "tx_ms": 150.038,
+    "reference_ms": 531.2737,
+    "ratio": 0.2824118716962651,
+    "note": "m=19456 KiB、t=2、p=1、v=19、16 字节随机 salt、32 字节输出；C++ 同 Argon2 后端，Java BouncyCastle，Python argon2-cffi；含 PHC 编解码。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "argon2_hash_verify",
+    "reference": "Python",
+    "tx_ms": 150.038,
+    "reference_ms": 158.6157,
+    "ratio": 0.945921494530491,
+    "note": "m=19456 KiB、t=2、p=1、v=19、16 字节随机 salt、32 字节输出；C++ 同 Argon2 后端，Java BouncyCastle，Python argon2-cffi；含 PHC 编解码。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "ed25519_sign",
+    "reference": "C++",
+    "tx_ms": 17.763,
+    "reference_ms": 16.6753,
+    "ratio": 1.0652282117862948,
+    "note": "共用临时随机 seed；C++ 同 libsodium 后端；Java JCA Ed25519；Python cryptography。密钥导入不计时，签名随后验签。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "ed25519_sign",
+    "reference": "Java",
+    "tx_ms": 17.763,
+    "reference_ms": 408.0457,
+    "ratio": 0.04353188870756389,
+    "note": "共用临时随机 seed；C++ 同 libsodium 后端；Java JCA Ed25519；Python cryptography。密钥导入不计时，签名随后验签。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "ed25519_sign",
+    "reference": "Python",
+    "tx_ms": 17.763,
+    "reference_ms": 17.119799999999998,
+    "ratio": 1.0375705323660325,
+    "note": "共用临时随机 seed；C++ 同 libsodium 后端；Java JCA Ed25519；Python cryptography。密钥导入不计时，签名随后验签。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "ed25519_verify",
+    "reference": "C++",
+    "tx_ms": 25.124,
+    "reference_ms": 24.5688,
+    "ratio": 1.022597766272671,
+    "note": "三类后端验证各自生成的签名；同一 seed 和消息，成功次数逐轮核对。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "ed25519_verify",
+    "reference": "Java",
+    "tx_ms": 25.124,
+    "reference_ms": 362.5427,
+    "ratio": 0.06929942321276913,
+    "note": "三类后端验证各自生成的签名；同一 seed 和消息，成功次数逐轮核对。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "ed25519_verify",
+    "reference": "Python",
+    "tx_ms": 25.124,
+    "reference_ms": 45.9862,
+    "ratio": 0.5463378143877946,
+    "note": "三类后端验证各自生成的签名；同一 seed 和消息，成功次数逐轮核对。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "x509_parse_der",
+    "reference": "C++",
+    "tx_ms": 2.891,
+    "reference_ms": 2.8136,
+    "ratio": 1.027509240830253,
+    "note": "C++ 同 Windows 证书后端；Java CertificateFactory 可能缓存；Python cryptography。测重复证书热路径，不外推到大量不同证书。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "x509_parse_der",
+    "reference": "Java",
+    "tx_ms": 2.891,
+    "reference_ms": 6.9082,
+    "ratio": 0.4184881734750007,
+    "note": "C++ 同 Windows 证书后端；Java CertificateFactory 可能缓存；Python cryptography。测重复证书热路径，不外推到大量不同证书。"
+  },
+  {
+    "suite": "新增/security",
+    "name": "x509_parse_der",
+    "reference": "Python",
+    "tx_ms": 2.891,
+    "reference_ms": 3.1157,
+    "ratio": 0.9278813749719165,
+    "note": "C++ 同 Windows 证书后端；Java CertificateFactory 可能缓存；Python cryptography。测重复证书热路径，不外推到大量不同证书。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "dns_localhost",
+    "reference": "C++",
+    "tx_ms": 0.284,
+    "reference_ms": 31.7216,
+    "ratio": 0.008952890144255017,
+    "note": "TX 对 localhost 有专用路径；C++ getaddrinfo、Java InetAddress、Python getaddrinfo 各有不同缓存策略。不能用于比较远端 DNS。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "dns_localhost",
+    "reference": "Java",
+    "tx_ms": 0.284,
+    "reference_ms": 54.517300000000006,
+    "ratio": 0.0052093555623627715,
+    "note": "TX 对 localhost 有专用路径；C++ getaddrinfo、Java InetAddress、Python getaddrinfo 各有不同缓存策略。不能用于比较远端 DNS。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "dns_localhost",
+    "reference": "Python",
+    "tx_ms": 0.284,
+    "reference_ms": 39.3566,
+    "ratio": 0.007216070493894289,
+    "note": "TX 对 localhost 有专用路径；C++ getaddrinfo、Java InetAddress、Python getaddrinfo 各有不同缓存策略。不能用于比较远端 DNS。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "udp_echo",
+    "reference": "C++",
+    "tx_ms": 34.74,
+    "reference_ms": 24.1248,
+    "ratio": 1.4400119379228016,
+    "note": "四语言使用同一 Python 回声服务，逐次完整比较 payload。服务端调度也计入端到端时间。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "udp_echo",
+    "reference": "Java",
+    "tx_ms": 34.74,
+    "reference_ms": 44.0725,
+    "ratio": 0.7882466390606389,
+    "note": "四语言使用同一 Python 回声服务，逐次完整比较 payload。服务端调度也计入端到端时间。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "udp_echo",
+    "reference": "Python",
+    "tx_ms": 34.74,
+    "reference_ms": 30.6056,
+    "ratio": 1.13508638941893,
+    "note": "四语言使用同一 Python 回声服务，逐次完整比较 payload。服务端调度也计入端到端时间。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "ipc_echo",
+    "reference": "C++",
+    "tx_ms": 13.99,
+    "reference_ms": 8.581100000000001,
+    "ratio": 1.630327114239433,
+    "note": "使用同一服务器、22 字节帧和 CBOR 整数 42。C++/Java/Python 固定整数编解码；TX 为通用 CBOR 与资源句柄，不代表任意对象 IPC 差距。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "ipc_echo",
+    "reference": "Java",
+    "tx_ms": 13.99,
+    "reference_ms": 12.0671,
+    "ratio": 1.159350631054686,
+    "note": "使用同一服务器、22 字节帧和 CBOR 整数 42。C++/Java/Python 固定整数编解码；TX 为通用 CBOR 与资源句柄，不代表任意对象 IPC 差距。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "ipc_echo",
+    "reference": "Python",
+    "tx_ms": 13.99,
+    "reference_ms": 9.734200000000001,
+    "ratio": 1.4372007971892913,
+    "note": "使用同一服务器、22 字节帧和 CBOR 整数 42。C++/Java/Python 固定整数编解码；TX 为通用 CBOR 与资源句柄，不代表任意对象 IPC 差距。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "tls_handshake",
+    "reference": "C++",
+    "tx_ms": 65.634,
+    "reference_ms": 25.868599999999997,
+    "ratio": 2.5372072705906006,
+    "note": "全部验证临时 CA 和 localhost，禁用服务端票据，Java 每次废弃 session；TX mbedTLS，C++/Python OpenSSL，Java JSSE。配置在计时外，库内部握手上下文分配计时。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "tls_handshake",
+    "reference": "Java",
+    "tx_ms": 65.634,
+    "reference_ms": 226.4907,
+    "ratio": 0.2897867329651946,
+    "note": "全部验证临时 CA 和 localhost，禁用服务端票据，Java 每次废弃 session；TX mbedTLS，C++/Python OpenSSL，Java JSSE。配置在计时外，库内部握手上下文分配计时。"
+  },
+  {
+    "suite": "新增/network",
+    "name": "tls_handshake",
+    "reference": "Python",
+    "tx_ms": 65.634,
+    "reference_ms": 63.2726,
+    "ratio": 1.0373210520825762,
+    "note": "全部验证临时 CA 和 localhost，禁用服务端票据，Java 每次废弃 session；TX mbedTLS，C++/Python OpenSSL，Java JSSE。配置在计时外，库内部握手上下文分配计时。"
+  },
+  {
+    "suite": "新增/async_file",
+    "name": "async_file_rw",
+    "reference": "C++",
+    "tx_ms": 40.389,
+    "reference_ms": 33.2951,
+    "ratio": 1.213061381404471,
+    "note": "TX IOCP、Java AsynchronousFileChannel；C++/Python 工作线程执行定位 I/O。全部逐次等待并核对字节，不代表大量在途 I/O 吞吐。"
+  },
+  {
+    "suite": "新增/async_file",
+    "name": "async_file_rw",
+    "reference": "Java",
+    "tx_ms": 40.389,
+    "reference_ms": 69.7515,
+    "ratio": 0.5790413109395498,
+    "note": "TX IOCP、Java AsynchronousFileChannel；C++/Python 工作线程执行定位 I/O。全部逐次等待并核对字节，不代表大量在途 I/O 吞吐。"
+  },
+  {
+    "suite": "新增/async_file",
+    "name": "async_file_rw",
+    "reference": "Python",
+    "tx_ms": 40.389,
+    "reference_ms": 147.38320000000002,
+    "ratio": 0.27404073191517075,
+    "note": "TX IOCP、Java AsynchronousFileChannel；C++/Python 工作线程执行定位 I/O。全部逐次等待并核对字节，不代表大量在途 I/O 吞吐。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "reference": "C++",
+    "tx_ms": 0.19,
+    "reference_ms": 0.0569,
+    "ratio": 3.3391915641476273,
+    "note": "参考使用 std::function / IntConsumer / Python 函数；TX 含真实测试框架和受检回调。参考没有 TX 错误上下文，不外推到失败报告。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "reference": "Java",
+    "tx_ms": 0.19,
+    "reference_ms": 0.8176,
+    "ratio": 0.23238747553816047,
+    "note": "参考使用 std::function / IntConsumer / Python 函数；TX 含真实测试框架和受检回调。参考没有 TX 错误上下文，不外推到失败报告。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "reference": "Python",
+    "tx_ms": 0.19,
+    "reference_ms": 1.514,
+    "ratio": 0.12549537648612946,
+    "note": "参考使用 std::function / IntConsumer / Python 函数；TX 含真实测试框架和受检回调。参考没有 TX 错误上下文，不外推到失败报告。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "reference": "C++",
+    "tx_ms": 0.304,
+    "reference_ms": 0.0461,
+    "ratio": 6.594360086767895,
+    "note": "固定 seed=1000，参考保留两个回调；本负载不执行失败缩减。TX 还保留受检回调及测试错误处理。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "reference": "Java",
+    "tx_ms": 0.304,
+    "reference_ms": 1.0997999999999999,
+    "ratio": 0.27641389343517003,
+    "note": "固定 seed=1000，参考保留两个回调；本负载不执行失败缩减。TX 还保留受检回调及测试错误处理。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "reference": "Python",
+    "tx_ms": 0.304,
+    "reference_ms": 2.3488,
+    "ratio": 0.12942779291553133,
+    "note": "固定 seed=1000，参考保留两个回调；本负载不执行失败缩减。TX 还保留受检回调及测试错误处理。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_filtered",
+    "reference": "C++",
+    "tx_ms": 0.838,
+    "reference_ms": 0.4147,
+    "ratio": 2.020737882806848,
+    "note": "C++ 调用真实 TX 日志后端级别检查，Java Logger，Python logging；各参考仅在级别允许时构造字段，TX 另有闭包/错误边界。废弃初版 C++ volatile 检查倍率。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_filtered",
+    "reference": "Java",
+    "tx_ms": 0.838,
+    "reference_ms": 3.8356999999999997,
+    "ratio": 0.21847381182052822,
+    "note": "C++ 调用真实 TX 日志后端级别检查，Java Logger，Python logging；各参考仅在级别允许时构造字段，TX 另有闭包/错误边界。废弃初版 C++ volatile 检查倍率。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_filtered",
+    "reference": "Python",
+    "tx_ms": 0.838,
+    "reference_ms": 6.5638000000000005,
+    "ratio": 0.12766994728663272,
+    "note": "C++ 调用真实 TX 日志后端级别检查，Java Logger，Python logging；各参考仅在级别允许时构造字段，TX 另有闭包/错误边界。废弃初版 C++ volatile 检查倍率。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_file",
+    "reference": "C++",
+    "tx_ms": 31.382,
+    "reference_ms": 28.5586,
+    "ratio": 1.0988633896619584,
+    "note": "C++ 同日志后端；Java/Python 固定 schema 构造。全部每条 flush、进程内加锁；计时外核对行数、索引、请求标识、遮蔽值。未覆盖轮转压力。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_file",
+    "reference": "Java",
+    "tx_ms": 31.382,
+    "reference_ms": 44.4617,
+    "ratio": 0.7058209650103348,
+    "note": "C++ 同日志后端；Java/Python 固定 schema 构造。全部每条 flush、进程内加锁；计时外核对行数、索引、请求标识、遮蔽值。未覆盖轮转压力。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "log_file",
+    "reference": "Python",
+    "tx_ms": 31.382,
+    "reference_ms": 26.1219,
+    "ratio": 1.201367434987501,
+    "note": "C++ 同日志后端；Java/Python 固定 schema 构造。全部每条 flush、进程内加锁；计时外核对行数、索引、请求标识、遮蔽值。未覆盖轮转压力。"
+  },
+  {
+    "suite": "新增/profile",
+    "name": "profile_spans",
+    "reference": "C++",
+    "tx_ms": 0.455,
+    "reference_ms": 0.2117,
+    "ratio": 2.149267831837506,
+    "note": "TX/C++ 启用真实分析器；Java/Python 仅保存时间段记录，没有同时启用 CPU/分配采样。仅为 API 负载参考，不能宣称完整 profiler 等价。"
+  },
+  {
+    "suite": "新增/profile",
+    "name": "profile_spans",
+    "reference": "Java",
+    "tx_ms": 0.455,
+    "reference_ms": 0.9955,
+    "ratio": 0.45705675539929685,
+    "note": "TX/C++ 启用真实分析器；Java/Python 仅保存时间段记录，没有同时启用 CPU/分配采样。仅为 API 负载参考，不能宣称完整 profiler 等价。"
+  },
+  {
+    "suite": "新增/profile",
+    "name": "profile_spans",
+    "reference": "Python",
+    "tx_ms": 0.455,
+    "reference_ms": 0.3107,
+    "ratio": 1.4644351464435148,
+    "note": "TX/C++ 启用真实分析器；Java/Python 仅保存时间段记录，没有同时启用 CPU/分配采样。仅为 API 负载参考，不能宣称完整 profiler 等价。"
+  }
+]

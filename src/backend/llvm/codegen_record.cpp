@@ -5,6 +5,17 @@
 namespace tx
 {
 
+llvm_code_generator::ir_value llvm_code_generator::record_lvalue_owner(
+    const expression& item, const lvalue_indices& indices)
+{
+    ir_value result{item.type, lvalue_address(item, indices)};
+    if (const auto* name = std::get_if<name_reference>(&item.data))
+    {
+        result.record_view = load_record_view(find_variable(name->name, item.position));
+    }
+    return result;
+}
+
 void llvm_code_generator::cache_record_view(variable_slot& slot, const std::string& value)
 {
     if (!static_record_type(slot.type))

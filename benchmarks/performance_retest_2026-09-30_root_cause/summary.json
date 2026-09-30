@@ -1,0 +1,20 @@
+{
+  "head": "5aa6d0244092df1e52b0aa49f3e22083834b2ce6",
+  "all_suites_completed": true,
+  "measure_minutes": 11.282909466666666,
+  "tx_process_wall_ms": 70.68190001882613,
+  "cpp_process_wall_ms": 70.64659998286515,
+  "tx_cpp_process_ratio": 1.0004996706985125,
+  "tx_process_peak_mib": 9.0546875,
+  "comparison_rows": 224,
+  "gap_rows": 38,
+  "working_tree_with_uncommitted_changes": true,
+  "public_modules": 52,
+  "additional_stdlib_cases": 29,
+  "cross_language_comparison_rows": 390,
+  "all_gap_rows": 43,
+  "distinct_cpp_gap_names": 27,
+  "active_suite_minutes": 9.135289966666667,
+  "between_suite_minutes": 2.1476195,
+  "stdlib_completed_utc": "2026-09-30T16:25:39.379808+00:00"
+}

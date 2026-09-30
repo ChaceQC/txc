@@ -19,6 +19,8 @@ static_assert(sizeof(static_format_step) == 96);
 
 extern "C"
 {
+std::int64_t txrt_format_integer_length(std::int64_t value) noexcept;
+int txrt_format_literal_length(const char* value, std::uint64_t size, std::int64_t* result) noexcept;
 int txrt_format_execute(const tx_generated::static_format_step* steps, std::uint64_t count,
     const std::uint64_t* arguments, const char* prefix, std::uint64_t length,
     std::uint64_t capacity, void** result) noexcept;

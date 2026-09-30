@@ -51,6 +51,11 @@ void tx_dict::prepare_write()
     register_storage();
 }
 
+void tx_dict::reserve(std::size_t count)
+{
+    data_->entries.reserve(count);
+}
+
 const void* tx_dict::identity() const noexcept
 {
     return data_.get();

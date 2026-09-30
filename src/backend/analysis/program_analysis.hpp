@@ -50,6 +50,7 @@ private:
     bool solve_function(function_analysis& function);
     bool solve_instruction(function_analysis& function, analysis_id id);
     void solve_call(function_analysis& function, analysis_id id, bool& changed);
+    bool solve_builtin_call(function_analysis& function, analysis_id id, bool& changed);
 };
 
 [[nodiscard]] bool merge_analysis_set(std::set<analysis_id>& destination,
@@ -57,5 +58,6 @@ private:
 [[nodiscard]] std::set<analysis_id> reachable_objects(const function_analysis& function,
     const std::set<analysis_id>& roots);
 void merge_call_effects(call_effects& destination, const call_effects& source);
+void refine_builtin_effects(function_ir& function);
 
 } // namespace tx

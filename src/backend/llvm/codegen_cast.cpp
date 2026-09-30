@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "frontend/ast/call_properties.hpp"
 
 namespace tx
 {
@@ -139,14 +140,19 @@ llvm_code_generator::ir_value llvm_code_generator::emit_cast(
                     std::holds_alternative<floating_literal>(key) ||
                     std::holds_alternative<boolean_literal>(key) ||
                     std::holds_alternative<none_literal>(key);
-                if (!variable.dict_reference.empty() && simple_key)
+                if (!variable.dict_reference.empty() &&
+                    (simple_key || stable_borrow_expression(*index->index)))
                 {
                     return cast_dict_element(*index, cast.target, item.position);
                 }
             }
         }
     }
-    const auto value = expression_value(*cast.value);
+    bool borrowed = false;
+    auto value = cast.value->type == value_type::str_type &&
+        (cast.target == value_type::int_type || cast.target == value_type::float_type)
+        ? read_only_string_value(*cast.value, borrowed) : expression_value(*cast.value);
+    value.borrowed = borrowed;
     if (classes_.contains(cast.target.name))
     {
         if (!class_is_assignable(value.type, cast.target))
@@ -271,19 +277,34 @@ llvm_code_generator::ir_value llvm_code_generator::cast_array_element(
         {
             throw compile_error(position, "类字段缺少静态槽位");
         }
-        const auto field = allocate(value_type::any_type, position, false);
-        const auto status = temporary();
-        write_instruction(status + " = call i32 @" +
-            std::string(class_field ? "txrt_class_field_address_index"
-                                    : "txrt_struct_field_address_index") +
-            "(ptr " + object + ", i64 " +
-            std::to_string(class_field ? *member.field_slot
-                : field_index(member.object->type, member.field, position)) +
-            (class_field ? ", i1 false" : "") + ", ptr " + field + ")");
-        write_instruction("call void @txrt_require_success(i32 " + status +
-                          ")");
-        array = temporary();
-        write_instruction(array + " = load ptr, ptr " + field);
+        if (static_record_type(member.object->type))
+        {
+            ir_value owner{member.object->type, object};
+            owner.record_view = load_record_view(variable);
+            const auto slot = record_field_slot(owner, class_field ? *member.field_slot :
+                field_index(member.object->type, member.field, position));
+            array = temporary();
+            write_instruction(array + " = load ptr, ptr " + slot);
+            if (class_field)
+            {
+                write_instruction("call void @txrt_record_require_initialized(ptr " + array + ")");
+            }
+        }
+        else
+        {
+            const auto field = allocate(value_type::any_type, position, false);
+            const auto status = temporary();
+            write_instruction(status + " = call i32 @" +
+                std::string(class_field ? "txrt_class_field_address_index"
+                                        : "txrt_struct_field_address_index") +
+                "(ptr " + object + ", i64 " +
+                std::to_string(class_field ? *member.field_slot
+                    : field_index(member.object->type, member.field, position)) +
+                (class_field ? ", i1 false" : "") + ", ptr " + field + ")");
+            write_instruction("call void @txrt_require_success(i32 " + status + ")");
+            array = temporary();
+            write_instruction(array + " = load ptr, ptr " + field);
+        }
     }
     const auto element_index = expression_value(*index.index);
     if (native_array &&

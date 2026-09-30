@@ -115,7 +115,12 @@ tx_generated::dynamic_class& as_class(const void* value)
     return *handle;
 }
 
-std::any default_field(const std::string& type)
+} // namespace
+
+namespace tx_generated
+{
+
+std::any class_default_field(const std::string& type)
 {
     if (type == "int")
     {
@@ -181,6 +186,11 @@ std::any default_field(const std::string& type)
     return {};
 }
 
+} // namespace tx_generated
+
+namespace
+{
+
 template<class field_type>
 void* scalar_field_ptr(const void* value, std::size_t index,
                        const char* type_name) noexcept
@@ -234,7 +244,7 @@ extern "C" int txrt_record_class_new(const tx_generated::record_type* type,
         {
             if (type->fields[index].kind == 0 && type->fields[index].type_name)
             {
-                object->fixed.slots.reference(index) = default_field(type->fields[index].type_name);
+                object->fixed.slots.reference(index) = tx_generated::class_default_field(type->fields[index].type_name);
             }
         }
         tx_generated::register_class_gc(object);
@@ -262,7 +272,7 @@ extern "C" int txrt_class_new(
         for (std::size_t i = 0; i < field_count; ++i)
         {
             object->fields.push_back(field_types[i] == nullptr
-                ? std::any{} : default_field(field_types[i]));
+                ? std::any{} : tx_generated::class_default_field(field_types[i]));
         }
         object->virtual_targets = virtual_targets;
         object->virtual_count = virtual_count;

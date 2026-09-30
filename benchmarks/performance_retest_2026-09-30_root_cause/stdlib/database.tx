@@ -1,0 +1,125 @@
+import "db.txh" as db
+import "time.txh" as time
+import "env.txh" as env
+import "parse.txh" as parse
+import "secret.txh" as secret
+import "bytes.txh" as bytes
+import "task.txh" as task
+
+def execute(connection: db_connection, sql: str)
+{
+    auto statement = db.prepare(connection, sql)
+    db.execute(statement)
+    db.close_statement(statement)
+}
+
+def workload(connection: db_connection, prefix: str, marker: str)
+{
+    execute(connection, "CREATE TEMP TABLE bench_items(id BIGINT, label TEXT)")
+    auto mode = "deferred"
+    if prefix == "postgres"
+    {
+        mode = "read_committed"
+    }
+    auto transaction = db.begin(connection, mode)
+    auto insert = db.prepare(connection, "INSERT INTO bench_items VALUES(" + marker + ", 'payload')")
+    auto start = time.monotonic_micros()
+    auto total = 0
+    for i in 1..=2000
+    {
+        db.bind(insert, 1, db.int_value(i))
+        total += db.execute(insert).affected_rows
+    }
+    db.commit(transaction)
+    print(prefix + "_insert", time.monotonic_micros() - start, total)
+    db.close_statement(insert)
+    auto query = db.prepare(connection, "SELECT id, label FROM bench_items ORDER BY id")
+    start = time.monotonic_micros()
+    total = 0
+    for i in 1..=10
+    {
+        auto cursor = db.query(query)
+        auto row = db.next(cursor)
+        while row.is_some()
+        {
+            total += db.get_int(row.value(), 0).value() + len(db.get_str(row.value(), 1).value())
+            row = db.next(cursor)
+        }
+        db.close_cursor(cursor)
+    }
+    print(prefix + "_read", time.monotonic_micros() - start, total)
+    db.close_statement(query)
+    start = time.monotonic_micros()
+    total = 0
+    for i in 1..=100
+    {
+        auto tx = db.begin(connection, mode)
+        db.savepoint(tx, "point")
+        execute(connection, "INSERT INTO bench_items VALUES(9999, 'rollback')")
+        db.rollback_to(tx, "point")
+        db.release_savepoint(tx, "point")
+        db.commit(tx)
+        total += 1
+    }
+    print(prefix + "_savepoint", time.monotonic_micros() - start, total)
+    db.close(connection)
+}
+
+def async_queries(pool: db_pool, scope: task_scope) -> int
+{
+    auto total = 0
+    auto parameters = db.parameters(vector<db_value>())
+    for i in 1..=100
+    {
+        auto rows = task.wait(db.query_async(pool, "SELECT 42", parameters, 1, 4096, 5000, task.token(scope)))
+        total += db.get_int(rows[0], 0).value()
+    }
+    return total
+}
+
+def main() -> int
+{
+    if env.get("BENCH_GROUP") == "postgres"
+    {
+        auto config = db.postgres_options("localhost", "postgres", "tx_test", env.get("TX_DB_CA"))
+        config.port = parse.parse_int(env.get("TX_DB_PORT"))
+        auto password = secret.from_bytes(bytes.from_hex(env.get("TX_DB_PASSWORD_HEX")))
+        workload(db.open_postgres(config, password), "postgres", "$1")
+        secret.close(password)
+        return 0
+    }
+    workload(db.open(db.sqlite_options(":memory:")), "sqlite", "?")
+    auto config = db.sqlite_options("bench.sqlite")
+    auto pool = db.pool(config, 2, 8)
+    auto start = time.monotonic_micros()
+    auto total = 0
+    for i in 1..=100
+    {
+        auto connection = db.acquire(pool, 5000)
+        auto statement = db.prepare(connection, "SELECT 42")
+        auto cursor = db.query(statement)
+        total += db.get_int(db.next(cursor).value(), 0).value()
+        db.close_cursor(cursor)
+        db.close_statement(statement)
+        db.release(connection)
+    }
+    print("sqlite_pool", time.monotonic_micros() - start, total)
+    start = time.monotonic_micros()
+    total = task.scope(bind(async_queries, pool), 16, -1)
+    print("sqlite_async", time.monotonic_micros() - start, total)
+    db.close_pool(pool)
+    auto connection = db.open(db.sqlite_options(":memory:"))
+    auto statements = vector<str>(["CREATE TABLE migration_items(id BIGINT)"])
+    auto checksum = db.migration_checksum(statements)
+    db.migrate(connection, 1, statements, checksum)
+    start = time.monotonic_micros()
+    total = 0
+    for i in 1..=100
+    {
+        db.migrate(connection, 1, statements, checksum)
+        total += db.schema_version(connection)
+    }
+    print("migration_recheck", time.monotonic_micros() - start, total)
+    db.close(connection)
+    return 0
+}

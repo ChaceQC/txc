@@ -106,22 +106,9 @@ void secure_connection::load_identity()
         }
         return;
     }
-    auto identity = get_identity(identity_id_);
-    std::lock_guard lock(identity->mutex);
-    if (identity->certificates.empty())
-    {
-        security_error("invalid_certificate", "TLS 身份没有叶证书");
-    }
-    for (const auto& certificate : identity->certificates)
-    {
-        require_success(mbedtls_x509_crt_parse_der(&cert_,
-            certificate->data(), certificate->size()), "加载 TLS 身份证书");
-    }
-    const auto private_key = identity->private_key->view();
-    require_success(mbedtls_pk_parse_key(&key_, private_key.data(),
-        private_key.size(), nullptr, 0, mbedtls_ctr_drbg_random, &rng_),
-        "加载 TLS 私钥");
-    require_success(mbedtls_ssl_conf_own_cert(&config_, &cert_, &key_),
+    identity_owner_ = get_identity(identity_id_);
+    identity_material_ = acquire_identity_material(identity_owner_);
+    require_success(mbedtls_ssl_conf_own_cert(&config_, &identity_material_->certificates, &identity_material_->key),
         "配置 TLS 身份");
 }
 
@@ -139,24 +126,16 @@ void secure_connection::initialize(std::int64_t timeout_ms)
     {
         network::fail("operation_failed", "配置 TLS TCP_NODELAY 失败");
     }
-    mbedtls_entropy_init(&entropy_);
-    mbedtls_ctr_drbg_init(&rng_);
-    mbedtls_x509_crt_init(&cert_);
-    mbedtls_pk_init(&key_);
     mbedtls_ssl_config_init(&config_);
     mbedtls_ssl_init(&ssl_);
     try
     {
-        static constexpr unsigned char personalization[] = "tx-tls-stream";
-        require_success(mbedtls_ctr_drbg_seed(&rng_, mbedtls_entropy_func,
-            &entropy_, personalization, sizeof(personalization) - 1),
-            "初始化 TLS 随机数");
         require_success(mbedtls_ssl_config_defaults(&config_,
             server_ ? MBEDTLS_SSL_IS_SERVER : MBEDTLS_SSL_IS_CLIENT,
             MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT),
             "初始化 TLS 配置");
         mbedtls_ssl_conf_min_tls_version(&config_, MBEDTLS_SSL_VERSION_TLS1_2);
-        mbedtls_ssl_conf_rng(&config_, mbedtls_ctr_drbg_random, &rng_);
+        mbedtls_ssl_conf_rng(&config_, tls_random, nullptr);
         // 链验证统一交由现有 Windows X.509 信任引擎；握手时请求证书，
         // 但绝不在应用层验证完成前返回安全流或交付明文。
         mbedtls_ssl_conf_authmode(&config_, MBEDTLS_SSL_VERIFY_OPTIONAL);

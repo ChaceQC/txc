@@ -332,6 +332,15 @@ void llvm_code_generator::release(const ir_value& value)
 
 void llvm_code_generator::release_slot(const variable_slot& variable)
 {
+    if (!variable.local_class_storage.empty())
+    {
+        write_instruction("call void @" + variable.local_class_cleanup + "(ptr " + variable.local_class_storage + ")");
+        return;
+    }
+    if (!variable.result_length.empty())
+    {
+        return;
+    }
     if (!variable.projected_fields.empty())
     {
         const auto held = temporary();
@@ -607,6 +616,7 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare double @txrt_value_snapshot_to_f64_fast(i8, i64, ptr)\n"
             << "declare i1 @txrt_value_snapshot_to_bool_fast(i8, i64, ptr)\n"
             << "declare i32 @txrt_value_deep_copy(ptr, ptr)\n"
+            << "declare i32 @txrt_value_deep_copy_known(ptr, i64, ptr)\n"
             << "declare void @txrt_value_release(ptr)\n"
             << "declare i32 @txrt_value_assign(ptr, ptr)\n"
             << "declare i32 @txrt_value_set_i64(ptr, i64)\n"
@@ -681,6 +691,18 @@ std::string llvm_code_generator::generate(const program& source, bool library_mo
             << "declare ptr @txrt_dict_ref_get_str(ptr, ptr)\n"
             << "declare ptr @txrt_dict_ref_get_str_str(ptr, ptr)\n"
             << "declare ptr @txrt_dict_ref_get_str_literal(ptr, ptr, i64)\n"
+            << "declare i64 @txrt_dict_ref_get_i64_key_i64(ptr, i64)\n"
+            << "declare i64 @txrt_dict_ref_get_i64_key_f64(ptr, double)\n"
+            << "declare i64 @txrt_dict_ref_get_i64_key_bool(ptr, i1)\n"
+            << "declare double @txrt_dict_ref_get_f64_key_i64(ptr, i64)\n"
+            << "declare double @txrt_dict_ref_get_f64_key_f64(ptr, double)\n"
+            << "declare double @txrt_dict_ref_get_f64_key_bool(ptr, i1)\n"
+            << "declare ptr @txrt_dict_ref_get_str_key_i64(ptr, i64)\n"
+            << "declare ptr @txrt_dict_ref_get_str_key_f64(ptr, double)\n"
+            << "declare ptr @txrt_dict_ref_get_str_key_bool(ptr, i1)\n"
+            << "declare i1 @txrt_dict_ref_contains_i64(ptr, i64)\n"
+            << "declare i1 @txrt_dict_ref_contains_f64(ptr, double)\n"
+            << "declare i1 @txrt_dict_ref_contains_bool(ptr, i1)\n"
             << "declare i32 @txrt_dict_set(ptr, ptr, ptr)\n"
             << "declare i32 @txrt_dict_set_i64_str(ptr, ptr, i64)\n"
             << "declare i32 @txrt_dict_set_f64_str(ptr, ptr, double)\n"

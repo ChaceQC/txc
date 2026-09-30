@@ -21,7 +21,8 @@ bool ir_builder::inert_destruction(const value_type& type, std::set<std::string>
         return false;
     }
     bool inert = false;
-    if (type.is_vector() || type.is_typed_container() || type.is_sum_type() || type.is_priority_entry())
+    if (type.is_vector() || type.is_typed_container() || type.is_sum_type() ||
+        type.is_iterator() || type.is_priority_entry())
     {
         inert = std::all_of(type.parameters.begin(), type.parameters.end(), [&](const value_type& element)
         {

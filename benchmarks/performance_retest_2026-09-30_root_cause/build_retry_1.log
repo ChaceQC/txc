@@ -1,0 +1,19 @@
+-- Configuring done (11.0s)
+-- Generating done (0.6s)
+-- Build files have been written to: E:/Project/other/Compilation/build
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+已生成 E:\Project\other\Compilation\build\httpx_bridge.ll
+已生成 E:\Project\other\Compilation\build\websocket_bridge.ll
+已生成 E:\Project\other\Compilation\build\requests_bridge.ll
+ThinLTO 标准库：50/317
+ThinLTO 标准库：100/317
+ThinLTO 标准库：150/317
+ThinLTO 标准库：200/317
+ThinLTO 标准库：250/317
+ThinLTO 标准库：300/317
+ThinLTO ABI 原生对象：ws_client.cpp
+ThinLTO 标准库完成：319 个 bitcode 模块，1 个 ABI 原生对象，LLVM 23.1.2
+编译器已生成：E:\Project\other\Compilation\tx\txc.exe
+标准库已生成：E:\Project\other\Compilation\tx\libtxstdlib.a
+标准库接口：E:\Project\other\Compilation\tx\stdlib

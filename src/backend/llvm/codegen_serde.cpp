@@ -172,7 +172,9 @@ std::string llvm_code_generator::serde_schema_constant(const value_type& type)
             specialized = "@tx_serde_pair_" + suffix;
         }
     }
-    const bool direct = static_record_type(type) && policy == 0 && emit_serde_static(definition, symbol);
+    // 整个对象的双字段编解码器比字段级分派更强，不能被后者覆盖。
+    const bool direct = specialized == "null" && static_record_type(type) &&
+        policy == 0 && emit_serde_static(definition, symbol);
     globals_ << symbol << ".fields = private constant [" << count << " x "
              << field_layout << "] [" << fields << "]\n"
              << symbol << " = private constant { ptr, ptr, i64, i64, i64, i64, ptr, ptr, i64, ptr, ptr, ptr, ptr, ptr, ptr } "

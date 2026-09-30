@@ -2,6 +2,7 @@
 #include "backend/cpp/encoding_memory_abi.hpp"
 #include "stdlib/bytes.hpp"
 #include "stdlib/encoding.hpp"
+#include "stdlib/stdlib.hpp"
 
 #include <any>
 #include <limits>
@@ -33,7 +34,8 @@ using tx_generated::detail::make_handle;
 namespace
 {
 
-void encode_memory(std::string_view source, tx::text_encoding selected, void** result)
+void encode_memory(std::string_view source, tx::text_encoding selected, void** result,
+    std::int64_t* length = nullptr)
 {
     if (source.size() > static_cast<std::size_t>(
             std::numeric_limits<int>::max()))
@@ -56,6 +58,11 @@ void encode_memory(std::string_view source, tx::text_encoding selected, void** r
         constexpr std::uint8_t bom[]{0xef, 0xbb, 0xbf};
         const std::span<const std::uint8_t> prefix = selected == tx::text_encoding::utf8_sig
             ? std::span<const std::uint8_t>(bom) : std::span<const std::uint8_t>{};
+        if (length)
+        {
+            *length = static_cast<std::int64_t>(source.size() + prefix.size());
+            return;
+        }
         tx_generated::byte_value bytes = std::make_shared<const tx_generated::byte_storage>(
             std::span<const std::uint8_t>(reinterpret_cast<const std::uint8_t*>(source.data()),
                                           source.size()), prefix);
@@ -72,11 +79,17 @@ void encode_memory(std::string_view source, tx::text_encoding selected, void** r
         throw tx_generated::runtime_failure({tx::error_kind::parse,
             "unrepresentable_character", error.what()});
     }
+    if (length)
+    {
+        *length = static_cast<std::int64_t>(encoded.size());
+        return;
+    }
     *result = make_handle<std::any>(tx_generated::make_bytes(
         {encoded.begin(), encoded.end()}));
 }
 
-void decode_memory(const void* value, tx::text_encoding selected, void** result)
+void decode_memory(const void* value, tx::text_encoding selected, void** result,
+    std::int64_t* length = nullptr)
 {
     const auto& data = *tx_generated::bytes_of(
         *static_cast<const std::any*>(value));
@@ -91,6 +104,24 @@ void decode_memory(const void* value, tx::text_encoding selected, void** result)
                            data.size());
     try
     {
+        if (length)
+        {
+            if (selected == tx::text_encoding::utf8 || selected == tx::text_encoding::utf8_sig)
+            {
+                auto text = source;
+                if (selected == tx::text_encoding::utf8_sig && text.starts_with("\xef\xbb\xbf"))
+                {
+                    text.remove_prefix(3);
+                }
+                tx_generated::detail::validate_utf8(text);
+                *length = tx_generated::tx_len(text);
+            }
+            else
+            {
+                *length = tx_generated::tx_len(tx_generated::detail::decode_text(source, selected));
+            }
+            return;
+        }
         *result = make_handle<std::string>(
             tx_generated::detail::decode_text(source, selected));
     }
@@ -141,5 +172,32 @@ extern "C" int txrt_encoding_decode_known(const void* source, std::int64_t selec
     return tx_generated::detail::invoke_leaf([&]
     {
         decode_memory(source, static_cast<tx::text_encoding>(selected), result);
+    });
+}
+
+extern "C" int txrt_encoding_encode_known_length(const void* source, std::int64_t selected,
+    std::int64_t* result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        encode_memory(tx_generated::detail::text_value(source), static_cast<tx::text_encoding>(selected), nullptr, result);
+    });
+}
+
+extern "C" int txrt_encoding_encode_literal_length(const char* source, std::uint64_t length,
+    std::int64_t selected, std::int64_t* result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        encode_memory(std::string_view(source, length), static_cast<tx::text_encoding>(selected), nullptr, result);
+    });
+}
+
+extern "C" int txrt_encoding_decode_known_length(const void* source, std::int64_t selected,
+    std::int64_t* result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        decode_memory(source, static_cast<tx::text_encoding>(selected), nullptr, result);
     });
 }

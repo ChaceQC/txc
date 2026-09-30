@@ -57,6 +57,7 @@ struct runtime_context
     std::uint64_t gc_owner_id = 0;
     std::mt19937_64 random_engine;
     bool random_initialized = false;
+    std::shared_ptr<void> gc_workspace;
     std::string log_task_id;
     std::string log_thread_id;
     std::string log_request_id;

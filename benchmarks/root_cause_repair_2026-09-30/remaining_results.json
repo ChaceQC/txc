@@ -1,0 +1,1812 @@
+{
+  "utc": "2026-09-30T15:26:18.682480+00:00",
+  "warmups": 1,
+  "rounds": 3,
+  "compiler_sha256": "0e0b8152ec94d91e2d19628ffa1717f946968d56baff230a29cf955756398935",
+  "groups": {
+    "language": {
+      "source": "benchmarks\\language_features\\compare.tx",
+      "source_sha256": "88e1285edafabf7ebdf0ed09002aa61cfe27ad4209224675f4e0d8e90cde313f",
+      "before": "tx_build\\language_features_tx.exe",
+      "before_sha256": "29300964f7d4171311833ba58835af8a2d51d52d919e5514c5a57edf1eab11a7",
+      "after": "tx_build\\root_cause_repair_checks\\language_remaining.exe",
+      "after_sha256": "5a15dabe02bdcdffacad0c3ef7e7e0b1c383f341b61c49741b4ba7d15949e04b",
+      "entries": {
+        "deinit": {
+          "checksum": 20000,
+          "before_ms": [
+            15.104,
+            14.373,
+            14.786
+          ],
+          "before_median_ms": 14.786,
+          "after_ms": [
+            11.832,
+            10.35,
+            10.208
+          ],
+          "after_median_ms": 10.35
+        },
+        "deep_copy": {
+          "checksum": 50005001,
+          "before_ms": [
+            25.441,
+            25.994,
+            23.401
+          ],
+          "before_median_ms": 25.441,
+          "after_ms": [
+            20.31,
+            19.089,
+            19.008
+          ],
+          "after_median_ms": 19.089
+        },
+        "copy_cycle": {
+          "checksum": 50005007,
+          "before_ms": [
+            12.181,
+            9.148,
+            8.877
+          ],
+          "before_median_ms": 9.148,
+          "after_ms": [
+            9.511,
+            8.311,
+            8.022
+          ],
+          "after_median_ms": 8.311
+        },
+        "cycle_gc": {
+          "checksum": 1000,
+          "before_ms": [
+            1.424,
+            1.442,
+            1.453
+          ],
+          "before_median_ms": 1.442,
+          "after_ms": [
+            1.403,
+            1.372,
+            1.331
+          ],
+          "after_median_ms": 1.372
+        },
+        "string_conversion": {
+          "checksum": 1250413894,
+          "before_ms": [
+            16.414,
+            17.404,
+            16.402
+          ],
+          "before_median_ms": 16.414,
+          "after_ms": [
+            11.581,
+            10.647,
+            10.911
+          ],
+          "after_median_ms": 10.911
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "scalar_control": {
+              "ms": 0.187,
+              "checksum": -62500000000
+            },
+            "updates": {
+              "ms": 1.438,
+              "checksum": 391096443253
+            },
+            "while_logic": {
+              "ms": 0.178,
+              "checksum": -62500000000
+            },
+            "float_arithmetic": {
+              "ms": 0.357,
+              "checksum": 62500125000
+            },
+            "overloads": {
+              "ms": 0.189,
+              "checksum": 4838081397
+            },
+            "named_arguments": {
+              "ms": 0.402,
+              "checksum": 18731467920
+            },
+            "recursion": {
+              "ms": 0.035,
+              "checksum": 3420000
+            },
+            "variadic_unpack": {
+              "ms": 11.799,
+              "checksum": 50095000
+            },
+            "array_destructure": {
+              "ms": 0.01,
+              "checksum": 400060000
+            },
+            "array_padded": {
+              "ms": 0.024,
+              "checksum": 1250225000
+            },
+            "dict_iteration": {
+              "ms": 7.16,
+              "checksum": 5000350000
+            },
+            "struct_operators": {
+              "ms": 0.025,
+              "checksum": 5000350000
+            },
+            "class_methods": {
+              "ms": 0.662,
+              "checksum": 2726759900400
+            },
+            "virtual_interface": {
+              "ms": 0.908,
+              "checksum": 3200000
+            },
+            "class_operator": {
+              "ms": 0.593,
+              "checksum": 1000000
+            },
+            "runtime_cast": {
+              "ms": 0.236,
+              "checksum": 800000
+            },
+            "module_call": {
+              "ms": 0.024,
+              "checksum": 15000950000
+            },
+            "string_conversion": {
+              "ms": 16.414,
+              "checksum": 1250413894
+            },
+            "deep_copy": {
+              "ms": 25.441,
+              "checksum": 50005001
+            },
+            "copy_cycle": {
+              "ms": 12.181,
+              "checksum": 50005007
+            },
+            "deinit": {
+              "ms": 15.104,
+              "checksum": 20000
+            },
+            "cycle_gc": {
+              "ms": 1.424,
+              "checksum": 1000
+            }
+          },
+          {
+            "scalar_control": {
+              "ms": 0.17,
+              "checksum": -62500000000
+            },
+            "updates": {
+              "ms": 1.435,
+              "checksum": 391096443253
+            },
+            "while_logic": {
+              "ms": 0.179,
+              "checksum": -62500000000
+            },
+            "float_arithmetic": {
+              "ms": 0.36,
+              "checksum": 62500125000
+            },
+            "overloads": {
+              "ms": 0.19,
+              "checksum": 4838081397
+            },
+            "named_arguments": {
+              "ms": 0.413,
+              "checksum": 18731467920
+            },
+            "recursion": {
+              "ms": 0.034,
+              "checksum": 3420000
+            },
+            "variadic_unpack": {
+              "ms": 11.363,
+              "checksum": 50095000
+            },
+            "array_destructure": {
+              "ms": 0.01,
+              "checksum": 400060000
+            },
+            "array_padded": {
+              "ms": 0.024,
+              "checksum": 1250225000
+            },
+            "dict_iteration": {
+              "ms": 7.375,
+              "checksum": 5000350000
+            },
+            "struct_operators": {
+              "ms": 0.025,
+              "checksum": 5000350000
+            },
+            "class_methods": {
+              "ms": 0.673,
+              "checksum": 2726759900400
+            },
+            "virtual_interface": {
+              "ms": 0.92,
+              "checksum": 3200000
+            },
+            "class_operator": {
+              "ms": 0.601,
+              "checksum": 1000000
+            },
+            "runtime_cast": {
+              "ms": 0.24,
+              "checksum": 800000
+            },
+            "module_call": {
+              "ms": 0.024,
+              "checksum": 15000950000
+            },
+            "string_conversion": {
+              "ms": 17.404,
+              "checksum": 1250413894
+            },
+            "deep_copy": {
+              "ms": 25.994,
+              "checksum": 50005001
+            },
+            "copy_cycle": {
+              "ms": 9.148,
+              "checksum": 50005007
+            },
+            "deinit": {
+              "ms": 14.373,
+              "checksum": 20000
+            },
+            "cycle_gc": {
+              "ms": 1.442,
+              "checksum": 1000
+            }
+          },
+          {
+            "scalar_control": {
+              "ms": 0.17,
+              "checksum": -62500000000
+            },
+            "updates": {
+              "ms": 1.428,
+              "checksum": 391096443253
+            },
+            "while_logic": {
+              "ms": 0.176,
+              "checksum": -62500000000
+            },
+            "float_arithmetic": {
+              "ms": 0.355,
+              "checksum": 62500125000
+            },
+            "overloads": {
+              "ms": 0.189,
+              "checksum": 4838081397
+            },
+            "named_arguments": {
+              "ms": 0.401,
+              "checksum": 18731467920
+            },
+            "recursion": {
+              "ms": 0.035,
+              "checksum": 3420000
+            },
+            "variadic_unpack": {
+              "ms": 11.258,
+              "checksum": 50095000
+            },
+            "array_destructure": {
+              "ms": 0.01,
+              "checksum": 400060000
+            },
+            "array_padded": {
+              "ms": 0.024,
+              "checksum": 1250225000
+            },
+            "dict_iteration": {
+              "ms": 7.455,
+              "checksum": 5000350000
+            },
+            "struct_operators": {
+              "ms": 0.025,
+              "checksum": 5000350000
+            },
+            "class_methods": {
+              "ms": 0.695,
+              "checksum": 2726759900400
+            },
+            "virtual_interface": {
+              "ms": 0.954,
+              "checksum": 3200000
+            },
+            "class_operator": {
+              "ms": 0.609,
+              "checksum": 1000000
+            },
+            "runtime_cast": {
+              "ms": 0.239,
+              "checksum": 800000
+            },
+            "module_call": {
+              "ms": 0.024,
+              "checksum": 15000950000
+            },
+            "string_conversion": {
+              "ms": 16.402,
+              "checksum": 1250413894
+            },
+            "deep_copy": {
+              "ms": 23.401,
+              "checksum": 50005001
+            },
+            "copy_cycle": {
+              "ms": 8.877,
+              "checksum": 50005007
+            },
+            "deinit": {
+              "ms": 14.786,
+              "checksum": 20000
+            },
+            "cycle_gc": {
+              "ms": 1.453,
+              "checksum": 1000
+            }
+          }
+        ],
+        "after": [
+          {
+            "scalar_control": {
+              "ms": 0.256,
+              "checksum": -62500000000
+            },
+            "updates": {
+              "ms": 1.424,
+              "checksum": 391096443253
+            },
+            "while_logic": {
+              "ms": 0.178,
+              "checksum": -62500000000
+            },
+            "float_arithmetic": {
+              "ms": 0.357,
+              "checksum": 62500125000
+            },
+            "overloads": {
+              "ms": 0.189,
+              "checksum": 4838081397
+            },
+            "named_arguments": {
+              "ms": 0.402,
+              "checksum": 18731467920
+            },
+            "recursion": {
+              "ms": 0.035,
+              "checksum": 3420000
+            },
+            "variadic_unpack": {
+              "ms": 11.433,
+              "checksum": 50095000
+            },
+            "array_destructure": {
+              "ms": 0.011,
+              "checksum": 400060000
+            },
+            "array_padded": {
+              "ms": 0.024,
+              "checksum": 1250225000
+            },
+            "dict_iteration": {
+              "ms": 7.67,
+              "checksum": 5000350000
+            },
+            "struct_operators": {
+              "ms": 0.026,
+              "checksum": 5000350000
+            },
+            "class_methods": {
+              "ms": 0.7,
+              "checksum": 2726759900400
+            },
+            "virtual_interface": {
+              "ms": 0.974,
+              "checksum": 3200000
+            },
+            "class_operator": {
+              "ms": 0.675,
+              "checksum": 1000000
+            },
+            "runtime_cast": {
+              "ms": 0.277,
+              "checksum": 800000
+            },
+            "module_call": {
+              "ms": 0.025,
+              "checksum": 15000950000
+            },
+            "string_conversion": {
+              "ms": 11.581,
+              "checksum": 1250413894
+            },
+            "deep_copy": {
+              "ms": 20.31,
+              "checksum": 50005001
+            },
+            "copy_cycle": {
+              "ms": 9.511,
+              "checksum": 50005007
+            },
+            "deinit": {
+              "ms": 11.832,
+              "checksum": 20000
+            },
+            "cycle_gc": {
+              "ms": 1.403,
+              "checksum": 1000
+            }
+          },
+          {
+            "scalar_control": {
+              "ms": 0.261,
+              "checksum": -62500000000
+            },
+            "updates": {
+              "ms": 1.442,
+              "checksum": 391096443253
+            },
+            "while_logic": {
+              "ms": 0.177,
+              "checksum": -62500000000
+            },
+            "float_arithmetic": {
+              "ms": 0.355,
+              "checksum": 62500125000
+            },
+            "overloads": {
+              "ms": 0.193,
+              "checksum": 4838081397
+            },
+            "named_arguments": {
+              "ms": 0.399,
+              "checksum": 18731467920
+            },
+            "recursion": {
+              "ms": 0.035,
+              "checksum": 3420000
+            },
+            "variadic_unpack": {
+              "ms": 11.043,
+              "checksum": 50095000
+            },
+            "array_destructure": {
+              "ms": 0.01,
+              "checksum": 400060000
+            },
+            "array_padded": {
+              "ms": 0.024,
+              "checksum": 1250225000
+            },
+            "dict_iteration": {
+              "ms": 7.029,
+              "checksum": 5000350000
+            },
+            "struct_operators": {
+              "ms": 0.024,
+              "checksum": 5000350000
+            },
+            "class_methods": {
+              "ms": 0.688,
+              "checksum": 2726759900400
+            },
+            "virtual_interface": {
+              "ms": 0.942,
+              "checksum": 3200000
+            },
+            "class_operator": {
+              "ms": 0.6,
+              "checksum": 1000000
+            },
+            "runtime_cast": {
+              "ms": 0.273,
+              "checksum": 800000
+            },
+            "module_call": {
+              "ms": 0.024,
+              "checksum": 15000950000
+            },
+            "string_conversion": {
+              "ms": 10.647,
+              "checksum": 1250413894
+            },
+            "deep_copy": {
+              "ms": 19.089,
+              "checksum": 50005001
+            },
+            "copy_cycle": {
+              "ms": 8.311,
+              "checksum": 50005007
+            },
+            "deinit": {
+              "ms": 10.35,
+              "checksum": 20000
+            },
+            "cycle_gc": {
+              "ms": 1.372,
+              "checksum": 1000
+            }
+          },
+          {
+            "scalar_control": {
+              "ms": 0.251,
+              "checksum": -62500000000
+            },
+            "updates": {
+              "ms": 1.392,
+              "checksum": 391096443253
+            },
+            "while_logic": {
+              "ms": 0.174,
+              "checksum": -62500000000
+            },
+            "float_arithmetic": {
+              "ms": 0.356,
+              "checksum": 62500125000
+            },
+            "overloads": {
+              "ms": 0.186,
+              "checksum": 4838081397
+            },
+            "named_arguments": {
+              "ms": 0.395,
+              "checksum": 18731467920
+            },
+            "recursion": {
+              "ms": 0.034,
+              "checksum": 3420000
+            },
+            "variadic_unpack": {
+              "ms": 11.236,
+              "checksum": 50095000
+            },
+            "array_destructure": {
+              "ms": 0.01,
+              "checksum": 400060000
+            },
+            "array_padded": {
+              "ms": 0.024,
+              "checksum": 1250225000
+            },
+            "dict_iteration": {
+              "ms": 7.045,
+              "checksum": 5000350000
+            },
+            "struct_operators": {
+              "ms": 0.024,
+              "checksum": 5000350000
+            },
+            "class_methods": {
+              "ms": 0.613,
+              "checksum": 2726759900400
+            },
+            "virtual_interface": {
+              "ms": 0.953,
+              "checksum": 3200000
+            },
+            "class_operator": {
+              "ms": 0.608,
+              "checksum": 1000000
+            },
+            "runtime_cast": {
+              "ms": 0.312,
+              "checksum": 800000
+            },
+            "module_call": {
+              "ms": 0.051,
+              "checksum": 15000950000
+            },
+            "string_conversion": {
+              "ms": 10.911,
+              "checksum": 1250413894
+            },
+            "deep_copy": {
+              "ms": 19.008,
+              "checksum": 50005001
+            },
+            "copy_cycle": {
+              "ms": 8.022,
+              "checksum": 50005007
+            },
+            "deinit": {
+              "ms": 10.208,
+              "checksum": 20000
+            },
+            "cycle_gc": {
+              "ms": 1.331,
+              "checksum": 1000
+            }
+          }
+        ]
+      }
+    },
+    "dictionary": {
+      "source": "benchmarks\\diverse_performance.tx",
+      "source_sha256": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+      "before": "tx_build\\performance_retest_2026_09_30_static_execution\\equivalence\\diverse_tx.exe",
+      "before_sha256": "e2eb0dcc0028e16d80a85e885516ac5146df6ef882db3e4ffd084f8610361191",
+      "after": "tx_build\\root_cause_repair_checks\\dictionary_remaining.exe",
+      "after_sha256": "91641a5a69ae759fde65d55b7fc1e55cdd6f4197ee7c47d9187fe94e2c327124",
+      "entries": {
+        "dictionary_int_hit": {
+          "checksum": 200000,
+          "before_ms": [
+            1.274,
+            1.296,
+            1.259
+          ],
+          "before_median_ms": 1.274,
+          "after_ms": [
+            0.922,
+            0.884,
+            0.875
+          ],
+          "after_median_ms": 0.884
+        },
+        "dictionary_text_hit": {
+          "checksum": 200000,
+          "before_ms": [
+            2.308,
+            2.34,
+            2.724
+          ],
+          "before_median_ms": 2.34,
+          "after_ms": [
+            2.325,
+            2.278,
+            2.242
+          ],
+          "after_median_ms": 2.278
+        },
+        "dictionary_mostly_miss": {
+          "checksum": 1,
+          "before_ms": [
+            0.8,
+            0.867,
+            1.237
+          ],
+          "before_median_ms": 0.867,
+          "after_ms": [
+            0.527,
+            0.55,
+            0.531
+          ],
+          "after_median_ms": 0.531
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "vector_scan_1k": {
+              "ms": 0.246,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.334,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.289,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.288,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.712,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 2.0,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 1.868,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.274,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.308,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.8,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 6.477,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 6.16,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 11.171,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 10.9,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.768,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.128,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.754,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.71,
+              "checksum": 100000
+            }
+          },
+          {
+            "vector_scan_1k": {
+              "ms": 0.264,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.376,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.291,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.291,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.523,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 1.963,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 1.884,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.296,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.34,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.867,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 6.451,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 6.308,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 15.533,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 21.198,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 13.624,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 10.213,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.812,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.877,
+              "checksum": 100000
+            }
+          },
+          {
+            "vector_scan_1k": {
+              "ms": 0.258,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.347,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.298,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.302,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.523,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 1.959,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 1.964,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.259,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.724,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 1.237,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 6.44,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 6.487,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 12.382,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 11.118,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.814,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.491,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.769,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.726,
+              "checksum": 100000
+            }
+          }
+        ],
+        "after": [
+          {
+            "vector_scan_1k": {
+              "ms": 0.268,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 3.536,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.3,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.289,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.502,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 1.94,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 2.492,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 0.922,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.325,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.527,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 0.555,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 0.551,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 1.047,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 0.991,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.616,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.236,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.733,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.736,
+              "checksum": 100000
+            }
+          },
+          {
+            "vector_scan_1k": {
+              "ms": 0.258,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 3.582,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.295,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.304,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.816,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 2.284,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 1.933,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 0.884,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.278,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.55,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 0.564,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 0.572,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 1.068,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 1.007,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.369,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.135,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.77,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.79,
+              "checksum": 100000
+            }
+          },
+          {
+            "vector_scan_1k": {
+              "ms": 0.262,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 3.87,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.295,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.295,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.53,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 2.134,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 2.131,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 0.875,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.242,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.531,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 0.558,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 0.564,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 1.06,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 1.083,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.251,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 7.752,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.739,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.831,
+              "checksum": 100000
+            }
+          }
+        ]
+      }
+    },
+    "diagnostics": {
+      "source": "benchmarks\\stdlib_retest_2026-09-30_static_execution\\diagnostics.tx",
+      "source_sha256": "c02e98447a3d7b348243b2614daf1622206e85faf609ba49c64d4057edfb40af",
+      "before": "tx_build\\stdlib_retest_2026_09_30_static_execution\\diagnostics.exe",
+      "before_sha256": "6d878e66b963b0a411db36d6b590b4d5819453138ec57cc3c9a2cf034ac1596a",
+      "after": "tx_build\\root_cause_repair_checks\\diagnostics_remaining.exe",
+      "after_sha256": "5482bcd9a8e4d851cf19b2f13ad5d61f541108053629dc67af133dc1d7befcb7",
+      "entries": {
+        "test_parameterized": {
+          "checksum": 199990000,
+          "before_ms": [
+            0.209,
+            0.205,
+            0.205
+          ],
+          "before_median_ms": 0.205,
+          "after_ms": [
+            0.19,
+            0.189,
+            0.194
+          ],
+          "after_median_ms": 0.19
+        },
+        "test_property": {
+          "checksum": 20000,
+          "before_ms": [
+            0.34,
+            0.346,
+            0.33
+          ],
+          "before_median_ms": 0.34,
+          "after_ms": [
+            0.303,
+            0.304,
+            0.388
+          ],
+          "after_median_ms": 0.304
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "test_parameterized": {
+              "ms": 0.209,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.34,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.885,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 31.189,
+              "checksum": 2000
+            }
+          },
+          {
+            "test_parameterized": {
+              "ms": 0.205,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.346,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.94,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 29.659,
+              "checksum": 2000
+            }
+          },
+          {
+            "test_parameterized": {
+              "ms": 0.205,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.33,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.878,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 29.815,
+              "checksum": 2000
+            }
+          }
+        ],
+        "after": [
+          {
+            "test_parameterized": {
+              "ms": 0.19,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.303,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.832,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 32.82,
+              "checksum": 2000
+            }
+          },
+          {
+            "test_parameterized": {
+              "ms": 0.189,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.304,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.844,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 30.748,
+              "checksum": 2000
+            }
+          },
+          {
+            "test_parameterized": {
+              "ms": 0.194,
+              "checksum": 199990000
+            },
+            "test_property": {
+              "ms": 0.388,
+              "checksum": 20000
+            },
+            "log_filtered": {
+              "ms": 0.852,
+              "checksum": 100000
+            },
+            "log_file": {
+              "ms": 30.792,
+              "checksum": 2000
+            }
+          }
+        ]
+      }
+    },
+    "database": {
+      "source": "benchmarks\\stdlib_retest_2026-09-30_static_execution\\database.tx",
+      "source_sha256": "7fbe2847bdf20c590ef8615e136a7e006c6e7286247b8447bee77c2f19c0051c",
+      "before": "tx_build\\stdlib_retest_2026_09_30_static_execution\\database.exe",
+      "before_sha256": "5d5eb2c50789130fd3a17a43438655f9906da7217ef2921b5e687c81cf3f4ddc",
+      "after": "tx_build\\root_cause_repair_checks\\database_remaining.exe",
+      "after_sha256": "4ee1c0fbd6d54f4ea270cd8c65cb12e9cfd09698d550591f54b0744cf8b37bfc",
+      "entries": {
+        "sqlite_pool": {
+          "checksum": 4200,
+          "before_ms": [
+            43.401,
+            42.816,
+            43.235
+          ],
+          "before_median_ms": 43.235,
+          "after_ms": [
+            1.664,
+            1.6,
+            1.955
+          ],
+          "after_median_ms": 1.664
+        },
+        "sqlite_async": {
+          "checksum": 4200,
+          "before_ms": [
+            53.513,
+            52.002,
+            51.766
+          ],
+          "before_median_ms": 52.002,
+          "after_ms": [
+            2.652,
+            3.419,
+            3.409
+          ],
+          "after_median_ms": 3.409
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "sqlite_insert": {
+              "ms": 11.476,
+              "checksum": 2000
+            },
+            "sqlite_read": {
+              "ms": 25.115,
+              "checksum": 20150000
+            },
+            "sqlite_savepoint": {
+              "ms": 2.5,
+              "checksum": 100
+            },
+            "sqlite_pool": {
+              "ms": 43.401,
+              "checksum": 4200
+            },
+            "sqlite_async": {
+              "ms": 53.513,
+              "checksum": 4200
+            },
+            "migration_recheck": {
+              "ms": 2.185,
+              "checksum": 100
+            }
+          },
+          {
+            "sqlite_insert": {
+              "ms": 11.242,
+              "checksum": 2000
+            },
+            "sqlite_read": {
+              "ms": 24.784,
+              "checksum": 20150000
+            },
+            "sqlite_savepoint": {
+              "ms": 2.501,
+              "checksum": 100
+            },
+            "sqlite_pool": {
+              "ms": 42.816,
+              "checksum": 4200
+            },
+            "sqlite_async": {
+              "ms": 52.002,
+              "checksum": 4200
+            },
+            "migration_recheck": {
+              "ms": 2.135,
+              "checksum": 100
+            }
+          },
+          {
+            "sqlite_insert": {
+              "ms": 11.557,
+              "checksum": 2000
+            },
+            "sqlite_read": {
+              "ms": 25.372,
+              "checksum": 20150000
+            },
+            "sqlite_savepoint": {
+              "ms": 2.552,
+              "checksum": 100
+            },
+            "sqlite_pool": {
+              "ms": 43.235,
+              "checksum": 4200
+            },
+            "sqlite_async": {
+              "ms": 51.766,
+              "checksum": 4200
+            },
+            "migration_recheck": {
+              "ms": 1.89,
+              "checksum": 100
+            }
+          }
+        ],
+        "after": [
+          {
+            "sqlite_insert": {
+              "ms": 11.24,
+              "checksum": 2000
+            },
+            "sqlite_read": {
+              "ms": 23.991,
+              "checksum": 20150000
+            },
+            "sqlite_savepoint": {
+              "ms": 2.519,
+              "checksum": 100
+            },
+            "sqlite_pool": {
+              "ms": 1.664,
+              "checksum": 4200
+            },
+            "sqlite_async": {
+              "ms": 2.652,
+              "checksum": 4200
+            },
+            "migration_recheck": {
+              "ms": 1.919,
+              "checksum": 100
+            }
+          },
+          {
+            "sqlite_insert": {
+              "ms": 11.23,
+              "checksum": 2000
+            },
+            "sqlite_read": {
+              "ms": 24.373,
+              "checksum": 20150000
+            },
+            "sqlite_savepoint": {
+              "ms": 2.536,
+              "checksum": 100
+            },
+            "sqlite_pool": {
+              "ms": 1.6,
+              "checksum": 4200
+            },
+            "sqlite_async": {
+              "ms": 3.419,
+              "checksum": 4200
+            },
+            "migration_recheck": {
+              "ms": 2.112,
+              "checksum": 100
+            }
+          },
+          {
+            "sqlite_insert": {
+              "ms": 11.147,
+              "checksum": 2000
+            },
+            "sqlite_read": {
+              "ms": 23.694,
+              "checksum": 20150000
+            },
+            "sqlite_savepoint": {
+              "ms": 2.556,
+              "checksum": 100
+            },
+            "sqlite_pool": {
+              "ms": 1.955,
+              "checksum": 4200
+            },
+            "sqlite_async": {
+              "ms": 3.409,
+              "checksum": 4200
+            },
+            "migration_recheck": {
+              "ms": 1.955,
+              "checksum": 100
+            }
+          }
+        ]
+      }
+    },
+    "network": {
+      "source": "benchmarks\\stdlib_retest_2026-09-30_static_execution\\network.tx",
+      "source_sha256": "a095c194ec432eabfd311f4437a4d693e725895393a7d43d328dd98b15094e79",
+      "before": "tx_build\\stdlib_retest_2026_09_30_static_execution\\network.exe",
+      "before_sha256": "600c78f8d74779a9773750680376f1e1b2bf714e6a2c230c0bf4253392743ec2",
+      "after": "tx_build\\root_cause_repair_checks\\network_remaining.exe",
+      "after_sha256": "3b21b14629fd304228c6d5ead469401542444776e7e43bc30b6a25065b681898",
+      "entries": {
+        "tls_handshake": {
+          "checksum": 10,
+          "before_ms": [
+            86.14,
+            92.109,
+            133.922
+          ],
+          "before_median_ms": 92.109,
+          "after_ms": [
+            100.039,
+            85.073,
+            115.747
+          ],
+          "after_median_ms": 100.039
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "dns_localhost": {
+              "ms": 0.258,
+              "checksum": 100
+            },
+            "udp_echo": {
+              "ms": 34.645,
+              "checksum": 512000
+            },
+            "ipc_echo": {
+              "ms": 13.472,
+              "checksum": 21000
+            },
+            "tls_handshake": {
+              "ms": 86.14,
+              "checksum": 10
+            }
+          },
+          {
+            "dns_localhost": {
+              "ms": 0.259,
+              "checksum": 100
+            },
+            "udp_echo": {
+              "ms": 34.129,
+              "checksum": 512000
+            },
+            "ipc_echo": {
+              "ms": 13.714,
+              "checksum": 21000
+            },
+            "tls_handshake": {
+              "ms": 92.109,
+              "checksum": 10
+            }
+          },
+          {
+            "dns_localhost": {
+              "ms": 0.256,
+              "checksum": 100
+            },
+            "udp_echo": {
+              "ms": 33.738,
+              "checksum": 512000
+            },
+            "ipc_echo": {
+              "ms": 13.672,
+              "checksum": 21000
+            },
+            "tls_handshake": {
+              "ms": 133.922,
+              "checksum": 10
+            }
+          }
+        ],
+        "after": [
+          {
+            "dns_localhost": {
+              "ms": 0.431,
+              "checksum": 100
+            },
+            "udp_echo": {
+              "ms": 33.556,
+              "checksum": 512000
+            },
+            "ipc_echo": {
+              "ms": 14.335,
+              "checksum": 21000
+            },
+            "tls_handshake": {
+              "ms": 100.039,
+              "checksum": 10
+            }
+          },
+          {
+            "dns_localhost": {
+              "ms": 0.335,
+              "checksum": 100
+            },
+            "udp_echo": {
+              "ms": 34.757,
+              "checksum": 512000
+            },
+            "ipc_echo": {
+              "ms": 13.027,
+              "checksum": 21000
+            },
+            "tls_handshake": {
+              "ms": 85.073,
+              "checksum": 10
+            }
+          },
+          {
+            "dns_localhost": {
+              "ms": 0.338,
+              "checksum": 100
+            },
+            "udp_echo": {
+              "ms": 33.42,
+              "checksum": 512000
+            },
+            "ipc_echo": {
+              "ms": 13.524,
+              "checksum": 21000
+            },
+            "tls_handshake": {
+              "ms": 115.747,
+              "checksum": 10
+            }
+          }
+        ]
+      }
+    },
+    "random": {
+      "source": "benchmarks\\library_compare\\random_profile.tx",
+      "source_sha256": "3fc45c1add19a00b487102793b82d2eaa937115f03fe53423c1b7b1351d473e4",
+      "before": "tx_build\\performance_retest_2026_09_30_static_execution\\random.exe",
+      "before_sha256": "9830c974155ee5d0a47f70cecfcbd2ad081848f30d695b48967b735a40ceac59",
+      "after": "tx_build\\root_cause_repair_checks\\random_remaining.exe",
+      "after_sha256": "d0fe0a7093b952d13808421328522daadb82a5500092eb4282b74876668516f9",
+      "entries": {
+        "random_long": {
+          "checksum": 2500067985,
+          "before_ms": [
+            35.0,
+            36.0,
+            36.0
+          ],
+          "before_median_ms": 36.0,
+          "after_ms": [
+            25.0,
+            24.0,
+            24.0
+          ],
+          "after_median_ms": 24.0
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "random_long": {
+              "ms": 35.0,
+              "checksum": 2500067985
+            }
+          },
+          {
+            "random_long": {
+              "ms": 36.0,
+              "checksum": 2500067985
+            }
+          },
+          {
+            "random_long": {
+              "ms": 36.0,
+              "checksum": 2500067985
+            }
+          }
+        ],
+        "after": [
+          {
+            "random_long": {
+              "ms": 25.0,
+              "checksum": 2500067985
+            }
+          },
+          {
+            "random_long": {
+              "ms": 24.0,
+              "checksum": 2500067985
+            }
+          },
+          {
+            "random_long": {
+              "ms": 24.0,
+              "checksum": 2500067985
+            }
+          }
+        ]
+      }
+    },
+    "graph": {
+      "source": "benchmarks\\performance_completion_2026-09-30\\graph_contract.cpp",
+      "source_sha256": "90067967a10933388e6fb8d8f6b5d70fe0d0e2bed1d7c2bde1753ae79b096592",
+      "before": "tx_build\\performance_retest_2026_09_30_static_execution\\contracts\\graph_contract.exe",
+      "before_sha256": "572c0f6366358d1ef07ce8242b9cb9749ed3825765fe048a61f1d57845c345bc",
+      "after": "tx_build\\root_cause_repair_checks\\graph_remaining.exe",
+      "after_sha256": "3c6fec853a891f15df6a10483c3a0989c77eae3e5250b7b514ea6aef42934d58",
+      "entries": {
+        "graph_copy": {
+          "checksum": 12800,
+          "before_ms": [
+            7.331,
+            7.228,
+            7.26
+          ],
+          "before_median_ms": 7.26,
+          "after_ms": [
+            4.865,
+            4.887,
+            4.908
+          ],
+          "after_median_ms": 4.887
+        },
+        "graph_gc": {
+          "checksum": 25600,
+          "before_ms": [
+            11.397,
+            10.652,
+            10.851
+          ],
+          "before_median_ms": 10.851,
+          "after_ms": [
+            7.434,
+            7.67,
+            7.501
+          ],
+          "after_median_ms": 7.501
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "graph_copy": {
+              "ms": 7.331,
+              "checksum": 12800
+            },
+            "graph_gc": {
+              "ms": 11.397,
+              "checksum": 25600
+            }
+          },
+          {
+            "graph_copy": {
+              "ms": 7.228,
+              "checksum": 12800
+            },
+            "graph_gc": {
+              "ms": 10.652,
+              "checksum": 25600
+            }
+          },
+          {
+            "graph_copy": {
+              "ms": 7.26,
+              "checksum": 12800
+            },
+            "graph_gc": {
+              "ms": 10.851,
+              "checksum": 25600
+            }
+          }
+        ],
+        "after": [
+          {
+            "graph_copy": {
+              "ms": 4.865,
+              "checksum": 12800
+            },
+            "graph_gc": {
+              "ms": 7.434,
+              "checksum": 25600
+            }
+          },
+          {
+            "graph_copy": {
+              "ms": 4.887,
+              "checksum": 12800
+            },
+            "graph_gc": {
+              "ms": 7.67,
+              "checksum": 25600
+            }
+          },
+          {
+            "graph_copy": {
+              "ms": 4.908,
+              "checksum": 12800
+            },
+            "graph_gc": {
+              "ms": 7.501,
+              "checksum": 25600
+            }
+          }
+        ]
+      }
+    }
+  }
+}

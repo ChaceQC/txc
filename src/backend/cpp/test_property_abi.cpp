@@ -52,7 +52,7 @@ bool predicate_holds(const void* predicate, std::optional<predicate_callback>& b
         {
             bound.emplace(predicate);
         }
-        return (*bound)(value);
+        return bound->invoke_in_scope(value);
     }
     catch (const runtime_failure& error)
     {
@@ -71,11 +71,12 @@ bool check_property(const std::string& name, std::int64_t seed, std::int64_t cou
             "反例缩减步数必须在 0 到 4096 之间"});
     }
     const bound_typed_callback<std::int64_t, std::int64_t, std::int64_t> generator(generate);
+    const callback_execution_scope execution;
     std::optional<predicate_callback> bound_predicate;
     std::optional<bound_typed_callback<std::int64_t, std::int64_t>> bound_shrink;
     for (std::int64_t index = 0; index < count; ++index)
     {
-        auto original = generator(seed, index);
+        auto original = generator.invoke_in_scope(seed, index);
         std::string code;
         if (predicate_holds(predicate, bound_predicate, original, code))
         {
@@ -90,7 +91,7 @@ bool check_property(const std::string& name, std::int64_t seed, std::int64_t cou
             {
                 bound_shrink.emplace(shrink);
             }
-            const auto candidate = (*bound_shrink)(minimal);
+            const auto candidate = bound_shrink->invoke_in_scope(minimal);
             if (!visited.insert(candidate).second)
             {
                 break;
@@ -128,6 +129,7 @@ extern "C" int txrt_test_parameterized(const void* name_value, std::int64_t coun
         validate(name, count, 0);
         *result = true;
         std::optional<bound_typed_callback<void, std::int64_t>> bound;
+        const callback_execution_scope execution;
         for (std::int64_t index = 0; index < count; ++index)
         {
             try
@@ -136,7 +138,7 @@ extern "C" int txrt_test_parameterized(const void* name_value, std::int64_t coun
                 {
                     bound.emplace(operation);
                 }
-                (*bound)(index);
+                bound->invoke_in_scope(index);
             }
             catch (const runtime_failure& error)
             {

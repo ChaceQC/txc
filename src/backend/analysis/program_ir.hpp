@@ -68,6 +68,9 @@ struct function_ir
     analysis_id exit = 1;
     analysis_id error_exit = 2;
     std::unordered_set<const expression*> move_candidates;
+    // 源码引用保留词法绑定身份，供局部表示检查区分遮蔽与真正重绑定。
+    std::unordered_map<const expression*, analysis_id> local_bindings;
+    std::unordered_map<const unpack_assignment*, std::vector<analysis_id>> unpack_bindings;
 };
 
 using function_lookup = std::unordered_map<std::string, std::vector<const function_decl*>>;

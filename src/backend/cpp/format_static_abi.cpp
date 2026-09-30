@@ -1,6 +1,7 @@
 #include "backend/cpp/format_static_abi.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "stdlib/format_internal.hpp"
+#include "stdlib/stdlib.hpp"
 #include <bit>
 
 namespace
@@ -29,6 +30,29 @@ int append_value(void* output, const value_type& value,
 }
 
 } // namespace
+
+extern "C" std::int64_t txrt_format_integer_length(std::int64_t value) noexcept
+{
+    const bool negative = value < 0;
+    // 无符号取模运算可覆盖 INT64_MIN，不能先对有符号数求负。
+    auto magnitude = negative ? 0 - static_cast<std::uint64_t>(value) : static_cast<std::uint64_t>(value);
+    std::int64_t length = negative ? 2 : 1;
+    while (magnitude >= 10)
+    {
+        magnitude /= 10;
+        ++length;
+    }
+    return length;
+}
+
+extern "C" int txrt_format_literal_length(const char* value, std::uint64_t size,
+    std::int64_t* result) noexcept
+{
+    return tx_generated::detail::invoke_leaf([&]
+    {
+        *result = tx_generated::tx_len(std::string_view(value, size));
+    });
+}
 
 extern "C" void tx_format_fast_i64(std::string& output, std::uint64_t bits,
     const tx::format_spec&, char)

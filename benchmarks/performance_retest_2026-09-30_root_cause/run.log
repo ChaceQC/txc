@@ -1,0 +1,117 @@
+START prepare standard library references
+READY dependency sqlite-jdbc-3.46.1.0.jar
+READY dependency postgresql-42.7.4.jar
+READY dependency bcprov-jdk18on-1.78.1.jar
+READY dependency slf4j-api-2.0.16.jar
+READY Java
+READY C++
+READY TX async_file.tx
+READY TX concurrency.tx
+READY TX database.tx
+READY TX diagnostics.tx
+READY TX network.tx
+READY TX profile.tx
+READY TX security.tx
+READY isolated fixtures; secret values omitted
+START language
+PASS language: 16.7 s
+START audit
+START library
+round 1/7: TX, C++
+round 2/7: TX, C++
+round 3/7: TX, C++
+round 4/7: TX, C++
+round 5/7: TX, C++
+round 6/7: TX, C++
+round 7/7: TX, C++
+Saved library to E:\Project\other\Compilation\benchmarks\performance_retest_2026-09-30_root_cause\performance_retest.json
+START audit
+round 1/3: TX, C++, Python, Java
+round 2/3: TX, C++, Python, Java
+round 3/3: TX, C++, Python, Java
+round 1/3: TX, C++, Python, Java
+round 2/3: TX, C++, Python, Java
+round 3/3: TX, C++, Python, Java
+round 1/3: TX, C++, Python, Java
+round 2/3: TX, C++, Python, Java
+round 3/3: TX, C++, Python, Java
+round 1/3: Python, Java
+round 2/3: Python, Java
+round 3/3: Python, Java
+Saved audit to E:\Project\other\Compilation\benchmarks\performance_retest_2026-09-30_root_cause\performance_retest.json
+START network
+round 1/3: TX, C++, Python, Java
+round 2/3: TX, C++, Python, Java
+round 3/3: TX, C++, Python, Java
+round 1/3: TX, C++, Python, Java
+round 2/3: TX, C++, Python, Java
+round 3/3: TX, C++, Python, Java
+Saved network to E:\Project\other\Compilation\benchmarks\performance_retest_2026-09-30_root_cause\performance_retest.json
+PASS mini-filesystem: full official data
+PASS not-yet-on-stage: full official data
+START external
+not-yet-on-stage solution.exe: 45/45 answers matched
+not-yet-on-stage tx.exe: 45/45 answers matched
+mini-filesystem fanout-2000 {"C++": 1.826, "JavaScript": 5.597, "Java": 9.036, "TX": 12.817, "Python": 4.399}
+mini-filesystem deep-pwd-2000 {"C++": 14.984, "JavaScript": 9.708, "Java": 32.458, "TX": 11.564, "Python": 11.644}
+mini-filesystem moves-2000 {"C++": 1.006, "JavaScript": 1.974, "Java": 5.812, "TX": 5.232, "Python": 1.935}
+mini-filesystem random-2000-1 {"C++": 0.971, "JavaScript": 1.977, "Java": 5.856, "TX": 5.999, "Python": 2.568}
+mini-filesystem linklong-2000 {"C++": 116.025, "JavaScript": 120.678, "Java": 278.662, "TX": 31.15, "Python": 458.638}
+not-yet-on-stage all-free-max {"C++": 1.438, "JavaScript": 3.31, "Java": 4.496, "TX": 1.025, "Python": 45.986}
+not-yet-on-stage forced-increasing-max {"C++": 1.442, "JavaScript": 4.684, "Java": 5.479, "TX": 4.353, "Python": 78.369}
+not-yet-on-stage forced-decreasing-max {"C++": 1.426, "JavaScript": 3.263, "Java": 4.88, "TX": 0.996, "Python": 45.125}
+not-yet-on-stage shuffled-tight-max-1 {"C++": 1.89, "JavaScript": 4.396, "Java": 5.445, "TX": 3.178, "Python": 64.999}
+not-yet-on-stage alternating-tight-max {"C++": 1.447, "JavaScript": 4.016, "Java": 5.323, "TX": 2.677, "Python": 61.04}
+Saved external to E:\Project\other\Compilation\benchmarks\performance_retest_2026-09-30_root_cause\performance_retest.json
+PASS audit: 298.7 s
+START special
+PASS special borrowing: 5 cases
+PASS special static_runtime: 5 cases
+PASS special parse_paths: 4 cases
+PASS special format_paths: 3 cases
+PASS special serde_paths: 4 cases
+PASS special paths_09_11: 6 cases
+PASS special paths_12_14: 8 cases
+PASS special paths_15_16: 10 cases
+PASS special file_io: 1 cases
+PASS special: 27.0 s
+START diverse
+Runtime round 1/5: TX, C++, Python, Java
+Runtime round 2/5: C++, Python, Java, TX
+Runtime round 3/5: Python, Java, TX, C++
+Runtime round 4/5: Java, TX, C++, Python
+Runtime round 5/5: TX, C++, Python, Java
+vector_scan_1k: TX 0.261 ms, C++ 0.117 ms, Python 23.458 ms, Java 2.111 ms
+vector_scan_100k: TX 3.584 ms, C++ 1.187 ms, Python 235.644 ms, Java 7.696 ms
+vector_index_sequential: TX 0.297 ms, C++ 0.317 ms, Python 69.585 ms, Java 2.764 ms
+vector_index_strided: TX 0.295 ms, C++ 0.303 ms, Python 70.261 ms, Java 3.098 ms
+map_hit_128: TX 1.581 ms, C++ 0.856 ms, Python 33.363 ms, Java 10.948 ms
+map_hit_8192: TX 2.262 ms, C++ 0.843 ms, Python 40.735 ms, Java 11.115 ms
+map_hit_10_percent: TX 1.967 ms, C++ 1.533 ms, Python 46.398 ms, Java 9.488 ms
+dictionary_int_hit: TX 0.879 ms, C++ 0.760 ms, Python 14.664 ms, Java 4.209 ms
+dictionary_text_hit: TX 2.324 ms, C++ 4.372 ms, Python 14.456 ms, Java 3.425 ms
+dictionary_mostly_miss: TX 0.544 ms, C++ 0.747 ms, Python 15.293 ms, Java 5.117 ms
+format_literal: TX 0.591 ms, C++ 0.768 ms, Python 5.123 ms, Java 15.081 ms
+format_dynamic: TX 0.564 ms, C++ 1.059 ms, Python 10.031 ms, Java 29.213 ms
+encoding_literal: TX 1.086 ms, C++ 2.833 ms, Python 4.915 ms, Java 5.747 ms
+encoding_dynamic: TX 1.020 ms, C++ 2.684 ms, Python 4.899 ms, Java 4.708 ms
+serde_short_text: TX 6.436 ms, C++ 0.940 ms, Python 16.270 ms, Java 14.253 ms
+serde_long_text: TX 8.192 ms, C++ 4.387 ms, Python 18.435 ms, Java 17.988 ms
+parse_valid: TX 0.758 ms, C++ 1.709 ms, Python 13.085 ms, Java 9.843 ms
+parse_invalid: TX 0.755 ms, C++ 6.493 ms, Python 75.031 ms, Java 149.392 ms
+Saved results to E:\Project\other\Compilation\benchmarks\performance_retest_2026-09-30_root_cause\diverse.json
+PASS diverse: 55.4 s
+START equivalent
+已保存 01 等价对照的 5 轮原始样本：E:\Project\other\Compilation\tx_build\performance_retest_2026_09_30_root_cause\equivalence\results_complete.json
+PASS equivalent: 22.0 s
+START contracts
+PASS contracts: 11.8 s
+ALL PERFORMANCE SUITES COMPLETE
+Traceback (most recent call last):
+  File "E:\Project\other\Compilation\benchmarks\performance_retest_2026-09-30_root_cause\run.py", line 142, in <module>
+    main()
+  File "E:\Project\other\Compilation\benchmarks\performance_retest_2026-09-30_root_cause\run.py", line 136, in main
+    stdlib.main()
+  File "E:\Project\other\Compilation\benchmarks\stdlib_retest_2026-09-30_static_execution\run.py", line 93, in main
+    raise RuntimeError("refusing to overwrite completed run")
+RuntimeError: refusing to overwrite completed run

@@ -1,0 +1,7 @@
+{
+  "resumed_utc": "2026-09-30T16:23:44.383710+00:00",
+  "reason": "原采样器 source 指向历史目录，在开始标准库采样前触发防覆盖检查；只续跑标准库",
+  "core_completed": true,
+  "source_and_package_match_build": true,
+  "core_runner_snapshot": "run_core_snapshot.py"
+}

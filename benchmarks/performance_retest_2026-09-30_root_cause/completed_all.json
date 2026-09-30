@@ -1,0 +1,10 @@
+{
+  "all_suites_completed": true,
+  "compiler_source_matches_build": true,
+  "shared_source_and_toolchain_inputs_match": true,
+  "shared_input_count": 745,
+  "core_runner_snapshot_matches_manifest": true,
+  "core_completed": "completed.json",
+  "stdlib_completed": "stdlib/completed.json",
+  "summary": "summary.json"
+}

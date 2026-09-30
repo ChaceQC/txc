@@ -57,11 +57,21 @@ llvm_code_generator::ir_value llvm_code_generator::cast_dict_element(
     }
     else
     {
-        key = expression_value(*index.index);
+        bool borrowed = false;
+        key = index.index->type == value_type::str_type
+            ? read_only_string_value(*index.index, borrowed) : expression_value(*index.index);
+        key.borrowed = borrowed;
         if (key.type == value_type::str_type)
         {
             argument = "ptr " + key.text;
             suffix = "_str";
+        }
+        else if (key.type == value_type::int_type || key.type == value_type::float_type ||
+            key.type == value_type::bool_type)
+        {
+            argument = llvm_type(key.type, position) + " " + key.text;
+            suffix = key.type == value_type::int_type ? "_key_i64" :
+                key.type == value_type::float_type ? "_key_f64" : "_key_bool";
         }
         else
         {

@@ -64,7 +64,9 @@ analysis_id ir_builder::call_value(const expression& item, const call_expression
     instruction.target = !call.indirect && !call.virtual_dispatch && call.overload_index
         ? target(call.name, *call.overload_index) : nullptr;
     const bool container = call.container_type || (call.receiver &&
-        (call.receiver->type.is_vector() || call.receiver->type.is_typed_container()));
+        (call.receiver->type.is_vector() || call.receiver->type.is_typed_container() ||
+         call.receiver->type.is_iterator() || call.receiver->type.is_option() ||
+         call.receiver->type.is_result()));
     instruction.unknown_target = call.indirect || call.virtual_dispatch ||
         (!call.is_constructor && !instruction.target && !container &&
          call.name != "len" && call.name != "is_none" && call.name != "to_float" && call.name != "move");

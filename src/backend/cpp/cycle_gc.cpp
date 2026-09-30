@@ -41,11 +41,25 @@ struct live_node
 struct object_graph
 {
     std::vector<live_node> nodes;
-    identity_table<std::size_t, 64> positions;
+    identity_table<std::size_t, 16> positions;
     std::vector<std::size_t> edges;
     std::vector<std::size_t> edge_offsets;
     std::vector<std::int64_t> external_refs;
     std::vector<bool> reachable;
+    std::vector<std::size_t> pending;
+};
+
+struct graph_snapshot_guard
+{
+    object_graph& graph;
+    ~graph_snapshot_guard()
+    {
+        graph.nodes.clear();
+        if (graph.nodes.capacity() > 8192 || graph.edges.capacity() > 65536)
+        {
+            graph = object_graph{};
+        }
+    }
 };
 
 struct gc_registry
@@ -137,7 +151,8 @@ void append_edge(const std::any& value, void* context)
 
 void mark_reachable(object_graph& graph)
 {
-    std::vector<std::size_t> pending;
+    auto& pending = graph.pending;
+    pending.clear();
     for (std::size_t index = 0; index < graph.nodes.size(); ++index)
     {
         if (graph.external_refs[index] > 0)
@@ -172,10 +187,15 @@ std::uint64_t ensure_gc_owner_id(detail::runtime_context& context)
     return context.gc_owner_id;
 }
 
-object_graph inspect_graph(std::uint64_t owner)
+void inspect_graph(std::uint64_t owner, object_graph& graph)
 {
     auto& registry = registered_graph();
-    object_graph graph;
+    graph.nodes.clear();
+    graph.positions.clear();
+    graph.edges.clear();
+    graph.edge_offsets.clear();
+    graph.external_refs.clear();
+    graph.reachable.clear();
     {
         std::lock_guard lock(registry.mutex);
         if (owner == 0)
@@ -217,7 +237,6 @@ object_graph inspect_graph(std::uint64_t owner)
     }
     graph.edge_offsets.push_back(graph.edges.size());
     mark_reachable(graph);
-    return graph;
 }
 
 struct collection_guard
@@ -289,10 +308,17 @@ void collect_cycles_for_context(detail::runtime_context& context)
     }
     context.collecting = true;
     collection_guard guard{context};
+    // 由已有 FLS 上下文清理，避免 MinGW 对非平凡 thread_local 的重复析构。
+    if (!context.gc_workspace)
+    {
+        context.gc_workspace = std::make_shared<object_graph>();
+    }
+    auto& graph = *static_cast<object_graph*>(context.gc_workspace.get());
+    graph_snapshot_guard snapshot_guard{graph};
     bool completed = false;
     for (std::size_t round = 0; round < 16; ++round)
     {
-        auto graph = inspect_graph(owner_filter);
+        inspect_graph(owner_filter, graph);
         bool finalized = false;
         for (std::size_t index = 0; index < graph.nodes.size(); ++index)
         {
@@ -317,6 +343,8 @@ void collect_cycles_for_context(detail::runtime_context& context)
         completed = true;
         break;
     }
+    // 清除快照的强引用后才能删除注册表中的过期弱引用。
+    graph.nodes.clear();
     auto& registry = registered_graph();
     {
         std::lock_guard lock(registry.mutex);

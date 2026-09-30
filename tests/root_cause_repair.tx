@@ -1,0 +1,227 @@
+import "test.txh" as test
+import "sync.txh" as sync
+import "serde.txh" as serde
+import "error.txh" as errors
+import "cancel.txh" as cancel
+
+struct payload serde(version=2)
+{
+    number: int serde(1)
+    text: str serde(2)
+}
+
+def repeated_guard_names() -> int
+{
+    auto owner = sync.new_mutex(0)
+    for index in 0..=9
+    {
+        auto guard = sync.lock(owner)
+        sync.guard_set(guard, sync.guard_get(guard) + 1)
+        sync.guard_close(guard)
+    }
+    auto guard = sync.lock(owner)
+    int value = sync.guard_get(guard)
+    sync.guard_close(guard)
+    return value
+}
+
+def shadowed_guard_fallback() -> int
+{
+    auto owner = sync.new_mutex(1)
+    auto other = sync.new_mutex(2)
+    auto signal = sync.new_condition()
+    auto source = cancel.source()
+    auto guard = sync.lock(owner)
+    if true
+    {
+        auto guard = sync.lock(other)
+        sync.wait(signal, guard, 0, cancel.token(source))
+        sync.guard_set(guard, 4)
+        sync.guard_close(guard)
+    }
+    int value = sync.guard_get(guard)
+    sync.guard_close(guard)
+    return value
+}
+
+def default_heap() -> int
+{
+    auto values = heap<int>()
+    for index in 0..=9
+    {
+        values.push(index)
+    }
+    int total = 0
+    while !values.empty()
+    {
+        total += values.top()
+        values.pop()
+    }
+    return total
+}
+
+def compare_reverse(left: int, right: int) -> int
+{
+    if left == 99 || right == 99
+    {
+        errors.fail_io("comparator", "比较器失败")
+    }
+    return right - left
+}
+
+def custom_heap() -> int
+{
+    auto values = heap<int>(compare_reverse)
+    values.push(3)
+    values.push(7)
+    return values.top()
+}
+
+def heap_rebound() -> int
+{
+    auto values = heap<int>()
+    values = heap<int>(compare_reverse)
+    values.push(3)
+    values.push(7)
+    return values.top()
+}
+
+def escaped_heap() -> heap<int>
+{
+    auto values = heap<int>()
+    values.push(8)
+    return values
+}
+
+def snapshot_cursor() -> int
+{
+    auto values = vector<int>([1, 2, 3])
+    auto cursor = values.snapshot_iter()
+    values.clear()
+    int total = 0
+    for index in 0..=2
+    {
+        auto item = cursor.next()
+        total += item.value()
+    }
+    auto item = cursor.next()
+    test.assert_true(item.is_none())
+    test.assert_true(cursor.next().is_none())
+    cursor.close()
+    bool failed = false
+    try
+    {
+        cursor.next()
+    }
+    exception errors.runtime_error as error
+    {
+        failed = error.code == "invalid_state"
+    }
+    test.assert_true(failed)
+    return total
+}
+
+def take_next(cursor: iterator<int>) -> int
+{
+    return cursor.next().value()
+}
+
+def shared_cursor() -> int
+{
+    auto values = vector<int>([3, 7])
+    auto cursor = values.snapshot_iter()
+    int first = take_next(cursor)
+    return first + cursor.next().value()
+}
+
+def saved_element(owner: vector<str>, text: str) -> void
+{
+    owner.push_back(text)
+}
+
+def returned_option(text: str) -> option<str>
+{
+    return option<str>(text)
+}
+
+def option_alias(text: str) -> str
+{
+    auto value = option<str>(text)
+    return value.value()
+}
+
+def check_failures() -> void
+{
+    bool failed = false
+    try
+    {
+        auto values = heap<int>(compare_reverse)
+        values.push(1)
+        values.push(99)
+    }
+    exception errors.io_error as error
+    {
+        failed = error.code == "comparator"
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        auto values = heap<int>()
+        values.top()
+    }
+    exception errors.runtime_error as error
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+}
+
+def check_pair_serde() -> void
+{
+    auto value = payload(7, "甲🌍")
+    auto json = serde.deserialize_json<payload>(serde.serialize_json(value))
+    auto cbor = serde.deserialize_cbor<payload>(serde.serialize_cbor(value))
+    test.assert_equal(7, json.number)
+    test.assert_equal("甲🌍", cbor.text)
+    bool failed = false
+    try
+    {
+        serde.deserialize_json<payload>("{\"$schema\":2,\"number\":1,\"number\":2,\"text\":\"x\"}")
+    }
+    exception errors.runtime_error as error
+    {
+        failed = error.code == "duplicate_key"
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        serde.deserialize_json<payload>("{\"$schema\":2,\"number\":1,\"text\":\"x\",\"unknown\":1}")
+    }
+    exception errors.runtime_error as error
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+}
+
+def main() -> int
+{
+    test.assert_equal(10, repeated_guard_names())
+    test.assert_equal(1, shadowed_guard_fallback())
+    test.assert_equal(45, default_heap())
+    test.assert_equal(custom_heap(), heap_rebound())
+    test.assert_equal(8, escaped_heap().top())
+    test.assert_equal(6, snapshot_cursor())
+    test.assert_equal(10, shared_cursor())
+    auto owner = vector<str>()
+    saved_element(owner, "保留的元素")
+    test.assert_equal("保留的元素", owner[0])
+    test.assert_equal("选项内容", returned_option("选项内容").value())
+    test.assert_equal("返回别名", option_alias("返回别名"))
+    check_failures()
+    check_pair_serde()
+    print("ROOT_CAUSE_REPAIR_OK")
+    return 0
+}

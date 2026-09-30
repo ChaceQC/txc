@@ -1,0 +1,1143 @@
+-- Configuring done (375.6s)
+-- Generating done (0.7s)
+-- Build files have been written to: E:/Project/other/Compilation/build
+[0/2] Re-checking globbed directories...
+[1/667] Building C object _deps/mbedtls-build/3rdparty/everest/CMakeFiles/everest.dir/library/everest.c.obj
+[2/667] Building C object _deps/mbedtls-build/3rdparty/everest/CMakeFiles/everest.dir/library/x25519.c.obj
+[3/667] Building C object _deps/mbedtls-build/3rdparty/everest/CMakeFiles/everest.dir/library/Hacl_Curve25519_joined.c.obj
+[4/667] Building C object _deps/mbedtls-build/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m_driver_entrypoints.c.obj
+[5/667] Building C object _deps/mbedtls-build/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m/p256-m.c.obj
+[6/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/aes.c.obj
+[7/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/aesni.c.obj
+[8/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/aesce.c.obj
+[9/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/aria.c.obj
+[10/667] Creating directories for 'tx_nghttp3_external'
+[11/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/asn1parse.c.obj
+[12/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/asn1write.c.obj
+[13/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/base64.c.obj
+[14/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/bignum.c.obj
+[15/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/bignum_core.c.obj
+[16/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/bignum_mod.c.obj
+[17/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/bignum_mod_raw.c.obj
+[18/667] Linking C static library _deps\mbedtls-build\3rdparty\everest\libeverest.a
+[19/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/block_cipher.c.obj
+[20/667] Linking C static library _deps\mbedtls-build\3rdparty\p256-m\libp256m.a
+[21/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/camellia.c.obj
+[22/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ccm.c.obj
+[23/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/chacha20.c.obj
+[24/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/chachapoly.c.obj
+[25/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/cipher.c.obj
+[26/667] No download step for 'tx_nghttp3_external'
+[27/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/cipher_wrap.c.obj
+[28/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/constant_time.c.obj
+[29/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/cmac.c.obj
+[30/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ctr_drbg.c.obj
+[31/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/des.c.obj
+[32/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/dhm.c.obj
+[33/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ecdh.c.obj
+[34/667] No update step for 'tx_nghttp3_external'
+[35/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ecdsa.c.obj
+[36/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ecjpake.c.obj
+[37/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj
+[38/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ecp_curves.c.obj
+[39/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ecp_curves_new.c.obj
+[40/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/entropy.c.obj
+[41/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/entropy_poll.c.obj
+[42/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/error.c.obj
+[43/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/gcm.c.obj
+[44/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/hkdf.c.obj
+[45/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/hmac_drbg.c.obj
+[46/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/lmots.c.obj
+[47/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/lms.c.obj
+[48/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/md.c.obj
+[49/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/md5.c.obj
+[50/667] No patch step for 'tx_nghttp3_external'
+[51/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/memory_buffer_alloc.c.obj
+[52/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/nist_kw.c.obj
+[53/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/oid.c.obj
+[54/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/padlock.c.obj
+[55/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/pem.c.obj
+[56/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/pk.c.obj
+[57/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/pk_ecc.c.obj
+[58/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/pk_wrap.c.obj
+[59/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/pkcs12.c.obj
+[60/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/pkcs5.c.obj
+[61/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/pkparse.c.obj
+[62/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj
+[63/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/platform.c.obj
+[64/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/platform_util.c.obj
+[65/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/poly1305.c.obj
+[66/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto.c.obj
+[67/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_aead.c.obj
+[68/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_cipher.c.obj
+[69/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_client.c.obj
+[70/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_driver_wrappers_no_static.c.obj
+[71/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_ecp.c.obj
+[72/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_ffdh.c.obj
+[73/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_hash.c.obj
+[74/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_mac.c.obj
+[75/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_pake.c.obj
+[76/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_rsa.c.obj
+[77/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_se.c.obj
+[78/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_slot_management.c.obj
+[79/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_crypto_storage.c.obj
+[80/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_its_file.c.obj
+[81/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/psa_util.c.obj
+[82/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/ripemd160.c.obj
+[83/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/rsa.c.obj
+[84/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/rsa_alt_helpers.c.obj
+[85/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/sha1.c.obj
+[86/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/sha256.c.obj
+[87/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/sha512.c.obj
+[88/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/sha3.c.obj
+[89/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/threading.c.obj
+[90/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/timing.c.obj
+[91/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/version.c.obj
+[92/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedcrypto.dir/version_features.c.obj
+[93/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/pkcs7.c.obj
+[94/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/x509.c.obj
+[95/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/x509_create.c.obj
+[96/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/x509_crl.c.obj
+[97/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/x509_crt.c.obj
+[98/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/x509_csr.c.obj
+[99/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/x509write.c.obj
+[100/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/x509write_crt.c.obj
+[101/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedx509.dir/x509write_csr.c.obj
+[102/667] Building C object CMakeFiles/tx_sqlite_static.dir/_deps/sqlite_amalgamation-src/sqlite3.c.obj
+[103/667] Building C object CMakeFiles/argon2_reference_static.dir/_deps/argon2_reference-src/src/argon2.c.obj
+[104/667] Building C object CMakeFiles/argon2_reference_static.dir/_deps/argon2_reference-src/src/core.c.obj
+[105/667] Building C object CMakeFiles/argon2_reference_static.dir/_deps/argon2_reference-src/src/blake2/blake2b.c.obj
+[106/667] Building C object CMakeFiles/argon2_reference_static.dir/_deps/argon2_reference-src/src/thread.c.obj
+[107/667] Building C object CMakeFiles/argon2_reference_static.dir/_deps/argon2_reference-src/src/encoding.c.obj
+[108/667] Building C object CMakeFiles/argon2_reference_static.dir/_deps/argon2_reference-src/src/ref.c.obj
+[109/667] Linking C static library _deps\mbedtls-build\library\libmbedcrypto.a
+[110/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_pq.c.obj
+[111/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_map.c.obj
+[112/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_queue.c.obj
+[113/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_frame.c.obj
+[114/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_buf.c.obj
+[115/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_stream.c.obj
+[116/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_outbound_item.c.obj
+[117/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_session.c.obj
+[118/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_submit.c.obj
+[119/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_helper.c.obj
+[120/667] Generating libtx_libpq_import.a
+[121/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_alpn.c.obj
+[122/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_hd.c.obj
+[123/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_hd_huffman.c.obj
+[124/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_hd_huffman_data.c.obj
+[125/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_version.c.obj
+[126/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_priority_spec.c.obj
+[127/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_option.c.obj
+[128/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_callbacks.c.obj
+[129/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_mem.c.obj
+[130/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_http.c.obj
+[131/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_rcbuf.c.obj
+[132/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_extpri.c.obj
+[133/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_ratelim.c.obj
+[134/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_time.c.obj
+[135/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/nghttp2_debug.c.obj
+[136/667] Building C object _deps/nghttp2-build/lib/CMakeFiles/nghttp2_static.dir/sfparse.c.obj
+[137/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/debug.c.obj
+[138/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/mps_reader.c.obj
+[139/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/mps_trace.c.obj
+[140/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/net_sockets.c.obj
+[141/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_cache.c.obj
+[142/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_ciphersuites.c.obj
+[143/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_client.c.obj
+[144/667] Linking C static library _deps\mbedtls-build\library\libmbedx509.a
+[145/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_cookie.c.obj
+[146/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_debug_helpers_generated.c.obj
+[147/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_msg.c.obj
+[148/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_ticket.c.obj
+[149/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_tls.c.obj
+[150/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_tls12_client.c.obj
+[151/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_tls12_server.c.obj
+[152/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_tls13_keys.c.obj
+[153/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_tls13_server.c.obj
+[154/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_tls13_client.c.obj
+[155/667] Building C object _deps/mbedtls-build/library/CMakeFiles/mbedtls.dir/ssl_tls13_generic.c.obj
+[156/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/buf.c.obj
+[157/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/c14n.c.obj
+[158/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/catalog.c.obj
+[159/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/chvalid.c.obj
+[160/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/debugXML.c.obj
+[161/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/dict.c.obj
+[162/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/encoding.c.obj
+[163/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/entities.c.obj
+[164/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/error.c.obj
+[165/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/globals.c.obj
+[166/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/hash.c.obj
+[167/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/HTMLparser.c.obj
+[168/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/HTMLtree.c.obj
+[169/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/legacy.c.obj
+[170/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/list.c.obj
+[171/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/nanoftp.c.obj
+[172/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/nanohttp.c.obj
+[173/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/parser.c.obj
+[174/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/parserInternals.c.obj
+[175/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/pattern.c.obj
+[176/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/relaxng.c.obj
+[177/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/SAX.c.obj
+[178/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/SAX2.c.obj
+[179/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/schematron.c.obj
+[180/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/threads.c.obj
+[181/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/tree.c.obj
+[182/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/uri.c.obj
+[183/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/valid.c.obj
+[184/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xinclude.c.obj
+[185/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xlink.c.obj
+[186/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlIO.c.obj
+[187/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlmemory.c.obj
+[188/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlmodule.c.obj
+[189/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlreader.c.obj
+[190/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlregexp.c.obj
+[191/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlsave.c.obj
+[192/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlschemas.c.obj
+[193/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlschemastypes.c.obj
+[194/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlstring.c.obj
+[195/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlunicode.c.obj
+[196/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xmlwriter.c.obj
+[197/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xpath.c.obj
+[198/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xpointer.c.obj
+[199/667] Building C object _deps/libxml2-build/CMakeFiles/LibXml2.dir/xzlib.c.obj
+[200/667] Linking C static library libargon2_reference_static.a
+[201/667] Linking C static library libtx_sqlite_static.a
+[202/667] Linking C static library _deps\nghttp2-build\lib\libnghttp2.a
+[203/667] Linking C static library _deps\mbedtls-build\library\libmbedtls.a
+[204/667] Linking C static library _deps\libxml2-build\libxml2.a
+[205/667] Performing configure step for 'tx_nghttp3_external'
+-- The C compiler identification is GNU 13.1.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: D:/CLion 2024.3.4/bin/mingw/bin/gcc.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Looking for arpa/inet.h
+-- Looking for arpa/inet.h - not found
+-- Looking for unistd.h
+-- Looking for unistd.h - found
+-- Looking for sys/endian.h
+-- Looking for sys/endian.h - not found
+-- Looking for endian.h
+-- Looking for endian.h - not found
+-- Looking for byteswap.h
+-- Looking for byteswap.h - not found
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of ssize_t
+-- Check size of ssize_t - done
+-- Looking for bswap_64
+-- Looking for bswap_64 - not found
+-- Performing Test OPT_Wpragmas
+-- Performing Test OPT_Wpragmas - Success
+-- summary of build options:
+
+    Package version: 1.18.0
+    Library version: 18:0:9
+    Install prefix:  C:/Program Files (x86)/nghttp3
+    Target system:   Windows
+    Compiler:
+      Build type:     Release
+      C compiler:     D:/CLion 2024.3.4/bin/mingw/bin/gcc.exe
+      CFLAGS:         -O3  
+      C++ compiler:   
+      CXXFLAGS:        
+      WARNCFLAGS:       -W -Wall -Wconversion -Winline -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wpointer-arith -Wshadow -Wundef -Wwrite-strings -Waddress -Wattributes -Wcast-align -Wdeclaration-after-statement -Wdiv-by-zero -Wempty-body -Wendif-labels -Wfloat-equal -Wformat-nonliteral -Wformat-security -Wmissing-field-initializers -Wmissing-noreturn -Wno-format-nonliteral -Wredundant-decls -Wsign-conversion -Wstrict-prototypes -Wunreachable-code -Wunused-macros -Wunused-parameter -Wvla -Wclobbered -Wduplicated-branches -Wpragmas
+      WARNCXXFLAGS:     -Wall
+    Library:
+      Shared:         OFF
+      Static:         ON
+    Test:
+      Build Test:     OFF
+    Library only:     ON
+    Examples:         0
+
+-- Configuring done (9.3s)
+-- Generating done (0.2s)
+-- Build files have been written to: E:/Project/other/Compilation/build/_deps/nghttp3-build/external
+[206/667] Performing build step for 'tx_nghttp3_external'
+[1/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_rcbuf.c.obj
+[2/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_mem.c.obj
+[3/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_str.c.obj
+[4/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_conv.c.obj
+[5/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_buf.c.obj
+[6/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_pq.c.obj
+[7/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_map.c.obj
+[8/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_ksl.c.obj
+[9/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_qpack_huffman.c.obj
+[10/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_qpack_huffman_data.c.obj
+[11/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_err.c.obj
+[12/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_debug.c.obj
+[13/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_frame.c.obj
+[14/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_tnode.c.obj
+[15/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_vec.c.obj
+[16/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_gaptr.c.obj
+[17/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_idtr.c.obj
+[18/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_range.c.obj
+[19/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_version.c.obj
+[20/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_stream.c.obj
+[21/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_ringbuf.c.obj
+[22/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_balloc.c.obj
+[23/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_opl.c.obj
+[24/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_objalloc.c.obj
+[25/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_unreachable.c.obj
+[26/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_http.c.obj
+[27/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_ratelim.c.obj
+[28/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_callbacks.c.obj
+[29/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_settings.c.obj
+[30/33] Building C object lib/CMakeFiles/nghttp3_static.dir/sfparse/sfparse.c.obj
+[31/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_conn.c.obj
+[32/33] Building C object lib/CMakeFiles/nghttp3_static.dir/nghttp3_qpack.c.obj
+[33/33] Linking C static library lib\libnghttp3.a
+[207/667] No install step for 'tx_nghttp3_external'
+[208/667] Completed 'tx_nghttp3_external'
+[209/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/runtime.cpp.obj
+[210/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/runtime_abi.cpp.obj
+[211/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/error_abi.cpp.obj
+[212/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/runtime_context.cpp.obj
+[213/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/test_abi.cpp.obj
+[214/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/test_property_abi.cpp.obj
+[215/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/test_fixture_abi.cpp.obj
+[216/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/log_abi.cpp.obj
+[217/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/debug_abi.cpp.obj
+[218/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/profile_abi.cpp.obj
+[219/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/parse_abi.cpp.obj
+[220/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/parse_error_abi.cpp.obj
+[221/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/json_abi.cpp.obj
+[222/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/json_stream_abi.cpp.obj
+[223/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/cbor_abi.cpp.obj
+[224/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/serde_abi.cpp.obj
+[225/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/serde_static_abi.cpp.obj
+[226/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/csv_abi.cpp.obj
+[227/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/xml_reader_abi.cpp.obj
+[228/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/xml_tree_abi.cpp.obj
+[229/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/xml_writer_abi.cpp.obj
+[230/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/network_abi.cpp.obj
+[231/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/dns_abi.cpp.obj
+[232/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/socket_abi.cpp.obj
+[233/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/socket_async_abi.cpp.obj
+[234/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/socket_async_loop.cpp.obj
+[235/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/socket_async_tcp.cpp.obj
+[236/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/socket_async_udp.cpp.obj
+[237/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/network_stream_abi.cpp.obj
+[238/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/network_http2_abi.cpp.obj
+[239/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/network_session_abi.cpp.obj
+[240/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/network_router_abi.cpp.obj
+[241/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/network_http3_abi.cpp.obj
+[242/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/ws_abi.cpp.obj
+[243/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/file_result_abi.cpp.obj
+[244/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/bytes_abi.cpp.obj
+[245/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/crypto_abi.cpp.obj
+[246/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/crypto_stream_file_abi.cpp.obj
+[247/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/secret_abi.cpp.obj
+[248/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/password_abi.cpp.obj
+[249/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/public_key_abi.cpp.obj
+[250/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/x509_abi.cpp.obj
+[251/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/tls_abi.cpp.obj
+[252/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/tls_stream_abi.cpp.obj
+[253/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/encoding_memory_abi.cpp.obj
+[254/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/encoding_incremental_abi.cpp.obj
+[255/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/unicode_abi.cpp.obj
+[256/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/regex_abi.cpp.obj
+[257/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/file_stream_abi.cpp.obj
+[258/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/text_reference.cpp.obj
+[259/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/string_concat_abi.cpp.obj
+[260/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/dictionary_string_query.cpp.obj
+[261/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/vector_i64_abi.cpp.obj
+[262/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/vector_f64_abi.cpp.obj
+[263/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/vector_bool_abi.cpp.obj
+[264/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/vector_str_abi.cpp.obj
+[265/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/vector_bytes_abi.cpp.obj
+[266/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/vector_object_abi.cpp.obj
+[267/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/sum_abi.cpp.obj
+[268/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/iterator_abi.cpp.obj
+[269/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/closure_abi.cpp.obj
+[270/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/typed_slots.cpp.obj
+[271/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/record_layout.cpp.obj
+[272/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/record_abi.cpp.obj
+[273/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/cancel_abi.cpp.obj
+[274/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/thread_abi.cpp.obj
+[275/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/task_runtime.cpp.obj
+[276/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/task_iocp.cpp.obj
+[277/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/task_file_iocp.cpp.obj
+[278/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/task_executor.cpp.obj
+[279/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/task_abi.cpp.obj
+[280/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/sync_lock_abi.cpp.obj
+[281/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/sync_local_abi.cpp.obj
+[282/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/sync_lock_generic_abi.cpp.obj
+[283/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/sync_primitive_abi.cpp.obj
+[284/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/sync_atomic_abi.cpp.obj
+[285/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/channel_abi.cpp.obj
+[286/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/concurrency_value.cpp.obj
+[287/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/concurrency_result.cpp.obj
+[288/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/process_abi.cpp.obj
+[289/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/process_io_abi.cpp.obj
+[290/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/ipc_abi.cpp.obj
+[291/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/db_abi.cpp.obj
+[292/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/db_pool_abi.cpp.obj
+[293/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/db_migration_abi.cpp.obj
+[294/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/db_async_abi.cpp.obj
+[295/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/db_resource_abi.cpp.obj
+[296/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/db_value_abi.cpp.obj
+[297/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/db_row_abi.cpp.obj
+[298/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/db_domain_abi.cpp.obj
+[299/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/vector_text_abi.cpp.obj
+[300/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/algorithm_abi.cpp.obj
+[301/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/algorithm_extended_abi.cpp.obj
+[302/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/map_i64_abi.cpp.obj
+[303/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/map_f64_abi.cpp.obj
+[304/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/map_bool_abi.cpp.obj
+[305/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/map_str_abi.cpp.obj
+[306/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/set_abi.cpp.obj
+[307/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/object_key_abi.cpp.obj
+[308/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/heap_abi.cpp.obj
+[309/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/queue_abi.cpp.obj
+[310/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/deque_abi.cpp.obj
+[311/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/map_entries_abi.cpp.obj
+[312/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/map_object_abi.cpp.obj
+[313/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/ordered_abi.cpp.obj
+[314/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/priority_entry_abi.cpp.obj
+[315/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/sequence_extended_abi.cpp.obj
+[316/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/cycle_gc.cpp.obj
+[317/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/text_direct_abi.cpp.obj
+[318/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/array_direct_abi.cpp.obj
+[319/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/dictionary_direct_abi.cpp.obj
+[320/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/dictionary_scalar_abi.cpp.obj
+[321/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/array_abi.cpp.obj
+[322/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/local_scalar_array_abi.cpp.obj
+[323/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/filesystem_direct_abi.cpp.obj
+[324/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/filesystem_extended_abi.cpp.obj
+[325/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/system_env_direct_abi.cpp.obj
+[326/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/file_direct_abi.cpp.obj
+[327/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/format_direct_abi.cpp.obj
+[328/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/format_arguments_abi.cpp.obj
+[329/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/format_static_abi.cpp.obj
+[330/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/io_time_direct_abi.cpp.obj
+[331/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/value_abi.cpp.obj
+[332/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/value_snapshot_abi.cpp.obj
+[333/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/deep_copy.cpp.obj
+[334/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/deep_copy_abi.cpp.obj
+[335/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/deep_copy_resources.cpp.obj
+[336/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/class_abi.cpp.obj
+[337/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/class_local_abi.cpp.obj
+[338/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/value_format.cpp.obj
+[339/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/dictionary_abi.cpp.obj
+[340/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/dictionary_ref_abi.cpp.obj
+[341/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/call_abi.cpp.obj
+[342/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/external_abi.cpp.obj
+[343/667] Building CXX object CMakeFiles/txstdlib.dir/src/backend/cpp/external_abi_time_random.cpp.obj
+[344/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/string.cpp.obj
+[345/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/format.cpp.obj
+[346/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/format_append.cpp.obj
+[347/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/format_plan_cache.cpp.obj
+[348/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/format_binding_cache.cpp.obj
+[349/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/format_spec.cpp.obj
+[350/667] Building CXX object CMakeFiles/txstdlib.dir/src/common/format_spec.cpp.obj
+[351/667] Building CXX object CMakeFiles/txstdlib.dir/src/common/text_encoding.cpp.obj
+[352/667] Building CXX object CMakeFiles/txstdlib.dir/src/common/utf8.cpp.obj
+[353/667] Building CXX object CMakeFiles/txstdlib.dir/src/common/utf8_bulk.cpp.obj
+[354/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/dictionary.cpp.obj
+[355/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/conversion.cpp.obj
+[356/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/parse.cpp.obj
+[357/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/json_parser.cpp.obj
+[358/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/json_parser_string.cpp.obj
+[359/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/json_stream.cpp.obj
+[360/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/json_schema.cpp.obj
+[361/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/cbor_common.cpp.obj
+[362/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/cbor_reader.cpp.obj
+[363/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/cbor_skip.cpp.obj
+[364/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/cbor_writer.cpp.obj
+[365/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_schema.cpp.obj
+[366/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_value.cpp.obj
+[367/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde.cpp.obj
+[368/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_reader.cpp.obj
+[369/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_writer.cpp.obj
+[370/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_codecs.cpp.obj
+[371/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_vector.cpp.obj
+[372/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_struct_reader.cpp.obj
+[373/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_scalar_reader.cpp.obj
+[374/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_pair.cpp.obj
+[375/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/serde_struct_writer.cpp.obj
+[376/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/cbor_stream.cpp.obj
+[377/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/format_stream.cpp.obj
+[378/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/csv.cpp.obj
+[379/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/csv_reader.cpp.obj
+[380/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/csv_writer.cpp.obj
+[381/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/xml_common.cpp.obj
+[382/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/xml_reader.cpp.obj
+[383/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/xml_tree_parse.cpp.obj
+[384/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/xml_tree_nodes.cpp.obj
+[385/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/xml_writer.cpp.obj
+[386/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/json_writer.cpp.obj
+[387/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/json_scalar.cpp.obj
+[388/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/json_skip.cpp.obj
+[389/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/json_fields.cpp.obj
+[390/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/log.cpp.obj
+[391/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/log_sink.cpp.obj
+[392/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/test.cpp.obj
+[393/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/profile.cpp.obj
+[394/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/profile_sampler.cpp.obj
+[395/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/profile_report.cpp.obj
+[396/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/profile_allocation.cpp.obj
+[397/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/io.cpp.obj
+[398/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/encoding.cpp.obj
+[399/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/encoding_incremental.cpp.obj
+[400/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/unicode_text.cpp.obj
+[401/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/unicode_analysis.cpp.obj
+[402/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/regex_compile.cpp.obj
+[403/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/regex_match.cpp.obj
+[404/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/regex_operations.cpp.obj
+[405/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/bytes.cpp.obj
+[406/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/crypto_random.cpp.obj
+[407/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/crypto_hash.cpp.obj
+[408/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/crypto_kdf.cpp.obj
+[409/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/crypto_aead.cpp.obj
+[410/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/crypto_stream_hash.cpp.obj
+[411/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/crypto_file_io.cpp.obj
+[412/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/crypto_file.cpp.obj
+[413/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/secret.cpp.obj
+[414/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/password.cpp.obj
+[415/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/public_key.cpp.obj
+[416/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/x509_parse.cpp.obj
+[417/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/x509_pkcs12.cpp.obj
+[418/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/x509_pkcs8.cpp.obj
+[419/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/x509_verify.cpp.obj
+[420/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/x509_verification_context.cpp.obj
+[421/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/tls_identity.cpp.obj
+[422/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/tls_material.cpp.obj
+[423/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/tls_stream_handshake.cpp.obj
+[424/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/tls_stream_io.cpp.obj
+[425/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/tls_stream_registry.cpp.obj
+[426/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/libsodium_compat.cpp.obj
+[427/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/file_stream.cpp.obj
+[428/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/file_stream_lock.cpp.obj
+[429/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/file_stream_text.cpp.obj
+[430/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/file.cpp.obj
+[431/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/file_binary.cpp.obj
+[432/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/file_atomic.cpp.obj
+[433/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/math.cpp.obj
+[434/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/math_extended.cpp.obj
+[435/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/statistics_core.cpp.obj
+[436/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/statistics_bucket.cpp.obj
+[437/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/decimal_big.cpp.obj
+[438/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/decimal.cpp.obj
+[439/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/decimal_abi.cpp.obj
+[440/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/array.cpp.obj
+[441/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/algorithm_numeric.cpp.obj
+[442/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/filesystem.cpp.obj
+[443/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/filesystem_extended.cpp.obj
+[444/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/filesystem_watch.cpp.obj
+[445/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/process.cpp.obj
+[446/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/process_options.cpp.obj
+[447/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/process_spawn.cpp.obj
+[448/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/process_pipe.cpp.obj
+[449/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/process_run.cpp.obj
+[450/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/ipc_connection.cpp.obj
+[451/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/ipc_transport.cpp.obj
+[452/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/ipc_frame.cpp.obj
+[453/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_values.cpp.obj
+[454/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_resources.cpp.obj
+[455/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_connection.cpp.obj
+[456/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_binding.cpp.obj
+[457/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_query.cpp.obj
+[458/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_transaction.cpp.obj
+[459/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_postgres_connection.cpp.obj
+[460/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_postgres_io.cpp.obj
+[461/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_postgres_cancel.cpp.obj
+[462/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_postgres_statement.cpp.obj
+[463/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_postgres_rows.cpp.obj
+[464/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_pool.cpp.obj
+[465/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_migration.cpp.obj
+[466/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_operation.cpp.obj
+[467/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_sqlite_operation.cpp.obj
+[468/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_async.cpp.obj
+[469/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/db_pool_return.cpp.obj
+[470/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/filesystem_listing.cpp.obj
+[471/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/filesystem_operations.cpp.obj
+[472/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/path.cpp.obj
+[473/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/system.cpp.obj
+[474/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/system_info.cpp.obj
+[475/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/env.cpp.obj
+[476/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/env_snapshot.cpp.obj
+[477/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/time.cpp.obj
+[478/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/time_values.cpp.obj
+[479/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/time_calendar.cpp.obj
+[480/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/time_calendar_abi.cpp.obj
+[481/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/time_zone.cpp.obj
+[482/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/random.cpp.obj
+[483/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/random_generator.cpp.obj
+[484/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/random_sampling.cpp.obj
+[485/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/network_common.cpp.obj
+[486/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/dns.cpp.obj
+[487/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/socket_core.cpp.obj
+[488/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/socket_tcp.cpp.obj
+[489/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/socket_udp.cpp.obj
+[490/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/network_listener.cpp.obj
+[491/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/network_url.cpp.obj
+[492/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_client.cpp.obj
+[493/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_client_custom_tls.cpp.obj
+[494/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_client_custom_tls_pool.cpp.obj
+[495/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_client_custom_tls_proxy.cpp.obj
+[496/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_client_custom_tls_response.cpp.obj
+[497/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_client_custom_tls_transport.cpp.obj
+[498/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_winhttp.cpp.obj
+[499/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_client_session.cpp.obj
+[500/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_client_tls.cpp.obj
+[501/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_negotiation.cpp.obj
+[502/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_router.cpp.obj
+[503/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_server_listener.cpp.obj
+[504/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_client_events.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_client_internal.hpp:4,
+                 from E:/Project/other/Compilation/src/stdlib/http3_client_events.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+[505/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_quic.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_quic.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+E:/Project/other/Compilation/src/stdlib/http3_quic.cpp: In constructor 'tx_generated::http3::quic_api::quic_api()':
+E:/Project/other/Compilation/src/stdlib/http3_quic.cpp:28:27: warning: cast between incompatible function types from 'FARPROC' {aka 'long long int (*)()'} to 'MsQuicOpenVersionFn' {aka 'long int (*)(unsigned int, const void**)'} [-Wcast-function-type]
+   28 |         const auto open = reinterpret_cast<MsQuicOpenVersionFn>(
+      |                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   29 |             GetProcAddress(module_, "MsQuicOpenVersion"));
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+E:/Project/other/Compilation/src/stdlib/http3_quic.cpp:30:18: warning: cast between incompatible function types from 'FARPROC' {aka 'long long int (*)()'} to 'MsQuicCloseFn' {aka 'void (*)(const void*)'} [-Wcast-function-type]
+   30 |         close_ = reinterpret_cast<MsQuicCloseFn>(
+      |                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   31 |             GetProcAddress(module_, "MsQuicClose"));
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[506/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_client.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_client_internal.hpp:4,
+                 from E:/Project/other/Compilation/src/stdlib/http3_client.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+[507/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_client_headers.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_client_internal.hpp:4,
+                 from E:/Project/other/Compilation/src/stdlib/http3_client_headers.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+[508/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_server_listener.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_internal.hpp:3,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_listener.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+[509/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_server_connection.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_internal.hpp:3,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_connection.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+[510/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_server_events.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_internal.hpp:3,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_events.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+[511/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_server_headers.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_internal.hpp:3,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_headers.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+[512/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http3_server.cpp.obj
+In file included from E:/Project/other/Compilation/src/stdlib/http3_quic.hpp:11,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server_internal.hpp:3,
+                 from E:/Project/other/Compilation/src/stdlib/http3_server.cpp:1:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:4201)  // nonstandard extension used: nameless struct/union
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:28: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   28 | #pragma warning(disable:4214)  // nonstandard extension used: bit field types other than int
+      | 
+In file included from E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:34:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:26: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   26 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:27: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   27 | #pragma warning(disable:6553) // Annotation does not apply to value type.
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:29: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   29 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:32: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   32 | #pragma warning(push)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:33: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   33 | #pragma warning(disable:6385) // Invalid data: accessing [buffer-name], the readable size is size1 bytes but size2 bytes may be read
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:34: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   34 | #pragma warning(disable:6101) // Returning uninitialized memory
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:37: warning: ignoring '#pragma warning ' [-Wunknown-pragmas]
+   37 | #pragma warning(pop)
+      | 
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h: In function 'BOOLEAN QuicAddrIsWildCard(const QUIC_ADDR*)':
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b2' [-Wmissing-field-initializers]
+  213 |         const IN_ADDR ZeroAddr = {0};
+      |                                    ^
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b3' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic_winuser.h:213:36: warning: missing initializer for member 'in_addr::<unnamed union>::<unnamed struct>::s_b4' [-Wmissing-field-initializers]
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h: At global scope:
+E:/Project/other/Compilation/build/_deps/msquic_binary-src/build/native/include/msquic.h:865:16: warning: ISO C++ prohibits anonymous structs [-Wpedantic]
+  865 |         struct {
+      |                ^
+[513/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/httpx_server.cpp.obj
+[514/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http2_transport.cpp.obj
+[515/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http2_session.cpp.obj
+[516/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http2_session_response.cpp.obj
+[517/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http2_server.cpp.obj
+[518/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http2_client.cpp.obj
+[519/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http2_client_callbacks.cpp.obj
+[520/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/http2_client_stream.cpp.obj
+[521/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/ws.cpp.obj
+[522/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/ws_client.cpp.obj
+[523/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/program_ir.cpp.obj
+[524/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/ws_client_stream.cpp.obj
+[525/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/ws_server.cpp.obj
+[526/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/ir_expression.cpp.obj
+[527/667] Building CXX object CMakeFiles/txstdlib.dir/src/stdlib/ws_frames.cpp.obj
+[528/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/ir_verify.cpp.obj
+[529/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/ir_statement.cpp.obj
+[530/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/analysis_sets.cpp.obj
+[531/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/ir_cleanup.cpp.obj
+[532/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/program_analysis.cpp.obj
+[533/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/ssa.cpp.obj
+[534/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/call_analysis.cpp.obj
+[535/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/builtin_analysis.cpp.obj
+[536/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/analysis_dump.cpp.obj
+[537/667] Building CXX object CMakeFiles/txc.dir/src/common/format_spec.cpp.obj
+[538/667] Building CXX object CMakeFiles/txc.dir/src/common/text_encoding.cpp.obj
+[539/667] Building CXX object CMakeFiles/txc.dir/src/frontend/lexer/lexer.cpp.obj
+[540/667] Building CXX object CMakeFiles/txc.dir/src/frontend/ast/ast.cpp.obj
+[541/667] Building CXX object CMakeFiles/txc.dir/src/frontend/ast/call_properties.cpp.obj
+[542/667] Building CXX object CMakeFiles/txc.dir/src/frontend/parser/parser.cpp.obj
+[543/667] Building CXX object CMakeFiles/txc.dir/src/frontend/parser/parser_declarations.cpp.obj
+[544/667] Building CXX object CMakeFiles/txc.dir/src/frontend/parser/parser_serde.cpp.obj
+[545/667] Building CXX object CMakeFiles/txc.dir/src/frontend/parser/parser_expression.cpp.obj
+[546/667] Building CXX object CMakeFiles/txc.dir/src/frontend/parser/parser_class.cpp.obj
+[547/667] Building CXX object CMakeFiles/txc.dir/src/frontend/parser/parser_exception.cpp.obj
+[548/667] Building CXX object CMakeFiles/txc.dir/src/frontend/resolver/module_resolver.cpp.obj
+[549/667] Building CXX object CMakeFiles/txc.dir/src/frontend/resolver/module_resolver_tree.cpp.obj
+[550/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema.cpp.obj
+[551/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_vector.cpp.obj
+[552/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_sum.cpp.obj
+[553/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_container.cpp.obj
+[554/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_algorithm.cpp.obj
+[555/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_thread.cpp.obj
+[556/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_task.cpp.obj
+[557/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_sync.cpp.obj
+[558/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_channel.cpp.obj
+[559/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_random.cpp.obj
+[560/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_serde.cpp.obj
+[561/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_exception.cpp.obj
+[562/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_registration.cpp.obj
+[563/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_expression.cpp.obj
+[564/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_operator.cpp.obj
+[565/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_call.cpp.obj
+[566/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_call_properties.cpp.obj
+[567/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_class.cpp.obj
+[568/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_class_registration.cpp.obj
+[569/667] Building CXX object CMakeFiles/txc.dir/src/frontend/sema/sema_class_call.cpp.obj
+[570/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen.cpp.obj
+[571/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_vector.cpp.obj
+[572/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_vector_reference.cpp.obj
+[573/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_vector_loop.cpp.obj
+[574/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_vector_calls.cpp.obj
+[575/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_sum.cpp.obj
+[576/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_native_option.cpp.obj
+[577/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_native_parse.cpp.obj
+[578/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_parse_error.cpp.obj
+[579/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_iterator.cpp.obj
+[580/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_closure.cpp.obj
+[581/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_closure_internal.cpp.obj
+[582/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_vector_statement.cpp.obj
+[583/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_vector_declarations.cpp.obj
+[584/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_algorithm_declarations.cpp.obj
+[585/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_algorithm.cpp.obj
+[586/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_thread.cpp.obj
+[587/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_task.cpp.obj
+[588/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_sync.cpp.obj
+[589/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_log.cpp.obj
+[590/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_channel.cpp.obj
+[591/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_serde.cpp.obj
+[592/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_format.cpp.obj
+[593/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_format_execute.cpp.obj
+[594/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_format_dynamic.cpp.obj
+[595/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_format_constant.cpp.obj
+[596/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_encoding.cpp.obj
+[597/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_format_plan.cpp.obj
+[598/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_container.cpp.obj
+[599/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_key.cpp.obj
+[600/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_container_declarations.cpp.obj
+[601/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_ordered_declarations.cpp.obj
+[602/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_sequence_declarations.cpp.obj
+[603/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_map.cpp.obj
+[604/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_functions.cpp.obj
+[605/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_program_analysis.cpp.obj
+[606/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/target_attributes.cpp.obj
+[607/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_callback.cpp.obj
+[608/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_exception.cpp.obj
+[609/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_context.cpp.obj
+[610/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_error_ownership.cpp.obj
+[611/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_declarations.cpp.obj
+[612/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_control.cpp.obj
+[613/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_statement.cpp.obj
+[614/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_unpack.cpp.obj
+[615/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_gc.cpp.obj
+[616/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_ownership.cpp.obj
+[617/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_snapshot.cpp.obj
+[618/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_local_array.cpp.obj
+[619/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_dynamic_local_array.cpp.obj
+[620/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_local_array_analysis.cpp.obj
+[621/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_local_object_analysis.cpp.obj
+[622/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_array_assignment.cpp.obj
+[623/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_expression.cpp.obj
+[624/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_cast.cpp.obj
+[625/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_dict.cpp.obj
+[626/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_expression_ops.cpp.obj
+[627/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_division.cpp.obj
+[628/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_integer_range.cpp.obj
+[629/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_pure_integer.cpp.obj
+[630/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_expression_values.cpp.obj
+[631/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_expression_calls.cpp.obj
+[632/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_class.cpp.obj
+[633/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_class_local.cpp.obj
+[634/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_fields.cpp.obj
+[635/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_record_metadata.cpp.obj
+[636/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_record.cpp.obj
+[637/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_record_analysis.cpp.obj
+[638/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_sync_local.cpp.obj
+[639/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_result_projection.cpp.obj
+[640/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_result_length.cpp.obj
+[641/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_serde_static.cpp.obj
+[642/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_record_operations.cpp.obj
+[643/667] Building CXX object CMakeFiles/txc.dir/src/backend/analysis/static_function.cpp.obj
+[644/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_record_calls.cpp.obj
+[645/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_record_assignment.cpp.obj
+[646/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_record_method.cpp.obj
+[647/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_print.cpp.obj
+[648/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_external_direct.cpp.obj
+[649/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_db.cpp.obj
+[650/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_string_literal_call.cpp.obj
+[651/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_string_concat.cpp.obj
+[652/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_string_borrow.cpp.obj
+[653/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_string_literal_compare.cpp.obj
+[654/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_call_binding.cpp.obj
+[655/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_literal_spread.cpp.obj
+[656/667] Building CXX object CMakeFiles/txc.dir/src/backend/llvm/codegen_call_borrow.cpp.obj
+[657/667] Building CXX object CMakeFiles/txc.dir/src/driver/module_loader.cpp.obj
+[658/667] Building CXX object CMakeFiles/txc.dir/src/driver/module_loader_class.cpp.obj
+[659/667] Building CXX object CMakeFiles/txc.dir/src/driver/compatibility.cpp.obj
+[660/667] Building CXX object CMakeFiles/txc.dir/src/driver/test_runner.cpp.obj
+[661/667] Building CXX object CMakeFiles/txc.dir/src/driver/child_process.cpp.obj
+[662/667] Building CXX object CMakeFiles/txc.dir/src/driver/json_report.cpp.obj
+[663/667] Building CXX object CMakeFiles/txc.dir/src/driver/profile_runner.cpp.obj
+[664/667] Building CXX object CMakeFiles/txc.dir/src/driver/main.cpp.obj
+[665/667] Linking CXX static library libtxstdlib.a
+[666/667] Linking CXX executable E:\Project\other\Compilation\tx\txc.exe
+已生成 E:\Project\other\Compilation\build\httpx_bridge.ll
+已生成 E:\Project\other\Compilation\build\websocket_bridge.ll
+已生成 E:\Project\other\Compilation\build\requests_bridge.ll
+Exception: E:\Project\other\Compilation\scripts\build.ps1:217
+Line |
+ 217 |          throw "ThinLTO 需要与 clang 同版本的 $name；请设置 TX_LLVM_BIN。build/ 已保 …
+     |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | ThinLTO 需要与 clang 同版本的 ld.lld.exe；请设置 TX_LLVM_BIN。build/ 已保留。

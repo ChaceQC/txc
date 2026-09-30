@@ -46,7 +46,7 @@ def main():
         assert "@txrt_value_box_" not in body, name
     for name in ("unsafe_pop", "unsafe_contains", "text_query"):
         assert "@txrt_gc_safepoint_context(" in function_body(ir, name), name
-    assert "@txrt_dictionary_contains_i64(" in function_body(ir, "safe_queries")
+    assert "@txrt_dict_ref_contains_i64(" in function_body(ir, "safe_queries")
     print("PASS 调用效果：标量查询和 pop 无安全点；对象回调/析构保留安全点与错误")
 
 

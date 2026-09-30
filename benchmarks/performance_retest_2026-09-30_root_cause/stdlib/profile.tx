@@ -1,0 +1,22 @@
+import "profile.txh" as profile
+import "time.txh" as time
+import "json.txh" as json
+
+def main() -> int
+{
+    profile.start(10, 100000)
+    auto total = 0
+    auto start = time.monotonic_micros()
+    for i in 1..=1000
+    {
+        auto span = profile.begin_span("bench")
+        if profile.end_span(span) >= 0
+        {
+            total += 1
+        }
+    }
+    auto elapsed = time.monotonic_micros() - start
+    auto report = json.parse_object(profile.stop())
+    print("profile_spans", elapsed, total)
+    return 0
+}

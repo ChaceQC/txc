@@ -1,0 +1,257 @@
+{
+  "algorithm": {
+    "existing": "algorithm_sort",
+    "added": []
+  },
+  "array": {
+    "existing": "library/array",
+    "added": []
+  },
+  "bytes": {
+    "existing": "bytes_hex",
+    "added": []
+  },
+  "cancel": {
+    "existing": "cancel_status",
+    "added": []
+  },
+  "cbor": {
+    "existing": "cbor_roundtrip",
+    "added": []
+  },
+  "crypto": {
+    "existing": "crypto_sha256",
+    "added": []
+  },
+  "csv": {
+    "existing": "csv_parse",
+    "added": []
+  },
+  "debug": {
+    "existing": "debug_location",
+    "added": []
+  },
+  "decimal": {
+    "existing": "decimal_add",
+    "added": []
+  },
+  "dictionary": {
+    "existing": "dictionary_contains",
+    "added": []
+  },
+  "encoding": {
+    "existing": "encoding_utf8",
+    "added": []
+  },
+  "env": {
+    "existing": "env_get",
+    "added": []
+  },
+  "error": {
+    "existing": "error_stack",
+    "added": []
+  },
+  "file": {
+    "existing": "library/file",
+    "added": []
+  },
+  "file_stream": {
+    "existing": "file_stream_rw",
+    "added": []
+  },
+  "format": {
+    "existing": "format_text / format_contract",
+    "added": []
+  },
+  "fs": {
+    "existing": "library/fs",
+    "added": []
+  },
+  "httpx": {
+    "existing": "httpx_get",
+    "added": []
+  },
+  "io": {
+    "existing": "library/io",
+    "added": []
+  },
+  "json": {
+    "existing": "json_parse",
+    "added": []
+  },
+  "log": {
+    "existing": "log_event",
+    "added": [
+      "log_filtered",
+      "log_file"
+    ]
+  },
+  "math": {
+    "existing": "math_sqrt",
+    "added": []
+  },
+  "parse": {
+    "existing": "parse_int",
+    "added": []
+  },
+  "path": {
+    "existing": "library/path",
+    "added": []
+  },
+  "process": {
+    "existing": "process_spawn",
+    "added": []
+  },
+  "random": {
+    "existing": "random_int / random_long",
+    "added": []
+  },
+  "regex": {
+    "existing": "regex_search",
+    "added": []
+  },
+  "requests": {
+    "existing": "requests_get",
+    "added": []
+  },
+  "serde": {
+    "existing": "serde_json / serde_short_text",
+    "added": []
+  },
+  "statistics": {
+    "existing": "statistics_mean（校准）",
+    "added": []
+  },
+  "string": {
+    "existing": "library/string",
+    "added": []
+  },
+  "system": {
+    "existing": "system_os",
+    "added": []
+  },
+  "test": {
+    "existing": "test_assert（不进入差距排名）",
+    "added": [
+      "test_parameterized",
+      "test_property"
+    ]
+  },
+  "time": {
+    "existing": "library/time",
+    "added": []
+  },
+  "unicode": {
+    "existing": "unicode_nfc",
+    "added": []
+  },
+  "websocket": {
+    "existing": "websocket_echo",
+    "added": []
+  },
+  "xml": {
+    "existing": "xml_parse",
+    "added": []
+  },
+  "thread": {
+    "existing": "—",
+    "added": [
+      "thread_spawn_join"
+    ]
+  },
+  "sync": {
+    "existing": "—",
+    "added": [
+      "mutex_uncontended",
+      "atomic_add"
+    ]
+  },
+  "channel": {
+    "existing": "—",
+    "added": [
+      "channel_send_recv"
+    ]
+  },
+  "task": {
+    "existing": "—",
+    "added": [
+      "task_spawn_wait",
+      "sqlite_async"
+    ]
+  },
+  "db": {
+    "existing": "—",
+    "added": [
+      "sqlite_insert",
+      "sqlite_read",
+      "sqlite_savepoint",
+      "sqlite_pool",
+      "sqlite_async",
+      "migration_recheck",
+      "postgres_insert",
+      "postgres_read",
+      "postgres_savepoint"
+    ]
+  },
+  "secret": {
+    "existing": "—",
+    "added": [
+      "secret_equal"
+    ]
+  },
+  "password": {
+    "existing": "—",
+    "added": [
+      "argon2_hash_verify"
+    ]
+  },
+  "public_key": {
+    "existing": "—",
+    "added": [
+      "ed25519_sign",
+      "ed25519_verify"
+    ]
+  },
+  "x509": {
+    "existing": "—",
+    "added": [
+      "x509_parse_der"
+    ]
+  },
+  "dns": {
+    "existing": "—",
+    "added": [
+      "dns_localhost"
+    ]
+  },
+  "socket": {
+    "existing": "—",
+    "added": [
+      "udp_echo"
+    ]
+  },
+  "ipc": {
+    "existing": "—",
+    "added": [
+      "ipc_echo"
+    ]
+  },
+  "tls": {
+    "existing": "—",
+    "added": [
+      "tls_handshake"
+    ]
+  },
+  "async_file": {
+    "existing": "—",
+    "added": [
+      "async_file_rw"
+    ]
+  },
+  "profile": {
+    "existing": "—",
+    "added": [
+      "profile_spans"
+    ]
+  }
+}

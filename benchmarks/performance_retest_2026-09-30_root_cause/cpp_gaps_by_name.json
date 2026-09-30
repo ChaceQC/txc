@@ -1,0 +1,245 @@
+[
+  {
+    "suite": "语言特性",
+    "name": "cycle_gc",
+    "tx_ms": 1.449,
+    "reference_ms": 0.0739,
+    "reference": "C++",
+    "ratio": 19.607577807848447,
+    "note": "参考仅处理单节点自环；通用图 GC 另见新增契约"
+  },
+  {
+    "suite": "语言特性",
+    "name": "deinit",
+    "tx_ms": 11.408,
+    "reference_ms": 0.7332,
+    "reference": "C++",
+    "ratio": 15.559192580469176,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "deep_copy",
+    "tx_ms": 20.827,
+    "reference_ms": 2.3434,
+    "reference": "C++",
+    "ratio": 8.887513868737733,
+    "note": "参考只复制已知形状；通用图复制另见新增契约"
+  },
+  {
+    "suite": "语言特性",
+    "name": "variadic_unpack",
+    "tx_ms": 11.646,
+    "reference_ms": 1.639,
+    "reference": "C++",
+    "ratio": 7.105552165954851,
+    "note": "参考不执行 TX 动态命名实参绑定"
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "fanout-2000",
+    "tx_ms": 12.817,
+    "reference_ms": 1.826,
+    "reference": "C++",
+    "ratio": 7.019167579408543,
+    "note": ""
+  },
+  {
+    "suite": "综合",
+    "name": "serde_short_text",
+    "tx_ms": 6.436,
+    "reference_ms": 0.94,
+    "reference": "C++",
+    "ratio": 6.846808510638298,
+    "note": ""
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "reference": "C++",
+    "tx_ms": 0.304,
+    "reference_ms": 0.0461,
+    "ratio": 6.594360086767895,
+    "note": "固定 seed=1000，参考保留两个回调；本负载不执行失败缩减。TX 还保留受检回调及测试错误处理。"
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "random-2000-1",
+    "tx_ms": 5.999,
+    "reference_ms": 0.971,
+    "reference": "C++",
+    "ratio": 6.17816683831102,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_alternating",
+    "tx_ms": 17.156,
+    "reference_ms": 3.237,
+    "reference": "C++",
+    "ratio": 5.299969107198022,
+    "note": ""
+  },
+  {
+    "suite": "契约/format_contract",
+    "name": "format_parameter",
+    "tx_ms": 17.288,
+    "reference_ms": 3.264,
+    "reference": "C++",
+    "ratio": 5.296568627450981,
+    "note": ""
+  },
+  {
+    "suite": "外部题/mini-filesystem",
+    "name": "moves-2000",
+    "tx_ms": 5.232,
+    "reference_ms": 1.006,
+    "reference": "C++",
+    "ratio": 5.20079522862823,
+    "note": ""
+  },
+  {
+    "suite": "audit/compute",
+    "name": "bytes_hex",
+    "tx_ms": 8.792,
+    "reference_ms": 1.832,
+    "reference": "C++",
+    "ratio": 4.7991266375545845,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_128",
+    "tx_ms": 1.583,
+    "reference_ms": 0.348,
+    "reference": "clang C++",
+    "ratio": 4.5488505747126435,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "copy_cycle",
+    "tx_ms": 8.561,
+    "reference_ms": 1.9198,
+    "reference": "C++",
+    "ratio": 4.4593186790290655,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_100k",
+    "tx_ms": 3.554,
+    "reference_ms": 0.809,
+    "reference": "clang C++",
+    "ratio": 4.3930778739184175,
+    "note": ""
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "vector_scan_1k",
+    "tx_ms": 0.256,
+    "reference_ms": 0.064,
+    "reference": "clang C++",
+    "ratio": 4.0,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "class_methods",
+    "tx_ms": 0.652,
+    "reference_ms": 0.1631,
+    "reference": "C++",
+    "ratio": 3.9975475168608217,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "vector_push",
+    "tx_ms": 1.942,
+    "reference_ms": 0.5,
+    "reference": "C++",
+    "ratio": 3.884,
+    "note": ""
+  },
+  {
+    "suite": "library/组合",
+    "name": "string",
+    "tx_ms": 10.0,
+    "reference_ms": 2.5869,
+    "reference": "C++",
+    "ratio": 3.8656306776450577,
+    "note": "整数毫秒短项，倍率精度有限"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "reference": "C++",
+    "tx_ms": 1.383,
+    "reference_ms": 0.3745,
+    "ratio": 3.692923898531375,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "校准/diverse_clang",
+    "name": "map_hit_8192",
+    "tx_ms": 2.006,
+    "reference_ms": 0.556,
+    "reference": "clang C++",
+    "ratio": 3.6079136690647475,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "queue_push_pop",
+    "tx_ms": 1.165,
+    "reference_ms": 0.324,
+    "reference": "C++",
+    "ratio": 3.595679012345679,
+    "note": ""
+  },
+  {
+    "suite": "语言特性",
+    "name": "string_conversion",
+    "tx_ms": 11.303,
+    "reference_ms": 3.1808,
+    "reference": "C++",
+    "ratio": 3.5535085513078473,
+    "note": ""
+  },
+  {
+    "suite": "audit/features",
+    "name": "iterator_snapshot",
+    "tx_ms": 0.164,
+    "reference_ms": 0.047,
+    "reference": "C++",
+    "ratio": 3.4893617021276597,
+    "note": ""
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "reference": "C++",
+    "tx_ms": 0.19,
+    "reference_ms": 0.0569,
+    "ratio": 3.3391915641476273,
+    "note": "参考使用 std::function / IntConsumer / Python 函数；TX 含真实测试框架和受检回调。参考没有 TX 错误上下文，不外推到失败报告。"
+  },
+  {
+    "suite": "audit/compute",
+    "name": "random_int",
+    "tx_ms": 0.998,
+    "reference_ms": 0.327,
+    "reference": "C++",
+    "ratio": 3.0519877675840976,
+    "note": ""
+  },
+  {
+    "suite": "外部题/not-yet-on-stage",
+    "name": "forced-increasing-max",
+    "tx_ms": 4.353,
+    "reference_ms": 1.442,
+    "reference": "C++",
+    "ratio": 3.0187239944521496,
+    "note": ""
+  }
+]

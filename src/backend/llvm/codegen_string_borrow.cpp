@@ -1,4 +1,5 @@
 #include "backend/llvm/codegen.hpp"
+#include "frontend/ast/call_properties.hpp"
 
 namespace tx
 {
@@ -60,6 +61,28 @@ std::optional<llvm_code_generator::ir_value> llvm_code_generator::emit_string_ke
          target.external_name != "dictionary.contains") || call.arguments.size() != 2)
     {
         return std::nullopt;
+    }
+    const auto& scalar_key = *call.arguments[1].value;
+    if (target.external_name == "dictionary.contains" &&
+        (scalar_key.type == value_type::int_type || scalar_key.type == value_type::float_type ||
+         scalar_key.type == value_type::bool_type) && stable_borrow_expression(scalar_key))
+    {
+        const auto* name = std::get_if<name_reference>(&call.arguments[0].value->data);
+        if (name)
+        {
+            const auto slot = find_variable(name->name, item.position);
+            if (!slot.dict_reference.empty())
+            {
+                const auto key = expression_value(scalar_key);
+                const auto reference = load_dict_reference(slot);
+                const auto result = temporary();
+                const auto suffix = key.type == value_type::int_type ? "i64" :
+                    key.type == value_type::float_type ? "f64" : "bool";
+                write_instruction(result + " = call i1 @txrt_dict_ref_contains_" + suffix +
+                    "(ptr " + reference + ", " + llvm_type(key.type, item.position) + " " + key.text + ")");
+                return ir_value{value_type::bool_type, result};
+            }
+        }
     }
     if (const auto* literal = std::get_if<string_literal>(&call.arguments[1].value->data))
     {

@@ -7,9 +7,13 @@ namespace
 
 db_connection clean_connection(db_connection_state& connection)
 {
-    if (!connection.postgres || connection.cleanup_failed)
+    if (!connection.postgres && !connection.cleanup_failed)
     {
-        // SQLite 必须重新打开，防止 temp 表或连接局部配置污染下次借用。
+        return db_recycle_sqlite(connection);
+    }
+    if (connection.cleanup_failed)
+    {
+        // 未能证明干净的连接继续关闭，防止会话状态污染下次借用。
         connection.native.reset();
         connection.postgres.reset();
         return {};

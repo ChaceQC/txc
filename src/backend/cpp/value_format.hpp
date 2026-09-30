@@ -255,6 +255,7 @@ private:
 };
 
 void register_class_gc(const std::shared_ptr<dynamic_class>& object);
+[[nodiscard]] std::any class_default_field(const std::string& type);
 
 [[nodiscard]] std::string format_print_value(const std::any& value);
 [[nodiscard]] std::string format_repr_value(const std::any& value);

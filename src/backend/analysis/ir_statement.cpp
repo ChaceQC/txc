@@ -58,6 +58,7 @@ void ir_builder::assignment_value(const variable_assignment& assignment)
     }
     if (name)
     {
+        result_.local_bindings.emplace(assignment.target.get(), variable(name->name));
         bind(variable(name->name), assigned);
     }
     else
@@ -154,6 +155,7 @@ void ir_builder::unpack_value(const unpack_assignment& unpack)
     {
         const auto local = unpack.declares[index]
             ? declare(unpack.names[index], value_type::any_type) : variable(unpack.names[index]);
+        result_.unpack_bindings[&unpack].push_back(local);
         analysis_instruction projection;
         projection.operation = ir_operation::projection;
         projection.type = result_.variables[local].type;

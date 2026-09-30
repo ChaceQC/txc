@@ -174,7 +174,11 @@ extern "C" int txrt_random_seed_context(void* context,
     });
 }
 
-extern "C" int txrt_random_int_context(void* context, std::int64_t lower,
+extern "C"
+#ifdef __clang__
+__attribute__((always_inline))
+#endif
+int txrt_random_int_context(void* context, std::int64_t lower,
     std::int64_t upper, std::int64_t* result) noexcept
 {
     return invoke_leaf([&]

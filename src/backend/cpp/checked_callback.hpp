@@ -9,6 +9,26 @@
 namespace tx_generated
 {
 
+class callback_execution_scope
+{
+public:
+    callback_execution_scope()
+        : context_(detail::current_runtime_context()), previous_(context_.propagate_errors)
+    {
+        context_.propagate_errors = true;
+    }
+    ~callback_execution_scope()
+    {
+        context_.propagate_errors = previous_;
+    }
+    callback_execution_scope(const callback_execution_scope&) = delete;
+    callback_execution_scope& operator=(const callback_execution_scope&) = delete;
+
+private:
+    detail::runtime_context& context_;
+    bool previous_;
+};
+
 // 回调 ABI 由调用方的具体签名选择；这里只管理 TX 错误状态的消费边界。
 // 绑定只用于持有原回调参数的同步调用期间，不跨线程或跨调用保存借用视图。
 template<class result_type, class... arguments>
@@ -34,17 +54,14 @@ public:
 
     result_type operator()(arguments... values) const
     {
+        callback_execution_scope scope;
+        return invoke_in_scope(values...);
+    }
+
+    // 同步批次已持有传播作用域时仅检查本次错误，不重复写入相同线程状态。
+    result_type invoke_in_scope(arguments... values) const
+    {
         auto& context = context_;
-        struct propagation_guard
-        {
-            detail::runtime_context& context;
-            bool previous;
-            ~propagation_guard()
-            {
-                context.propagate_errors = previous;
-            }
-        } guard{context, context.propagate_errors};
-        context.propagate_errors = true;
         const auto check = [&]
         {
             if (context.last_error_kind != tx::error_kind::none)

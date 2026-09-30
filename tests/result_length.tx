@@ -1,0 +1,104 @@
+import "test.txh" as test
+import "format.txh" as fmt
+import "encoding.txh" as encoding
+import "bytes.txh" as bytes_api
+import "error.txh" as errors
+
+def format_length(number: int, text: str, flag: bool) -> int
+{
+    auto result = fmt.format("{{{x}}}:{}:{}", number, flag, x=text)
+    return len(result)
+}
+
+def encoded_length(text: str) -> int
+{
+    auto result = encoding.encode(text, "utf-8-sig")
+    return len(result)
+}
+
+def decoded_length(data: bytes) -> int
+{
+    auto result = encoding.decode(data, "utf-8-sig")
+    return len(result)
+}
+
+def side_effect(events: vector<int>) -> str
+{
+    events.push_back(1)
+    return "副作用"
+}
+
+def check_lengths() -> void
+{
+    test.assert_equal(14, format_length(-42, "甲🌍", false))
+    test.assert_equal(20, len(fmt.format("{}", -9223372036854775807 - 1)))
+    test.assert_equal(19, len(fmt.format("{}", 9223372036854775807)))
+    test.assert_equal(1, len(fmt.format("{}", 0)))
+    test.assert_equal(4, len(fmt.format("{}", true)))
+    test.assert_equal(7, len(encoding.encode("甲🌍", "utf-8")))
+    test.assert_equal(10, encoded_length("甲🌍"))
+    test.assert_equal(3, encoded_length(""))
+    auto data = encoding.encode("甲🌍", "utf-8-sig")
+    test.assert_equal(2, decoded_length(data))
+    test.assert_equal(8, len(encoding.encode("甲🌍", "utf-16")))
+    test.assert_equal(2, len(encoding.decode(encoding.encode("甲🌍", "utf-16"), "utf-16")))
+    // 非普通规格继续使用完整格式化，并检查结果仍有正确长度。
+    test.assert_equal(6, len(fmt.format("{:06d}", 42)))
+    auto events = vector<int>()
+    test.assert_equal(1, len(fmt.format("x", side_effect(events))))
+    test.assert_equal(1, events.size())
+}
+
+def check_fallback() -> void
+{
+    auto result = fmt.format("{}", "完整值")
+    auto alias = result
+    test.assert_equal("完整值", alias)
+    test.assert_equal(3, len(result))
+    auto data = encoding.encode("abc", "utf-8")
+    test.assert_equal("616263", bytes_api.to_hex(data))
+    test.assert_equal(3, len(data))
+}
+
+def check_errors() -> void
+{
+    bool failed = false
+    try
+    {
+        len(encoding.decode(bytes_api.from_hex("ff"), "utf-8"))
+    }
+    exception errors.runtime_error as error
+    {
+        failed = error.code == "invalid_encoding"
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        len(encoding.encode("🌍", "gbk"))
+    }
+    exception errors.runtime_error as error
+    {
+        failed = error.code == "unrepresentable_character"
+    }
+    test.assert_true(failed)
+    failed = false
+    try
+    {
+        len(fmt.format("{:d}", "不合法"))
+    }
+    exception errors.runtime_error as error
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+}
+
+def main() -> int
+{
+    check_lengths()
+    check_fallback()
+    check_errors()
+    print("RESULT_LENGTH_OK")
+    return 0
+}

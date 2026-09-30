@@ -226,16 +226,16 @@ std::string llvm_code_generator::lvalue_address(
     std::string invocation;
     if (const auto* member = std::get_if<member_expression>(&item.data))
     {
-        base = lvalue_address(*member->object, indices);
         if (static_record_type(member->object->type))
         {
             const auto index = member->field_slot.value_or(classes_.contains(member->object->type.name)
                 ? 0 : field_index(member->object->type, member->field, item.position));
-            const auto slot = record_field_slot({member->object->type, base}, index);
+            const auto slot = record_field_slot(record_lvalue_owner(*member->object, indices), index);
             const auto result = temporary();
             write_instruction(result + " = load ptr, ptr " + slot);
             return result;
         }
+        base = lvalue_address(*member->object, indices);
         if (member->object->type == value_type::any_type)
         {
             invocation = "@txrt_struct_field_address(ptr " + base + ", ptr " +
@@ -377,10 +377,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_update(
         {
             lvalue_indices indices;
             prepare_lvalue_indices(*operation.target, indices);
-            const auto object = lvalue_address(*member->object, indices);
+            const auto object = record_lvalue_owner(*member->object, indices);
             const auto index = member->field_slot.value_or(classes_.contains(member->object->type.name)
                 ? 0 : field_index(member->object->type, member->field, item.position));
-            address = record_field_slot({member->object->type, object}, index);
+            address = record_field_slot(object, index);
         }
         const auto current = load({item.type, address});
         const bool increment = operation.operation == token_kind::plus_plus;

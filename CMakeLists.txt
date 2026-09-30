@@ -210,6 +210,7 @@ list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hp
     "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp" "src/stdlib/iterator.hpp")
 list(APPEND _tx_abi_files "src/stdlib/container_scalar.hpp" "src/stdlib/typed_map.hpp")
 list(APPEND _tx_abi_files "src/stdlib/db.hpp")
+list(APPEND _tx_abi_files "cmake/mbedtls_user_config.h")
 list(APPEND _tx_abi_files "src/stdlib/byte_storage.hpp" "src/stdlib/vector.hpp"
     "src/stdlib/serde_scalar.hpp" "src/stdlib/json_parser.hpp")
 list(SORT _tx_interface_files)
@@ -255,6 +256,7 @@ add_executable(txc
     src/backend/analysis/analysis_sets.cpp
     src/backend/analysis/program_analysis.cpp
     src/backend/analysis/call_analysis.cpp
+    src/backend/analysis/builtin_analysis.cpp
     src/backend/analysis/analysis_dump.cpp
     src/common/format_spec.cpp
     src/common/text_encoding.cpp
@@ -352,12 +354,14 @@ add_executable(txc
     src/backend/llvm/codegen_expression_values.cpp
     src/backend/llvm/codegen_expression_calls.cpp
     src/backend/llvm/codegen_class.cpp
+    src/backend/llvm/codegen_class_local.cpp
     src/backend/llvm/codegen_fields.cpp
     src/backend/llvm/codegen_record_metadata.cpp
     src/backend/llvm/codegen_record.cpp
     src/backend/llvm/codegen_record_analysis.cpp
     src/backend/llvm/codegen_sync_local.cpp
     src/backend/llvm/codegen_result_projection.cpp
+    src/backend/llvm/codegen_result_length.cpp
     src/backend/llvm/codegen_serde_static.cpp
     src/backend/llvm/codegen_record_operations.cpp
     src/backend/analysis/static_function.cpp
@@ -510,8 +514,10 @@ add_library(txstdlib STATIC
     src/backend/cpp/value_abi.cpp
     src/backend/cpp/value_snapshot_abi.cpp
     src/backend/cpp/deep_copy.cpp
+    src/backend/cpp/deep_copy_abi.cpp
     src/backend/cpp/deep_copy_resources.cpp
     src/backend/cpp/class_abi.cpp
+    src/backend/cpp/class_local_abi.cpp
     src/backend/cpp/value_format.cpp
     src/backend/cpp/dictionary_abi.cpp
     src/backend/cpp/dictionary_ref_abi.cpp
@@ -596,6 +602,7 @@ add_library(txstdlib STATIC
     src/stdlib/x509_verify.cpp
     src/stdlib/x509_verification_context.cpp
     src/stdlib/tls_identity.cpp
+    src/stdlib/tls_material.cpp
     src/stdlib/tls_stream_handshake.cpp
     src/stdlib/tls_stream_io.cpp
     src/stdlib/tls_stream_registry.cpp

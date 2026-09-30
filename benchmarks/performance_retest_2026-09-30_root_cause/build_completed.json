@@ -1,0 +1,11 @@
+{
+  "completed_utc": "2026-09-30T16:12:53.903396+00:00",
+  "source_unchanged": true,
+  "build_log": "build_retry_1.log",
+  "package_sha256": {
+    "txc.exe": "6290f988b55abfcb12830d1f7e051d9867b0899ab05c5b13f807d91c591acee4",
+    "libtxstdlib.a": "3e447586b61be628f466dc84638053ea24416a58fd58d4b8b42b7f42affd7968",
+    "libtxstdlib_lto.a": "ee8cbc5a0b4f80c50561f1528f1e43665d23c87e929823c30392a4381eb3b815",
+    "package.compat": "5f484b349a89d557f7ba55fadefc0265fbc1412cb3b8a4aeda442e9dfab220d6"
+  }
+}

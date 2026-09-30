@@ -1,5 +1,7 @@
 # 静态表示与生命周期体系改造
 
+2026-09-30 根因报告的后续修复、定向验证及剩余边界见 [root_cause_repair.md](root_cause_repair.md)。
+
 本轮以 `static_object_layout.md`、`static_borrowing.md` 的已有语义为基础，
 将静态信息贯穿布局、调用和运行时执行。语言语法、类身份、别名、析构复活、
 异常传播和标准库公开接口保持兼容。未知效果必须保守处理。

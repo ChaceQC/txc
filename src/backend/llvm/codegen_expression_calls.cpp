@@ -160,8 +160,9 @@ llvm_code_generator::ir_value llvm_code_generator::emit_builtin_call(
         }
         const auto address = allocate(argument.type, item.position);
         const auto status = temporary();
-        write_instruction(status + " = call i32 @txrt_value_deep_copy(ptr " +
-                          argument.text + ", ptr " + address + ")");
+        write_instruction(status + " = call i32 @txrt_value_deep_copy_known(ptr " +
+                          argument.text + ", i64 " + std::to_string(record_copy_tag(argument.type)) +
+                          ", ptr " + address + ")");
         write_instruction("call void @txrt_require_success(i32 " + status + ")");
         release(argument);
         const auto result = temporary();
@@ -582,6 +583,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_call(
             const auto& input = *call.arguments.front().value;
             if (call.name == "len")
             {
+                if (auto length = emit_result_length(input))
+                {
+                    return *length;
+                }
                 if (auto length = emit_parse_error_field(input, true))
                 {
                     return *length;

@@ -1,0 +1,989 @@
+{
+  "utc": "2026-09-30T13:05:59.897971+00:00",
+  "warmups": 1,
+  "rounds": 3,
+  "compiler_sha256": "7bbe8a7c7115f0d429b2b1f213702547857859463ca995c8e6eecb708b79aecf",
+  "groups": {
+    "features": {
+      "source": "benchmarks\\performance_baseline_2026-09-29\\audit\\features.tx",
+      "source_sha256": "f1f14992e0941af360a01d483cbb6fb02cc69d795c35e95985d76591637035a2",
+      "before": "tx_build\\performance_retest_2026_09_30_static_execution\\equivalence\\features_tx.exe",
+      "before_sha256": "99301c7553bd5c7e5aff386d2e69a18a44c203b0759a7ec05f6fba8835750bf1",
+      "after": "tx_build\\root_cause_repair_checks\\features_after.exe",
+      "after_sha256": "ffc9fe0bac094b5b4e9409d0ef973fea4c8f1fe36a366e3af9321745ab93361b",
+      "entries": {
+        "heap_push_pop": {
+          "checksum": 24975000,
+          "before_ms": [
+            29.639,
+            29.804,
+            30.811
+          ],
+          "before_median_ms": 29.804,
+          "after_ms": [
+            7.777,
+            8.051,
+            7.934
+          ],
+          "after_median_ms": 7.934
+        },
+        "iterator_snapshot": {
+          "checksum": 49950000,
+          "before_ms": [
+            1.464,
+            1.468,
+            1.475
+          ],
+          "before_median_ms": 1.468,
+          "after_ms": [
+            0.177,
+            0.161,
+            0.16
+          ],
+          "after_median_ms": 0.161
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "vector_push": {
+              "ms": 2.147,
+              "checksum": 199999
+            },
+            "vector_index": {
+              "ms": 0.145,
+              "checksum": 3500000
+            },
+            "map_lookup": {
+              "ms": 0.351,
+              "checksum": 6348464
+            },
+            "set_contains": {
+              "ms": 0.279,
+              "checksum": 100000
+            },
+            "heap_push_pop": {
+              "ms": 29.639,
+              "checksum": 24975000
+            },
+            "queue_push_pop": {
+              "ms": 1.075,
+              "checksum": 4999950000
+            },
+            "iterator_snapshot": {
+              "ms": 1.464,
+              "checksum": 49950000
+            },
+            "option_value": {
+              "ms": 0.024,
+              "checksum": 350000
+            },
+            "function_value": {
+              "ms": 0.283,
+              "checksum": 9999900000
+            },
+            "closure_bind": {
+              "ms": 0.166,
+              "checksum": 5000450000
+            }
+          },
+          {
+            "vector_push": {
+              "ms": 2.186,
+              "checksum": 199999
+            },
+            "vector_index": {
+              "ms": 0.148,
+              "checksum": 3500000
+            },
+            "map_lookup": {
+              "ms": 0.33,
+              "checksum": 6348464
+            },
+            "set_contains": {
+              "ms": 0.274,
+              "checksum": 100000
+            },
+            "heap_push_pop": {
+              "ms": 29.804,
+              "checksum": 24975000
+            },
+            "queue_push_pop": {
+              "ms": 1.131,
+              "checksum": 4999950000
+            },
+            "iterator_snapshot": {
+              "ms": 1.468,
+              "checksum": 49950000
+            },
+            "option_value": {
+              "ms": 0.024,
+              "checksum": 350000
+            },
+            "function_value": {
+              "ms": 0.285,
+              "checksum": 9999900000
+            },
+            "closure_bind": {
+              "ms": 0.166,
+              "checksum": 5000450000
+            }
+          },
+          {
+            "vector_push": {
+              "ms": 2.025,
+              "checksum": 199999
+            },
+            "vector_index": {
+              "ms": 0.15,
+              "checksum": 3500000
+            },
+            "map_lookup": {
+              "ms": 0.344,
+              "checksum": 6348464
+            },
+            "set_contains": {
+              "ms": 0.264,
+              "checksum": 100000
+            },
+            "heap_push_pop": {
+              "ms": 30.811,
+              "checksum": 24975000
+            },
+            "queue_push_pop": {
+              "ms": 1.146,
+              "checksum": 4999950000
+            },
+            "iterator_snapshot": {
+              "ms": 1.475,
+              "checksum": 49950000
+            },
+            "option_value": {
+              "ms": 0.024,
+              "checksum": 350000
+            },
+            "function_value": {
+              "ms": 0.287,
+              "checksum": 9999900000
+            },
+            "closure_bind": {
+              "ms": 0.167,
+              "checksum": 5000450000
+            }
+          }
+        ],
+        "after": [
+          {
+            "vector_push": {
+              "ms": 1.928,
+              "checksum": 199999
+            },
+            "vector_index": {
+              "ms": 0.196,
+              "checksum": 3500000
+            },
+            "map_lookup": {
+              "ms": 0.324,
+              "checksum": 6348464
+            },
+            "set_contains": {
+              "ms": 0.308,
+              "checksum": 100000
+            },
+            "heap_push_pop": {
+              "ms": 7.777,
+              "checksum": 24975000
+            },
+            "queue_push_pop": {
+              "ms": 1.141,
+              "checksum": 4999950000
+            },
+            "iterator_snapshot": {
+              "ms": 0.177,
+              "checksum": 49950000
+            },
+            "option_value": {
+              "ms": 0.025,
+              "checksum": 350000
+            },
+            "function_value": {
+              "ms": 0.279,
+              "checksum": 9999900000
+            },
+            "closure_bind": {
+              "ms": 0.163,
+              "checksum": 5000450000
+            }
+          },
+          {
+            "vector_push": {
+              "ms": 1.931,
+              "checksum": 199999
+            },
+            "vector_index": {
+              "ms": 0.175,
+              "checksum": 3500000
+            },
+            "map_lookup": {
+              "ms": 0.334,
+              "checksum": 6348464
+            },
+            "set_contains": {
+              "ms": 0.262,
+              "checksum": 100000
+            },
+            "heap_push_pop": {
+              "ms": 8.051,
+              "checksum": 24975000
+            },
+            "queue_push_pop": {
+              "ms": 1.452,
+              "checksum": 4999950000
+            },
+            "iterator_snapshot": {
+              "ms": 0.161,
+              "checksum": 49950000
+            },
+            "option_value": {
+              "ms": 0.025,
+              "checksum": 350000
+            },
+            "function_value": {
+              "ms": 0.28,
+              "checksum": 9999900000
+            },
+            "closure_bind": {
+              "ms": 0.164,
+              "checksum": 5000450000
+            }
+          },
+          {
+            "vector_push": {
+              "ms": 1.91,
+              "checksum": 199999
+            },
+            "vector_index": {
+              "ms": 0.181,
+              "checksum": 3500000
+            },
+            "map_lookup": {
+              "ms": 0.329,
+              "checksum": 6348464
+            },
+            "set_contains": {
+              "ms": 0.386,
+              "checksum": 100000
+            },
+            "heap_push_pop": {
+              "ms": 7.934,
+              "checksum": 24975000
+            },
+            "queue_push_pop": {
+              "ms": 1.386,
+              "checksum": 4999950000
+            },
+            "iterator_snapshot": {
+              "ms": 0.16,
+              "checksum": 49950000
+            },
+            "option_value": {
+              "ms": 0.025,
+              "checksum": 350000
+            },
+            "function_value": {
+              "ms": 0.284,
+              "checksum": 9999900000
+            },
+            "closure_bind": {
+              "ms": 0.166,
+              "checksum": 5000450000
+            }
+          }
+        ]
+      }
+    },
+    "diverse": {
+      "source": "benchmarks\\diverse_performance.tx",
+      "source_sha256": "2e940bff73a793788cf78c37c6a34c98cab38fb1c1aaacc184042cf89f13b499",
+      "before": "tx_build\\performance_retest_2026_09_30_static_execution\\equivalence\\diverse_tx.exe",
+      "before_sha256": "e2eb0dcc0028e16d80a85e885516ac5146df6ef882db3e4ffd084f8610361191",
+      "after": "tx_build\\root_cause_repair_checks\\diverse_after.exe",
+      "after_sha256": "64463628c490400827350c8966a9140895b11698e372d25a000d026179c559df",
+      "entries": {
+        "format_literal": {
+          "checksum": 488890,
+          "before_ms": [
+            6.202,
+            7.125,
+            6.238
+          ],
+          "before_median_ms": 6.238,
+          "after_ms": [
+            0.586,
+            0.654,
+            0.57
+          ],
+          "after_median_ms": 0.586
+        },
+        "encoding_literal": {
+          "checksum": 900000,
+          "before_ms": [
+            11.247,
+            11.22,
+            11.053
+          ],
+          "before_median_ms": 11.22,
+          "after_ms": [
+            1.064,
+            1.045,
+            1.022
+          ],
+          "after_median_ms": 1.045
+        },
+        "encoding_dynamic": {
+          "checksum": 900000,
+          "before_ms": [
+            10.931,
+            11.929,
+            10.754
+          ],
+          "before_median_ms": 10.931,
+          "after_ms": [
+            1.035,
+            1.016,
+            1.452
+          ],
+          "after_median_ms": 1.035
+        },
+        "serde_short_text": {
+          "checksum": 40000,
+          "before_ms": [
+            6.901,
+            7.107,
+            6.697
+          ],
+          "before_median_ms": 6.901,
+          "after_ms": [
+            6.165,
+            6.084,
+            6.148
+          ],
+          "after_median_ms": 6.148
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "vector_scan_1k": {
+              "ms": 0.257,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.343,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.288,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.289,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.518,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 2.099,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 2.025,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.247,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.222,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.819,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 6.202,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 6.696,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 11.247,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 10.931,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.901,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.375,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.809,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.731,
+              "checksum": 100000
+            }
+          },
+          {
+            "vector_scan_1k": {
+              "ms": 0.258,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.385,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.296,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.294,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.534,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 1.971,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 2.13,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.582,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.438,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.818,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 7.125,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 6.886,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 11.22,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 11.929,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 7.107,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.626,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.807,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.736,
+              "checksum": 100000
+            }
+          },
+          {
+            "vector_scan_1k": {
+              "ms": 0.266,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.425,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.292,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.29,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.531,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 1.962,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 1.973,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.26,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.24,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.808,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 6.238,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 6.197,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 11.053,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 10.754,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.697,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.209,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.76,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.715,
+              "checksum": 100000
+            }
+          }
+        ],
+        "after": [
+          {
+            "vector_scan_1k": {
+              "ms": 0.261,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.348,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.291,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.291,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.863,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 2.016,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 1.944,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.254,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.243,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.891,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 0.586,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 0.575,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 1.064,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 1.035,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.165,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.022,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.753,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.721,
+              "checksum": 100000
+            }
+          },
+          {
+            "vector_scan_1k": {
+              "ms": 0.258,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.358,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.294,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.289,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.868,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 2.092,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 1.907,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.246,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.247,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.821,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 0.654,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 0.566,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 1.045,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 1.016,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.084,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 7.937,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.741,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.708,
+              "checksum": 100000
+            }
+          },
+          {
+            "vector_scan_1k": {
+              "ms": 0.253,
+              "checksum": 3000000
+            },
+            "vector_scan_100k": {
+              "ms": 2.472,
+              "checksum": 30000000
+            },
+            "vector_index_sequential": {
+              "ms": 0.29,
+              "checksum": 47857475
+            },
+            "vector_index_strided": {
+              "ms": 0.347,
+              "checksum": 47857965
+            },
+            "map_hit_128": {
+              "ms": 1.861,
+              "checksum": 31748464
+            },
+            "map_hit_8192": {
+              "ms": 2.039,
+              "checksum": 2047690384
+            },
+            "map_hit_10_percent": {
+              "ms": 2.04,
+              "checksum": 50000
+            },
+            "dictionary_int_hit": {
+              "ms": 1.355,
+              "checksum": 200000
+            },
+            "dictionary_text_hit": {
+              "ms": 2.316,
+              "checksum": 200000
+            },
+            "dictionary_mostly_miss": {
+              "ms": 0.834,
+              "checksum": 1
+            },
+            "format_literal": {
+              "ms": 0.57,
+              "checksum": 488890
+            },
+            "format_dynamic": {
+              "ms": 0.566,
+              "checksum": 488890
+            },
+            "encoding_literal": {
+              "ms": 1.022,
+              "checksum": 900000
+            },
+            "encoding_dynamic": {
+              "ms": 1.452,
+              "checksum": 900000
+            },
+            "serde_short_text": {
+              "ms": 6.148,
+              "checksum": 40000
+            },
+            "serde_long_text": {
+              "ms": 8.043,
+              "checksum": 655000
+            },
+            "parse_valid": {
+              "ms": 0.757,
+              "checksum": 100000
+            },
+            "parse_invalid": {
+              "ms": 0.725,
+              "checksum": 100000
+            }
+          }
+        ]
+      }
+    },
+    "concurrency": {
+      "source": "benchmarks\\stdlib_retest_2026-09-30_static_execution\\concurrency.tx",
+      "source_sha256": "b90dae6bc2076f2b99c1921cb9ef39c4cbb7981113db8c3965eed3af09f9d2be",
+      "before": "tx_build\\stdlib_retest_2026_09_30_static_execution\\concurrency.exe",
+      "before_sha256": "3418cd54ccb76f6a7374cad7f0506400d2916c1dd43b7777f07b8686e3e3e6e8",
+      "after": "tx_build\\root_cause_repair_checks\\concurrency_after.exe",
+      "after_sha256": "00174680022d0614f132c4386982e28cf20966ebdbcf5a47e3612be29cb7004e",
+      "entries": {
+        "mutex_uncontended": {
+          "checksum": 100000,
+          "before_ms": [
+            19.2,
+            19.826,
+            19.826
+          ],
+          "before_median_ms": 19.826,
+          "after_ms": [
+            1.407,
+            1.393,
+            1.325
+          ],
+          "after_median_ms": 1.393
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "thread_spawn_join": {
+              "ms": 14.442,
+              "checksum": 100
+            },
+            "mutex_uncontended": {
+              "ms": 19.2,
+              "checksum": 100000
+            },
+            "atomic_add": {
+              "ms": 0.372,
+              "checksum": 100000
+            },
+            "channel_send_recv": {
+              "ms": 1.923,
+              "checksum": 200010000
+            },
+            "task_spawn_wait": {
+              "ms": 7.208,
+              "checksum": 500
+            }
+          },
+          {
+            "thread_spawn_join": {
+              "ms": 13.708,
+              "checksum": 100
+            },
+            "mutex_uncontended": {
+              "ms": 19.826,
+              "checksum": 100000
+            },
+            "atomic_add": {
+              "ms": 0.376,
+              "checksum": 100000
+            },
+            "channel_send_recv": {
+              "ms": 1.99,
+              "checksum": 200010000
+            },
+            "task_spawn_wait": {
+              "ms": 7.751,
+              "checksum": 500
+            }
+          },
+          {
+            "thread_spawn_join": {
+              "ms": 15.122,
+              "checksum": 100
+            },
+            "mutex_uncontended": {
+              "ms": 19.826,
+              "checksum": 100000
+            },
+            "atomic_add": {
+              "ms": 0.38,
+              "checksum": 100000
+            },
+            "channel_send_recv": {
+              "ms": 1.99,
+              "checksum": 200010000
+            },
+            "task_spawn_wait": {
+              "ms": 6.946,
+              "checksum": 500
+            }
+          }
+        ],
+        "after": [
+          {
+            "thread_spawn_join": {
+              "ms": 14.627,
+              "checksum": 100
+            },
+            "mutex_uncontended": {
+              "ms": 1.407,
+              "checksum": 100000
+            },
+            "atomic_add": {
+              "ms": 0.395,
+              "checksum": 100000
+            },
+            "channel_send_recv": {
+              "ms": 1.904,
+              "checksum": 200010000
+            },
+            "task_spawn_wait": {
+              "ms": 7.641,
+              "checksum": 500
+            }
+          },
+          {
+            "thread_spawn_join": {
+              "ms": 14.84,
+              "checksum": 100
+            },
+            "mutex_uncontended": {
+              "ms": 1.393,
+              "checksum": 100000
+            },
+            "atomic_add": {
+              "ms": 0.441,
+              "checksum": 100000
+            },
+            "channel_send_recv": {
+              "ms": 1.899,
+              "checksum": 200010000
+            },
+            "task_spawn_wait": {
+              "ms": 7.416,
+              "checksum": 500
+            }
+          },
+          {
+            "thread_spawn_join": {
+              "ms": 14.08,
+              "checksum": 100
+            },
+            "mutex_uncontended": {
+              "ms": 1.325,
+              "checksum": 100000
+            },
+            "atomic_add": {
+              "ms": 0.392,
+              "checksum": 100000
+            },
+            "channel_send_recv": {
+              "ms": 1.928,
+              "checksum": 200010000
+            },
+            "task_spawn_wait": {
+              "ms": 6.581,
+              "checksum": 500
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -72,6 +72,9 @@ private:
         bool stable_class_owner = false;
         std::string local_guard;
         std::unordered_map<std::string, std::string> projected_fields;
+        std::string result_length;
+        std::string local_class_storage;
+        std::string local_class_cleanup;
 
         variable_slot(value_type value_type, std::string value_address,
                       bool is_borrowed = false,
@@ -350,7 +353,18 @@ private:
     [[nodiscard]] std::vector<ir_value> emit_format_arguments(const call_expression& call,
         const std::vector<static_format_part>& plan, std::vector<std::optional<std::string>>& bytes);
     [[nodiscard]] std::optional<ir_value> emit_constant_encoding(
+        const expression& item, const call_expression& call, const function_decl& target,
+        bool length_only = false);
+    [[nodiscard]] std::optional<ir_value> emit_result_length(const expression& item);
+    [[nodiscard]] std::optional<ir_value> emit_format_length(
         const expression& item, const call_expression& call, const function_decl& target);
+    [[nodiscard]] bool length_only_local(const variable_declaration& declaration) const;
+    bool emit_length_local(const statement& item, const variable_declaration& declaration);
+    bool emit_local_class(const statement& item, const variable_declaration& declaration);
+    [[nodiscard]] bool eligible_local_class(const variable_declaration& declaration) const;
+    [[nodiscard]] std::string emit_local_class_cleanup(const class_decl& definition);
+    [[nodiscard]] bool field_only_local(const variable_declaration& declaration) const;
+    [[nodiscard]] static bool field_only_self(const function_decl& function);
     [[nodiscard]] std::string serde_schema_constant(const value_type& type);
     [[nodiscard]] std::string serde_type_constant(const value_type& type);
     [[nodiscard]] std::string serde_default_constant(const struct_field& field);
@@ -472,6 +486,7 @@ private:
     void assign_any(const std::string& target, const ir_value& value,
                     source_pos position);
     using lvalue_indices = std::unordered_map<const expression*, ir_value>;
+    [[nodiscard]] ir_value record_lvalue_owner(const expression& item, const lvalue_indices& indices);
     void prepare_lvalue_indices(const expression& item, lvalue_indices& indices);
     [[nodiscard]] std::string lvalue_address(
         const expression& item, const lvalue_indices& indices);

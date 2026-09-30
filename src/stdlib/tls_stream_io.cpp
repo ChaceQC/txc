@@ -49,10 +49,8 @@ void secure_connection::release() noexcept
     released_ = true;
     mbedtls_ssl_free(&ssl_);
     mbedtls_ssl_config_free(&config_);
-    mbedtls_pk_free(&key_);
-    mbedtls_x509_crt_free(&cert_);
-    mbedtls_ctr_drbg_free(&rng_);
-    mbedtls_entropy_free(&entropy_);
+    release_identity_material(identity_owner_, std::move(identity_material_));
+    identity_owner_.reset();
     native_.reset();
 }
 

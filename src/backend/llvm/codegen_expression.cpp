@@ -188,6 +188,7 @@ llvm_code_generator::ir_value llvm_code_generator::expression_value(
                                       variable.address);
                 }
                 object = {variable.type, handle};
+                object.record_view = load_record_view(variable);
                 borrowed_object = true;
             }
         }

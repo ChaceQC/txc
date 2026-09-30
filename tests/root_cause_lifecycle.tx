@@ -1,0 +1,131 @@
+import "test.txh" as test
+import "error.txh" as errors
+import "dictionary.txh" as dictionary
+
+class local_counter
+{
+    public:
+        events: array
+        number: int
+        text: str
+
+        def init(events: array, number: int)
+        {
+            self.events = events
+            self.number = number
+            self.text = "局部"
+        }
+
+        def deinit()
+        {
+            self.events[0] = (self.events[0] as int) + self.number
+        }
+}
+
+class failed_init
+{
+    public:
+        events: vector<int>
+        def init(events: vector<int>)
+        {
+            self.events = events
+            errors.fail_io("initialization", "初始化失败")
+        }
+        def deinit()
+        {
+            self.events.push_back(1)
+            errors.fail_io("cleanup", "清理失败")
+        }
+}
+
+def check_failed_initialization()
+{
+    auto events = vector<int>()
+    bool failed = false
+    try
+    {
+        auto value = failed_init(events)
+    }
+    exception errors.io_error as error
+    {
+        failed = error.code == "initialization"
+    }
+    test.assert_true(failed)
+    test.assert_equal(1, events.size())
+}
+
+def local_loop(events: array) -> int
+{
+    int total = 0
+    for index in 1..=5
+    {
+        auto item = local_counter(events, index)
+        item.number += 1
+        total += len(item.text)
+    }
+    return total
+}
+
+def local_failure(events: array, divisor: int) -> int
+{
+    auto item = local_counter(events, 7)
+    return 10 / divisor
+}
+
+def escaping(events: array) -> local_counter
+{
+    auto item = local_counter(events, 3)
+    return item
+}
+
+def scalar_dictionary(key: int) -> int
+{
+    dict values = {1: 3, 2.5: 7, true: 9, "number": 11}
+    int total = 0
+    if dictionary.contains(values, key)
+    {
+        total += values[key + 0] as int
+    }
+    total += values[2.5] as int
+    total += values[true] as int
+    str text_key = "number"
+    total += values[text_key] as int
+    return total
+}
+
+def text_conversion(text: str) -> int
+{
+    int number = text as int
+    return number + len(text)
+}
+
+def main() -> int
+{
+    array events = [0]
+    test.assert_equal(10, local_loop(events))
+    test.assert_equal(20, events[0] as int)
+    bool failed = false
+    try
+    {
+        local_failure(events, 0)
+    }
+    exception errors.runtime_error as error
+    {
+        failed = true
+    }
+    test.assert_true(failed)
+    test.assert_equal(27, events[0] as int)
+    if true
+    {
+        auto item = escaping(events)
+        auto alias = item
+        alias.number = 4
+        test.assert_equal(4, item.number)
+    }
+    test.assert_equal(31, events[0] as int)
+    test.assert_equal(30, scalar_dictionary(1))
+    test.assert_equal(44, text_conversion("42"))
+    check_failed_initialization()
+    print("ROOT_CAUSE_LIFECYCLE_OK")
+    return 0
+}

@@ -22,6 +22,9 @@ public:
     std::function<bool(const operator_binding&)> native_operator = {};
     std::function<bool(const expression&)> native_result = {};
     std::function<bool(const call_expression&)> guard_call = {};
+    const function_analysis* analysis = nullptr;
+    bool length_only = false;
+    bool reject_super = false;
 
     bool field_owner(const expression& item) const
     {
@@ -35,7 +38,20 @@ public:
     bool named(const expression& item) const
     {
         const auto* name = std::get_if<name_reference>(&item.data);
-        return name && name->name == candidate.name;
+        if (!name || name->name != candidate.name)
+        {
+            return false;
+        }
+        if (analysis)
+        {
+            const auto found = analysis->ir.local_bindings.find(&item);
+            if (found != analysis->ir.local_bindings.end())
+            {
+                return analysis->ir.variables[found->second].declaration == &candidate;
+            }
+        }
+        // 未降下来的不可达语句仍按名字保守检查。
+        return true;
     }
 
     bool expression_safe(const expression& item) const
@@ -46,6 +62,10 @@ public:
         }
         if (const auto* member = std::get_if<member_expression>(&item.data))
         {
+            if (length_only)
+            {
+                return expression_safe(*member->object);
+            }
             if (read_only_fields && field_owner(*member->object))
             {
                 return item.type == value_type::int_type || item.type == value_type::float_type ||
@@ -56,6 +76,15 @@ public:
         }
         if (const auto* call = std::get_if<call_expression>(&item.data))
         {
+            if (reject_super && call->is_super_view)
+            {
+                return false;
+            }
+            if (length_only && !call->receiver && !call->indirect && !call->overload_index &&
+                call->name == "len" && call->arguments.size() == 1 && named(*call->arguments.front().value))
+            {
+                return true;
+            }
             if (guard_call && guard_call(*call))
             {
                 return !call->receiver && std::all_of(call->arguments.begin(), call->arguments.end(),
@@ -153,7 +182,7 @@ public:
     {
         if (const auto* declaration = std::get_if<variable_declaration>(&item.data))
         {
-            return (declaration == &candidate || declaration->name != candidate.name) &&
+            return (analysis || declaration == &candidate || declaration->name != candidate.name) &&
                 (declaration == allowed_alias || !declaration->initializer ||
                  expression_safe(*declaration->initializer)) &&
                 (!declaration->array_length || expression_safe(*declaration->array_length));
@@ -175,6 +204,17 @@ public:
         }
         if (const auto* unpack = std::get_if<unpack_assignment>(&item.data))
         {
+            if (analysis)
+            {
+                const auto found = analysis->ir.unpack_bindings.find(unpack);
+                if (found != analysis->ir.unpack_bindings.end())
+                {
+                    return std::none_of(found->second.begin(), found->second.end(), [&](analysis_id id)
+                    {
+                        return analysis->ir.variables[id].declaration == &candidate;
+                    }) && expression_safe(*unpack->value);
+                }
+            }
             return std::find(unpack->names.begin(), unpack->names.end(), candidate.name) ==
                 unpack->names.end() && expression_safe(*unpack->value);
         }
@@ -189,12 +229,12 @@ public:
         }
         if (const auto* loop = std::get_if<for_loop>(&item.data))
         {
-            return loop->name != candidate.name && expression_safe(*loop->first) &&
+            return (analysis || loop->name != candidate.name) && expression_safe(*loop->first) &&
                 expression_safe(*loop->last) && body_safe(loop->body);
         }
         if (const auto* loop = std::get_if<for_each>(&item.data))
         {
-            return loop->name != candidate.name && expression_safe(*loop->values) &&
+            return (analysis || loop->name != candidate.name) && expression_safe(*loop->values) &&
                 body_safe(loop->body);
         }
         if (const auto* guarded = std::get_if<try_statement>(&item.data))
@@ -203,7 +243,7 @@ public:
                 guarded->handlers.begin(), guarded->handlers.end(),
                 [&](const exception_clause& handler)
                 {
-                    return handler.name != candidate.name && body_safe(handler.body);
+                    return (analysis || handler.name != candidate.name) && body_safe(handler.body);
                 });
         }
         if (const auto* result = std::get_if<return_statement>(&item.data))
@@ -224,6 +264,7 @@ bool llvm_code_generator::confined_local(
         return false;
     }
     auto checker = local_use_checker{declaration, fields_only};
+    checker.analysis = current_analysis_;
     if (fields_only && declaration.initializer && scalar_record_type(declaration.initializer->type))
     {
         checker.native_call = [this](const call_expression& call)
@@ -245,6 +286,7 @@ bool llvm_code_generator::confined_local(
 bool llvm_code_generator::borrowed_class_local(const variable_declaration& declaration) const
 {
     auto checker = local_use_checker{declaration, false, true};
+    checker.analysis = current_analysis_;
     // 非异常模式的显式 return 从外层开始清理；此时保留拥有的转换结果。
     checker.reject_returns = !recoverable_errors_;
     return current_function_body_ && checker.body_safe(*current_function_body_);
@@ -253,6 +295,7 @@ bool llvm_code_generator::borrowed_class_local(const variable_declaration& decla
 bool llvm_code_generator::confined_guard_local(const variable_declaration& declaration) const
 {
     auto checker = local_use_checker{declaration, true};
+    checker.analysis = current_analysis_;
     checker.guard_call = [this](const call_expression& call)
     {
         const auto found = functions_.find(call.name);
@@ -279,8 +322,9 @@ bool llvm_code_generator::scalar_local_unchanged(const std::string& name,
 bool llvm_code_generator::readonly_local_fields(const variable_declaration& declaration,
     const variable_declaration* allowed_alias) const
 {
-    return current_function_body_ && local_use_checker{
-        declaration, true, false, true, allowed_alias}.body_safe(*current_function_body_);
+    auto checker = local_use_checker{declaration, true, false, true, allowed_alias};
+    checker.analysis = current_analysis_;
+    return current_function_body_ && checker.body_safe(*current_function_body_);
 }
 
 bool llvm_code_generator::default_heap_local(const variable_declaration& declaration) const
@@ -299,6 +343,33 @@ bool llvm_code_generator::default_heap_local(const variable_declaration& declara
             {
                 return argument.value->type.is_function();
             }) && confined_local(declaration, false);
+}
+
+bool llvm_code_generator::length_only_local(const variable_declaration& declaration) const
+{
+    auto checker = local_use_checker{declaration, false};
+    checker.analysis = current_analysis_;
+    checker.length_only = true;
+    // 禁止任何接收者调用，只有 len 的专用分支可以读取候选值。
+    checker.fields_only = true;
+    checker.read_only_fields = true;
+    return current_function_body_ && checker.body_safe(*current_function_body_);
+}
+
+bool llvm_code_generator::field_only_local(const variable_declaration& declaration) const
+{
+    auto checker = local_use_checker{declaration, true};
+    checker.analysis = current_analysis_;
+    return current_function_body_ && checker.body_safe(*current_function_body_);
+}
+
+bool llvm_code_generator::field_only_self(const function_decl& function)
+{
+    variable_declaration self;
+    self.name = "self";
+    auto checker = local_use_checker{self, true};
+    checker.reject_super = true;
+    return !function.external && checker.body_safe(function.body);
 }
 
 bool llvm_code_generator::default_heap_receiver(const call_expression& call) const

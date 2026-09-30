@@ -48,6 +48,12 @@ int authorize(void* user, int action, const char* first, const char* second,
     {
         return SQLITE_OK;
     }
+    if (action != SQLITE_READ && action != SQLITE_SELECT && action != SQLITE_FUNCTION &&
+        action != SQLITE_RECURSIVE && !(action == SQLITE_PRAGMA && read_pragma(first)))
+    {
+        // 仅复用没有连接局部副作用的只读租约；DDL、写入和未知 pragma 均使其失效。
+        connection.sqlite_pool_reusable = false;
+    }
     if (action == SQLITE_TRANSACTION || action == SQLITE_SAVEPOINT ||
         action == SQLITE_ATTACH || action == SQLITE_DETACH ||
         (action == SQLITE_PRAGMA && second && !read_pragma(first)))
@@ -121,6 +127,7 @@ db_connection db_open(const db_options& options)
     validate_options(options);
     auto connection = std::make_shared<db_connection_state>();
     connection->value_limit = options.max_value_bytes;
+    connection->sqlite_busy_timeout_ms = options.busy_timeout_ms;
     const int flags = (options.read_only ? SQLITE_OPEN_READONLY :
         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE) | SQLITE_OPEN_FULLMUTEX;
     sqlite3* raw = nullptr;
@@ -148,6 +155,31 @@ db_connection db_open(const db_options& options)
         enable_wal(connection);
     }
     return connection;
+}
+
+db_connection db_recycle_sqlite(db_connection_state& connection)
+{
+    if (!connection.native || connection.cleanup_failed || !connection.sqlite_pool_reusable ||
+        sqlite3_total_changes64(connection.native.get()) != 0)
+    {
+        return {};
+    }
+    // 每个租约保持独立状态，旧 connection/statement 别名不能因复用而重新变有效。
+    auto idle = std::make_shared<db_connection_state>();
+    idle->native = std::move(connection.native);
+    idle->value_limit = connection.value_limit;
+    idle->sqlite_busy_timeout_ms = connection.sqlite_busy_timeout_ms;
+    auto* native = idle->native.get();
+    db_sqlite_check(idle, sqlite3_set_authorizer(native, authorize, idle.get()));
+    sqlite3_preupdate_hook(native, observe_insert, idle.get());
+    sqlite3_progress_handler(native, 0, nullptr, nullptr);
+    db_sqlite_check(idle, sqlite3_busy_timeout(native, static_cast<int>(idle->sqlite_busy_timeout_ms)));
+    if (!sqlite3_get_autocommit(native))
+    {
+        db_control_execute(idle, "ROLLBACK");
+    }
+    sqlite3_set_last_insert_rowid(native, 0);
+    return idle;
 }
 
 db_statement db_prepare(const db_connection& connection, std::string_view sql)

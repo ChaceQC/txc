@@ -1,0 +1,17 @@
+CMake Error at D:/CLion 2024.3.4/bin/cmake/win/x64/share/cmake-4.1/Modules/Platform/Windows-Clang.cmake:178 (message):
+  The current configuration mixes Clang and MSVC or some other CL compatible
+  compiler tool.  This is not supported.  Use either Clang or MSVC as the
+  compiler for all of C, C++, and/or HIP.
+Call Stack (most recent call first):
+  D:/CLion 2024.3.4/bin/cmake/win/x64/share/cmake-4.1/Modules/Platform/Windows-Clang.cmake:187 (__verify_same_language_values)
+  D:/CLion 2024.3.4/bin/cmake/win/x64/share/cmake-4.1/Modules/Platform/Windows-Clang-C.cmake:1 (include)
+  D:/CLion 2024.3.4/bin/cmake/win/x64/share/cmake-4.1/Modules/CMakeCInformation.cmake:48 (include)
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring incomplete, errors occurred!
+Exception: E:\Project\other\Compilation\scripts\build.ps1:36
+Line |
+  36 |      throw 'CMake 配置失败；build/ 已保留。'
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | CMake 配置失败；build/ 已保留。

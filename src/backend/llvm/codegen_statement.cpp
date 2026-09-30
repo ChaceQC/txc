@@ -21,7 +21,8 @@ void llvm_code_generator::emit_statements(const std::vector<stmt_ptr>& statement
 void llvm_code_generator::emit_declaration(
     const statement& item, const variable_declaration& declaration)
 {
-    if (emit_local_guard(item, declaration) || emit_regex_projection(item, declaration) ||
+    if (emit_local_class(item, declaration) || emit_length_local(item, declaration) ||
+        emit_local_guard(item, declaration) || emit_regex_projection(item, declaration) ||
         emit_borrowed_class_cast(item, declaration) || emit_stack_record(item, declaration))
     {
         return;

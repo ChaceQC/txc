@@ -160,6 +160,10 @@ analysis_id ir_builder::bind(analysis_id local, analysis_id value)
 
 analysis_id ir_builder::read(analysis_id local, const expression* source)
 {
+    if (source)
+    {
+        result_.local_bindings.emplace(source, local);
+    }
     analysis_instruction instruction;
     instruction.operation = ir_operation::read_local;
     instruction.type = result_.variables[local].type;

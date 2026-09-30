@@ -82,6 +82,8 @@ void close_identity(std::int64_t id) noexcept
         {
             // 身份对象仍由登记表持有时释放锁，避免删除对象后解锁悬空互斥锁。
             std::lock_guard identity_lock(found->second->mutex);
+            found->second->closed = true;
+            found->second->available_materials.clear();
             secret::close(found->second->private_key);
         }
         records.values.erase(found);

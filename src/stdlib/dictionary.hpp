@@ -59,6 +59,7 @@ public:
     }
     std::any& emplace_back(std::any key, std::any value);
     void prepare_write();
+    void reserve(std::size_t count);
     [[nodiscard]] bool erase(const std::any& key);
     [[nodiscard]] bool erase(std::string_view key);
     void clear() noexcept;

@@ -31,6 +31,10 @@ bool copy_parameter_edges(function_analysis& function, const analysis_instructio
 
 void program_analysis::solve_call(function_analysis& function, analysis_id id, bool& changed)
 {
+    if (solve_builtin_call(function, id, changed))
+    {
+        return;
+    }
     const auto& instruction = function.ir.instructions[id];
     const auto* callee = instruction.target ? find(*instruction.target) : nullptr;
     const bool unknown = instruction.unknown_target ||

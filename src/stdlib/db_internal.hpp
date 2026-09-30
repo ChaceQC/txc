@@ -64,6 +64,8 @@ struct db_connection_state
     bool control_sql = false;
     bool cleanup_failed = false;
     bool authorizer_failed = false;
+    bool sqlite_pool_reusable = true;
+    std::int64_t sqlite_busy_timeout_ms = 0;
 };
 
 struct db_statement_state
@@ -123,6 +125,7 @@ void db_sqlite_check(const db_connection& connection, int status);
 void db_finish_cursor(db_cursor_state& cursor, bool closed) noexcept;
 void db_abort_cursor(const db_connection& connection) noexcept;
 void db_control_execute(const db_connection& connection, const std::string& sql);
+db_connection db_recycle_sqlite(db_connection_state& connection);
 std::optional<std::int64_t> db_insert_id(const db_statement& statement);
 bool db_connection_open(const db_connection_state& connection) noexcept;
 bool db_statement_open(const db_statement_state& statement) noexcept;

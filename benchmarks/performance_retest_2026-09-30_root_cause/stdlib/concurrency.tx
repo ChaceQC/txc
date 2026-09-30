@@ -1,0 +1,69 @@
+import "time.txh" as time
+import "thread.txh" as thread
+import "sync.txh" as sync
+import "channel.txh" as channel
+import "cancel.txh" as cancel
+import "task.txh" as task
+
+def one() -> int
+{
+    return 1
+}
+
+def tasks(scope: task_scope) -> int
+{
+    auto total = 0
+    for i in 1..=500
+    {
+        total += task.wait(task.spawn(scope, one))
+    }
+    return total
+}
+
+def main() -> int
+{
+    auto start = time.monotonic_micros()
+    auto total = 0
+    for i in 1..=100
+    {
+        total += thread.join(thread.spawn(one))
+    }
+    print("thread_spawn_join", time.monotonic_micros() - start, total)
+    auto mutex = sync.new_mutex(0)
+    start = time.monotonic_micros()
+    for i in 1..=100000
+    {
+        auto guard = sync.lock(mutex)
+        sync.guard_set(guard, sync.guard_get(guard) + 1)
+        sync.guard_close(guard)
+    }
+    auto elapsed = time.monotonic_micros() - start
+    auto guard = sync.lock(mutex)
+    total = sync.guard_get(guard)
+    sync.guard_close(guard)
+    print("mutex_uncontended", elapsed, total)
+    auto atomic = sync.new_atomic(0)
+    start = time.monotonic_micros()
+    for i in 1..=100000
+    {
+        sync.atomic_fetch_add(atomic, 1, 4)
+    }
+    elapsed = time.monotonic_micros() - start
+    print("atomic_add", elapsed, sync.atomic_load(atomic, 4))
+    channel<int> queue = channel.bounded(1)
+    auto source = cancel.source()
+    auto token = cancel.token(source)
+    total = 0
+    start = time.monotonic_micros()
+    for i in 1..=20000
+    {
+        channel.send(queue, i, 1000, token)
+        total += channel.recv(queue, 1000, token).value()
+    }
+    print("channel_send_recv", time.monotonic_micros() - start, total)
+    channel.close(queue)
+    start = time.monotonic_micros()
+    total = task.scope(tasks, 16, -1)
+    print("task_spawn_wait", time.monotonic_micros() - start, total)
+    return 0
+}

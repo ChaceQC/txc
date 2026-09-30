@@ -1,0 +1,54 @@
+{
+  "utc": "2026-09-30T15:43:04.963748+00:00",
+  "rounds": 5,
+  "warmups": 1,
+  "source_sha256": "a095c194ec432eabfd311f4437a4d693e725895393a7d43d328dd98b15094e79",
+  "programs": {
+    "before": {
+      "path": "E:\\Project\\other\\Compilation\\tx_build\\stdlib_retest_2026_09_30_static_execution\\network.exe",
+      "sha256": "600c78f8d74779a9773750680376f1e1b2bf714e6a2c230c0bf4253392743ec2"
+    },
+    "everest": {
+      "path": "E:\\Project\\other\\Compilation\\tx_build\\root_cause_repair_checks\\network_everest.exe",
+      "sha256": "3b21b14629fd304228c6d5ead469401542444776e7e43bc30b6a25065b681898"
+    },
+    "candidate": {
+      "path": "E:\\Project\\other\\Compilation\\tx_build\\root_cause_repair_checks\\network_final_remaining.exe",
+      "sha256": "eae1eb22aa2eafcb055e674b5811ce60cb0b59e9149b74d324712f6a9b8248b1"
+    }
+  },
+  "samples_ms": {
+    "before": [
+      136.189,
+      147.192,
+      147.745,
+      116.39,
+      78.825
+    ],
+    "everest": [
+      117.893,
+      86.287,
+      102.664,
+      68.672,
+      106.575
+    ],
+    "candidate": [
+      117.637,
+      101.806,
+      125.301,
+      134.741,
+      119.813
+    ]
+  },
+  "medians_ms": {
+    "before": 136.189,
+    "everest": 102.664,
+    "candidate": 119.813
+  },
+  "checksums": {
+    "dns_localhost": 100,
+    "udp_echo": 512000,
+    "ipc_echo": 21000,
+    "tls_handshake": 10
+  }
+}

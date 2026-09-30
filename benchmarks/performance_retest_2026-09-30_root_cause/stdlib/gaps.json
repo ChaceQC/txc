@@ -1,0 +1,47 @@
+[
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_property",
+    "reference": "C++",
+    "tx_ms": 0.304,
+    "reference_ms": 0.0461,
+    "ratio": 6.594360086767895,
+    "note": "固定 seed=1000，参考保留两个回调；本负载不执行失败缩减。TX 还保留受检回调及测试错误处理。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_insert",
+    "reference": "Python",
+    "tx_ms": 11.867,
+    "reference_ms": 1.9464000000000001,
+    "ratio": 6.096896835182902,
+    "note": "C++ 直接调用 TX 的同一 C++ 数据库后端；Java SQLite JDBC；Python sqlite3。SQLite 版本不同，事务内逐条执行，不使用批插入。"
+  },
+  {
+    "suite": "新增/sqlite",
+    "name": "sqlite_savepoint",
+    "reference": "Python",
+    "tx_ms": 2.827,
+    "reference_ms": 0.6551,
+    "ratio": 4.3153716989772555,
+    "note": "C++ 同后端；Java JDBC、Python sqlite3；在内存库中测量，不表示持久化落盘吞吐。"
+  },
+  {
+    "suite": "新增/concurrency",
+    "name": "mutex_uncontended",
+    "reference": "C++",
+    "tx_ms": 1.383,
+    "reference_ms": 0.3745,
+    "ratio": 3.692923898531375,
+    "note": "TX 为受保护值及 guard API；C++ std::mutex；Java ReentrantLock；Python Lock。衡量整段公开 API 路径，不是单条锁指令。"
+  },
+  {
+    "suite": "新增/diagnostics",
+    "name": "test_parameterized",
+    "reference": "C++",
+    "tx_ms": 0.19,
+    "reference_ms": 0.0569,
+    "ratio": 3.3391915641476273,
+    "note": "参考使用 std::function / IntConsumer / Python 函数；TX 含真实测试框架和受检回调。参考没有 TX 错误上下文，不外推到失败报告。"
+  }
+]

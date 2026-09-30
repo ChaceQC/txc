@@ -28,6 +28,19 @@ bool txrt_value_snapshot_to_bool_fast(std::uint8_t kind,
                                        std::uint64_t bits,
                                        const void* fallback) noexcept;
 int txrt_value_deep_copy(const void* value, void** result) noexcept;
+int txrt_value_deep_copy_known(const void* value, std::uint64_t kind, void** result) noexcept;
+
+#define TX_DICT_SCALAR_KEY_DECL(SUFFIX, TYPE) \
+std::int64_t txrt_dict_ref_get_i64_key_##SUFFIX(const void* value, TYPE key) noexcept; \
+double txrt_dict_ref_get_f64_key_##SUFFIX(const void* value, TYPE key) noexcept; \
+void* txrt_dict_ref_get_str_key_##SUFFIX(const void* value, TYPE key) noexcept; \
+bool txrt_dict_ref_contains_##SUFFIX(const void* value, TYPE key) noexcept;
+
+TX_DICT_SCALAR_KEY_DECL(i64, std::int64_t)
+TX_DICT_SCALAR_KEY_DECL(f64, double)
+TX_DICT_SCALAR_KEY_DECL(bool, bool)
+
+#undef TX_DICT_SCALAR_KEY_DECL
 void txrt_value_release(void* value) noexcept;
 int txrt_value_assign(void* target, const void* value) noexcept;
 int txrt_value_set_i64(void* target, std::int64_t value) noexcept;

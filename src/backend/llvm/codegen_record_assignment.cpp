@@ -15,11 +15,11 @@ bool llvm_code_generator::emit_record_assignment(const statement& item,
     lvalue_indices indices;
     prepare_lvalue_indices(*assignment.target, indices);
     ir_value value{value_type::void_type, {}};
-    std::string object;
+    ir_value object{member->object->type, {}};
     if (assignment.binding)
     {
-        object = lvalue_address(*member->object, indices);
-        const auto current = read_record_field({member->object->type, object},
+        object = record_lvalue_owner(*member->object, indices);
+        const auto current = read_record_field(object,
                                                *assignment.target, *member);
         const auto right = expression_value(*assignment.value);
         value = emit_operator_call(assignment.target->type, item.position,
@@ -28,11 +28,11 @@ bool llvm_code_generator::emit_record_assignment(const statement& item,
     else
     {
         value = expression_value(*assignment.value);
-        object = lvalue_address(*member->object, indices);
+        object = record_lvalue_owner(*member->object, indices);
         if (assignment.operation == token_kind::plus_equal ||
             assignment.operation == token_kind::minus_equal)
         {
-            const auto current = read_record_field({member->object->type, object},
+            const auto current = read_record_field(object,
                                                    *assignment.target, *member);
             const bool add = assignment.operation == token_kind::plus_equal;
             ir_value combined{current.type, {}};
@@ -63,7 +63,7 @@ bool llvm_code_generator::emit_record_assignment(const statement& item,
     }
     const auto index = member->field_slot.value_or(classes_.contains(member->object->type.name)
         ? 0 : field_index(member->object->type, member->field, item.position));
-    const auto slot = record_field_slot({member->object->type, object}, index);
+    const auto slot = record_field_slot(object, index);
     if (value.type == value_type::int_type || value.type == value_type::float_type ||
         value.type == value_type::bool_type)
     {

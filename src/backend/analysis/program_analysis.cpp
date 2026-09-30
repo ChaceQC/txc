@@ -115,6 +115,7 @@ void program_analysis::analyze(const program& source)
         function_analysis analysis;
         analysis.ir = lower_function(definition, functions, source);
         construct_ssa(analysis.ir);
+        refine_builtin_effects(analysis.ir);
         analyze_liveness(analysis.ir);
         analysis.summary.parameters.resize(definition.parameters.size() +
             (definition.owner_class.empty() ? 0 : 1));
