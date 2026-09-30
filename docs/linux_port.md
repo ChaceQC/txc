@@ -46,4 +46,6 @@
 
 运行验证修复了 Linux LLD 缺少 `--eh-frame-hdr` 导致可恢复异常终止进程的问题，以及 MsQuic 卸载后 OpenSSL 退出回调访问已卸载代码的问题。Linux MsQuic 使用 `RTLD_NODELETE` 保持回调代码映射，连接、注册和 API 资源仍正常释放。
 
+实际下载 CI 包后的补充检查发现，仅清空工具 PATH / `LD_LIBRARY_PATH` 仍可能由宿主已安装的库掩盖打包缺漏。Linux 打包现同时保存链接名和 ELF `DT_SONAME` 文件名，补齐 ICU i18n、PCRE2、libsodium、Argon2、libpq、libcurl、c-ares 的运行时名称；安装门禁用 `ldd` 核实编译器、LLVM 工具和生成程序的非 glibc 依赖实际来自包内目录，并支持中文和空格路径。
+
 双平台 GitHub 工作流已在 `codex/linux-support` 分支通过：[运行 36788749124](https://github.com/ChaceQC/txc/actions/runs/36788749124)，对应实现提交 `dac5ad9`。Windows 与 Linux 的构建、实际压缩包安装以及 Linux 运行时/网络/安全门禁均成功。后续提交状态及可下载产物见 [GitHub Actions](https://github.com/ChaceQC/txc/actions/workflows/ci.yml)。源码分支产物为 Actions artifact；只有后续版本 tag 才发布 Release，本次没有创建版本 tag。

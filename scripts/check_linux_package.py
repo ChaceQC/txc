@@ -7,6 +7,8 @@ import subprocess
 import tarfile
 import tempfile
 
+from linux_bundle import require_bundled_dependencies
+
 
 root = Path(__file__).resolve().parents[1]
 
@@ -37,14 +39,18 @@ def main():
         # clang/ld.lld 必须来自包内；清除开发机的动态库搜索路径。
         environment["PATH"] = "/nonexistent"
         environment.pop("LD_LIBRARY_PATH", None)
+        environment.pop("LD_PRELOAD", None)
         environment.pop("TX_LLVM_BIN", None)
         compiler = directory / "tx/txc"
+        for executable in (compiler, directory / "tx/clang", directory / "tx/link/ld.lld"):
+            require_bundled_dependencies(executable, directory / "tx/lib")
         run([compiler, "check", directory / "example.tx"], directory, environment)
         for name in ("llvm_numeric", "unicode"):
             for lto in (True, False):
                 target = directory / (name + ("-lto" if lto else "-native"))
                 run([compiler, directory / f"examples/{name}.tx", "-o", target,
                     *([] if lto else ["--no-lto"])], directory, environment)
+                require_bundled_dependencies(target, directory / "tx_lib")
                 output = run([target], directory, environment)
                 if name == "llvm_numeric" and output.strip().splitlines() != ["5.0", "3"]:
                     raise RuntimeError("数值样例结果错误：" + output)
@@ -52,7 +58,7 @@ def main():
         run([compiler, root / "tests/platform/linux_smoke.tx", "-o", smoke], directory, environment)
         if "linux-platform-ok" not in run([smoke], directory, environment):
             raise RuntimeError("Linux 系统接口验证失败")
-        print("Linux 安装验证通过：隔离工具路径、中文空格路径、普通/ThinLTO、Unicode、系统与文件")
+        print("Linux 安装验证通过：包内 ELF 依赖、隔离工具路径、中文空格路径、普通/ThinLTO、Unicode、系统与文件")
 
 
 if __name__ == "__main__":

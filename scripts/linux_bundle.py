@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import hashlib
+import os
 import re
 import shutil
 import subprocess
@@ -38,6 +39,30 @@ def library_path(name):
     raise FileNotFoundError("缺少 Linux 依赖：" + name)
 
 
+system_library = re.compile(r"^(?:ld-linux.*|lib(?:c|m|pthread|dl|rt|resolv|util|anl)\.so(?:\..*)?)$")
+
+
+def elf_dependencies(path):
+    environment = os.environ.copy()
+    environment.pop("LD_LIBRARY_PATH", None)
+    environment.pop("LD_PRELOAD", None)
+    environment["LC_ALL"] = "C"
+    result = subprocess.run(["ldd", str(path)], env=environment, capture_output=True,
+                            encoding="utf-8", errors="replace", timeout=60, check=True)
+    if "=> not found" in result.stdout:
+        raise RuntimeError("共享库依赖未解析：" + result.stdout)
+    # 安装路径可能带空格，文件名后的地址字段才是路径边界。
+    return [(name, Path(location)) for name, location in re.findall(
+        r"^\s*(\S+)\s+=>\s+(/.*?)\s+\(0x[0-9a-f]+\)\s*$", result.stdout, re.MULTILINE)]
+
+
+def require_bundled_dependencies(executable, library_directory):
+    root = library_directory.resolve()
+    for name, path in elf_dependencies(executable):
+        if not system_library.fullmatch(name) and not path.resolve().is_relative_to(root):
+            raise RuntimeError(f"{executable.name} 从工具包外加载 {name}：{path}")
+
+
 def bundle_tools(tool_dir, clang, linker):
     libraries = tool_dir / "lib"
     link = tool_dir / "link"
@@ -55,11 +80,16 @@ def bundle_tools(tool_dir, clang, linker):
                  "libssl.so", "libcrypto.so", "libcares.so", "libz.so", "libmsquic.so.2"):
         path = library_path(name)
         shutil.copy2(path.resolve(), libraries / name)
+        # 链接使用 libfoo.so，ELF 的 DT_NEEDED 则使用 SONAME；两种名称都必须存在。
+        soname = run("patchelf", "--print-soname", path.resolve()).strip()
+        if soname and Path(soname).name != soname:
+            raise RuntimeError("无效的共享库 SONAME：" + soname)
+        if soname and soname != name:
+            shutil.copy2(path.resolve(), libraries / soname)
         pending.append(path)
     seen = set()
     origins = set()
     # glibc 及其加载器由最低支持系统提供，避免把它们与其他系统组件混装。
-    system = re.compile(r"^(?:ld-linux.*|lib(?:c|m|pthread|dl|rt|resolv|util|anl)\.so(?:\..*)?)$")
     while pending:
         path = pending.pop()
         resolved = path.resolve()
@@ -68,14 +98,10 @@ def bundle_tools(tool_dir, clang, linker):
         seen.add(resolved)
         if str(resolved).startswith(("/usr/", "/lib/")):
             origins.add(resolved)
-        for line in run("ldd", path).splitlines():
-            match = re.match(r"\s*(\S+)\s+=>\s+(/\S+)", line)
-            if "=> not found" in line:
-                raise RuntimeError("共享库依赖未解析：" + line)
-            if not match or system.match(match[1]):
+        for name, dependency in elf_dependencies(path):
+            if system_library.fullmatch(name):
                 continue
-            dependency = Path(match[2])
-            destination = libraries / match[1]
+            destination = libraries / name
             if dependency.resolve() != destination.resolve():
                 shutil.copy2(dependency.resolve(), destination)
             pending.append(dependency)
