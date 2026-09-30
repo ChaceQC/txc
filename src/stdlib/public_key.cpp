@@ -9,7 +9,6 @@
 
 #include <array>
 #include <cstdint>
-#include <mutex>
 #include <span>
 #include <vector>
 
@@ -25,12 +24,8 @@ namespace
 
 void ready()
 {
-    static std::once_flag once;
-    static int status = -1;
-    std::call_once(once, []
-    {
-        status = sodium_init();
-    });
+    // 线程安全地缓存首次初始化结果，失败时沿用原来的错误语义。
+    static const int status = sodium_init();
     if (status < 0)
     {
         fail("operation_failed", "初始化公钥密码学库失败");

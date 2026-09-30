@@ -5,7 +5,6 @@
 #include <psa/crypto.h>
 
 #include <algorithm>
-#include <mutex>
 
 namespace tx_generated::crypto
 {
@@ -39,12 +38,9 @@ const unsigned char* byte_data(const byte_value& value) noexcept
 
 bool psa_ready()
 {
-    static std::once_flag once;
-    static psa_status_t status = PSA_ERROR_BAD_STATE;
-    std::call_once(once, []
-    {
-        status = psa_crypto_init();
-    });
+    // 局部静态初始化保证并发下只执行一次，并保留首次初始化的失败状态。
+    // 避免 ThinLTO 在符号解析阶段依赖 MinGW call_once 的外部模拟 TLS。
+    static const psa_status_t status = psa_crypto_init();
     return status == PSA_SUCCESS;
 }
 

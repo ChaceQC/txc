@@ -431,6 +431,8 @@ int compile_llvm_native(const std::string& generated_source,
     {
         arguments.push_back(L"--lto-O3");
         arguments.push_back(L"--thinlto-jobs=8");
+        // ThinLTO 在链接阶段生成机器码，此处也必须与 MinGW emutls ABI 一致。
+        arguments.push_back(L"--plugin-opt=-emulated-tls");
     }
     const auto link_result = run_local_tool(link_dir / (lto ? "ld.lld.exe" : "ld.exe"), arguments);
     if (link_result != 0)
