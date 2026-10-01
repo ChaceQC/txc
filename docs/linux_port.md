@@ -48,4 +48,4 @@
 
 实际下载 CI 包后的补充检查发现，仅清空工具 PATH / `LD_LIBRARY_PATH` 仍可能由宿主已安装的库掩盖打包缺漏。Linux 打包现同时保存链接名和 ELF `DT_SONAME` 文件名，补齐 ICU i18n、PCRE2、libsodium、Argon2、libpq、libcurl、c-ares 的运行时名称；安装门禁用 `ldd` 核实编译器、LLVM 工具和生成程序的非 glibc 依赖实际来自包内目录，并支持中文和空格路径。
 
-双平台 GitHub 工作流已在 `codex/linux-support` 分支通过：[运行 36788749124](https://github.com/ChaceQC/txc/actions/runs/36788749124)，对应实现提交 `dac5ad9`。Windows 与 Linux 的构建、实际压缩包安装以及 Linux 运行时/网络/安全门禁均成功。后续提交状态及可下载产物见 [GitHub Actions](https://github.com/ChaceQC/txc/actions/workflows/ci.yml)。源码分支产物为 Actions artifact；只有后续版本 tag 才发布 Release，本次没有创建版本 tag。
+双平台 GitHub 工作流已在 `codex/linux-support` 分支通过：[运行 36788749124](https://github.com/ChaceQC/txc/actions/runs/36788749124)，对应实现提交 `dac5ad9`。Windows 与 Linux 的构建、实际压缩包安装以及 Linux 运行时/网络/安全门禁均成功。后续提交状态及可下载产物见 [GitHub Actions](https://github.com/ChaceQC/txc/actions/workflows/ci.yml)。源码分支产物为 Actions artifact；版本 tag 通过双平台门禁后发布 Release。Linux 原生支持从 `v0.2.0` 开始交付。
