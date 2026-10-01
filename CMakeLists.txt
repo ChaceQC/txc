@@ -206,6 +206,7 @@ add_executable(txc
     src/driver/module_loader_class.cpp
     src/driver/compatibility.cpp
     src/backend/llvm/codegen_graphics.cpp
+    src/backend/llvm/codegen_gui.cpp
     src/driver/test_runner.cpp
     src/driver/child_process.cpp
     src/driver/json_report.cpp
@@ -545,8 +546,19 @@ if(WIN32)
         src/stdlib/graphics/windows/application.cpp
         src/stdlib/graphics/windows/resources.cpp
         src/stdlib/graphics/windows/events.cpp
-        src/stdlib/graphics/windows/frames.cpp)
-    target_link_libraries(txstdlib PRIVATE user32 gdi32 d2d1 ole32 uuid)
+        src/stdlib/graphics/windows/frames.cpp
+        src/backend/cpp/gui_control_abi.cpp
+        src/backend/cpp/gui_form_abi.cpp
+        src/backend/cpp/gui_length_abi.cpp
+        src/stdlib/gui/layout.cpp
+        src/stdlib/gui/windows/resources.cpp
+        src/stdlib/gui/windows/properties.cpp
+        src/stdlib/gui/windows/text.cpp
+        src/stdlib/gui/windows/events.cpp
+        src/stdlib/gui/windows/focus.cpp
+        src/stdlib/gui/windows/measure.cpp
+        src/stdlib/gui/windows/arrange.cpp)
+    target_link_libraries(txstdlib PRIVATE user32 gdi32 d2d1 ole32 uuid comctl32)
 endif()
 target_include_directories(txc PRIVATE src "${CMAKE_BINARY_DIR}/generated")
 target_include_directories(txstdlib PRIVATE src)

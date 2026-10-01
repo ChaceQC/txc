@@ -1,0 +1,39 @@
+import "graphics.txh" as gfx
+import "gui.txh" as gui
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto window = gfx.create_window(app,
+        gfx.window_options("TX 问候程序", 480.0, 260.0, true)).value()
+    auto root = gui.root(window).value()
+    gui.set_column(root, 16.0, 12.0)
+    auto label = gui.create_label(root, "请输入姓名").value()
+    auto input = gui.create_text_box(root, false).value()
+    auto button = gui.create_button(root, "问候").value()
+    gui.set_default_button(button)
+    gfx.show(window).value()
+    gui.focus(input).value()
+    while gfx.is_open(window)
+    {
+        auto pending = gfx.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                gfx.close(window)
+            }
+            else if event.kind == "control" && event.control.is_some()
+            {
+                auto action = event.control.value()
+                if (action.source_id == gui.id(button) && action.action == "activated") || (action.source_id == gui.id(input) && action.action == "text_committed")
+                {
+                    gui.set_text(label, "你好，" + gui.text(input))
+                }
+            }
+        }
+    }
+    gfx.close(app)
+    return 0
+}

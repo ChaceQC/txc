@@ -8,6 +8,24 @@ using namespace tx_generated::graphics;
 namespace
 {
 
+dynamic_struct control_value(const char* option_type, const event::control_data& item)
+{
+    const std::string option(option_type);
+    const auto type = option.substr(7, option.size() - 8);
+    struct_fields fields(8);
+    fields[0] = {"source_id", item.source_id};
+    fields[1] = {"action", item.action};
+    fields[2] = {"text", option_value("option<str>",
+        item.text ? std::any(*item.text) : std::any{})};
+    fields[3] = {"number", option_value("option<float>")};
+    fields[4] = {"state", option_value("option<bool>",
+        item.state ? std::any(*item.state) : std::any{})};
+    fields[5] = {"item_id", option_value("option<int>")};
+    fields[6] = {"command_id", option_value("option<int>")};
+    fields[7] = {"revision", item.revision};
+    return dynamic_struct(dynamic_struct_data{type, "control_event", std::move(fields)});
+}
+
 dynamic_struct resize_value(const char* type, const size_event& item)
 {
     struct_fields fields(5);
@@ -32,7 +50,8 @@ dynamic_struct event_value(const event& item, const char* type, const char* resi
     fields[6] = {"resize", option_value(std::string("option<") + resize_type + ">",
         item.resize ? std::any(resize_value(resize_type, *item.resize)) : std::any{})};
     fields[7] = {"timer_id", option_value("option<int>")};
-    fields[8] = {"control", option_value(control_type)};
+    fields[8] = {"control", option_value(control_type,
+        item.control ? std::any(control_value(control_type, *item.control)) : std::any{})};
     return dynamic_struct(dynamic_struct_data{type, "event", std::move(fields)});
 }
 

@@ -298,6 +298,17 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
             {
                 relative.replace_extension();
                 const auto module_name = path_text(relative);
+                if (module_name == "gui")
+                {
+                    for (auto& definition : header.structs)
+                    {
+                        if (definition.name == "length")
+                        {
+                            // 布局策略与图形几何一样，按静态字段传入具体 ABI。
+                            definition.native_layout = false;
+                        }
+                    }
+                }
                 if (module_name == "graphics")
                 {
                     for (auto& definition : header.structs)

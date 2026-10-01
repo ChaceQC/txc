@@ -114,7 +114,7 @@ foreach ($name in @(
     'libpthread.a', 'libadvapi32.a', 'libbcrypt.a', 'libcrypt32.a', 'libncrypt.a',
     'libwinhttp.a', 'libws2_32.a', 'libdnsapi.a',
     'libshell32.a', 'libuser32.a',
-    'libgdi32.a', 'libd2d1.a', 'libole32.a', 'libuuid.a',
+    'libgdi32.a', 'libd2d1.a', 'libole32.a', 'libuuid.a', 'libcomctl32.a',
     'libiconv.a'))
 {
     $source = (& $gcc_exe "-print-file-name=$name" | Select-Object -First 1).Trim()
@@ -142,6 +142,13 @@ else
 }
 Copy-Item -LiteralPath (Join-Path $gcc_bin 'ld.exe') `
     -Destination (Join-Path $link_dir 'ld.exe') -Force
+& (Join-Path $gcc_bin 'windres.exe') -I (Join-Path $project_root 'cmake') `
+    -i (Join-Path $project_root 'cmake/gui_manifest.rc') -O coff `
+    -o (Join-Path $link_dir 'gui-manifest.o')
+if ($LASTEXITCODE -ne 0)
+{
+    throw '无法生成 GUI DPI/Common Controls manifest；build/ 已保留。'
+}
 # CLion 的链接器附带 libssp；上游 MinGW 的链接器不依赖此 DLL。
 $ssp_runtime = Join-Path $gcc_bin 'libssp-0.dll'
 if (Test-Path -LiteralPath $ssp_runtime -PathType Leaf)

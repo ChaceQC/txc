@@ -52,6 +52,8 @@ txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的
 
 Windows 图形 G0–G1 已接入会话、多窗口、事件队列、帧和基础几何绘制。接口、限额与验证范围见 [Windows 图形基础](docs/graphics_g0_g1.md)，可运行示例见 [双窗口绘图](examples/graphics/two_windows.tx)；后续文字、图片、交互及 GUI 规划见 [Windows 图形库设计](docs/windows_graphics_design.md)。
 
+Windows GUI U0–U1 已实现类型化控件树、label/button/text/check、row/column/grid 布局和焦点事件，接口、限额与验证记录见 [GUI U0–U1](docs/gui_u0_u1.md)，可运行示例见 [问候程序](examples/gui/greeting.tx)和[设置表单](examples/gui/settings.tx)。实际输入法与多显示器视觉验收待执行；后续数据模型、命令、辅助功能见 [Windows GUI 库设计](docs/windows_gui_design.md)。
+
 Python 风格的 HTTP 客户端见 [requests 模块](docs/requests.md)和[请求示例](examples/requests.tx)。
 安全随机数、摘要、密钥派生与 AES-256-GCM 认证加密见[密码学标准库](docs/crypto.md)和[示例](examples/crypto.tx)。
 终端与文件操作的单独示例见 [终端 I/O](examples/terminal_io.tx)、[文件 I/O](examples/file_io.tx)和[指定字符集读写](examples/file_encodings.tx)。

@@ -87,10 +87,14 @@ struct resize_event
 
 struct control_event
 {
-    control_id: int
+    source_id: int
     action: str
     text: option<str>
     number: option<float>
+    state: option<bool>
+    item_id: option<int>
+    command_id: option<int>
+    revision: int
 }
 
 struct event

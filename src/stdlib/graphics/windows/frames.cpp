@@ -1,4 +1,5 @@
 #include "stdlib/graphics/windows/state.hpp"
+#include "stdlib/gui/windows/state.hpp"
 
 namespace tx_generated::graphics
 {
@@ -68,6 +69,7 @@ std::shared_ptr<canvas> begin_frame(window& state)
     {
         return {};
     }
+    gui::flush_layout(state);
     ensure_target(state);
     auto frame = std::make_shared<canvas>();
     frame->owner = owner;

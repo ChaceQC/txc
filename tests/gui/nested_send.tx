@@ -1,0 +1,13 @@
+import "gui.txh" as gui
+struct nested
+{
+    value: option<vector<gui_button>>
+}
+def invalid(value: nested) -> void
+{
+    assert_send(value)
+}
+def main() -> int
+{
+    return 0
+}

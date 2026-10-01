@@ -1,10 +1,47 @@
 #include "stdlib/graphics/windows/state.hpp"
+#include "stdlib/gui/windows/state.hpp"
 
 #include <algorithm>
 #include <limits>
 
 namespace tx_generated::graphics
 {
+
+void enqueue_control(window& state, event::control_data data)
+{
+    const auto owner = state.owner.lock();
+    if (!owner || !owner->open)
+    {
+        return;
+    }
+    event item{"control", state.id, std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - owner->start).count(), {}, std::move(data)};
+    // 只合并相邻编辑通知；提交、焦点和其他离散事件形成屏障。
+    if (!owner->events.empty() && item.control->action == "text_changed")
+    {
+        auto& last = owner->events.back();
+        if (last.control && last.control->source_id == item.control->source_id &&
+            last.control->action == "text_changed")
+        {
+            last = std::move(item);
+            return;
+        }
+    }
+    if (owner->events.size() >= event_limit)
+    {
+        const auto removable = std::find_if(owner->events.begin(), owner->events.end(),
+            [](const event& queued)
+            {
+                return queued.kind == "paint" || queued.kind == "resized" || queued.kind == "dpi_changed";
+            });
+        if (removable == owner->events.end())
+        {
+            fail("resource_limit", "GUI 事件队列已满");
+        }
+        owner->events.erase(removable);
+    }
+    owner->events.push_back(std::move(item));
+}
 
 void enqueue(window& state, const char* kind, bool with_size) noexcept
 {
@@ -39,7 +76,7 @@ void enqueue(window& state, const char* kind, bool with_size) noexcept
             owner->events.erase(removable);
         }
         event item{kind, state.id, std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - owner->start).count(), {}};
+            std::chrono::steady_clock::now() - owner->start).count(), {}, {}};
         if (with_size)
         {
             item.resize = size_event{state.width * 96.0 / state.dpi,
@@ -62,6 +99,7 @@ void update_size(window& state)
     }
     state.width = static_cast<UINT>(std::max<LONG>(0, bounds.right));
     state.height = static_cast<UINT>(std::max<LONG>(0, bounds.bottom));
+    gui::window_changed(state);
     if (state.target && state.width && state.height)
     {
         state.target->SetDpi(static_cast<float>(state.dpi), static_cast<float>(state.dpi));
@@ -94,6 +132,14 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
         case WM_CLOSE:
             enqueue(*state, "close_requested");
             return 0;
+        case WM_SETTINGCHANGE:
+        case WM_THEMECHANGED:
+        case WM_SYSCOLORCHANGE:
+            gui::window_changed(*state, true);
+            break;
+        case WM_DESTROY:
+            gui::close_root(*state);
+            break;
         case WM_ERASEBKGND:
             return 1;
         case WM_PAINT:
@@ -171,8 +217,18 @@ std::optional<event> next_event(app& state, std::int64_t timeout)
                 close_app(state);
                 return {};
             }
-            TranslateMessage(&message);
-            DispatchMessageW(&message);
+            if (!gui::translate_message(state, message))
+            {
+                TranslateMessage(&message);
+                DispatchMessageW(&message);
+            }
+        }
+        gui::flush_all(state);
+        if (state.pending_error)
+        {
+            auto error = std::move(*state.pending_error);
+            state.pending_error.reset();
+            throw runtime_failure(std::move(error));
         }
         if (state.queue_failed)
         {

@@ -448,6 +448,7 @@ private:
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
     void write_graphics_declarations();
+    void write_gui_declarations();
     [[nodiscard]] ir_value emit_graphics_call(const expression& item,
         const function_decl& target, const std::vector<ir_value>& arguments);
     [[nodiscard]] std::optional<ir_value> emit_literal_string_call(

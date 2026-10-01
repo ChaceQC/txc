@@ -1,0 +1,6 @@
+import "gui.txh" as gui
+def main() -> int
+{
+    auto forged = 1 as gui_button
+    return 0
+}

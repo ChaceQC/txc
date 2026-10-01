@@ -15,6 +15,11 @@
 #include <string>
 #include <vector>
 
+namespace tx_generated::gui
+{
+struct node;
+}
+
 namespace tx_generated::graphics
 {
 
@@ -50,6 +55,15 @@ struct event
     std::int64_t window_id = 0;
     std::int64_t timestamp_ms = 0;
     std::optional<size_event> resize;
+    struct control_data
+    {
+        std::int64_t source_id = 0;
+        std::string action;
+        std::optional<std::string> text;
+        std::optional<bool> state;
+        std::int64_t revision = 0;
+    };
+    std::optional<control_data> control;
 };
 
 struct window;
@@ -71,9 +85,10 @@ struct app : resource, std::enable_shared_from_this<app>
     std::vector<std::shared_ptr<window>> windows;
     std::shared_ptr<canvas> frame;
     std::deque<event> events;
+    std::optional<error_info> pending_error;
 };
 
-struct window : resource
+struct window : resource, std::enable_shared_from_this<window>
 {
     window() : resource(tx::graphics_kind::window)
     {
@@ -91,6 +106,7 @@ struct window : resource
     bool software = false;
     bool changing_dpi = false;
     com_ptr<ID2D1HwndRenderTarget> target;
+    std::shared_ptr<gui::node> gui_root;
 };
 
 struct canvas : resource
@@ -118,6 +134,7 @@ void close_app(app& state) noexcept;
 void close_window(window& state) noexcept;
 void cancel_canvas(canvas& state) noexcept;
 void enqueue(window& state, const char* kind, bool with_size = false) noexcept;
+void enqueue_control(window& state, event::control_data data);
 void update_size(window& state);
 void ensure_target(window& state);
 std::wstring title_text(const std::string& value);

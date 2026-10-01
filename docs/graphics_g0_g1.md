@@ -18,7 +18,7 @@ G1 提供 `open_app`、两个 `close` 重载、`create_window`、`is_open`、`sh
 | `key_event` | `key: str`；`scan_code: int`；`shift,ctrl,alt,meta,repeat: bool` |
 | `text_event` | `text: str`；`selection_start,selection_length: int`（Unicode 标量索引） |
 | `resize_event` | `width,height: float`（DIP）；`pixel_width,pixel_height,dpi: int` |
-| `control_event` | `control_id: int`；`action: str`；`text: option<str>`；`number: option<float>` |
+| `control_event` | U0 扩展为 `source_id: int`、`action: str`、`text: option<str>`、`number: option<float>`、`state: option<bool>`、`item_id/command_id: option<int>`、`revision: int`；详见 [GUI U0–U1](gui_u0_u1.md) |
 
 G1 产生 `paint`、`close_requested`、`closed`、`resized`、`dpi_changed`。`paint` 同窗口合并；其余事件保持入队顺序，关闭通知只发一次。`next_event` 每次至多处理 64 条系统消息，返回一个事件；无事件时消息感知等待，超时为 `-1`、`0` 或正整数。无存活窗口且队列已空立即返回空 option。队列满时先移除可合并的 paint/resized/dpi_changed；仍无空间则返回 `resource_limit`，不静默丢弃离散事件。
 
@@ -36,7 +36,7 @@ G1 产生 `paint`、`close_requested`、`closed`、`resized`、`dpi_changed`。`
 | 客户区每边物理像素 | 16384（DPI 换算后检查） |
 | 窗口标题 UTF-8 字节数 | 65536，拒绝 NUL 和非法 UTF-8 |
 
-设备目标优先硬件，失败回退软件，可通过 `backend` 查询。`EndDraw` 遇到目标丢失返回 `device_lost` 并安排重绘，下次帧重建。G1 不承诺完整设备恢复验收。DPI 在首个 HWND 前声明/校验 Per-Monitor V2，接收 `WM_DPICHANGED` 建议矩形，渲染和尺寸事件使用新 DPI。GUI 子系统和发行清单仍在 G5；G1 控制台示例使用运行时 DPI 回退。
+设备目标优先硬件，失败回退软件，可通过 `backend` 查询。`EndDraw` 遇到目标丢失返回 `device_lost` 并安排重绘，下次帧重建。G1 不承诺完整设备恢复验收。DPI 在首个 HWND 前声明/校验 Per-Monitor V2，接收 `WM_DPICHANGED` 建议矩形，渲染和尺寸事件使用新 DPI。GUI 子系统仍在后续发行阶段；U0–U1 已为图形/GUI 程序加入 DPI 与 Common Controls v6 清单，控制台示例保留运行时 DPI 校验。
 
 ## 错误与 ABI
 

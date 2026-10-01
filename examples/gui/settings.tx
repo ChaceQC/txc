@@ -1,0 +1,68 @@
+import "graphics.txh" as gfx
+import "gui.txh" as gui
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto window = gfx.create_window(app,
+        gfx.window_options("TX 设置表单", 560.0, 380.0, true)).value()
+    auto root = gui.root(window).value()
+    gui.set_column(root, 20.0, 16.0)
+    auto title = gui.create_label(root, "个人设置 · Tab 切换，空格勾选，Escape 取消").value()
+    auto grid = gui.create_container(root).value()
+    gui.set_grid(grid, 3, 2, 0.0, 12.0)
+    gui.set_grid_column(grid, 0, gui.fixed(90.0))
+    auto name_label = gui.create_label(grid, "显示名称").value()
+    auto name = gui.create_text_box(grid, false).value()
+    gui.set_cell(name, 0, 1, 1, 1)
+    gui.set_text(name, "TX 用户")
+    auto note_label = gui.create_label(grid, "备注").value()
+    gui.set_cell(note_label, 1, 0, 1, 1)
+    auto note = gui.create_text_box(grid, true).value()
+    gui.set_cell(note, 1, 1, 1, 1)
+    auto notifications = gui.create_check_box(grid, "启用通知", false).value()
+    gui.set_cell(notifications, 2, 1, 1, 1)
+    gui.set_checked(notifications, true)
+    auto actions = gui.create_container(root).value()
+    gui.set_row(actions, 0.0, 12.0)
+    auto save = gui.create_button(actions, "保存").value()
+    auto cancel = gui.create_button(actions, "取消").value()
+    gui.set_default_button(save)
+    gui.set_cancel_button(cancel)
+    auto status = gui.create_label(root, "修改后点击保存。").value()
+    gfx.show(window).value()
+    gui.focus(name).value()
+    while gfx.is_open(window)
+    {
+        auto pending = gfx.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                gfx.close(window)
+            }
+            else if event.control.is_some()
+            {
+                auto action = event.control.value()
+                if action.source_id == gui.id(save) && action.action == "activated"
+                {
+                    if gui.checked(notifications)
+                    {
+                        gui.set_text(status, "已应用：" + gui.text(name) + "，通知已启用。")
+                    }
+                    else
+                    {
+                        gui.set_text(status, "已应用：" + gui.text(name) + "，通知已关闭。")
+                    }
+                }
+                else if action.source_id == gui.id(cancel) && action.action == "activated"
+                {
+                    gfx.close(window)
+                }
+            }
+        }
+    }
+    gfx.close(app)
+    return 0
+}

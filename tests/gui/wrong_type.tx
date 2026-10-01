@@ -1,0 +1,9 @@
+import "gui.txh" as gui
+def invalid(control: gui_text_box) -> void
+{
+    gui.set_checked(control, true)
+}
+def main() -> int
+{
+    return 0
+}

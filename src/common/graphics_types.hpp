@@ -9,15 +9,21 @@ namespace tx
 enum class graphics_kind
 {
     app, window, canvas, image, surface, path, brush, font, text_layout,
-    control, menu, unknown
+    control, menu, container, label, button, text_box, check_box, combo_box,
+    list_view, table_view, tree_view, progress_bar, slider, tabs, gui_canvas,
+    command, list_model, table_model, tree_model, unknown
 };
 
 inline graphics_kind graphics_type_kind(std::string_view name) noexcept
 {
     constexpr std::string_view names[] = {"graphics_app", "graphics_window",
         "graphics_canvas", "graphics_image", "graphics_surface", "graphics_path",
-        "graphics_brush", "graphics_font", "graphics_text_layout", "gui_control", "gui_menu"};
-    for (int index = 0; index < 11; ++index)
+        "graphics_brush", "graphics_font", "graphics_text_layout", "gui_control", "gui_menu",
+        "gui_container", "gui_label", "gui_button", "gui_text_box", "gui_check_box",
+        "gui_combo_box", "gui_list_view", "gui_table_view", "gui_tree_view",
+        "gui_progress_bar", "gui_slider", "gui_tabs", "gui_canvas", "gui_command",
+        "gui_list_model", "gui_table_model", "gui_tree_model"};
+    for (int index = 0; index < static_cast<int>(graphics_kind::unknown); ++index)
     {
         if (name == names[index])
         {

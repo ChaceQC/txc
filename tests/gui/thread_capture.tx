@@ -1,0 +1,14 @@
+import "gui.txh" as gui
+import "thread.txh" as thread
+def read(control: gui_text_box) -> str
+{
+    return gui.text(control)
+}
+def invalid(control: gui_text_box) -> void
+{
+    auto task = thread.spawn(bind(read, control))
+}
+def main() -> int
+{
+    return 0
+}

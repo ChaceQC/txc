@@ -232,9 +232,17 @@ int compile_llvm_native(const std::string& generated_source,
         // ThinLTO 在链接阶段生成机器码，此处也必须与 MinGW emutls ABI 一致。
         arguments.push_back(L"--plugin-opt=-emulated-tls");
     }
-    if (generated_source.find("call i32 @txrt_graphics_") != std::string::npos)
+    if (generated_source.find("call i32 @txrt_graphics_") != std::string::npos ||
+        generated_source.find("call i32 @txrt_gui_") != std::string::npos)
     {
-        arguments.insert(arguments.end(), {L"-ld2d1", L"-lgdi32", L"-lole32", L"-luuid"});
+        arguments.insert(arguments.end(), {L"-ld2d1", L"-lgdi32", L"-lole32", L"-luuid", L"-lcomctl32"});
+        for (auto& argument : arguments)
+        {
+            if (argument == (link_dir / "default-manifest.o").wstring())
+            {
+                argument = (link_dir / "gui-manifest.o").wstring();
+            }
+        }
     }
     // 两种模式都由 LLD 处理宽字符路径，避免 GNU ld 按系统代码页丢失中文。
     const auto link_result = run_local_tool(link_dir / "ld.lld.exe", arguments);

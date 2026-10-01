@@ -1,0 +1,113 @@
+# Windows GUI U0–U1；图形事件与窗口由唯一图形会话管理。
+import "graphics.txh" as gfx
+
+struct length
+{
+    mode: str
+    value: float
+}
+
+def fixed(value: float) -> length
+def auto_length() -> length
+def stretch(weight: float) -> length
+def root(window: graphics_window) -> result<gui_container>
+def create_container(parent: gui_container) -> result<gui_container>
+def create_label(parent: gui_container, text: str) -> result<gui_label>
+def create_button(parent: gui_container, text: str) -> result<gui_button>
+def create_text_box(parent: gui_container, multiline: bool) -> result<gui_text_box>
+def create_check_box(parent: gui_container, text: str, three_state: bool) -> result<gui_check_box>
+def set_column(parent: gui_container, padding: float, gap: float) -> void
+def set_row(parent: gui_container, padding: float, gap: float) -> void
+def set_grid(parent: gui_container, rows: int, columns: int, padding: float, gap: float) -> void
+def set_grid_row(parent: gui_container, index: int, value: length) -> void
+def set_grid_column(parent: gui_container, index: int, value: length) -> void
+def flush_layout(window: graphics_window) -> void
+def set_default_button(control: gui_button) -> void
+def set_cancel_button(control: gui_button) -> void
+def set_checked(control: gui_check_box, checked: bool) -> void
+def checked(control: gui_check_box) -> bool
+def set_check_state(control: gui_check_box, state: str) -> void
+def check_state(control: gui_check_box) -> str
+def set_read_only(control: gui_text_box, read_only: bool) -> void
+def set_password(control: gui_text_box, password: bool) -> void
+def set_text_limit(control: gui_text_box, limit: int) -> void
+def set_selection(control: gui_text_box, start: int, end: int) -> void
+def selection_start(control: gui_text_box) -> int
+def selection_end(control: gui_text_box) -> int
+
+def id(control: gui_container) -> int
+def is_open(control: gui_container) -> bool
+def close(control: gui_container) -> void
+def set_enabled(control: gui_container, enabled: bool) -> void
+def set_visible(control: gui_container, visible: bool) -> void
+def set_reserved_space(control: gui_container, reserved: bool) -> void
+def set_width(control: gui_container, value: length) -> void
+def set_height(control: gui_container, value: length) -> void
+def set_constraints(control: gui_container, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_container, margin: float) -> void
+def set_alignment(control: gui_container, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_container, row: int, column: int, row_span: int, column_span: int) -> void
+
+def id(control: gui_label) -> int
+def is_open(control: gui_label) -> bool
+def close(control: gui_label) -> void
+def set_enabled(control: gui_label, enabled: bool) -> void
+def set_visible(control: gui_label, visible: bool) -> void
+def set_reserved_space(control: gui_label, reserved: bool) -> void
+def set_width(control: gui_label, value: length) -> void
+def set_height(control: gui_label, value: length) -> void
+def set_constraints(control: gui_label, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_label, margin: float) -> void
+def set_alignment(control: gui_label, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_label, row: int, column: int, row_span: int, column_span: int) -> void
+def set_text(control: gui_label, text: str) -> void
+def text(control: gui_label) -> str
+
+def id(control: gui_button) -> int
+def is_open(control: gui_button) -> bool
+def close(control: gui_button) -> void
+def set_enabled(control: gui_button, enabled: bool) -> void
+def set_visible(control: gui_button, visible: bool) -> void
+def set_reserved_space(control: gui_button, reserved: bool) -> void
+def set_width(control: gui_button, value: length) -> void
+def set_height(control: gui_button, value: length) -> void
+def set_constraints(control: gui_button, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_button, margin: float) -> void
+def set_alignment(control: gui_button, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_button, row: int, column: int, row_span: int, column_span: int) -> void
+def set_text(control: gui_button, text: str) -> void
+def text(control: gui_button) -> str
+def focus(control: gui_button) -> result<void>
+
+def id(control: gui_text_box) -> int
+def is_open(control: gui_text_box) -> bool
+def close(control: gui_text_box) -> void
+def set_enabled(control: gui_text_box, enabled: bool) -> void
+def set_visible(control: gui_text_box, visible: bool) -> void
+def set_reserved_space(control: gui_text_box, reserved: bool) -> void
+def set_width(control: gui_text_box, value: length) -> void
+def set_height(control: gui_text_box, value: length) -> void
+def set_constraints(control: gui_text_box, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_text_box, margin: float) -> void
+def set_alignment(control: gui_text_box, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_text_box, row: int, column: int, row_span: int, column_span: int) -> void
+def set_text(control: gui_text_box, text: str) -> void
+def text(control: gui_text_box) -> str
+def focus(control: gui_text_box) -> result<void>
+
+def id(control: gui_check_box) -> int
+def is_open(control: gui_check_box) -> bool
+def close(control: gui_check_box) -> void
+def set_enabled(control: gui_check_box, enabled: bool) -> void
+def set_visible(control: gui_check_box, visible: bool) -> void
+def set_reserved_space(control: gui_check_box, reserved: bool) -> void
+def set_width(control: gui_check_box, value: length) -> void
+def set_height(control: gui_check_box, value: length) -> void
+def set_constraints(control: gui_check_box, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_check_box, margin: float) -> void
+def set_alignment(control: gui_check_box, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_check_box, row: int, column: int, row_span: int, column_span: int) -> void
+def set_text(control: gui_check_box, text: str) -> void
+def text(control: gui_check_box) -> str
+def focus(control: gui_check_box) -> result<void>
+

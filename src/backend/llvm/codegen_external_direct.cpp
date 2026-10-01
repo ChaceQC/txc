@@ -67,7 +67,7 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     const expression& item, const function_decl& target,
     const std::vector<ir_value>& arguments)
 {
-    if (target.external_name.starts_with("graphics."))
+    if (target.external_name.starts_with("graphics.") || target.external_name.starts_with("gui."))
     {
         return emit_graphics_call(item, target, arguments);
     }

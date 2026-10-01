@@ -7,6 +7,7 @@ namespace tx
 
 void llvm_code_generator::write_graphics_declarations()
 {
+    write_gui_declarations();
     module_ << "declare ptr @txrt_graphics_resource_view(ptr)\n"
         << "declare i32 @txrt_graphics_open_app(ptr, ptr)\n"
         << "declare i32 @txrt_graphics_close_app(ptr)\n"
@@ -87,6 +88,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_graphics_call(
     {
         append("ptr " + global_bytes(item.type.name));
     }
+    else if (target.external_name.starts_with("gui.") && structs_.contains(item.type.name))
+    {
+        append("ptr @tx_record_" + item.type.name);
+    }
     if (target.external_name == "graphics.next_event")
     {
         const auto& event_type = item.type.parameters.front().parameters.front();
@@ -104,7 +109,22 @@ llvm_code_generator::ir_value llvm_code_generator::emit_graphics_call(
     {
         append("ptr " + output);
     }
-    auto symbol = "txrt_graphics_" + target.external_name.substr(9);
+    const bool gui = target.external_name.starts_with("gui.");
+    auto symbol = gui ? "txrt_gui_" + target.external_name.substr(4) :
+        "txrt_graphics_" + target.external_name.substr(9);
+    if (gui)
+    {
+        // 重载由 sema 解析，资源控制块的公共实现无需再判断控件类型。
+        const auto operation = target.external_name.substr(4);
+        for (const auto* name : {"id", "is_open", "close", "set_enabled", "set_visible", "set_reserved_space", "set_width", "set_height", "set_constraints", "set_margin", "set_alignment", "set_cell", "set_text", "text", "focus"})
+        {
+            if (operation == name)
+            {
+                symbol += "_" + target.parameters.front().type.name.substr(4);
+                break;
+            }
+        }
+    }
     if (target.external_name == "graphics.close")
     {
         symbol += target.parameters.front().type.name == "graphics_app" ? "_app" : "_window";

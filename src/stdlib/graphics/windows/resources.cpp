@@ -1,5 +1,6 @@
 #include "stdlib/graphics/windows/state.hpp"
 #include "backend/cpp/runtime_context.hpp"
+#include "stdlib/gui/windows/state.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -107,6 +108,7 @@ void close_window(window& state) noexcept
         owner->frame.reset();
     }
     state.target.reset();
+    gui::close_root(state);
     if (state.hwnd)
     {
         DestroyWindow(state.hwnd);
