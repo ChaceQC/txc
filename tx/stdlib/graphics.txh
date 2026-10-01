@@ -1,0 +1,131 @@
+# Windows 图形 G0–G1；资源类型由编译器登记。
+struct point
+{
+    x: float
+    y: float
+}
+
+struct size
+{
+    width: float
+    height: float
+}
+
+struct rect
+{
+    x: float
+    y: float
+    width: float
+    height: float
+}
+
+struct color
+{
+    red: float
+    green: float
+    blue: float
+    alpha: float
+}
+
+struct matrix
+{
+    m11: float
+    m12: float
+    m21: float
+    m22: float
+    dx: float
+    dy: float
+}
+
+struct window_options
+{
+    title: str
+    width: float
+    height: float
+    resizable: bool
+}
+
+struct pointer_event
+{
+    x: float
+    y: float
+    wheel_x: float
+    wheel_y: float
+    button: str
+    shift: bool
+    ctrl: bool
+    alt: bool
+    meta: bool
+}
+
+struct key_event
+{
+    key: str
+    scan_code: int
+    shift: bool
+    ctrl: bool
+    alt: bool
+    meta: bool
+    repeat: bool
+}
+
+struct text_event
+{
+    text: str
+    selection_start: int
+    selection_length: int
+}
+
+struct resize_event
+{
+    width: float
+    height: float
+    pixel_width: int
+    pixel_height: int
+    dpi: int
+}
+
+struct control_event
+{
+    control_id: int
+    action: str
+    text: option<str>
+    number: option<float>
+}
+
+struct event
+{
+    kind: str
+    window_id: int
+    timestamp_ms: int
+    pointer: option<pointer_event>
+    key: option<key_event>
+    text: option<text_event>
+    resize: option<resize_event>
+    timer_id: option<int>
+    control: option<control_event>
+}
+
+def open_app() -> result<graphics_app>
+def close(app: graphics_app) -> void
+def create_window(app: graphics_app, options: window_options) -> result<graphics_window>
+def close(window: graphics_window) -> void
+def is_open(window: graphics_window) -> bool
+def show(window: graphics_window) -> result<void>
+def set_title(window: graphics_window, title: str) -> result<void>
+def window_id(window: graphics_window) -> int
+def invalidate(window: graphics_window) -> void
+def backend(window: graphics_window) -> str
+def last_native_error() -> int
+def next_event(app: graphics_app, timeout_ms: int) -> result<option<event>>
+def begin_frame(window: graphics_window) -> result<option<graphics_canvas>>
+def end_frame(canvas: graphics_canvas) -> result<void>
+def cancel_frame(canvas: graphics_canvas) -> void
+def clear(canvas: graphics_canvas, color: color) -> void
+def draw_line(canvas: graphics_canvas, start: point, end: point, color: color, width: float) -> void
+def draw_rect(canvas: graphics_canvas, rect: rect, color: color, width: float) -> void
+def fill_rect(canvas: graphics_canvas, rect: rect, color: color) -> void
+def draw_ellipse(canvas: graphics_canvas, rect: rect, color: color, width: float) -> void
+def fill_ellipse(canvas: graphics_canvas, rect: rect, color: color) -> void
+def draw_rounded_rect(canvas: graphics_canvas, rect: rect, radius_x: float, radius_y: float, color: color, width: float) -> void
+def fill_rounded_rect(canvas: graphics_canvas, rect: rect, radius_x: float, radius_y: float, color: color) -> void

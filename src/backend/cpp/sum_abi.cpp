@@ -43,6 +43,10 @@ tx::error_kind parse_kind(std::string_view value)
     if (value == "security_error") return tx::error_kind::security;
     if (value == "cancelled_error") return tx::error_kind::cancelled;
     if (value == "runtime_error") return tx::error_kind::runtime;
+    if (value == "graphics_error")
+    {
+        return tx::error_kind::graphics;
+    }
     throw std::runtime_error("result 错误类别无效");
 }
 

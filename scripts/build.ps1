@@ -114,6 +114,7 @@ foreach ($name in @(
     'libpthread.a', 'libadvapi32.a', 'libbcrypt.a', 'libcrypt32.a', 'libncrypt.a',
     'libwinhttp.a', 'libws2_32.a', 'libdnsapi.a',
     'libshell32.a', 'libuser32.a',
+    'libgdi32.a', 'libd2d1.a', 'libole32.a', 'libuuid.a',
     'libiconv.a'))
 {
     $source = (& $gcc_exe "-print-file-name=$name" | Select-Object -First 1).Trim()

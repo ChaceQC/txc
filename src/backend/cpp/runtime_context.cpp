@@ -24,6 +24,7 @@ namespace
 
 void NTAPI release_runtime_context(void* value) noexcept
 {
+    static_cast<runtime_context*>(value)->close_graphics();
     profile_unregister_thread();
     thread_context = nullptr;
     delete static_cast<runtime_context*>(value);

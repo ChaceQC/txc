@@ -323,6 +323,7 @@ void semantic_analyzer::validate_type(const value_type& type, source_pos positio
         type == value_type::process_pipe_type ||
         type == value_type::ipc_listener_type ||
         type == value_type::ipc_stream_type || type.is_database_type() ||
+        type.is_graphics_resource() ||
         type == value_type::json_reader_type ||
         type == value_type::json_writer_type ||
         type == value_type::cbor_reader_type ||

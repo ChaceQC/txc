@@ -1,0 +1,8 @@
+import "graphics.txh" as gfx
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    gfx.show(app)
+    return 0
+}

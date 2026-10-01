@@ -1,4 +1,5 @@
 #include "backend/cpp/value_abi.hpp"
+#include "stdlib/graphics/resource.hpp"
 #include "backend/cpp/concurrency_value.hpp"
 #include "stdlib/task.hpp"
 #include "backend/cpp/vector_value.hpp"
@@ -276,6 +277,7 @@ extern "C" int txrt_value_require_type(const void* value,
         const auto& item = as_value(value);
         const std::string type(type_name);
         const bool valid = type == "any" ||
+            tx_generated::graphics::matches(item, type) ||
             (type == "int" && item.type() == typeid(std::int64_t)) ||
             (type == "float" && item.type() == typeid(double)) ||
             (type == "bool" && item.type() == typeid(bool)) ||

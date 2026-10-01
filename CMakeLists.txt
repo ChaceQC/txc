@@ -32,6 +32,7 @@ list(APPEND _tx_abi_files "src/common/error_kind.hpp" "src/common/format_spec.hp
     "src/stdlib/closure.hpp" "src/stdlib/typed_heap.hpp" "src/stdlib/iterator.hpp")
 list(APPEND _tx_abi_files "src/stdlib/container_scalar.hpp" "src/stdlib/typed_map.hpp")
 list(APPEND _tx_abi_files "src/stdlib/db.hpp")
+list(APPEND _tx_abi_files "src/common/graphics_types.hpp" "src/stdlib/graphics/resource.hpp")
 list(APPEND _tx_abi_files "cmake/mbedtls_user_config.h")
 list(APPEND _tx_abi_files "cmake/mbedtls_linux_config.h" "src/common/platform.hpp")
 list(APPEND _tx_abi_files "src/stdlib/byte_storage.hpp" "src/stdlib/vector.hpp"
@@ -204,6 +205,7 @@ add_executable(txc
     src/driver/module_loader.cpp
     src/driver/module_loader_class.cpp
     src/driver/compatibility.cpp
+    src/backend/llvm/codegen_graphics.cpp
     src/driver/test_runner.cpp
     src/driver/child_process.cpp
     src/driver/json_report.cpp
@@ -534,6 +536,18 @@ add_library(txstdlib STATIC
 target_compile_features(txc PRIVATE cxx_std_23)
 include(cmake/platform_sources.cmake)
 target_compile_features(txstdlib PRIVATE cxx_std_23)
+target_sources(txstdlib PRIVATE src/backend/cpp/graphics_resource_abi.cpp)
+if(WIN32)
+    target_sources(txstdlib PRIVATE
+        src/backend/cpp/graphics_window_abi.cpp
+        src/backend/cpp/graphics_event_abi.cpp
+        src/backend/cpp/graphics_draw_abi.cpp
+        src/stdlib/graphics/windows/application.cpp
+        src/stdlib/graphics/windows/resources.cpp
+        src/stdlib/graphics/windows/events.cpp
+        src/stdlib/graphics/windows/frames.cpp)
+    target_link_libraries(txstdlib PRIVATE user32 gdi32 d2d1 ole32 uuid)
+endif()
 target_include_directories(txc PRIVATE src "${CMAKE_BINARY_DIR}/generated")
 target_include_directories(txstdlib PRIVATE src)
 if(WIN32)

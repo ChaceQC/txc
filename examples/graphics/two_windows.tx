@@ -1,0 +1,74 @@
+import "graphics.txh" as gfx
+import "error.txh" as errors
+
+def paint(window: graphics_window) -> void
+{
+    auto pending = gfx.begin_frame(window).value()
+    if pending.is_none()
+    {
+        return
+    }
+    auto canvas = pending.value()
+    gfx.clear(canvas, gfx.color(0.96, 0.97, 1.0, 1.0))
+    gfx.fill_rounded_rect(canvas, gfx.rect(35.0, 35.0, 260.0, 130.0), 18.0, 18.0,
+        gfx.color(0.15, 0.45, 0.90, 1.0))
+    gfx.draw_line(canvas, gfx.point(35.0, 200.0), gfx.point(320.0, 200.0),
+        gfx.color(0.2, 0.25, 0.35, 1.0), 3.0)
+    gfx.fill_ellipse(canvas, gfx.rect(350.0, 50.0, 110.0, 110.0),
+        gfx.color(0.95, 0.45, 0.2, 0.85))
+    gfx.draw_rect(canvas, gfx.rect(35.0, 235.0, 425.0, 60.0),
+        gfx.color(0.2, 0.55, 0.35, 1.0), 2.0)
+    auto submitted = gfx.end_frame(canvas)
+    if submitted.is_err()
+    {
+        if submitted.error().code == "device_lost"
+        {
+            # 目标丢失后已有重绘请求，下一帧重画全部内容。
+            return
+        }
+        submitted.value()
+    }
+}
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto first = gfx.create_window(app, gfx.window_options("TX 图形 · 窗口一", 540.0, 360.0, true)).value()
+    auto second = gfx.create_window(app, gfx.window_options("TX 图形 · 窗口二", 540.0, 360.0, true)).value()
+    auto first_id = gfx.window_id(first)
+    auto second_id = gfx.window_id(second)
+    gfx.show(first).value()
+    gfx.show(second).value()
+    while gfx.is_open(first) || gfx.is_open(second)
+    {
+        auto pending = gfx.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                if event.window_id == first_id
+                {
+                    gfx.close(first)
+                }
+                else if event.window_id == second_id
+                {
+                    gfx.close(second)
+                }
+            }
+            else if event.kind == "paint"
+            {
+                if event.window_id == first_id && gfx.is_open(first)
+                {
+                    paint(first)
+                }
+                else if event.window_id == second_id && gfx.is_open(second)
+                {
+                    paint(second)
+                }
+            }
+        }
+    }
+    gfx.close(app)
+    return 0
+}

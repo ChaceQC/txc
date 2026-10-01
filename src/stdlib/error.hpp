@@ -52,6 +52,7 @@ private:
     case tx::error_kind::database: return "database_error";
     case tx::error_kind::security: return "security_error";
     case tx::error_kind::cancelled: return "cancelled_error";
+    case tx::error_kind::graphics: return "graphics_error";
     default: return "runtime_error";
     }
 }

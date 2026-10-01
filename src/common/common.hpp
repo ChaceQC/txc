@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/graphics_types.hpp"
+
 #include <cstddef>
 #include <stdexcept>
 #include <string>
@@ -63,6 +65,11 @@ struct value_type
         return name == "db_connection" || name == "db_statement" ||
                name == "db_cursor" || name == "db_transaction" ||
                name == "db_row" || name == "db_value" || name == "db_pool";
+    }
+
+    [[nodiscard]] bool is_graphics_resource() const noexcept
+    {
+        return graphics_type_kind(name) != graphics_kind::unknown;
     }
 
     [[nodiscard]] bool is_option() const noexcept

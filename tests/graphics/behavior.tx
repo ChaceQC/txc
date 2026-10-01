@@ -1,0 +1,130 @@
+import "graphics.txh" as gfx
+import "test.txh" as test
+import "error.txh" as errors
+import "thread.txh" as thread
+
+struct saved_window
+{
+    value: graphics_window
+}
+
+def wrong_thread_open() -> bool
+{
+    return gfx.open_app().error().code == "wrong_thread"
+}
+
+def check_frame(app: graphics_app, window: graphics_window) -> void
+{
+    auto canvas = gfx.begin_frame(window).value().value()
+    test.assert_equal("invalid_frame", gfx.next_event(app, 0).error().code)
+    test.assert_equal("invalid_frame", gfx.begin_frame(window).error().code)
+    gfx.clear(canvas, gfx.color(0.1, 0.2, 0.3, 1.0))
+    gfx.fill_rect(canvas, gfx.rect(1.0, 2.0, 80.0, 40.0), gfx.color(0.7, 0.4, 0.3, 0.8))
+    gfx.draw_rect(canvas, gfx.rect(1.0, 2.0, 80.0, 40.0), gfx.color(0.7, 0.4, 0.3, 0.8), 2.0)
+    gfx.draw_line(canvas, gfx.point(0.0, 0.0), gfx.point(30.0, 40.0), gfx.color(1.0, 0.0, 0.0, 1.0), 1.0)
+    gfx.fill_ellipse(canvas, gfx.rect(1.0, 2.0, 30.0, 40.0), gfx.color(0.0, 1.0, 0.0, 1.0))
+    gfx.draw_ellipse(canvas, gfx.rect(1.0, 2.0, 30.0, 40.0), gfx.color(0.0, 1.0, 0.0, 1.0), 1.0)
+    gfx.fill_rounded_rect(canvas, gfx.rect(1.0, 2.0, 30.0, 40.0), 5.0, 5.0, gfx.color(0.0, 1.0, 0.0, 1.0))
+    gfx.draw_rounded_rect(canvas, gfx.rect(1.0, 2.0, 30.0, 40.0), 5.0, 5.0, gfx.color(0.0, 1.0, 0.0, 1.0), 1.0)
+    try
+    {
+        gfx.fill_rect(canvas, gfx.rect(0.0, 0.0, -1.0, 1.0), gfx.color(1.0, 1.0, 1.0, 1.0))
+        test.assert_true(false, "负宽度必须失败")
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("invalid_argument", e.code)
+    }
+    gfx.end_frame(canvas).value()
+    test.assert_equal("invalid_frame", gfx.end_frame(canvas).error().code)
+    auto cancelled = gfx.begin_frame(window).value().value()
+    gfx.cancel_frame(cancelled)
+    test.assert_equal("invalid_frame", gfx.end_frame(cancelled).error().code)
+}
+
+def main() -> int
+{
+    test.assert_equal(0, gfx.last_native_error())
+    test.assert_true(thread.join(thread.spawn(wrong_thread_open)))
+    auto app = gfx.open_app().value()
+    test.assert_equal("wrong_owner", gfx.open_app().error().code)
+    test.assert_equal("invalid_argument", gfx.next_event(app, -2).error().code)
+    test.assert_true(gfx.next_event(app, -1).value().is_none())
+    test.assert_equal("invalid_argument", gfx.create_window(app,
+        gfx.window_options("bad", -1.0, 100.0, true)).error().code)
+    auto first = gfx.create_window(app, gfx.window_options("G1 自动验证一", 160.0, 120.0, true)).value()
+    auto second = gfx.create_window(app, gfx.window_options("G1 自动验证二", 160.0, 120.0, false)).value()
+    auto second_id = gfx.window_id(second)
+    vector<graphics_window> windows = vector<graphics_window>(2, first)
+    windows[1] = second
+    auto saved = saved_window(windows[0])
+    test.assert_equal(second_id, gfx.window_id(windows[1]))
+    test.assert_true(gfx.window_id(first) < second_id)
+    test.assert_true(gfx.begin_frame(first).value().is_none())
+    gfx.set_title(first, "中文标题 · G1").value()
+    gfx.show(first).value()
+    gfx.show(second).value()
+    check_frame(app, first)
+    check_frame(app, second)
+    test.assert_true(gfx.backend(first) == "hardware" || gfx.backend(first) == "software")
+    gfx.invalidate(first)
+    auto pending = gfx.next_event(app, 0).value()
+    test.assert_true(pending.is_some())
+    test.assert_true(pending.value().timestamp_ms >= 0)
+    test.assert_true(pending.value().pointer.is_none())
+    if pending.value().resize.is_some()
+    {
+        test.assert_true(pending.value().resize.value().dpi >= 96)
+    }
+    array resources = [first]
+    any dynamic = resources[0]
+    auto alias = dynamic as graphics_window
+    try
+    {
+        auto invalid = dynamic as graphics_app
+        test.assert_true(false, "any 恢复必须检查资源种类")
+    }
+    exception errors.runtime_error as e
+    {
+        test.assert_true(true)
+    }
+    try
+    {
+        auto copied = deep_copy([first])
+        test.assert_true(false, "嵌套资源不能深拷贝")
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("invalid_argument", e.code)
+    }
+    gfx.close(first)
+    gfx.close(first)
+    test.assert_false(gfx.is_open(alias))
+    test.assert_false(gfx.is_open(saved.value))
+    test.assert_true(gfx.is_open(second))
+    test.assert_equal("closed_resource", gfx.show(alias).error().code)
+    gfx.close(second)
+    int closed_count = 0
+    bool draining = true
+    while draining
+    {
+        auto item = gfx.next_event(app, 0).value()
+        if item.is_none()
+        {
+            draining = false
+        }
+        else if item.value().kind == "closed"
+        {
+            closed_count += 1
+        }
+    }
+    test.assert_equal(2, closed_count)
+    test.assert_true(gfx.next_event(app, -1).value().is_none())
+    gfx.close(app)
+    gfx.close(app)
+    test.assert_equal("closed_resource", gfx.next_event(app, 0).error().code)
+    auto reopened = gfx.open_app().value()
+    gfx.close(reopened)
+    print("graphics G0-G1 behavior: PASS")
+    return 0
+}

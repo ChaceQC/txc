@@ -18,7 +18,7 @@ llvm_code_generator::ir_value llvm_code_generator::record_lvalue_owner(
 
 void llvm_code_generator::cache_record_view(variable_slot& slot, const std::string& value)
 {
-    if (!static_record_type(slot.type))
+    if (!static_record_type(slot.type) && !slot.type.is_graphics_resource())
     {
         return;
     }
@@ -43,7 +43,8 @@ std::string llvm_code_generator::record_view_value(const ir_value& object)
         return object.record_view;
     }
     const auto view = temporary();
-    write_instruction(view + " = call ptr @" + std::string(classes_.contains(object.type.name)
+    write_instruction(view + " = call ptr @" + std::string(object.type.is_graphics_resource()
+        ? "txrt_graphics_resource_view" : classes_.contains(object.type.name)
         ? "txrt_record_class_view" : "txrt_record_struct_view") + "(ptr " + object.text + ")");
     return view;
 }

@@ -105,6 +105,7 @@ llvm_code_generator::ir_value llvm_code_generator::from_any(
             target == value_type::process_pipe_type ||
             target == value_type::ipc_listener_type ||
             target == value_type::ipc_stream_type || target.is_database_type() ||
+            target.is_graphics_resource() ||
             target == value_type::json_reader_type ||
             target == value_type::json_writer_type ||
             target == value_type::cbor_reader_type ||

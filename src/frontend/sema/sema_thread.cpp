@@ -43,7 +43,7 @@ bool semantic_analyzer::is_send_type(const value_type& type) const
             candidate == value_type::secret_bytes_type ||
             candidate == value_type::ipc_listener_type ||
             candidate == value_type::ipc_stream_type ||
-            candidate.is_database_type() ||
+            candidate.is_database_type() || candidate.is_graphics_resource() ||
             candidate.is_function())
         {
             return false;

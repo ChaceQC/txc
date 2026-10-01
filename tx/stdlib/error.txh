@@ -63,6 +63,13 @@ struct int_result
     error: error_info
 }
 
+struct graphics_error
+{
+    kind: str
+    code: str
+    message: str
+}
+
 struct float_result
 {
     ok: bool

@@ -59,6 +59,7 @@ void cleanup_live_handles() noexcept
         return;
     }
     cleaning_handles = true;
+    context.close_graphics();
     while (newest_handle)
     {
         auto* current = newest_handle;
@@ -126,6 +127,7 @@ extern "C" void txrt_require_success(int status) noexcept
 
 extern "C" int txrt_prepare_console() noexcept
 {
+    tx_generated::detail::current_runtime_context().main_thread = true;
     return invoke_checked([] { tx_generated::tx_prepare_console(); });
 }
 
@@ -153,6 +155,7 @@ extern "C" int txrt_print_char(std::uint8_t value) noexcept
 
 extern "C" int txrt_exit_code(std::int64_t value) noexcept
 {
+    tx_generated::detail::current_runtime_context().close_graphics();
     const auto gc_status = invoke_checked([]
     {
         tx_generated::collect_cycles();

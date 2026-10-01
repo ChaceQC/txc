@@ -58,6 +58,19 @@ struct runtime_context
     std::mt19937_64 random_engine;
     bool random_initialized = false;
     std::shared_ptr<void> gc_workspace;
+    bool main_thread = false;
+    std::int64_t graphics_native_error = 0;
+    std::shared_ptr<void> graphics_session;
+    void (*graphics_cleanup)(void*) noexcept = nullptr;
+
+    void close_graphics() noexcept
+    {
+        if (graphics_cleanup && graphics_session)
+        {
+            graphics_cleanup(graphics_session.get());
+            graphics_session.reset();
+        }
+    }
     std::string log_task_id;
     std::string log_thread_id;
     std::string log_request_id;

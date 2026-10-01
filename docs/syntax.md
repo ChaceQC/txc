@@ -10,6 +10,8 @@
 
 内置 `bytes` 表示不可变原始字节，支持 `vector<bytes>`，并可作为 `array`、`dict` 的值；显式编码及文件流接口见[字节值、编码与文件流](bytes_file_stream.md)。
 
+Windows 图形资源使用编译器登记的不透明类型（`graphics_app`、`graphics_window`、`graphics_canvas` 等），由 `graphics.txh` 创建，不支持无参构造或整数转换。普通赋值共享资源，`any as graphics_window` 等显式恢复检查资源种类；容器嵌套不改变这些规则。图形资源均非 Send/Sync，直接或嵌套 `deep_copy` 会报错。完整类型列表与 G0–G1 接口见[Windows 图形基础](graphics_g0_g1.md)。
+
 不透明内置类型 `secret_bytes` 由 `secret.txh` 的 `from_bytes` 或 `random` 创建。普通赋值和参数传递共享同一受控缓冲；`secret.close` 清零缓冲并使全部别名失效，最后一个别名释放时也清零。它不能默认打印、装入 `any`、序列化、`deep_copy`，也不能作为结构体、类或容器字段；只能显式调用 `secret.to_bytes` 复制导出。导入时源 `bytes` 和导出后的 `bytes` 都不受秘密缓冲清零保证。接口及平台限制见[秘密字节](secret_bytes.md)，用法见[示例](../examples/secret_bytes.tx)。
 
 `password.txh` 接收 `secret_bytes`，输出 PHC 格式的 Argon2id 哈希字符串。密码验证、参数升级与资源限制见[Argon2id 密码存储](password.md)。

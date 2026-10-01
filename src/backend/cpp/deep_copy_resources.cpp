@@ -1,4 +1,5 @@
 #include "backend/cpp/deep_copy.hpp"
+#include "stdlib/graphics/resource.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/concurrency_value.hpp"
 #include "stdlib/cancellation.hpp"
@@ -22,6 +23,11 @@ namespace tx_generated
 
 std::any copy_resource_value(const std::any& value)
 {
+    if (value.type() == typeid(graphics::handle))
+    {
+        throw runtime_failure({tx::error_kind::graphics, "invalid_argument",
+            "deep_copy 不能复制图形资源，包括容器或结构体中的图形资源"});
+    }
     if (value.type() == typeid(db_row) || value.type() == typeid(db_value))
     {
         return value;

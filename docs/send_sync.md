@@ -11,6 +11,7 @@
 | `int/float/bool/str/bytes/none` | 是 | 是 |
 | `db_row/db_value` | 是；不可变快照/按值 SQL 值，不引用连接 | 是；字符串按值、字节与行底层只读 |
 | `db_pool` | 是 | 是；内部同步；借用的连接仍禁止跨线程 |
+| 图形资源 `graphics_app/window/canvas/image/surface/path/brush/font/text_layout`、`gui_control/menu` | 否；嵌套字段和容器同样拒绝 | 否；原生操作绑定 UI 线程 |
 | `option<T>`、`result<T>` | T 和错误表示满足 Send 时 | T 和错误表示满足 Sync 时 |
 | `vector<T>`、`map<K,V>`、`set<T>`、`ordered_map<K,V>`、`ordered_set<T>`、`heap<T>`、`queue<T>`、`deque<T>` | 元素、键和值均满足 Send，且值被唯一移动 | 否；容器本身可变 |
 | 用户 `struct` | 所有字段满足 Send，且值被唯一移动 | 否；字段可写 |

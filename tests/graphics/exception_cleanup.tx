@@ -1,0 +1,11 @@
+import "graphics.txh" as gfx
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto window = gfx.create_window(app, gfx.window_options("G1 exception cleanup", 120.0, 100.0, true)).value()
+    gfx.show(window).value()
+    auto canvas = gfx.begin_frame(window).value().value()
+    gfx.clear(canvas, gfx.color(2.0, 0.0, 0.0, 1.0))
+    return 0
+}

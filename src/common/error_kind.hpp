@@ -13,7 +13,8 @@ enum class error_kind : int
     process = 4,
     database = 5,
     security = 6,
-    cancelled = 7
+    cancelled = 7,
+    graphics = 8
 };
 
 } // namespace tx

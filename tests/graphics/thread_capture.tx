@@ -1,0 +1,15 @@
+import "graphics.txh" as gfx
+import "thread.txh" as thread
+
+def use(app: graphics_app) -> int
+{
+    gfx.close(app)
+    return 0
+}
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto worker = thread.spawn(bind(use, app))
+    return thread.join(worker)
+}

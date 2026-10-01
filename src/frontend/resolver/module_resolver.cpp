@@ -29,7 +29,7 @@ bool is_builtin_type(const std::string& name)
            name == "regex_pattern" || name == "fs_watcher" ||
            name == "process_child" || name == "process_pipe" ||
            name == "ipc_listener" || name == "ipc_stream" ||
-           value_type(name).is_database_type() ||
+           value_type(name).is_database_type() || value_type(name).is_graphics_resource() ||
            name == "json_reader" || name == "json_writer" ||
            name == "cbor_reader" || name == "cbor_writer" ||
            name == "csv_reader" || name == "csv_writer" ||

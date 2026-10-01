@@ -447,6 +447,9 @@ private:
     [[nodiscard]] ir_value emit_direct_external_call(
         const expression& item, const function_decl& target,
         const std::vector<ir_value>& arguments);
+    void write_graphics_declarations();
+    [[nodiscard]] ir_value emit_graphics_call(const expression& item,
+        const function_decl& target, const std::vector<ir_value>& arguments);
     [[nodiscard]] std::optional<ir_value> emit_literal_string_call(
         const expression& item, const call_expression& call,
         const function_decl& target);

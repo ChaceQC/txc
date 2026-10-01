@@ -48,6 +48,18 @@ void semantic_analyzer::annotate_call_properties(call_expression& call) const
         return;
     }
     const auto& name = signature.external_name;
+    if (name.starts_with("graphics."))
+    {
+        // Win32 回调不执行 TX；参数仅在本次调用中读取，原生资源独立管理寿命。
+        const bool draw = name == "graphics.clear" || name.starts_with("graphics.draw_") ||
+            name.starts_with("graphics.fill_");
+        properties.effects = {!draw, !draw, false, false, true, false};
+        for (auto& ownership : properties.arguments)
+        {
+            ownership = argument_ownership::borrowed;
+        }
+        return;
+    }
     const bool typed_format = name == "format.format" &&
         std::all_of(call.arguments.begin(), call.arguments.end(), [](const call_argument& argument)
         {

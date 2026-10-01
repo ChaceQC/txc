@@ -1,0 +1,16 @@
+import "graphics.txh" as gfx
+
+struct nested
+{
+    values: option<vector<graphics_window>>
+}
+
+def inspect(value: nested) -> void
+{
+    assert_send(value)
+}
+
+def main() -> int
+{
+    return 0
+}

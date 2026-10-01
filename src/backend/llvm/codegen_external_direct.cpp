@@ -67,6 +67,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_direct_external_call(
     const expression& item, const function_decl& target,
     const std::vector<ir_value>& arguments)
 {
+    if (target.external_name.starts_with("graphics."))
+    {
+        return emit_graphics_call(item, target, arguments);
+    }
     const bool integer = !arguments.empty() &&
         arguments.front().type == value_type::int_type;
     std::string symbol;

@@ -9,7 +9,8 @@ namespace
 
 bool supported_external_call(std::string_view name)
 {
-    return name.starts_with("httpx.") || name.starts_with("websocket.") ||
+    return name.starts_with("graphics.") ||
+           name.starts_with("httpx.") || name.starts_with("websocket.") ||
            name.starts_with("dns.") || name.starts_with("socket.") ||
            name.starts_with("thread.") || name.starts_with("sync.") ||
            name.starts_with("channel.") || name.starts_with("task.") ||

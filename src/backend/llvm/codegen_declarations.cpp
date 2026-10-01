@@ -8,6 +8,7 @@ namespace tx
 void llvm_code_generator::write_external_declarations()
 {
     write_db_declarations();
+    write_graphics_declarations();
     module_ << "declare i32 @txrt_profile_start(i64, i64)\n"
             << "declare i32 @txrt_profile_snapshot(ptr)\n"
             << "declare i32 @txrt_profile_stop(ptr)\n"
