@@ -12,13 +12,18 @@ namespace tx_generated::gui
 
 bool participates(const node& state)
 {
-    return !state.closed && (state.visible || state.reserved);
+    return !state.closed && state.page_active && (state.visible || state.reserved);
 }
 
 axis_item child_axis(const node& child, bool horizontal)
 {
     auto policy = horizontal ? child.width : child.height;
     const auto parent = child.parent.lock();
+    if (parent && (horizontal ? parent->scroll_horizontal : parent->scroll_vertical) &&
+        policy.mode == length_mode::stretch)
+    {
+        policy = {};
+    }
     if (horizontal && !child.explicit_width && parent && parent->layout == layout_mode::row)
     {
         policy = {};
@@ -38,7 +43,8 @@ std::vector<axis_item> grid_axis(node& state, bool horizontal)
     std::vector<axis_item> items;
     for (const auto& track : horizontal ? state.columns : state.rows)
     {
-        items.push_back({track, 0, 0, 16384});
+        const bool unbounded = horizontal ? state.scroll_horizontal : state.scroll_vertical;
+        items.push_back({unbounded && track.mode == length_mode::stretch ? length{} : track, 0, 0, 16384});
     }
     // 先单格，再跨度；跨度需求只增加非 fixed 轨道。
     for (std::size_t span = 1; span <= items.size(); ++span)
@@ -111,6 +117,14 @@ extent text_extent(node& state, double available)
     {
         return {160, 32};
     }
+    if (state.kind == graphics_kind::progress_bar || state.kind == graphics_kind::slider)
+    {
+        return {160, 28};
+    }
+    if (state.kind == graphics_kind::gui_canvas)
+    {
+        return {240, 160};
+    }
     if (state.model)
     {
         return {240, 160};
@@ -146,7 +160,12 @@ extent measure(node& state, double available_width)
 {
     available_width = std::clamp(state.width.mode == length_mode::fixed ?
         state.width.value : available_width, state.minimum.width, state.maximum.width);
-    if (state.kind != tx::graphics_kind::container || state.toolbar)
+    if (state.scroll_vertical)
+    {
+        const auto dpi = owner_window(state).dpi;
+        available_width = std::max(0.0, available_width - GetSystemMetricsForDpi(SM_CXVSCROLL, dpi) * 96.0 / dpi);
+    }
+    if ((state.kind != tx::graphics_kind::container && state.kind != tx::graphics_kind::tabs) || state.toolbar)
     {
         state.natural = text_extent(state, available_width);
         return state.natural;
@@ -159,7 +178,8 @@ extent measure(node& state, double available_width)
         {
             continue;
         }
-        measure(*child, std::max(0.0, available_width - 2 * (state.padding + child->margin)));
+        measure(*child, state.scroll_horizontal ? 16384 :
+            std::max(0.0, available_width - 2 * (state.padding + child->margin)));
         const auto width = preferred(child_axis(*child, true));
         const auto height = preferred(child_axis(*child, false));
         if (state.layout == layout_mode::row)
@@ -193,7 +213,7 @@ extent measure(node& state, double available_width)
         result.width = track_total(grid_axis(state, true), state.gap);
         result.height = track_total(grid_axis(state, false), state.gap);
     }
-    else if (state.layout == layout_mode::row && count)
+    else if (state.layout == layout_mode::row && count && !state.scroll_horizontal)
     {
         std::vector<axis_item> items;
         for (const auto& child : state.children)
@@ -223,6 +243,11 @@ extent measure(node& state, double available_width)
     }
     result.width += 2 * state.padding;
     result.height += 2 * state.padding;
+    if (state.kind == tx::graphics_kind::tabs)
+    {
+        result.width += 8;
+        result.height += 32;
+    }
     state.natural = result;
     return result;
 }

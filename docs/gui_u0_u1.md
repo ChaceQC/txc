@@ -46,4 +46,4 @@ Tab/Shift+Tab 按树创建顺序遍历可见、启用的 button/text/check；关
 
 生成的图形/GUI 程序同时链接 Common Controls 与 `tx/link/gui-manifest.o`，清单启用 Common Controls v6 和 Per-Monitor V2。直接从 C++ 链接图形原生实现也必须使用该清单及 comctl32，两个原生验证入口已按此设置。GUI 子系统、无控制台发行体验仍属于后续发行阶段。
 
-本文记录 U0–U1 的原始交付。真实 125%/200% 混合显示器、微软拼音、视觉、实际键盘和最低系统版本仍待人工验收，清单见 [tests/gui/README.md](../tests/gui/README.md)；后续已实现的命令和数据控件见 [U2–U3](gui_u2_u3.md)，U4–U6 尚未实现。
+本文记录 U0–U1 的原始交付。真实 125%/200% 混合显示器、微软拼音、视觉、实际键盘和最低系统版本仍待人工验收，清单见 [tests/gui/README.md](../tests/gui/README.md)；后续已实现的命令和数据控件见 [U2–U3](gui_u2_u3.md)，复杂界面及辅助功能见 [U4–U5](gui_u4_u5.md)。U6 尚未实施。

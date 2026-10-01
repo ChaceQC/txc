@@ -10,6 +10,12 @@ GitHub 自动构建和 tag 发布方式见 [CI/CD 说明](releasing.md)。
 
 ## 从源码构建
 
+Windows 桌面程序使用 `txc 源码.tx --subsystem windows`，默认仍为 console。
+两种模式都调用 TX main；`--no-lto` 可同时使用。windows 模式保留重定向标准流，
+没有 stderr 时未捕获错误保存到 `%LOCALAPPDATA%/TX/diagnostics/`，失败回退到
+`%TEMP%/TX/diagnostics/`，并显示错误框。分发时复制 exe 及同目录运行时 DLL。
+入口、完整接口索引、示例和兼容验收记录见 [图形 G5 / GUI U6](graphics_g5_gui_u6.md)。
+
 Linux 使用 Ubuntu 24.04 x86_64，执行：
 
 ```bash

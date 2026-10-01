@@ -216,6 +216,7 @@ add_executable(txc
 add_library(txstdlib STATIC
     src/backend/cpp/runtime.cpp
     src/backend/cpp/runtime_abi.cpp
+    src/backend/cpp/runtime_diagnostics.cpp
     src/backend/cpp/error_abi.cpp
     src/backend/cpp/runtime_context.cpp
     src/backend/cpp/test_abi.cpp
@@ -563,6 +564,15 @@ if(WIN32)
         src/backend/cpp/graphics_input_abi.cpp
         src/backend/cpp/gui_control_abi.cpp
         src/backend/cpp/gui_form_abi.cpp
+        src/backend/cpp/gui_complex_abi.cpp
+        src/backend/cpp/gui_canvas_abi.cpp
+        src/backend/cpp/gui_accessibility_abi.cpp
+        src/stdlib/gui/windows/complex.cpp
+        src/stdlib/gui/windows/complex_layout.cpp
+        src/stdlib/gui/windows/complex_events.cpp
+        src/stdlib/gui/windows/canvas.cpp
+        src/stdlib/gui/windows/accessibility.cpp
+        src/stdlib/gui/windows/accessibility_provider.cpp
         src/backend/cpp/gui_length_abi.cpp
         src/stdlib/gui/windows/commands.cpp
         src/stdlib/gui/windows/menus.cpp

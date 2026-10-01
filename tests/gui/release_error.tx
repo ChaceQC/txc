@@ -1,0 +1,9 @@
+def failure() -> int
+{
+    return 8 / 0
+}
+
+def main() -> int
+{
+    return failure()
+}

@@ -138,6 +138,7 @@ struct window : resource, std::enable_shared_from_this<window>
     bool changing_dpi = false;
     com_ptr<ID2D1HwndRenderTarget> target;
     std::shared_ptr<gui::node> gui_root;
+    std::weak_ptr<gui::node> gui_canvas_source;
     std::shared_ptr<gui::menu> menu_bar;
     UINT next_command_id = 1;
     std::weak_ptr<window> modal_owner;

@@ -33,4 +33,4 @@ U3 的列宽显式用 DIP float，列在模型创建时固定；树视图采用�
 
 复现：`python scripts/check_graphics_gui_extensions.py`；产物位于 `tx_build/graphics_gui_g2_u3/`。示例运行：`tx/txc.exe examples/gui/data_browser.tx` 后启动 `tx_build/data_browser.exe`。
 
-真实系统文件框的确认/取消、多选和过滤器、剪贴板忙/跨进程文本、微软拼音期间快捷键、实际键盘访问键、多显示器 DPI 仍待人工验收；自动验证没有操作用户剪贴板。U4–U6、完整 UIA、复杂容器和最低系统版本发行验收不在本轮完成范围。
+真实系统文件框的确认/取消、多选和过滤器、剪贴板忙/跨进程文本、微软拼音期间快捷键、实际键盘访问键、多显示器 DPI 仍待人工验收；自动验证没有操作用户剪贴板。本文记录 U2–U3 的原始交付，后续复杂容器、自绘 UIA、主题恢复见 [U4–U5](gui_u4_u5.md)；U6 及最低系统版本发行验收仍待执行。

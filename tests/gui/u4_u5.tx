@@ -1,0 +1,69 @@
+import "graphics.txh" as gfx
+import "gui.txh" as gui
+import "test.txh" as test
+import "error.txh" as errors
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto window = gfx.create_window(app, gfx.window_options("GUI U4-U5 ABI", 640.0, 480.0, true)).value()
+    auto root = gui.root(window).value()
+    auto tabs = gui.create_tabs(root).value()
+    gui.set_height(tabs, gui.stretch(1.0))
+    test.assert_true(gui.selected_tab(tabs).is_none())
+    auto first = gui.add_tab(tabs, "第一页").value()
+    auto second = gui.add_tab(tabs, "第二页").value()
+    test.assert_equal(gui.id(first), gui.selected_tab(tabs).value())
+    gui.select_tab(tabs, second)
+    test.assert_equal(gui.id(second), gui.selected_tab(tabs).value())
+    gui.close(second)
+    test.assert_equal(gui.id(first), gui.selected_tab(tabs).value())
+    auto split = gui.create_split(first, false, 0.4, 50.0, 60.0).value()
+    gui.set_height(split, gui.stretch(1.0))
+    auto left = gui.split_pane(split, 0).value()
+    auto right = gui.split_pane(split, 1).value()
+    gui.set_split_position(split, 0.6)
+    test.assert_equal(0.6, gui.split_position(split))
+    test.assert_true(gui.create_container(split).is_err())
+    auto scroll = gui.create_scroll(left, false, true).value()
+    gui.set_height(scroll, gui.stretch(1.0))
+    auto label = gui.create_label(scroll, "进度").value()
+    gui.set_height(label, gui.fixed(900.0))
+    auto progress = gui.create_progress_bar(right).value()
+    gui.set_label(progress, label)
+    gui.set_progress(progress, 0, 200, 120)
+    gui.set_indeterminate(progress, true)
+    gui.set_indeterminate(progress, false)
+    test.assert_equal(120, gui.progress_value(progress))
+    try
+    {
+        gui.set_progress(progress, 0, 200, 201)
+        test.assert_true(false)
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("invalid_argument", e.code)
+    }
+    test.assert_equal(120, gui.progress_value(progress))
+    auto slider = gui.create_slider(right, 0, 100, 20, 5).value()
+    gui.set_slider_value(slider, 35)
+    test.assert_equal(35, gui.slider_value(slider))
+    auto canvas = gui.create_canvas(right).value()
+    gui.set_height(canvas, gui.stretch(1.0))
+    gui.set_accessibility(canvas, "进度图", "空格刷新")
+    test.assert_true(gui.begin_canvas(canvas).value().is_none())
+    gui.flush_layout(window)
+    gui.set_scroll_position(scroll, 0.0, 120.0)
+    test.assert_equal(120.0, gui.scroll_y(scroll))
+    test.assert_equal(0.0, gui.scroll_x(scroll))
+    test.assert_equal(1.0, gui.theme_color("window").alpha)
+    gui.high_contrast()
+    gfx.close(window)
+    test.assert_false(gui.is_open(canvas))
+    test.assert_false(gui.is_open(tabs))
+    test.assert_false(gui.is_open(progress))
+    test.assert_false(gui.is_open(slider))
+    gfx.close(app)
+    print("GUI U4-U5 TX passed")
+    return 0
+}

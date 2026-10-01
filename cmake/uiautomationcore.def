@@ -1,0 +1,7 @@
+LIBRARY UIAutomationCore.dll
+EXPORTS
+    UiaReturnRawElementProvider
+    UiaHostProviderFromHwnd
+    UiaDisconnectProvider
+    UiaRaiseAutomationEvent
+    UiaRaiseAutomationPropertyChangedEvent

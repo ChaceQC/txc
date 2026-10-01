@@ -6,9 +6,26 @@ import os
 import subprocess
 import tempfile
 import zipfile
+import struct
 
 
 root = Path(__file__).resolve().parents[1]
+
+
+def check_gui_package(directory, environment):
+    txc = directory / "tx/txc.exe"
+    output = directory / "tx_build/gui_release"
+    output.mkdir(parents=True, exist_ok=True)
+    for flags, name in (([], "gui-lto"), (["--no-lto"], "gui-native")):
+        program = output / (name + ".exe")
+        run([txc, directory / "examples/gui/release_smoke.tx", "--subsystem", "windows",
+             *flags, "-o", program], directory, environment)
+        data = program.read_bytes()
+        pe = struct.unpack_from("<I", data, 0x3c)[0]
+        assert struct.unpack_from("<H", data, pe + 24 + 68)[0] == 2, "缺少 Windows 子系统"
+        for marker in (b"PerMonitorV2", b"Microsoft.Windows.Common-Controls", b"asInvoker"):
+            assert marker in data, f"清单缺少 {marker!r}"
+        assert run([program], directory, environment).strip() == "GUI release ok"
 
 
 def run(arguments, directory, environment):
@@ -54,7 +71,8 @@ def main():
             output = run([program], directory, environment)
             if source == "llvm_numeric.tx" and output.strip().splitlines() != ["5.0", "3"]:
                 raise RuntimeError(f"数值样例输出不符：{output}")
-        print("ZIP 安装验证通过：中文/空格路径、语法检查、ThinLTO、普通链接和 ICU 运行时")
+        check_gui_package(directory, environment)
+        print("ZIP 安装验证通过：中文/空格路径、ThinLTO、普通链接、ICU、GUI 入口/清单/控件/绘图")
 
 
 if __name__ == "__main__":

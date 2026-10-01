@@ -10,6 +10,8 @@ ZIP 同时包含本文、[说明文档](docs/usage.md)、[语法文档](docs/syn
 自动构建与 tag 发布流程见 [GitHub CI/CD](docs/releasing.md)。
 
 Linux x86_64 原生适配与构建方式见 [Linux 平台说明](docs/linux_port.md)。
+Windows 图形和 GUI 程序支持 `--subsystem windows`，普通与 ThinLTO 两种链接均可用。
+无控制台错误日志、发行示例与兼容验收记录见 [图形 G5 / GUI U6](docs/graphics_g5_gui_u6.md)。
 Linux 发行格式为 `txc-vX.Y.Z-linux-x64.tar.gz`，运行基线是 Ubuntu 24.04 / glibc 2.39。
 解压后执行 `./tx/txc example.tx`，再执行 `./tx_build/example`；需要把程序旁的 `tx_lib/` 一起保留。
 Windows 和 Linux 包独立构建，不能混用其中的标准库与链接组件。
@@ -52,7 +54,7 @@ txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的
 
 Windows 图形 G0–G3 已接入会话、多窗口、事件、DirectWrite 文字、WIC 图片、路径/渐变、离屏 PNG、键鼠/IME/捕获/定时器和目标重建。接口与验证范围见 [图形基础](docs/graphics_g0_g1.md)及 [G2–G3](docs/graphics_g2_g3.md)，示例见 [交互绘图](examples/graphics/interactive_scene.tx)和[双窗口绘图](examples/graphics/two_windows.tx)。真实输入法、混合 DPI 和设备移除仍待人工验收。
 
-Windows GUI U0–U3 已实现表单/布局、菜单/工具栏/共享命令/快捷键、文件框/剪贴板/模态 owner 管理，以及 list/table/tree 模型、稳定 ID 和分页。接口与验证记录见 [GUI U0–U1](docs/gui_u0_u1.md)及 [U2–U3](docs/gui_u2_u3.md)，示例见 [数据浏览器](examples/gui/data_browser.tx)、[问候程序](examples/gui/greeting.tx)和[设置表单](examples/gui/settings.tx)。复杂界面、完整 UIA 与发行验收仍见 [GUI 设计](docs/windows_gui_design.md)。
+Windows GUI U0–U5 已实现表单/布局、菜单/工具栏/共享命令/快捷键、文件框/剪贴板/模态 owner 管理、list/table/tree 模型，以及 tabs/scroll/split、任务进度、滑块和独立画布。U5 增加辅助名称、标签关联、自绘 UIA、系统主题颜色与恢复清理。接口与自动验证记录见 [GUI U0–U1](docs/gui_u0_u1.md)、[U2–U3](docs/gui_u2_u3.md)及 [U4–U5](docs/gui_u4_u5.md)，示例见 [任务工作台](examples/gui/task_workspace.tx)、[数据浏览器](examples/gui/data_browser.tx)、[问候程序](examples/gui/greeting.tx)和[设置表单](examples/gui/settings.tx)。Narrator、高对比度与混合 DPI 的真实桌面人工验收、U6 发行验收仍待执行，见 [GUI 设计](docs/windows_gui_design.md)。
 
 Python 风格的 HTTP 客户端见 [requests 模块](docs/requests.md)和[请求示例](examples/requests.tx)。
 安全随机数、摘要、密钥派生与 AES-256-GCM 认证加密见[密码学标准库](docs/crypto.md)和[示例](examples/crypto.tx)。

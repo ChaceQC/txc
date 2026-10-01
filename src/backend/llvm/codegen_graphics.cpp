@@ -48,7 +48,7 @@ std::string graphics_symbol(const function_decl& target)
             "set_margin", "set_alignment", "set_cell", "set_text", "text", "focus",
             "set_checked", "checked", "revision", "count", "replace_items", "append_items",
             "update_items", "remove_items", "set_order", "begin_page", "apply_page",
-            "selected_ids", "set_selected_ids"})
+            "selected_ids", "set_selected_ids", "set_accessibility", "set_label"})
         {
             if (operation == name)
             {

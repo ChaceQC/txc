@@ -1,4 +1,108 @@
 # Windows GUI U0–U1；图形事件与窗口由唯一图形会话管理。
+
+# GUI U4–U5；契约见 docs/gui_u4_u5.md。
+def id(control: gui_progress_bar) -> int
+def is_open(control: gui_progress_bar) -> bool
+def close(control: gui_progress_bar) -> void
+def set_enabled(control: gui_progress_bar, enabled: bool) -> void
+def set_visible(control: gui_progress_bar, visible: bool) -> void
+def set_reserved_space(control: gui_progress_bar, reserved: bool) -> void
+def set_width(control: gui_progress_bar, value: length) -> void
+def set_height(control: gui_progress_bar, value: length) -> void
+def set_constraints(control: gui_progress_bar, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_progress_bar, margin: float) -> void
+def set_alignment(control: gui_progress_bar, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_progress_bar, row: int, column: int, row_span: int, column_span: int) -> void
+def id(control: gui_slider) -> int
+def is_open(control: gui_slider) -> bool
+def close(control: gui_slider) -> void
+def set_enabled(control: gui_slider, enabled: bool) -> void
+def set_visible(control: gui_slider, visible: bool) -> void
+def set_reserved_space(control: gui_slider, reserved: bool) -> void
+def set_width(control: gui_slider, value: length) -> void
+def set_height(control: gui_slider, value: length) -> void
+def set_constraints(control: gui_slider, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_slider, margin: float) -> void
+def set_alignment(control: gui_slider, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_slider, row: int, column: int, row_span: int, column_span: int) -> void
+def id(control: gui_tabs) -> int
+def is_open(control: gui_tabs) -> bool
+def close(control: gui_tabs) -> void
+def set_enabled(control: gui_tabs, enabled: bool) -> void
+def set_visible(control: gui_tabs, visible: bool) -> void
+def set_reserved_space(control: gui_tabs, reserved: bool) -> void
+def set_width(control: gui_tabs, value: length) -> void
+def set_height(control: gui_tabs, value: length) -> void
+def set_constraints(control: gui_tabs, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_tabs, margin: float) -> void
+def set_alignment(control: gui_tabs, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_tabs, row: int, column: int, row_span: int, column_span: int) -> void
+def id(control: gui_canvas) -> int
+def is_open(control: gui_canvas) -> bool
+def close(control: gui_canvas) -> void
+def set_enabled(control: gui_canvas, enabled: bool) -> void
+def set_visible(control: gui_canvas, visible: bool) -> void
+def set_reserved_space(control: gui_canvas, reserved: bool) -> void
+def set_width(control: gui_canvas, value: length) -> void
+def set_height(control: gui_canvas, value: length) -> void
+def set_constraints(control: gui_canvas, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: gui_canvas, margin: float) -> void
+def set_alignment(control: gui_canvas, horizontal: str, vertical: str) -> void
+def set_cell(control: gui_canvas, row: int, column: int, row_span: int, column_span: int) -> void
+def focus(control: gui_container) -> result<void>
+def focus(control: gui_slider) -> result<void>
+def focus(control: gui_tabs) -> result<void>
+def focus(control: gui_canvas) -> result<void>
+def set_accessibility(control: gui_container, name: str, help_text: str) -> void
+def set_label(control: gui_container, label: gui_label) -> void
+def set_accessibility(control: gui_label, name: str, help_text: str) -> void
+def set_label(control: gui_label, label: gui_label) -> void
+def set_accessibility(control: gui_button, name: str, help_text: str) -> void
+def set_label(control: gui_button, label: gui_label) -> void
+def set_accessibility(control: gui_text_box, name: str, help_text: str) -> void
+def set_label(control: gui_text_box, label: gui_label) -> void
+def set_accessibility(control: gui_check_box, name: str, help_text: str) -> void
+def set_label(control: gui_check_box, label: gui_label) -> void
+def set_accessibility(control: gui_list_view, name: str, help_text: str) -> void
+def set_label(control: gui_list_view, label: gui_label) -> void
+def set_accessibility(control: gui_table_view, name: str, help_text: str) -> void
+def set_label(control: gui_table_view, label: gui_label) -> void
+def set_accessibility(control: gui_tree_view, name: str, help_text: str) -> void
+def set_label(control: gui_tree_view, label: gui_label) -> void
+def set_accessibility(control: gui_progress_bar, name: str, help_text: str) -> void
+def set_label(control: gui_progress_bar, label: gui_label) -> void
+def set_accessibility(control: gui_slider, name: str, help_text: str) -> void
+def set_label(control: gui_slider, label: gui_label) -> void
+def set_accessibility(control: gui_tabs, name: str, help_text: str) -> void
+def set_label(control: gui_tabs, label: gui_label) -> void
+def set_accessibility(control: gui_canvas, name: str, help_text: str) -> void
+def set_label(control: gui_canvas, label: gui_label) -> void
+def create_tabs(parent: gui_container) -> result<gui_tabs>
+def add_tab(tabs: gui_tabs, title: str) -> result<gui_container>
+def select_tab(tabs: gui_tabs, page: gui_container) -> void
+def selected_tab(tabs: gui_tabs) -> option<int>
+def create_scroll(parent: gui_container, horizontal: bool, vertical: bool) -> result<gui_container>
+def set_scroll_position(control: gui_container, x: float, y: float) -> void
+def scroll_x(control: gui_container) -> float
+def scroll_y(control: gui_container) -> float
+def create_split(parent: gui_container, vertical: bool, position: float, minimum_first: float, minimum_second: float) -> result<gui_container>
+def split_pane(control: gui_container, index: int) -> result<gui_container>
+def set_split_position(control: gui_container, position: float) -> void
+def split_position(control: gui_container) -> float
+def create_progress_bar(parent: gui_container) -> result<gui_progress_bar>
+def set_progress(control: gui_progress_bar, minimum: int, maximum: int, value: int) -> void
+def progress_value(control: gui_progress_bar) -> int
+def set_indeterminate(control: gui_progress_bar, enabled: bool) -> void
+def create_slider(parent: gui_container, minimum: int, maximum: int, value: int, step: int) -> result<gui_slider>
+def set_slider_value(control: gui_slider, value: int) -> void
+def slider_value(control: gui_slider) -> int
+def create_canvas(parent: gui_container) -> result<gui_canvas>
+def begin_canvas(control: gui_canvas) -> result<option<graphics_canvas>>
+def invalidate_canvas(control: gui_canvas) -> void
+def canvas_width(control: gui_canvas) -> float
+def canvas_height(control: gui_canvas) -> float
+def high_contrast() -> bool
+def theme_color(role: str) -> gfx.color
 # U2–U3 扩展；完整契约见 docs/gui_u2_u3.md。
 
 struct key_chord

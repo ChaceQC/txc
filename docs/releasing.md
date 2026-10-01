@@ -12,7 +12,7 @@
 2. 下载并核对 SHA-256，安装固定 GCC 13.1.0 POSIX/SEH/MSVCRT 和 LLVM 23.1.2。
 3. 执行 `scripts/build.ps1`，生成编译器、普通与 ThinLTO 标准库、链接器、DLL、接口和兼容清单。
 4. 验证正常工具包及 7 类兼容指纹错配；将整套产物打成 ZIP。
-5. 将实际 ZIP 解压到包含中文与空格的临时路径，清除构建工具 PATH 后检查语法，在 ThinLTO 和普通链接模式下分别编译并运行数值样例与 ICU 示例。
+5. 将实际 ZIP 解压到包含中文与空格的临时路径，清除构建工具 PATH 后检查语法，在 ThinLTO 和普通链接模式下分别编译并运行数值样例、ICU 示例和 GUI 发行自检；检查 Windows PE 子系统、DPI/Common Controls 清单及原生控件/绘图启动。
 6. 上传通过验证的 ZIP 和 SHA256SUMS.txt，保留 14 天。构建失败保留 CMake 诊断。
 
 Linux 链在 `ubuntu-24.04` 上执行 `scripts/setup_linux.py` 安装原生依赖，以 LLVM 18 构建编译器和两套标准库。
@@ -46,6 +46,7 @@ Tag push 会重新在 GitHub 上执行两端构建链。只有两端构建和安
 - `SHA256SUMS.txt`：两份安装包的 SHA-256，发布前分别验证再合并。
 
 安装包内的 `build-info.json` 记录版本、源码提交、工具链版本和 Actions 运行地址；Linux 的 `tx/licenses/packages.txt` 另记录实际系统依赖版本。
+Windows 包还记录图形最低目标、子系统/链接模式和工作区是否含未提交改动；最低目标是支持契约，不能视为已完成基线实测。G5/U6 定向错误提示验证入口为 `python scripts/check_gui_release.py`，只关闭脚本自身创建的错误框，具体记录见 [G5/U6](graphics_g5_gui_u6.md)。
 请整体保留 `tx/`；禁止混用不同版本的编译器、库、接口或 DLL。
 解压到任意路径后可在 ZIP 顶层执行 README 的快速使用命令。
 

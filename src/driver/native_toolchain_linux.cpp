@@ -114,8 +114,12 @@ std::filesystem::path temporary_path(std::string_view extension)
 }
 
 int compile_llvm_native(const std::string& generated_source,
-    const std::filesystem::path& output_path, bool lto)
+    const std::filesystem::path& output_path, bool lto, bool windows_subsystem)
 {
+    if (windows_subsystem)
+    {
+        throw std::runtime_error("当前目标平台不支持 Windows 子系统");
+    }
     const auto tool_dir = executable_path().parent_path();
     const auto link_dir = tool_dir / "link";
     temporary_file ir{temporary_path(".ll")};

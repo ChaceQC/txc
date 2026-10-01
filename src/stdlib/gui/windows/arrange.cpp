@@ -1,4 +1,7 @@
+#define WINVER 0x0A00
+#define _WIN32_WINNT 0x0A00
 #include "stdlib/gui/windows/layout_internal.hpp"
+#include "stdlib/gui/windows/complex.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -68,8 +71,15 @@ void arrange_children(node& state)
             children.push_back(child.get());
         }
     }
-    const auto width = std::max(0.0, state.arranged.width - 2 * state.padding);
-    const auto height = std::max(0.0, state.arranged.height - 2 * state.padding);
+    const auto scale = owner_window(state).dpi / 96.0;
+    const auto viewport_width = state.arranged.width -
+        (state.scroll_vertical ? GetSystemMetricsForDpi(SM_CXVSCROLL, owner_window(state).dpi) / scale : 0);
+    const auto viewport_height = state.arranged.height -
+        (state.scroll_horizontal ? GetSystemMetricsForDpi(SM_CYHSCROLL, owner_window(state).dpi) / scale : 0);
+    const auto width = std::max(0.0, (state.scroll_horizontal ?
+        std::max(viewport_width, state.natural.width) : viewport_width) - 2 * state.padding);
+    const auto height = std::max(0.0, (state.scroll_vertical ?
+        std::max(viewport_height, state.natural.height) : viewport_height) - 2 * state.padding);
     if (state.layout == layout_mode::grid)
     {
         const auto columns = allocate_axis(grid_axis(state, true),
@@ -119,10 +129,10 @@ void position_children(node& state)
     for (const auto& child : state.children)
     {
         const auto& rect = child->arranged;
-        const auto x = static_cast<int>(std::round(rect.x * scale));
-        const auto y = static_cast<int>(std::round(rect.y * scale));
-        const auto right = static_cast<int>(std::round((rect.x + rect.width) * scale));
-        const auto bottom = static_cast<int>(std::round((rect.y + rect.height) * scale));
+        const auto x = static_cast<int>(std::round((rect.x - state.scroll_x) * scale));
+        const auto y = static_cast<int>(std::round((rect.y - state.scroll_y) * scale));
+        const auto right = static_cast<int>(std::round((rect.x + rect.width - state.scroll_x) * scale));
+        const auto bottom = static_cast<int>(std::round((rect.y + rect.height - state.scroll_y) * scale));
         batch = DeferWindowPos(batch, child->hwnd, nullptr, x, y, right - x, bottom - y,
             SWP_NOZORDER | SWP_NOACTIVATE);
         if (!batch)
@@ -136,6 +146,8 @@ void position_children(node& state)
     }
     for (const auto& child : state.children)
     {
+        sync_canvas(*child);
+        update_accessibility(*child);
         position_children(*child);
     }
 }
@@ -145,6 +157,10 @@ void position_children(node& state)
 void arrange(node& state, bounds rectangle)
 {
     state.arranged = rectangle;
+    if (complex_layout(state))
+    {
+        return;
+    }
     if (state.kind == tx::graphics_kind::container && !state.toolbar)
     {
         arrange_children(state);

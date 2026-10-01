@@ -1,6 +1,7 @@
 #include "backend/cpp/runtime_abi.hpp"
 #include "backend/cpp/runtime_abi_internal.hpp"
 #include "backend/cpp/cycle_gc.hpp"
+#include "backend/cpp/runtime_diagnostics.hpp"
 
 #include "backend/cpp/runtime.hpp"
 
@@ -8,6 +9,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <string_view>
 
 extern "C" std::int64_t txrt_test_failure_total() noexcept;
@@ -110,12 +112,14 @@ extern "C" void txrt_require_success(int status) noexcept
         {
             return;
         }
-        std::cerr << "运行错误：" << context.last_error << '\n';
+        std::ostringstream diagnostic;
+        diagnostic << "运行错误：" << context.last_error << '\n';
         for (const auto& frame : context.last_error_stack)
         {
-            std::cerr << "  位于 " << frame.function << " (" << frame.file
+            diagnostic << "  位于 " << frame.function << " (" << frame.file
                       << ':' << frame.line << ':' << frame.column << ")\n";
         }
+        tx_generated::detail::report_unhandled_error(diagnostic.str());
         if (tx_generated::detail::cleanup_in_progress())
         {
             std::_Exit(1);

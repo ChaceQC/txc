@@ -74,14 +74,7 @@ std::shared_ptr<canvas> begin_frame(window& state)
     ensure_target(state);
     auto frame = std::make_shared<canvas>();
     frame->owner = owner;
-    for (const auto& child : owner->windows)
-    {
-        if (child.get() == &state)
-        {
-            frame->target_window = child;
-            break;
-        }
-    }
+    frame->target_window = state.shared_from_this();
     ID2D1BitmapRenderTarget* target = nullptr;
     const auto status = state.target->CreateCompatibleRenderTarget(
         D2D1::SizeF(state.width * 96.0f / state.dpi, state.height * 96.0f / state.dpi),

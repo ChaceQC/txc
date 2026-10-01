@@ -9,6 +9,7 @@ import zipfile
 import argparse
 import tarfile
 import platform
+import subprocess
 
 
 root = Path(__file__).resolve().parents[1]
@@ -60,6 +61,21 @@ def main():
     else:
         metadata.update({"gcc": "13.1.0-posix-seh-msvcrt", "llvm": "23.1.2"})
     information = json.dumps(metadata, ensure_ascii=False, indent=2) + "\n"
+    if not linux:
+        required_graphics = ["gui-manifest.o", "libd2d1.a", "libdwrite.a",
+                             "libwindowscodecs.a", "libcomctl32.a", "libuiautomationcore.a",
+                             "liboleacc.a", "liboleaut32.a"]
+        for relative in required_graphics:
+            if not (tool_dir / "link" / relative).is_file():
+                raise FileNotFoundError(f"图形发行组件缺失：{relative}")
+        metadata["graphics"] = {"minimum_windows": "Windows 10 1703 x64",
+                                "link_modes": ["native", "thinlto"],
+                                "subsystems": ["console", "windows"],
+                                "baseline_acceptance": "pending"}
+        status = subprocess.run(["git", "status", "--porcelain"], cwd=root,
+                                capture_output=True, check=True)
+        metadata["working_tree_dirty"] = bool(status.stdout.strip())
+        information = json.dumps(metadata, ensure_ascii=False, indent=2) + "\n"
     if linux:
         import io
         with tarfile.open(archive, "w:gz") as package:

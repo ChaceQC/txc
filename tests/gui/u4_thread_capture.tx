@@ -1,0 +1,18 @@
+import "gui.txh" as gui
+import "thread.txh" as thread
+
+def read(control: gui_canvas) -> int
+{
+    return gui.id(control)
+}
+
+def invalid(control: gui_canvas) -> void
+{
+    auto worker = thread.spawn(bind(read, control))
+    thread.join(worker)
+}
+
+def main() -> int
+{
+    return 0
+}

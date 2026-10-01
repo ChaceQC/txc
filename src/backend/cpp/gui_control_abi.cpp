@@ -24,6 +24,10 @@ TX_GUI_ID(check_box)
 TX_GUI_ID(list_view)
 TX_GUI_ID(table_view)
 TX_GUI_ID(tree_view)
+TX_GUI_ID(progress_bar)
+TX_GUI_ID(slider)
+TX_GUI_ID(tabs)
+TX_GUI_ID(canvas)
 #undef TX_GUI_ID
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -44,6 +48,10 @@ TX_GUI_IS_OPEN(check_box)
 TX_GUI_IS_OPEN(list_view)
 TX_GUI_IS_OPEN(table_view)
 TX_GUI_IS_OPEN(tree_view)
+TX_GUI_IS_OPEN(progress_bar)
+TX_GUI_IS_OPEN(slider)
+TX_GUI_IS_OPEN(tabs)
+TX_GUI_IS_OPEN(canvas)
 #undef TX_GUI_IS_OPEN
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -64,6 +72,10 @@ TX_GUI_CLOSE(check_box)
 TX_GUI_CLOSE(list_view)
 TX_GUI_CLOSE(table_view)
 TX_GUI_CLOSE(tree_view)
+TX_GUI_CLOSE(progress_bar)
+TX_GUI_CLOSE(slider)
+TX_GUI_CLOSE(tabs)
+TX_GUI_CLOSE(canvas)
 #undef TX_GUI_CLOSE
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -93,6 +105,10 @@ TX_GUI_SET_ENABLED(check_box)
 TX_GUI_SET_ENABLED(list_view)
 TX_GUI_SET_ENABLED(table_view)
 TX_GUI_SET_ENABLED(tree_view)
+TX_GUI_SET_ENABLED(progress_bar)
+TX_GUI_SET_ENABLED(slider)
+TX_GUI_SET_ENABLED(tabs)
+TX_GUI_SET_ENABLED(canvas)
 #undef TX_GUI_SET_ENABLED
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -113,6 +129,10 @@ TX_GUI_SET_VISIBLE(check_box)
 TX_GUI_SET_VISIBLE(list_view)
 TX_GUI_SET_VISIBLE(table_view)
 TX_GUI_SET_VISIBLE(tree_view)
+TX_GUI_SET_VISIBLE(progress_bar)
+TX_GUI_SET_VISIBLE(slider)
+TX_GUI_SET_VISIBLE(tabs)
+TX_GUI_SET_VISIBLE(canvas)
 #undef TX_GUI_SET_VISIBLE
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -133,6 +153,10 @@ TX_GUI_SET_RESERVED_SPACE(label)
 TX_GUI_SET_RESERVED_SPACE(button)
 TX_GUI_SET_RESERVED_SPACE(text_box)
 TX_GUI_SET_RESERVED_SPACE(check_box)
+TX_GUI_SET_RESERVED_SPACE(progress_bar)
+TX_GUI_SET_RESERVED_SPACE(slider)
+TX_GUI_SET_RESERVED_SPACE(tabs)
+TX_GUI_SET_RESERVED_SPACE(canvas)
 #undef TX_GUI_SET_RESERVED_SPACE
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -157,6 +181,10 @@ TX_GUI_SET_WIDTH(check_box)
 TX_GUI_SET_WIDTH(list_view)
 TX_GUI_SET_WIDTH(table_view)
 TX_GUI_SET_WIDTH(tree_view)
+TX_GUI_SET_WIDTH(progress_bar)
+TX_GUI_SET_WIDTH(slider)
+TX_GUI_SET_WIDTH(tabs)
+TX_GUI_SET_WIDTH(canvas)
 #undef TX_GUI_SET_WIDTH
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -180,6 +208,10 @@ TX_GUI_SET_HEIGHT(check_box)
 TX_GUI_SET_HEIGHT(list_view)
 TX_GUI_SET_HEIGHT(table_view)
 TX_GUI_SET_HEIGHT(tree_view)
+TX_GUI_SET_HEIGHT(progress_bar)
+TX_GUI_SET_HEIGHT(slider)
+TX_GUI_SET_HEIGHT(tabs)
+TX_GUI_SET_HEIGHT(canvas)
 #undef TX_GUI_SET_HEIGHT
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -209,6 +241,10 @@ TX_GUI_SET_CONSTRAINTS(label)
 TX_GUI_SET_CONSTRAINTS(button)
 TX_GUI_SET_CONSTRAINTS(text_box)
 TX_GUI_SET_CONSTRAINTS(check_box)
+TX_GUI_SET_CONSTRAINTS(progress_bar)
+TX_GUI_SET_CONSTRAINTS(slider)
+TX_GUI_SET_CONSTRAINTS(tabs)
+TX_GUI_SET_CONSTRAINTS(canvas)
 #undef TX_GUI_SET_CONSTRAINTS
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -229,6 +265,10 @@ TX_GUI_SET_MARGIN(label)
 TX_GUI_SET_MARGIN(button)
 TX_GUI_SET_MARGIN(text_box)
 TX_GUI_SET_MARGIN(check_box)
+TX_GUI_SET_MARGIN(progress_bar)
+TX_GUI_SET_MARGIN(slider)
+TX_GUI_SET_MARGIN(tabs)
+TX_GUI_SET_MARGIN(canvas)
 #undef TX_GUI_SET_MARGIN
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -252,6 +292,10 @@ TX_GUI_SET_ALIGNMENT(label)
 TX_GUI_SET_ALIGNMENT(button)
 TX_GUI_SET_ALIGNMENT(text_box)
 TX_GUI_SET_ALIGNMENT(check_box)
+TX_GUI_SET_ALIGNMENT(progress_bar)
+TX_GUI_SET_ALIGNMENT(slider)
+TX_GUI_SET_ALIGNMENT(tabs)
+TX_GUI_SET_ALIGNMENT(canvas)
 #undef TX_GUI_SET_ALIGNMENT
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -272,6 +316,10 @@ TX_GUI_SET_CELL(check_box)
 TX_GUI_SET_CELL(list_view)
 TX_GUI_SET_CELL(table_view)
 TX_GUI_SET_CELL(tree_view)
+TX_GUI_SET_CELL(progress_bar)
+TX_GUI_SET_CELL(slider)
+TX_GUI_SET_CELL(tabs)
+TX_GUI_SET_CELL(canvas)
 #undef TX_GUI_SET_CELL
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -332,6 +380,10 @@ TX_GUI_FOCUS(check_box)
 TX_GUI_FOCUS(list_view)
 TX_GUI_FOCUS(table_view)
 TX_GUI_FOCUS(tree_view)
+TX_GUI_FOCUS(container)
+TX_GUI_FOCUS(slider)
+TX_GUI_FOCUS(tabs)
+TX_GUI_FOCUS(canvas)
 #undef TX_GUI_FOCUS
 
 

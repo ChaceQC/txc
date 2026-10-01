@@ -1,6 +1,6 @@
 # Windows 图形库设计
 
-状态：G0–G3 已实现，定向自动验证通过，真实桌面人工验收待执行；G4–G5 尚未整体完成。本文定义 TX 的 Windows 图形库终态、接口草案和分阶段交付要求；当前接口与记录见 [G0–G1](graphics_g0_g1.md)和 [G2–G3](graphics_g2_g3.md)。日期：2026-10-02。
+状态：G0–G3、GUI U0–U5 及 G5/U6 发行接入已实现，真实桌面及最低系统基线验收待执行。本文定义 TX 的 Windows 图形库终态、接口草案和分阶段交付要求；当前接口与记录见 [G0–G1](graphics_g0_g1.md)、[G2–G3](graphics_g2_g3.md)和 [G5/U6](graphics_g5_gui_u6.md)。日期：2026-10-02。
 
 ## 1. 目标与范围
 
@@ -294,7 +294,7 @@ def main() -> int
 4. 在图形实现内部检查真正动态的资源存活、线程、所有者、帧代际和系统错误；这些检查不因静态调用而省略。
 5. Windows 构建按需补齐 `user32`、`gdi32`、`d2d1`、`dwrite`、`windowscodecs`、`ole32`、`uuid`、`comctl32`、`shell32`、`comdlg32`、`imm32`，由最终调用符号核实，避免盲目复制系统 DLL。对 MinGW 头文件、COM 接口和 import library 做小型构建验证。
 6. 普通构建与 ThinLTO 必须同时纳入新源文件、依赖和兼容性摘要；`tx/link/` 包含所需 import libraries，目标机使用 Windows 自带图形 DLL。现有 C++ runtime DLL 分发策略不变。
-7. 新增计划中的 `--subsystem console|windows`，默认 console。windows 模式仍调用 TX `main`，明确配置匹配的 CRT 入口和 PE subsystem，嵌入 DPI V2 与 Common Controls v6 清单。不得仅去掉控制台却遗漏启动入口与清单资源。
+7. 已提供 `--subsystem console|windows`，默认 console。windows 模式仍调用 TX `main`，配置 mainCRTStartup 入口和 Windows PE subsystem，嵌入 DPI V2 与 Common Controls v6 清单。具体使用和诊断日志见 [G5/U6](graphics_g5_gui_u6.md)。
 8. GUI 模式保留可用的重定向标准流；没有标准流时，未捕获错误写入诊断日志并显示精简错误框。默认不隐藏错误或静默退出。日志位置和失败回退须写入使用文档。
 9. Linux 构建不引用 Windows 头文件和库。首期对标准图形模块给出“当前目标平台不支持 Windows 图形库”的源码位置诊断；现有非图形 Linux 程序仍正常编译。
 
@@ -323,6 +323,6 @@ COM 会话初始化为 STA；已有不兼容 apartment 时返回明确错误，�
 
 本提案已经确定平台技术、模块边界、主要语义和交付顺序。G0 开始时进一步冻结每个 options/事件载荷的完整字段、默认限额、API 签名表、错误种类迁移点与资源类型 ABI；G2 冻结颜色管理、字体回退和排版选项；G4 冻结控件集合与布局记录。每次冻结先改本文及接口文档，再写实现。
 
-G0–G1 的冻结结果见 [接口、限额与 ABI](graphics_g0_g1.md)。G2–G3 已补齐画刷重载、文字/图像/路径/离屏、输入法/键鼠/捕获/定时器和目标重建；具体冻结结果及人工待验收项见 [G2–G3](graphics_g2_g3.md)。GUI 当前已交付 U0–U3，辅助功能和复杂界面仍按 GUI 专项阶段实施。
+G0–G1 的冻结结果见 [接口、限额与 ABI](graphics_g0_g1.md)。G2–G3 已补齐画刷重载、文字/图像/路径/离屏、输入法/键鼠/捕获/定时器和目标重建；具体冻结结果及人工待验收项见 [G2–G3](graphics_g2_g3.md)。GUI 已实现 U0–U5，复杂容器、任务与画布、自绘 UIA 和主题恢复见 [U4–U5](gui_u4_u5.md)；发行入口和验证见 [G5/U6](graphics_g5_gui_u6.md)，真实桌面与最低系统基线验收待执行。
 
 优先交付 G0–G3，形成独立可用的 Windows 二维图形库；G4–G5 完成桌面工具能力和发行验收。不能用“能显示一个窗口”代替整个图形库完成，也不能把设计示例计为已通过的程序。

@@ -16,6 +16,13 @@ void enqueue_event(window& state, event item)
         return;
     }
     item.window_id = state.id;
+    if (const auto source = state.gui_canvas_source.lock(); source && !item.control)
+    {
+        item.control = event::control_data{};
+        item.control->source_id = source->id;
+        item.control->action = item.kind;
+        item.control->revision = source->revision;
+    }
     item.timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - owner->start).count();
     if (item.kind == "timer" && std::any_of(owner->events.begin(), owner->events.end(),
@@ -27,7 +34,9 @@ void enqueue_event(window& state, event item)
         return;
     }
     if (item.kind == "pointer_moved" && !owner->events.empty() &&
-        owner->events.back().kind == item.kind && owner->events.back().window_id == state.id)
+        owner->events.back().kind == item.kind && owner->events.back().window_id == state.id &&
+        (owner->events.back().control ? owner->events.back().control->source_id : 0) ==
+            (item.control ? item.control->source_id : 0))
     {
         owner->events.back() = std::move(item);
         return;
@@ -45,6 +54,10 @@ void enqueue_event(window& state, event item)
             for (const auto& window : owner->windows)
             {
                 reset_input(*window);
+                if (window->gui_root)
+                {
+                    gui::reset_interaction(*window->gui_root);
+                }
             }
             return;
         }
@@ -156,6 +169,18 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
         }
         switch (message)
         {
+        case WM_ENABLE:
+            if (state->gui_root)
+            {
+                gui::refresh_accessibility(*state->gui_root);
+            }
+            break;
+        case WM_ACTIVATEAPP:
+            if (!wparam && state->gui_root)
+            {
+                gui::reset_interaction(*state->gui_root);
+            }
+            break;
         case WM_COMMAND:
             if (!lparam && gui::activate_command(*state, LOWORD(wparam)))
             {

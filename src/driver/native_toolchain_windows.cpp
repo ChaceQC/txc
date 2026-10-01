@@ -177,7 +177,7 @@ void place_runtime_dependency(const fs::path& source,
 }
 
 int compile_llvm_native(const std::string& generated_source,
-                        const fs::path& output_path, bool lto)
+                        const fs::path& output_path, bool lto, bool windows_subsystem)
 {
     const auto tool_dir = executable_path().parent_path();
     const auto link_dir = tool_dir / "link";
@@ -232,11 +232,16 @@ int compile_llvm_native(const std::string& generated_source,
         // ThinLTO 在链接阶段生成机器码，此处也必须与 MinGW emutls ABI 一致。
         arguments.push_back(L"--plugin-opt=-emulated-tls");
     }
-    if (generated_source.find("call i32 @txrt_graphics_") != std::string::npos ||
+    if (windows_subsystem)
+    {
+        arguments.insert(arguments.end(), {L"--subsystem", L"windows", L"--entry", L"mainCRTStartup"});
+    }
+    if (windows_subsystem || generated_source.find("call i32 @txrt_graphics_") != std::string::npos ||
         generated_source.find("call i32 @txrt_gui_") != std::string::npos)
     {
         arguments.insert(arguments.end(), {L"-ld2d1", L"-ldwrite", L"-lwindowscodecs", L"-limm32",
-            L"-lgdi32", L"-lole32", L"-luuid", L"-lcomctl32", L"-lcomdlg32"});
+            L"-lgdi32", L"-lole32", L"-luuid", L"-lcomctl32", L"-lcomdlg32",
+            L"-luiautomationcore", L"-loleacc", L"-loleaut32"});
         for (auto& argument : arguments)
         {
             if (argument == (link_dir / "default-manifest.o").wstring())

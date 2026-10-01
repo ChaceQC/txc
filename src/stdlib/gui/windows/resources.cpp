@@ -1,4 +1,5 @@
 #include "stdlib/gui/windows/state.hpp"
+#include "stdlib/gui/windows/complex.hpp"
 
 #include <algorithm>
 
@@ -85,6 +86,26 @@ void create_native(node& state, HWND parent)
         name = TOOLBARCLASSNAMEW;
         style |= WS_TABSTOP | TBSTYLE_FLAT | TBSTYLE_LIST | CCS_NORESIZE | CCS_NOPARENTALIGN | CCS_NODIVIDER;
     }
+    else if (state.kind == graphics_kind::tabs)
+    {
+        name = WC_TABCONTROLW;
+        style |= WS_TABSTOP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+        extended = WS_EX_CONTROLPARENT;
+    }
+    else if (state.kind == graphics_kind::progress_bar)
+    {
+        name = PROGRESS_CLASSW;
+        style |= PBS_SMOOTH;
+    }
+    else if (state.kind == graphics_kind::slider)
+    {
+        name = TRACKBAR_CLASSW;
+        style |= WS_TABSTOP | TBS_HORZ | TBS_AUTOTICKS;
+    }
+    else if (state.kind == graphics_kind::gui_canvas)
+    {
+        style |= WS_TABSTOP | SS_NOTIFY | WS_CLIPSIBLINGS;
+    }
     else if (state.kind == graphics_kind::container)
     {
         style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
@@ -159,7 +180,7 @@ std::shared_ptr<node> root(graphics::window& window)
         fail("invalid_frame", "活动帧内不能创建 GUI 根容器");
     }
     INITCOMMONCONTROLSEX controls{sizeof(controls), ICC_STANDARD_CLASSES | ICC_BAR_CLASSES |
-        ICC_LISTVIEW_CLASSES | ICC_TREEVIEW_CLASSES};
+        ICC_LISTVIEW_CLASSES | ICC_TREEVIEW_CLASSES | ICC_TAB_CLASSES | ICC_PROGRESS_CLASS};
     if (!InitCommonControlsEx(&controls))
     {
         platform_fail(window.owner.lock().get(), "初始化系统控件", GetLastError());
@@ -179,9 +200,9 @@ std::shared_ptr<node> create(node& parent, tx::graphics_kind kind,
     const std::string& text, bool option)
 {
     require_idle(parent);
-    if (parent.toolbar)
+    if (parent.toolbar || parent.split)
     {
-        fail("invalid_layout", "toolbar 只接受 add_tool 命令入口");
+        fail("invalid_layout", "工具栏或分栏容器不接受直接添加子控件");
     }
     if (parent.depth + 1 >= depth_limit || count_nodes(root_node(parent)) >= node_limit)
     {
@@ -239,6 +260,14 @@ void close(node& state) noexcept
         }
     }
     state.closed = true;
+    reset_interaction(state);
+    close_accessibility(state);
+    if (state.canvas_window)
+    {
+        // 子 HWND 由控件树销毁；先让图形层取消帧并释放目标。
+        state.canvas_window->hwnd = nullptr;
+        graphics::close_window(*state.canvas_window);
+    }
     state.bound_command.reset();
     state.tools.clear();
     state.model.reset();
@@ -258,6 +287,7 @@ void close(node& state) noexcept
     }
     if (const auto parent = state.parent.lock())
     {
+        remove_page(*parent, state);
         std::erase_if(parent->children, [&](const auto& child)
         {
             return child.get() == &state;
@@ -283,6 +313,7 @@ void window_changed(graphics::window& window, bool font_changed) noexcept
     if (window.gui_root)
     {
         window.gui_root->dirty = true;
+        RedrawWindow(window.gui_root->hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_ALLCHILDREN);
         if (font_changed)
         {
             window.gui_root->font_dpi = 0;

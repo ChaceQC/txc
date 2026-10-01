@@ -1,0 +1,20 @@
+import "graphics.txh" as gfx
+import "gui.txh" as gui
+
+// 安装包自检：创建原生控件及 Direct2D 帧后自动退出，无需人工关闭。
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto window = gfx.create_window(app, gfx.window_options("TX 发行自检", 400.0, 240.0, true)).value()
+    auto root = gui.root(window).value()
+    auto label = gui.create_label(root, "中文发行自检").value()
+    auto button = gui.create_button(root, "确认").value()
+    gui.set_accessibility(button, "确认", "发行自检按钮")
+    gfx.show(window).value()
+    auto canvas = gfx.begin_frame(window).value().value()
+    gfx.clear(canvas, gfx.color(0.9, 0.9, 0.9, 1.0))
+    gfx.end_frame(canvas).value()
+    gfx.close(app)
+    print("GUI release ok")
+    return 0
+}

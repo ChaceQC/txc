@@ -58,6 +58,7 @@ struct command_line
     tx::test_options test_options;
     tx::profile_options profile_options;
     bool lto = true;
+    bool windows_subsystem = false;
 
     command_line(action selected_mode, fs::path selected_source,
                  fs::path selected_output)
@@ -200,6 +201,7 @@ std::optional<command_line> parse_command_line(const std::vector<std::string>& a
         executable_path().parent_path().parent_path() / "tx_build" /
         fs::u8path(tx::executable_name(path_text(source_path.stem())))};
     bool has_output = false;
+    bool has_subsystem = false;
     for (int index = 2; index < argc; ++index)
     {
         const std::string option = argv[index];
@@ -207,6 +209,16 @@ std::optional<command_line> parse_command_line(const std::vector<std::string>& a
         {
             result.output_path = fs::u8path(argv[++index]);
             has_output = true;
+        }
+        else if (option == "--subsystem" && !has_subsystem && index + 1 < argc)
+        {
+            const auto& value = argv[++index];
+            if (value != "console" && value != "windows")
+            {
+                throw std::runtime_error("--subsystem 只接受 console 或 windows");
+            }
+            result.windows_subsystem = value == "windows";
+            has_subsystem = true;
         }
         else if (option == "--no-lto" && result.lto)
         {
@@ -279,7 +291,8 @@ int run_emit_llvm(const fs::path& source_path, const fs::path& output_path,
 }
 
 int run_compiler(const fs::path& source_path, const fs::path& output_path,
-                 bool quiet = false, int profile_interval_ms = 0, bool lto = true)
+                 bool quiet = false, int profile_interval_ms = 0, bool lto = true,
+                 bool windows_subsystem = false)
 {
     if (source_path.extension() == ".txh")
     {
@@ -296,7 +309,7 @@ int run_compiler(const fs::path& source_path, const fs::path& output_path,
     {
         fs::create_directories(output_path.parent_path());
     }
-    const auto result = compile_llvm_native(generated_source, output_path, lto);
+    const auto result = compile_llvm_native(generated_source, output_path, lto, windows_subsystem);
     if (result != 0)
     {
         std::cerr << "LLVM 后端编译失败（退出码 " << result << "）\n";
@@ -319,7 +332,7 @@ int main(int argc, char* argv[])
         command = parse_command_line(tx::command_arguments(argc, argv));
         if (!command)
         {
-            std::cerr << "用法：txc <源码.tx> [-o <输出程序>] [--no-lto]\n"
+            std::cerr << "用法：txc <源码.tx> [-o <输出程序>] [--no-lto] [--subsystem console|windows]\n"
                       << "      txc check <源码.tx>\n"
                       << "      txc emit-llvm <源码.tx> [-o <输出.ll>]\n"
                       << "      txc emit-library-llvm <源码.tx> -o <输出.ll>\n"
@@ -350,7 +363,8 @@ int main(int argc, char* argv[])
         case command_line::action::emit_analysis:
             return run_emit_llvm(command->source_path, command->output_path, false, true);
         case command_line::action::compile:
-            return run_compiler(command->source_path, command->output_path, false, 0, command->lto);
+            return run_compiler(command->source_path, command->output_path, false, 0,
+                command->lto, command->windows_subsystem);
         case command_line::action::test:
             return tx::run_test_suite(command->source_path,
                 command->test_case, command->test_options,

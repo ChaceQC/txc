@@ -1,4 +1,5 @@
 #include "stdlib/gui/windows/state.hpp"
+#include "stdlib/gui/windows/complex.hpp"
 
 #include <cmath>
 
@@ -55,7 +56,7 @@ alignment checked_alignment(const std::string& value)
 void set_layout(node& state, layout_mode mode, double padding, double gap,
     std::int64_t rows, std::int64_t columns)
 {
-    if (state.toolbar)
+    if (state.toolbar || state.split)
     {
         fail("invalid_layout", "toolbar 使用原生工具按钮布局");
     }
@@ -119,7 +120,7 @@ void set_visible(node& state, bool value)
     {
         advance_focus(root_node(state), &state);
     }
-    ShowWindow(state.hwnd, value ? SW_SHOWNA : SW_HIDE);
+    ShowWindow(state.hwnd, value && state.page_active ? SW_SHOWNA : SW_HIDE);
     state.visible = value;
     ++state.revision;
     dirty(state);
@@ -138,6 +139,7 @@ void set_enabled(node& state, bool value)
     EnableWindow(state.hwnd, value);
     state.enabled = value;
     ++state.revision;
+    refresh_accessibility(state);
 }
 
 } // namespace tx_generated::gui

@@ -115,10 +115,22 @@ foreach ($name in @(
     'libwinhttp.a', 'libws2_32.a', 'libdnsapi.a',
     'libshell32.a', 'libuser32.a',
     'libgdi32.a', 'libd2d1.a', 'libole32.a', 'libuuid.a', 'libcomctl32.a',
+    'libuiautomationcore.a', 'liboleacc.a', 'liboleaut32.a',
     'libdwrite.a', 'libwindowscodecs.a', 'libimm32.a', 'libcomdlg32.a',
     'libiconv.a'))
 {
     $source = (& $gcc_exe "-print-file-name=$name" | Select-Object -First 1).Trim()
+    if ($name -eq 'libuiautomationcore.a' -and -not (Test-Path -LiteralPath $source -PathType Leaf))
+    {
+        # 部分 MinGW 只有 UIA 头文件；用 Windows 系统 DLL 的固定导出生成导入库。
+        $source = Join-Path $build_dir $name
+        & (Join-Path $gcc_bin 'dlltool.exe') -d (Join-Path $project_root 'cmake/uiautomationcore.def') `
+            -l $source -m i386:x86-64
+        if ($LASTEXITCODE -ne 0)
+        {
+            throw '无法生成 UIA 导入库；build/ 已保留。'
+        }
+    }
     if (-not (Test-Path -LiteralPath $source -PathType Leaf))
     {
         throw "缺少链接依赖：$name；build/ 已保留。"

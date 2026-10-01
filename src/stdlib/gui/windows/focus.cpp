@@ -1,4 +1,5 @@
 #include "stdlib/gui/windows/state.hpp"
+#include "stdlib/gui/windows/complex.hpp"
 
 #include <algorithm>
 
@@ -12,12 +13,14 @@ bool interactive(const node& state)
     return state.kind == tx::graphics_kind::button ||
         state.kind == tx::graphics_kind::text_box || state.kind == tx::graphics_kind::check_box ||
         state.kind == tx::graphics_kind::list_view || state.kind == tx::graphics_kind::table_view ||
-        state.kind == tx::graphics_kind::tree_view || state.toolbar;
+        state.kind == tx::graphics_kind::tree_view || state.kind == tx::graphics_kind::tabs ||
+        state.kind == tx::graphics_kind::slider || state.kind == tx::graphics_kind::gui_canvas ||
+        state.scroll_horizontal || state.scroll_vertical || state.split || state.toolbar;
 }
 
 void collect(node& state, std::vector<node*>& all, bool available = true)
 {
-    available = available && !state.closed && state.visible && state.enabled;
+    available = available && !state.closed && state.visible && state.page_active && state.enabled;
     if (available && interactive(state))
     {
         all.push_back(&state);
@@ -58,7 +61,7 @@ bool activate(const std::shared_ptr<node>& button)
     }
     for (auto parent = button->parent.lock(); parent; parent = parent->parent.lock())
     {
-        if (!parent->enabled || !parent->visible)
+        if (!parent->enabled || !parent->visible || !parent->page_active)
         {
             return false;
         }
@@ -77,7 +80,7 @@ void focus(node& state)
     }
     for (auto parent = state.parent.lock(); parent; parent = parent->parent.lock())
     {
-        if (!parent->enabled || !parent->visible)
+        if (!parent->enabled || !parent->visible || !parent->page_active)
         {
             fail("invalid_argument", "焦点目标的父容器已隐藏或禁用");
         }
@@ -136,7 +139,23 @@ bool translate_message(graphics::app& app, const MSG& message)
         }
         if (message.wParam == VK_TAB)
         {
+            if (target && (GetKeyState(VK_CONTROL) & 0x8000))
+            {
+                auto tabs = target->shared_from_this();
+                while (tabs && tabs->kind != tx::graphics_kind::tabs)
+                {
+                    tabs = tabs->parent.lock();
+                }
+                if (tabs)
+                {
+                    return complex_key(*tabs, (GetKeyState(VK_SHIFT) & 0x8000) ? VK_LEFT : VK_RIGHT);
+                }
+            }
             advance_focus(root, nullptr, (GetKeyState(VK_SHIFT) & 0x8000) != 0);
+            return true;
+        }
+        if (target && complex_key(*target, message.wParam))
+        {
             return true;
         }
         if (message.wParam == VK_RETURN)

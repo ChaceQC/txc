@@ -1,6 +1,7 @@
 #include "stdlib/gui/windows/state.hpp"
 #include "stdlib/gui/windows/commands.hpp"
 #include "stdlib/gui/windows/models.hpp"
+#include "stdlib/gui/windows/complex.hpp"
 
 namespace tx_generated::gui
 {
@@ -92,6 +93,11 @@ LRESULT CALLBACK control_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpa
     try
     {
         notification_guard guard(state);
+        LRESULT result = 0;
+        if (complex_message(state, message, wparam, lparam, result))
+        {
+            return result;
+        }
         switch (message)
         {
         case WM_NOTIFY:
@@ -148,11 +154,21 @@ LRESULT CALLBACK control_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpa
                 PAINTSTRUCT paint{};
                 const auto dc = BeginPaint(hwnd, &paint);
                 FillRect(dc, &paint.rcPaint, GetSysColorBrush(COLOR_BTNFACE));
+                if (state.split)
+                {
+                    const auto scale = owner_window(state).dpi / 96.0;
+                    const auto& bar = state.divider;
+                    RECT rect{static_cast<LONG>(bar.x * scale), static_cast<LONG>(bar.y * scale),
+                        static_cast<LONG>((bar.x + bar.width) * scale), static_cast<LONG>((bar.y + bar.height) * scale)};
+                    FillRect(dc, &rect, GetSysColorBrush(GetFocus() == hwnd ? COLOR_HIGHLIGHT : COLOR_BTNSHADOW));
+                }
                 EndPaint(hwnd, &paint);
                 return 0;
             }
             break;
         case WM_NCDESTROY:
+            close_accessibility(state);
+            reset_interaction(state);
             state.hwnd = nullptr;
             RemoveWindowSubclass(hwnd, control_proc, subclass_id);
             break;

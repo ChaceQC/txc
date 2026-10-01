@@ -54,6 +54,7 @@ def main():
     if "native" in groups:
         executable = OUTPUT / "windows_g2_u3.exe"
         libraries = ["d2d1", "dwrite", "windowscodecs", "imm32", "gdi32", "ole32", "uuid",
+                     "uiautomationcore", "oleacc", "oleaut32",
                      "comctl32", "comdlg32", "user32", "shell32", "winhttp", "ws2_32",
                      "dnsapi", "advapi32", "bcrypt", "crypt32", "ncrypt", "iconv"]
         run([shutil.which("g++"), "-std=c++23", "-O1", "-pthread", "-Isrc",

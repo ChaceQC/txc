@@ -1,0 +1,260 @@
+import "graphics.txh" as gfx
+import "gui.txh" as gui
+import "thread.txh" as thread
+import "channel.txh" as channel
+import "cancel.txh" as cancel
+import "error.txh" as errors
+
+struct progress_update
+{
+    generation: int
+    value: int
+    done: bool
+}
+
+def calculate(updates: channel<progress_update>, token: cancel_token, generation: int) -> int
+{
+    int value = 0
+    try
+    {
+        while value < 100 && cancel.status(token) == 0
+        {
+            value += 1
+            channel.send(updates, progress_update(generation, value, false), 0, token)
+            cancel.wait(token, 25)
+        }
+    }
+    exception errors.cancelled_error as e
+    {
+        # 取消可能发生在条件检查与 send 之间，仍须发送最终收束通知。
+    }
+    # 完成通知使用独立 token，取消不能吞掉收束信号；UI 在收到它前持续泵送。
+    auto completion_source = cancel.source()
+    auto completion_token = cancel.token(completion_source)
+    while !channel.send(updates, progress_update(generation, value, true), 25, completion_token)
+    {
+    }
+    channel.close(updates)
+    return value
+}
+
+def paint(control: gui_canvas, value: int) -> void
+{
+    auto pending = gui.begin_canvas(control).value()
+    if pending.is_none()
+    {
+        return
+    }
+    auto frame = pending.value()
+    bool submitted = false
+    try
+    {
+        gfx.clear(frame, gui.theme_color("window"))
+        gfx.fill_rect(frame, gfx.rect(12.0, 12.0, (value as float) * 2.0, 40.0), gui.theme_color("highlight"))
+        submitted = true
+        gfx.end_frame(frame).value()
+    }
+    exception errors.graphics_error as e
+    {
+        if !submitted
+        {
+            gfx.cancel_frame(frame)
+        }
+        # end_frame 失败也已经消费帧；下一次 paint 会重新建立目标。
+        gui.invalidate_canvas(control)
+    }
+}
+
+struct workspace
+{
+    window: graphics_window
+    progress: gui_progress_bar
+    status: gui_label
+    canvas: gui_canvas
+    cancel_button: gui_button
+}
+
+struct work_status
+{
+    value: int
+    finished: bool
+}
+
+def create_workspace(app: graphics_app) -> workspace
+{
+    auto window = gfx.create_window(app, gfx.window_options("TX 任务工作台", 760.0, 520.0, true)).value()
+    auto root = gui.root(window).value()
+    gui.set_column(root, 12.0, 8.0)
+    auto tabs = gui.create_tabs(root).value()
+    gui.set_height(tabs, gui.stretch(1.0))
+    auto work_page = gui.add_tab(tabs, "后台任务").value()
+    auto help_page = gui.add_tab(tabs, "使用说明").value()
+    auto help = gui.create_label(help_page, "Ctrl+Tab 切换页面；Tab 到分隔条后用方向键调整。取消或关闭会先等待后台任务收束。").value()
+    auto split = gui.create_split(work_page, false, 0.5, 160.0, 180.0).value()
+    gui.set_height(split, gui.stretch(1.0))
+    gui.set_accessibility(split, "任务和图表分隔条", "方向键调整左右比例")
+    auto first = gui.split_pane(split, 0).value()
+    auto second = gui.split_pane(split, 1).value()
+    auto scroll = gui.create_scroll(first, false, true).value()
+    gui.set_height(scroll, gui.stretch(1.0))
+    gui.set_column(scroll, 8.0, 12.0)
+    auto label = gui.create_label(scroll, "后台计算进度").value()
+    auto progress = gui.create_progress_bar(scroll).value()
+    gui.set_label(progress, label)
+    auto status = gui.create_label(scroll, "正在计算，可以切换页面、滚动或调整分栏。").value()
+    auto input = gui.create_text_box(scroll, false).value()
+    gui.set_accessibility(input, "备注", "后台运行时仍然可以编辑")
+    int index = 0
+    while index < 12
+    {
+        auto item = gui.create_label(scroll, "可滚动说明 " + (index as str)).value()
+        index += 1
+    }
+    auto canvas = gui.create_canvas(second).value()
+    gui.set_height(canvas, gui.stretch(1.0))
+    gui.set_accessibility(canvas, "任务进度图", "Enter 或空格刷新图表")
+    auto cancel_button = gui.create_button(root, "取消任务").value()
+    gui.set_cancel_button(cancel_button)
+    gfx.show(window).value()
+    return workspace(window, progress, status, canvas, cancel_button)
+}
+
+def process_event(ui: workspace, event: gfx.event, source: cancel_source, value: int) -> bool
+{
+    if event.window_id != gfx.window_id(ui.window)
+    {
+        return false
+    }
+    if event.kind == "close_requested"
+    {
+        cancel.cancel(source)
+        return true
+    }
+    if event.control.is_some()
+    {
+        auto control = event.control.value()
+        if control.source_id == gui.id(ui.cancel_button) && control.action == "activated"
+        {
+            cancel.cancel(source)
+            gui.set_text(ui.status, "正在取消…")
+        }
+        else if control.source_id == gui.id(ui.canvas) && (control.action == "canvas_paint" || control.action == "activated")
+        {
+            paint(ui.canvas, value)
+        }
+    }
+    return false
+}
+
+def apply_updates(ui: workspace, channels: vector<channel<progress_update>>, token: cancel_token,
+    generation: int, current: work_status) -> work_status
+{
+    auto status = current
+    int consumed = 0
+    while !status.finished && consumed < 16
+    {
+        auto selected = channel.select(channels, 0, token)
+        auto update = selected.value
+        if update.is_none()
+        {
+            consumed = 16
+        }
+        else
+        {
+            consumed += 1
+            auto item = update.value()
+            if item.generation == generation
+            {
+                status.value = item.value
+                status.finished = item.done
+                gui.set_progress(ui.progress, 0, 100, status.value)
+                gui.invalidate_canvas(ui.canvas)
+                if item.done
+                {
+                    gui.set_enabled(ui.cancel_button, false)
+                    if status.value == 100
+                    {
+                        gui.set_text(ui.status, "计算完成")
+                    }
+                    else
+                    {
+                        gui.set_text(ui.status, "任务已取消")
+                    }
+                }
+            }
+        }
+    }
+    return status
+}
+
+def drain_worker(app: graphics_app, channels: vector<channel<progress_update>>, token: cancel_token) -> void
+{
+    bool draining = true
+    while draining
+    {
+        # UI 异常也要排空通道；EOF 表示 worker 已执行最后的 channel.close。
+        auto selected = channel.select(channels, 25, token)
+        if selected.index == 0 && selected.value.is_none()
+        {
+            draining = false
+        }
+        gfx.next_event(app, 0)
+    }
+}
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto ui = create_workspace(app)
+    auto source = cancel.source()
+    auto token = cancel.token(source)
+    auto read_source = cancel.source()
+    auto read_token = cancel.token(read_source)
+    channel<progress_update> updates = channel.bounded(32)
+    vector<channel<progress_update>> channels = vector<channel<progress_update>>(1, updates)
+    int generation = 1
+    auto worker = thread.spawn(bind(calculate, updates, token, generation))
+    auto status = work_status(0, false)
+    bool closing = false
+    bool failed = false
+    try
+    {
+        while gfx.is_open(ui.window)
+        {
+            int timeout = 25
+            if status.finished
+            {
+                timeout = -1
+            }
+            auto pending = gfx.next_event(app, timeout).value()
+            if pending.is_some()
+            {
+                closing = process_event(ui, pending.value(), source, status.value) || closing
+            }
+            status = apply_updates(ui, channels, read_token, generation, status)
+            if closing && status.finished
+            {
+                gfx.close(ui.window)
+            }
+        }
+    }
+    exception errors.graphics_error as e
+    {
+        failed = true
+        print(e.message)
+    }
+    exception errors.runtime_error as e
+    {
+        failed = true
+        print(e.message)
+    }
+    cancel.cancel(source)
+    drain_worker(app, channels, read_token)
+    thread.join(worker)
+    gfx.close(app)
+    if failed
+    {
+        return 1
+    }
+    return 0
+}
