@@ -55,6 +55,10 @@ alignment checked_alignment(const std::string& value)
 void set_layout(node& state, layout_mode mode, double padding, double gap,
     std::int64_t rows, std::int64_t columns)
 {
+    if (state.toolbar)
+    {
+        fail("invalid_layout", "toolbar 使用原生工具按钮布局");
+    }
     checked_dimension(padding);
     checked_dimension(gap);
     if (rows < 1 || columns < 1 || rows > static_cast<std::int64_t>(track_limit) ||

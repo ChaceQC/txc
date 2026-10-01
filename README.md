@@ -50,9 +50,9 @@ txc 的默认编译路径使用 LLVM 目标文件生成器和随 `tx/` 分发的
 模块导入、终端输入输出、可指定字符集的文本文件读写、字符串、数学、数组、文件系统、时间和随机数操作见 [模块说明](docs/modules.md)、[标准库说明](docs/standard_library.md)和[可运行示例](examples/import_io.tx)。
 覆盖十类通用能力的现状缺口与完整终态契约见[标准库终态设计](docs/standard_library_complete_design.md)，细分工作项见[标准库终态实施顺序](docs/standard_library_plan.md)。
 
-Windows 图形 G0–G1 已接入会话、多窗口、事件队列、帧和基础几何绘制。接口、限额与验证范围见 [Windows 图形基础](docs/graphics_g0_g1.md)，可运行示例见 [双窗口绘图](examples/graphics/two_windows.tx)；后续文字、图片、交互及 GUI 规划见 [Windows 图形库设计](docs/windows_graphics_design.md)。
+Windows 图形 G0–G3 已接入会话、多窗口、事件、DirectWrite 文字、WIC 图片、路径/渐变、离屏 PNG、键鼠/IME/捕获/定时器和目标重建。接口与验证范围见 [图形基础](docs/graphics_g0_g1.md)及 [G2–G3](docs/graphics_g2_g3.md)，示例见 [交互绘图](examples/graphics/interactive_scene.tx)和[双窗口绘图](examples/graphics/two_windows.tx)。真实输入法、混合 DPI 和设备移除仍待人工验收。
 
-Windows GUI U0–U1 已实现类型化控件树、label/button/text/check、row/column/grid 布局和焦点事件，接口、限额与验证记录见 [GUI U0–U1](docs/gui_u0_u1.md)，可运行示例见 [问候程序](examples/gui/greeting.tx)和[设置表单](examples/gui/settings.tx)。实际输入法与多显示器视觉验收待执行；后续数据模型、命令、辅助功能见 [Windows GUI 库设计](docs/windows_gui_design.md)。
+Windows GUI U0–U3 已实现表单/布局、菜单/工具栏/共享命令/快捷键、文件框/剪贴板/模态 owner 管理，以及 list/table/tree 模型、稳定 ID 和分页。接口与验证记录见 [GUI U0–U1](docs/gui_u0_u1.md)及 [U2–U3](docs/gui_u2_u3.md)，示例见 [数据浏览器](examples/gui/data_browser.tx)、[问候程序](examples/gui/greeting.tx)和[设置表单](examples/gui/settings.tx)。复杂界面、完整 UIA 与发行验收仍见 [GUI 设计](docs/windows_gui_design.md)。
 
 Python 风格的 HTTP 客户端见 [requests 模块](docs/requests.md)和[请求示例](examples/requests.tx)。
 安全随机数、摘要、密钥派生与 AES-256-GCM 认证加密见[密码学标准库](docs/crypto.md)和[示例](examples/crypto.tx)。

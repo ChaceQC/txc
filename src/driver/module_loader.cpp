@@ -179,7 +179,8 @@ void module_loader::load_dependencies(
         const auto resolved = std::filesystem::weakly_canonical(child, graphics_error);
         const auto library = std::filesystem::weakly_canonical(standard_library_dir_);
         if (!graphics_error && (resolved == library / "graphics.txh" ||
-            resolved == library / "graphics_text.txh" || resolved == library / "gui.txh"))
+            resolved == library / "graphics_text.txh" || resolved == library / "gui.txh" ||
+            resolved == library / "gui_data.txh"))
         {
             throw compile_error(dependency.position, "当前目标平台不支持 Windows 图形库");
         }
@@ -298,15 +299,12 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
             {
                 relative.replace_extension();
                 const auto module_name = path_text(relative);
-                if (module_name == "gui")
+                if (module_name == "gui" || module_name == "gui_data" || module_name == "graphics_text")
                 {
                     for (auto& definition : header.structs)
                     {
-                        if (definition.name == "length")
-                        {
-                            // 布局策略与图形几何一样，按静态字段传入具体 ABI。
-                            definition.native_layout = false;
-                        }
+                        // 类型化记录由编译器描述固定槽布局，ABI 不依赖名称查找。
+                        definition.native_layout = false;
                     }
                 }
                 if (module_name == "graphics")
@@ -316,7 +314,8 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
                         // 几何和选项由 LLVM 按固定字段快照传递；事件保持原生返回布局。
                         if (definition.name == "point" || definition.name == "size" ||
                             definition.name == "rect" || definition.name == "color" ||
-                            definition.name == "matrix" || definition.name == "window_options")
+                            definition.name == "matrix" || definition.name == "window_options" ||
+                            definition.name == "gradient_stop")
                         {
                             definition.native_layout = false;
                         }

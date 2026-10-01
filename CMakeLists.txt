@@ -206,7 +206,6 @@ add_executable(txc
     src/driver/module_loader_class.cpp
     src/driver/compatibility.cpp
     src/backend/llvm/codegen_graphics.cpp
-    src/backend/llvm/codegen_gui.cpp
     src/driver/test_runner.cpp
     src/driver/child_process.cpp
     src/driver/json_report.cpp
@@ -547,9 +546,37 @@ if(WIN32)
         src/stdlib/graphics/windows/resources.cpp
         src/stdlib/graphics/windows/events.cpp
         src/stdlib/graphics/windows/frames.cpp
+        src/stdlib/graphics/windows/assets.cpp
+        src/stdlib/graphics/windows/images.cpp
+        src/stdlib/graphics/windows/surfaces.cpp
+        src/stdlib/graphics/windows/png.cpp
+        src/stdlib/graphics/windows/drawing.cpp
+        src/stdlib/graphics/windows/input.cpp
+        src/stdlib/graphics/windows/ime.cpp
+        src/backend/cpp/graphics_path_abi.cpp
+        src/backend/cpp/graphics_state_abi.cpp
+        src/backend/cpp/graphics_brush_abi.cpp
+        src/backend/cpp/graphics_brush_shapes_abi.cpp
+        src/backend/cpp/graphics_image_abi.cpp
+        src/backend/cpp/graphics_asset_abi.cpp
+        src/backend/cpp/graphics_text_abi.cpp
+        src/backend/cpp/graphics_input_abi.cpp
         src/backend/cpp/gui_control_abi.cpp
         src/backend/cpp/gui_form_abi.cpp
         src/backend/cpp/gui_length_abi.cpp
+        src/stdlib/gui/windows/commands.cpp
+        src/stdlib/gui/windows/menus.cpp
+        src/stdlib/gui/windows/shortcuts.cpp
+        src/stdlib/gui/windows/dialogs.cpp
+        src/stdlib/gui/windows/clipboard.cpp
+        src/backend/cpp/gui_command_abi.cpp
+        src/backend/cpp/gui_dialog_abi.cpp
+        src/stdlib/gui/windows/models.cpp
+        src/stdlib/gui/windows/views.cpp
+        src/stdlib/gui/windows/data_events.cpp
+        src/backend/cpp/gui_data_create_abi.cpp
+        src/backend/cpp/gui_data_edit_abi.cpp
+        src/backend/cpp/gui_data_query_abi.cpp
         src/stdlib/gui/layout.cpp
         src/stdlib/gui/windows/resources.cpp
         src/stdlib/gui/windows/properties.cpp
@@ -558,7 +585,7 @@ if(WIN32)
         src/stdlib/gui/windows/focus.cpp
         src/stdlib/gui/windows/measure.cpp
         src/stdlib/gui/windows/arrange.cpp)
-    target_link_libraries(txstdlib PRIVATE user32 gdi32 d2d1 ole32 uuid comctl32)
+    target_link_libraries(txstdlib PRIVATE user32 gdi32 d2d1 dwrite windowscodecs imm32 ole32 uuid comctl32 shell32 comdlg32)
 endif()
 target_include_directories(txc PRIVATE src "${CMAKE_BINARY_DIR}/generated")
 target_include_directories(txstdlib PRIVATE src)

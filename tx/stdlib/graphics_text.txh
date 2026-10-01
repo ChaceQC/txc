@@ -1,0 +1,29 @@
+import "graphics.txh" as gfx
+
+struct metrics
+{
+    left: float
+    top: float
+    width: float
+    height: float
+    line_count: int
+}
+
+struct hit
+{
+    position: int
+    trailing: bool
+    inside: bool
+    x: float
+    y: float
+    width: float
+    height: float
+}
+
+def create_font(app: graphics_app, family: str, size: float) -> result<graphics_font>
+def create_layout(font: graphics_font, text: str, width: float, height: float) -> result<graphics_text_layout>
+def set_layout_options(layout: graphics_text_layout, alignment: str, paragraph: str, wrap: bool, locale: str) -> void
+def draw_layout(canvas: graphics_canvas, layout: graphics_text_layout, origin: gfx.point, color: gfx.color) -> void
+def measure(layout: graphics_text_layout) -> metrics
+def hit_test(layout: graphics_text_layout, point: gfx.point) -> hit
+def selection_rects(layout: graphics_text_layout, start: int, end: int) -> vector<gfx.rect>

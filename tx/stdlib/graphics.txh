@@ -1,4 +1,4 @@
-# Windows 图形 G0–G1；资源类型由编译器登记。
+# Windows 图形 G0–G3；资源类型由编译器登记。
 struct point
 {
     x: float
@@ -133,3 +133,64 @@ def draw_ellipse(canvas: graphics_canvas, rect: rect, color: color, width: float
 def fill_ellipse(canvas: graphics_canvas, rect: rect, color: color) -> void
 def draw_rounded_rect(canvas: graphics_canvas, rect: rect, radius_x: float, radius_y: float, color: color, width: float) -> void
 def fill_rounded_rect(canvas: graphics_canvas, rect: rect, radius_x: float, radius_y: float, color: color) -> void
+
+struct gradient_stop
+{
+    position: float
+    red: float
+    green: float
+    blue: float
+    alpha: float
+}
+
+def create_path(app: graphics_app, fill_rule: str) -> result<graphics_path>
+def move_to(path: graphics_path, point: point) -> void
+def line_to(path: graphics_path, point: point) -> void
+def bezier_to(path: graphics_path, control1: point, control2: point, end: point) -> void
+def close_path(path: graphics_path) -> void
+def finish_path(path: graphics_path) -> void
+def solid_brush(app: graphics_app, color: color) -> result<graphics_brush>
+def linear_gradient(app: graphics_app, start: point, end: point, stops: vector<gradient_stop>) -> result<graphics_brush>
+def radial_gradient(app: graphics_app, center: point, offset: point, radius_x: float, radius_y: float, stops: vector<gradient_stop>) -> result<graphics_brush>
+def draw_path(canvas: graphics_canvas, path: graphics_path, brush: graphics_brush, width: float) -> void
+def fill_path(canvas: graphics_canvas, path: graphics_path, brush: graphics_brush) -> void
+def save(canvas: graphics_canvas) -> void
+def restore(canvas: graphics_canvas) -> void
+def set_transform(canvas: graphics_canvas, matrix: matrix) -> void
+def transform(canvas: graphics_canvas, matrix: matrix) -> void
+def clip_rect(canvas: graphics_canvas, rect: rect) -> void
+def clip_path(canvas: graphics_canvas, path: graphics_path) -> void
+def load_image(app: graphics_app, path: str) -> result<graphics_image>
+def decode_image(app: graphics_app, data: bytes) -> result<graphics_image>
+def image_from_rgba(app: graphics_app, width: int, height: int, pixels: bytes) -> result<graphics_image>
+def image_width(image: graphics_image) -> int
+def image_height(image: graphics_image) -> int
+def image_rgba(image: graphics_image) -> bytes
+def draw_image(canvas: graphics_canvas, image: graphics_image, source: rect, destination: rect, interpolation: str, opacity: float) -> void
+def create_surface(app: graphics_app, width: int, height: int, dpi: float) -> result<graphics_surface>
+def begin_surface_frame(surface: graphics_surface) -> result<graphics_canvas>
+def snapshot(surface: graphics_surface) -> result<graphics_image>
+def save_png(image: graphics_image, path: str, overwrite: bool) -> result<void>
+def save_png(surface: graphics_surface, path: str, overwrite: bool) -> result<void>
+def save_png(image: graphics_image, path: str) -> result<void>
+def save_png(surface: graphics_surface, path: str) -> result<void>
+def capture_pointer(window: graphics_window) -> result<void>
+def release_pointer(window: graphics_window) -> void
+def key_pressed(window: graphics_window, key: str) -> bool
+def enable_text_input(window: graphics_window, enabled: bool) -> void
+def set_ime_rect(window: graphics_window, rect: rect) -> void
+def start_timer(window: graphics_window, interval_ms: int) -> result<int>
+def stop_timer(window: graphics_window, timer_id: int) -> void
+def draw_line(canvas: graphics_canvas, start: point, end: point, brush: graphics_brush, width: float) -> void
+def draw_rect(canvas: graphics_canvas, rect: rect, brush: graphics_brush, width: float) -> void
+def fill_rect(canvas: graphics_canvas, rect: rect, brush: graphics_brush) -> void
+def draw_ellipse(canvas: graphics_canvas, rect: rect, brush: graphics_brush, width: float) -> void
+def fill_ellipse(canvas: graphics_canvas, rect: rect, brush: graphics_brush) -> void
+def draw_rounded_rect(canvas: graphics_canvas, rect: rect, radius_x: float, radius_y: float, brush: graphics_brush, width: float) -> void
+def fill_rounded_rect(canvas: graphics_canvas, rect: rect, radius_x: float, radius_y: float, brush: graphics_brush) -> void
+def close(value: graphics_image) -> void
+def close(value: graphics_surface) -> void
+def close(value: graphics_path) -> void
+def close(value: graphics_brush) -> void
+def close(value: graphics_font) -> void
+def close(value: graphics_text_layout) -> void

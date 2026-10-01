@@ -1,6 +1,7 @@
 #include "backend/cpp/gui_abi.hpp"
 #include "backend/cpp/graphics_result.hpp"
 #include "stdlib/gui/windows/state.hpp"
+#include "stdlib/gui/windows/commands.hpp"
 
 using namespace tx_generated;
 using namespace tx_generated::gui;
@@ -20,6 +21,9 @@ TX_GUI_ID(label)
 TX_GUI_ID(button)
 TX_GUI_ID(text_box)
 TX_GUI_ID(check_box)
+TX_GUI_ID(list_view)
+TX_GUI_ID(table_view)
+TX_GUI_ID(tree_view)
 #undef TX_GUI_ID
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -37,6 +41,9 @@ TX_GUI_IS_OPEN(label)
 TX_GUI_IS_OPEN(button)
 TX_GUI_IS_OPEN(text_box)
 TX_GUI_IS_OPEN(check_box)
+TX_GUI_IS_OPEN(list_view)
+TX_GUI_IS_OPEN(table_view)
+TX_GUI_IS_OPEN(tree_view)
 #undef TX_GUI_IS_OPEN
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -54,6 +61,9 @@ TX_GUI_CLOSE(label)
 TX_GUI_CLOSE(button)
 TX_GUI_CLOSE(text_box)
 TX_GUI_CLOSE(check_box)
+TX_GUI_CLOSE(list_view)
+TX_GUI_CLOSE(table_view)
+TX_GUI_CLOSE(tree_view)
 #undef TX_GUI_CLOSE
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -62,7 +72,16 @@ extern "C" int txrt_gui_set_enabled_##type(tx_generated::graphics::resource* con
 { \
     return detail::invoke_leaf([&] \
     { \
-        gui::set_enabled(require_node(control), enabled); \
+        auto& state = require_node(control); \
+        if (state.bound_command) \
+        { \
+            auto& command = require_command(state.bound_command.get()); \
+            set_command(command, command.text, enabled, command.checked); \
+        } \
+        else \
+        { \
+            gui::set_enabled(state, enabled); \
+        } \
     }); \
 }
 
@@ -71,6 +90,9 @@ TX_GUI_SET_ENABLED(label)
 TX_GUI_SET_ENABLED(button)
 TX_GUI_SET_ENABLED(text_box)
 TX_GUI_SET_ENABLED(check_box)
+TX_GUI_SET_ENABLED(list_view)
+TX_GUI_SET_ENABLED(table_view)
+TX_GUI_SET_ENABLED(tree_view)
 #undef TX_GUI_SET_ENABLED
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -88,6 +110,9 @@ TX_GUI_SET_VISIBLE(label)
 TX_GUI_SET_VISIBLE(button)
 TX_GUI_SET_VISIBLE(text_box)
 TX_GUI_SET_VISIBLE(check_box)
+TX_GUI_SET_VISIBLE(list_view)
+TX_GUI_SET_VISIBLE(table_view)
+TX_GUI_SET_VISIBLE(tree_view)
 #undef TX_GUI_SET_VISIBLE
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -129,6 +154,9 @@ TX_GUI_SET_WIDTH(label)
 TX_GUI_SET_WIDTH(button)
 TX_GUI_SET_WIDTH(text_box)
 TX_GUI_SET_WIDTH(check_box)
+TX_GUI_SET_WIDTH(list_view)
+TX_GUI_SET_WIDTH(table_view)
+TX_GUI_SET_WIDTH(tree_view)
 #undef TX_GUI_SET_WIDTH
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -149,6 +177,9 @@ TX_GUI_SET_HEIGHT(label)
 TX_GUI_SET_HEIGHT(button)
 TX_GUI_SET_HEIGHT(text_box)
 TX_GUI_SET_HEIGHT(check_box)
+TX_GUI_SET_HEIGHT(list_view)
+TX_GUI_SET_HEIGHT(table_view)
+TX_GUI_SET_HEIGHT(tree_view)
 #undef TX_GUI_SET_HEIGHT
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -238,6 +269,9 @@ TX_GUI_SET_CELL(label)
 TX_GUI_SET_CELL(button)
 TX_GUI_SET_CELL(text_box)
 TX_GUI_SET_CELL(check_box)
+TX_GUI_SET_CELL(list_view)
+TX_GUI_SET_CELL(table_view)
+TX_GUI_SET_CELL(tree_view)
 #undef TX_GUI_SET_CELL
 
 // 相同节点操作导出有限的具体类型符号；不存在运行时类型分派。
@@ -246,7 +280,16 @@ extern "C" int txrt_gui_set_text_##type(tx_generated::graphics::resource* contro
 { \
     return detail::invoke_leaf([&] \
     { \
-        gui::set_text(require_node(control), detail::text_value(text)); \
+        auto& state = require_node(control); \
+        if (state.bound_command) \
+        { \
+            auto& command = require_command(state.bound_command.get()); \
+            set_command(command, detail::text_value(text), command.enabled, command.checked); \
+        } \
+        else \
+        { \
+            gui::set_text(state, detail::text_value(text)); \
+        } \
     }); \
 }
 
@@ -286,6 +329,9 @@ extern "C" int txrt_gui_focus_##type(tx_generated::graphics::resource* control, 
 TX_GUI_FOCUS(button)
 TX_GUI_FOCUS(text_box)
 TX_GUI_FOCUS(check_box)
+TX_GUI_FOCUS(list_view)
+TX_GUI_FOCUS(table_view)
+TX_GUI_FOCUS(tree_view)
 #undef TX_GUI_FOCUS
 
 

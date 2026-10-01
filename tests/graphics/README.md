@@ -1,5 +1,7 @@
 # G0–G1 定向验证与人工验收
 
+G2–G3 扩展验证使用 `python scripts/check_graphics_gui_extensions.py graphics native`，具体结果见 [G2–G3 记录](../../docs/graphics_g2_g3.md)。`interactive_scene.tx` 应人工核对微软拼音预编辑/提交/取消不重复、候选窗位置、emoji、跨窗口拖动和失焦释放捕获、最小化/恢复及混合 DPI。自动发送 WM_CHAR/键鼠消息不能代替真实 IME 验收。
+
 在 Windows 构建完成后执行 `python scripts/check_graphics.py`。脚本只覆盖本阶段接口，并在 `tx_build/graphics_g0_g1/` 保存程序和 IR。
 
 自动项：

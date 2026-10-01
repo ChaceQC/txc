@@ -145,7 +145,7 @@ void position_children(node& state)
 void arrange(node& state, bounds rectangle)
 {
     state.arranged = rectangle;
-    if (state.kind == tx::graphics_kind::container)
+    if (state.kind == tx::graphics_kind::container && !state.toolbar)
     {
         arrange_children(state);
     }

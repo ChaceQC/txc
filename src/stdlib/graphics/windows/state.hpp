@@ -14,10 +14,13 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <array>
+#include <map>
 
 namespace tx_generated::gui
 {
 struct node;
+struct menu;
 }
 
 namespace tx_generated::graphics
@@ -62,12 +65,38 @@ struct event
         std::optional<std::string> text;
         std::optional<bool> state;
         std::int64_t revision = 0;
+        std::optional<double> number;
+        std::optional<std::int64_t> item_id;
+        std::optional<std::int64_t> command_id;
     };
     std::optional<control_data> control;
+    struct pointer_data
+    {
+        double x = 0, y = 0, wheel_x = 0, wheel_y = 0;
+        std::string button = "none";
+        bool shift = false, ctrl = false, alt = false, meta = false;
+    };
+    struct key_data
+    {
+        std::string key;
+        std::int64_t scan_code = 0;
+        bool shift = false, ctrl = false, alt = false, meta = false, repeat = false;
+    };
+    struct text_data
+    {
+        std::string text;
+        std::int64_t selection_start = 0, selection_length = 0;
+    };
+    std::optional<pointer_data> pointer;
+    std::optional<key_data> key;
+    std::optional<text_data> text;
+    std::optional<std::int64_t> timer_id;
 };
 
 struct window;
 struct canvas;
+struct owned_resource;
+struct surface;
 struct app : resource, std::enable_shared_from_this<app>
 {
     app() : resource(tx::graphics_kind::app)
@@ -83,6 +112,8 @@ struct app : resource, std::enable_shared_from_this<app>
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     com_ptr<ID2D1Factory> factory;
     std::vector<std::shared_ptr<window>> windows;
+    std::vector<std::shared_ptr<owned_resource>> resources;
+    std::size_t image_bytes = 0;
     std::shared_ptr<canvas> frame;
     std::deque<event> events;
     std::optional<error_info> pending_error;
@@ -107,6 +138,16 @@ struct window : resource, std::enable_shared_from_this<window>
     bool changing_dpi = false;
     com_ptr<ID2D1HwndRenderTarget> target;
     std::shared_ptr<gui::node> gui_root;
+    std::shared_ptr<gui::menu> menu_bar;
+    UINT next_command_id = 1;
+    std::weak_ptr<window> modal_owner;
+    bool owner_was_enabled = false;
+    bool text_input = false;
+    bool composing = false;
+    wchar_t pending_surrogate = 0;
+    RECT ime_rect{};
+    std::array<bool, 256> keys{};
+    std::map<UINT_PTR, UINT> timers;
 };
 
 struct canvas : resource
@@ -118,7 +159,23 @@ struct canvas : resource
     std::shared_ptr<window> target_window;
     DWORD thread = GetCurrentThreadId();
     bool active = false;
-    com_ptr<ID2D1BitmapRenderTarget> target;
+    std::shared_ptr<surface> target_surface;
+    com_ptr<ID2D1RenderTarget> target;
+    com_ptr<ID2D1BitmapRenderTarget> bitmap_target;
+    struct clip_state
+    {
+        D2D1_RECT_F rect{};
+        D2D1_MATRIX_3X2_F transform = D2D1::Matrix3x2F::Identity();
+        com_ptr<ID2D1Layer> layer;
+        com_ptr<ID2D1Geometry> geometry;
+    };
+    struct saved_state
+    {
+        D2D1_MATRIX_3X2_F transform;
+        std::size_t clips;
+    };
+    std::vector<clip_state> clips;
+    std::vector<saved_state> saved;
     com_ptr<ID2D1SolidColorBrush> brush;
 };
 
@@ -135,6 +192,7 @@ void close_window(window& state) noexcept;
 void cancel_canvas(canvas& state) noexcept;
 void enqueue(window& state, const char* kind, bool with_size = false) noexcept;
 void enqueue_control(window& state, event::control_data data);
+void enqueue_event(window& state, event item);
 void update_size(window& state);
 void ensure_target(window& state);
 std::wstring title_text(const std::string& value);
@@ -162,5 +220,11 @@ D2D1_RECT_F checked_rect(rectangle value);
 float checked_number(double value);
 float checked_width(double value);
 ID2D1SolidColorBrush* color_brush(canvas& state, rgba value);
+void clear_canvas(canvas& state, rgba value);
+void reset_input(window& state) noexcept;
+bool input_message(window& state, UINT message, WPARAM wparam, LPARAM lparam, LRESULT& result);
+void position_ime(window& state);
+std::string key_name(UINT key);
+UINT key_code(const std::string& name);
 
 } // namespace tx_generated::graphics

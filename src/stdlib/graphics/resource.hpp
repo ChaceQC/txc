@@ -40,6 +40,7 @@ struct handle
 
 inline handle make_handle(std::shared_ptr<resource> value)
 {
+    value->abandoned.store(false, std::memory_order_release);
     return {std::make_shared<lease>(std::move(value))};
 }
 

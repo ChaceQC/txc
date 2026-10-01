@@ -1,11 +1,57 @@
 #include "stdlib/graphics/windows/state.hpp"
 #include "stdlib/gui/windows/state.hpp"
+#include "stdlib/gui/windows/commands.hpp"
 
 #include <algorithm>
 #include <limits>
 
 namespace tx_generated::graphics
 {
+
+void enqueue_event(window& state, event item)
+{
+    const auto owner = state.owner.lock();
+    if (!owner || !owner->open)
+    {
+        return;
+    }
+    item.window_id = state.id;
+    item.timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - owner->start).count();
+    if (item.kind == "timer" && std::any_of(owner->events.begin(), owner->events.end(),
+        [&](const event& queued)
+        {
+            return queued.timer_id == item.timer_id;
+        }))
+    {
+        return;
+    }
+    if (item.kind == "pointer_moved" && !owner->events.empty() &&
+        owner->events.back().kind == item.kind && owner->events.back().window_id == state.id)
+    {
+        owner->events.back() = std::move(item);
+        return;
+    }
+    if (owner->events.size() >= event_limit)
+    {
+        const auto removable = std::find_if(owner->events.begin(), owner->events.end(), [](const event& queued)
+        {
+            return queued.kind == "paint" || queued.kind == "pointer_moved" ||
+                queued.kind == "resized" || queued.kind == "dpi_changed" || queued.kind == "timer";
+        });
+        if (removable == owner->events.end())
+        {
+            owner->queue_failed = true;
+            for (const auto& window : owner->windows)
+            {
+                reset_input(*window);
+            }
+            return;
+        }
+        owner->events.erase(removable);
+    }
+    owner->events.push_back(std::move(item));
+}
 
 void enqueue_control(window& state, event::control_data data)
 {
@@ -14,8 +60,12 @@ void enqueue_control(window& state, event::control_data data)
     {
         return;
     }
-    event item{"control", state.id, std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - owner->start).count(), {}, std::move(data)};
+    event item;
+    item.kind = "control";
+    item.window_id = state.id;
+    item.timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - owner->start).count();
+    item.control = std::move(data);
     // 只合并相邻编辑通知；提交、焦点和其他离散事件形成屏障。
     if (!owner->events.empty() && item.control->action == "text_changed")
     {
@@ -27,20 +77,7 @@ void enqueue_control(window& state, event::control_data data)
             return;
         }
     }
-    if (owner->events.size() >= event_limit)
-    {
-        const auto removable = std::find_if(owner->events.begin(), owner->events.end(),
-            [](const event& queued)
-            {
-                return queued.kind == "paint" || queued.kind == "resized" || queued.kind == "dpi_changed";
-            });
-        if (removable == owner->events.end())
-        {
-            fail("resource_limit", "GUI 事件队列已满");
-        }
-        owner->events.erase(removable);
-    }
-    owner->events.push_back(std::move(item));
+    enqueue_event(state, std::move(item));
 }
 
 void enqueue(window& state, const char* kind, bool with_size) noexcept
@@ -60,29 +97,14 @@ void enqueue(window& state, const char* kind, bool with_size) noexcept
         {
             return;
         }
-        if (owner->events.size() >= event_limit)
-        {
-            const auto removable = std::find_if(owner->events.begin(), owner->events.end(),
-                [](const event& item)
-                {
-                    return item.kind == "paint" || item.kind == "resized" || item.kind == "dpi_changed";
-                });
-            if (removable == owner->events.end())
-            {
-                owner->queue_failed = true;
-                ReleaseCapture();
-                return;
-            }
-            owner->events.erase(removable);
-        }
-        event item{kind, state.id, std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - owner->start).count(), {}, {}};
+        event item;
+        item.kind = kind;
         if (with_size)
         {
             item.resize = size_event{state.width * 96.0 / state.dpi,
                 state.height * 96.0 / state.dpi, state.width, state.height, state.dpi};
         }
-        owner->events.push_back(std::move(item));
+        enqueue_event(state, std::move(item));
     }
     catch (...)
     {
@@ -127,8 +149,19 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
     }
     try
     {
+        LRESULT input_result = 0;
+        if (input_message(*state, message, wparam, lparam, input_result))
+        {
+            return input_result;
+        }
         switch (message)
         {
+        case WM_COMMAND:
+            if (!lparam && gui::activate_command(*state, LOWORD(wparam)))
+            {
+                return 0;
+            }
+            break;
         case WM_CLOSE:
             enqueue(*state, "close_requested");
             return 0;
@@ -139,6 +172,7 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
             break;
         case WM_DESTROY:
             gui::close_root(*state);
+            gui::close_interactions(*state);
             break;
         case WM_ERASEBKGND:
             return 1;
@@ -153,6 +187,27 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
         case WM_SIZE:
             state->minimized = wparam == SIZE_MINIMIZED;
             update_size(*state);
+            for (const auto& [id, interval] : state->timers)
+            {
+                if (state->minimized)
+                {
+                    KillTimer(hwnd, id);
+                }
+                else
+                {
+                    SetTimer(hwnd, id, interval, nullptr);
+                }
+            }
+            if (state->minimized)
+            {
+                if (const auto owner = state->owner.lock())
+                {
+                    std::erase_if(owner->events, [&](const event& item)
+                    {
+                        return item.window_id == state->id && item.timer_id.has_value();
+                    });
+                }
+            }
             if (!state->changing_dpi)
             {
                 enqueue(*state, "resized", true);
@@ -173,6 +228,7 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
             }
             update_size(*state);
             enqueue(*state, "dpi_changed", true);
+            position_ime(*state);
             InvalidateRect(hwnd, nullptr, FALSE);
             return 0;
         }
@@ -182,6 +238,20 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
             enqueue(*state, "closed");
             SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
             break;
+        }
+    }
+    catch (const runtime_failure& error)
+    {
+        if (const auto owner = state->owner.lock())
+        {
+            try
+            {
+                owner->pending_error = error.error();
+            }
+            catch (...)
+            {
+                owner->queue_failed = true;
+            }
         }
     }
     catch (...)
@@ -217,7 +287,7 @@ std::optional<event> next_event(app& state, std::int64_t timeout)
                 close_app(state);
                 return {};
             }
-            if (!gui::translate_message(state, message))
+            if (!gui::translate_shortcut(state, message) && !gui::translate_message(state, message))
             {
                 TranslateMessage(&message);
                 DispatchMessageW(&message);

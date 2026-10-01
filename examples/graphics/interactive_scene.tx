@@ -1,0 +1,100 @@
+import "graphics.txh" as gfx
+import "graphics_text.txh" as text
+import "error.txh" as errors
+
+# 拖动圆点；在窗口内输入中文/emoji；每 50ms 请求重画。
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto window = gfx.create_window(app, gfx.window_options("TX 文字、渐变与交互", 720.0, 460.0, true)).value()
+    auto font = text.create_font(app, "Microsoft YaHei", 24.0).value()
+    auto title = text.create_layout(font, "TX 图形 G2–G3 · 拖动圆点，输入文字", 660.0, 70.0).value()
+    auto input = text.create_layout(font, "中文 · 😀 · שלום", 660.0, 100.0).value()
+    str content = ""
+    vector<gfx.gradient_stop> stops = vector<gfx.gradient_stop>()
+    stops.push_back(gfx.gradient_stop(0.0, 0.1, 0.45, 0.85, 1.0))
+    stops.push_back(gfx.gradient_stop(1.0, 0.55, 0.2, 0.7, 1.0))
+    auto gradient = gfx.linear_gradient(app, gfx.point(0.0, 0.0), gfx.point(640.0, 0.0), stops).value()
+    auto path = gfx.create_path(app, "winding").value()
+    gfx.move_to(path, gfx.point(40.0, 220.0))
+    gfx.bezier_to(path, gfx.point(180.0, 90.0), gfx.point(430.0, 410.0), gfx.point(660.0, 210.0))
+    gfx.line_to(path, gfx.point(660.0, 350.0))
+    gfx.line_to(path, gfx.point(40.0, 350.0))
+    gfx.close_path(path)
+    gfx.finish_path(path)
+    auto surface = gfx.create_surface(app, 96, 96, 96.0).value()
+    auto offscreen = gfx.begin_surface_frame(surface).value()
+    gfx.clear(offscreen, gfx.color(0.0, 0.0, 0.0, 0.0))
+    gfx.fill_ellipse(offscreen, gfx.rect(4.0, 4.0, 88.0, 88.0), gfx.color(1.0, 0.65, 0.1, 0.85))
+    gfx.end_frame(offscreen).value()
+    auto marker = gfx.snapshot(surface).value()
+    # PNG 保存是独立的透明图像，可检查中文文件名和 alpha。
+    gfx.save_png(marker, "tx_build/透明圆点.png", true).value()
+    float x = 280.0
+    float y = 210.0
+    bool dragging = false
+    gfx.enable_text_input(window, true)
+    gfx.set_ime_rect(window, gfx.rect(30.0, 100.0, 2.0, 30.0))
+    auto timer = gfx.start_timer(window, 50).value()
+    gfx.show(window).value()
+    while gfx.is_open(window)
+    {
+        auto pending = gfx.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                gfx.close(window)
+            }
+            else if event.kind == "timer"
+            {
+                gfx.invalidate(window)
+            }
+            else if event.kind == "pointer_down" && event.pointer.value().button == "left"
+            {
+                dragging = true
+                gfx.capture_pointer(window).value()
+            }
+            else if event.kind == "pointer_up"
+            {
+                dragging = false
+                gfx.release_pointer(window)
+            }
+            else if event.kind == "focus_lost"
+            {
+                dragging = false
+            }
+            else if event.kind == "pointer_moved" && dragging
+            {
+                x = event.pointer.value().x - 48.0
+                y = event.pointer.value().y - 48.0
+            }
+            else if event.kind == "text_input"
+            {
+                content += event.text.value().text
+                input = text.create_layout(font, content, 660.0, 100.0).value()
+            }
+            else if event.kind == "paint"
+            {
+                auto frame = gfx.begin_frame(window).value()
+                if frame.is_some()
+                {
+                    auto canvas = frame.value()
+                    gfx.clear(canvas, gfx.color(0.96, 0.97, 1.0, 1.0))
+                    gfx.fill_path(canvas, path, gradient)
+                    gfx.draw_image(canvas, marker, gfx.rect(0.0, 0.0, 96.0, 96.0), gfx.rect(x, y, 96.0, 96.0), "linear", 1.0)
+                    text.draw_layout(canvas, title, gfx.point(30.0, 25.0), gfx.color(0.12, 0.14, 0.2, 1.0))
+                    text.draw_layout(canvas, input, gfx.point(30.0, 100.0), gfx.color(0.25, 0.25, 0.3, 1.0))
+                    auto committed = gfx.end_frame(canvas)
+                    if committed.is_err() && committed.error().code != "device_lost"
+                    {
+                        committed.value()
+                    }
+                }
+            }
+        }
+    }
+    gfx.close(app)
+    return 0
+}

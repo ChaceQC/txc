@@ -1,0 +1,127 @@
+import "graphics.txh" as gfx
+import "gui.txh" as gui
+import "gui_data.txh" as data
+import "test.txh" as test
+import "error.txh" as errors
+
+def ids(first: int) -> vector<int>
+{
+    return vector<int>(1, first)
+}
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto window = gfx.create_window(app, gfx.window_options("数据控件验证", 500.0, 400.0, true)).value()
+    auto root = gui.root(window).value()
+    auto command = gui.create_command(window, "保存").value()
+    auto button = gui.create_button(root, "旧文字").value()
+    gui.bind_button(button, command)
+    auto menu = gui.create_menu(window).value()
+    auto submenu = gui.add_menu(menu, "文件(&F)").value()
+    gui.add_command(submenu, command)
+    gui.set_menu(window, menu).value()
+    auto toolbar = gui.create_toolbar(root).value()
+    gui.add_tool(toolbar, command)
+    gui.set_text(command, "保存记录")
+    test.assert_equal("保存记录", gui.text(button))
+    gui.set_enabled(command, false)
+    test.assert_false(gui.enabled(command))
+    gui.set_enabled(command, true)
+    gui.set_checked(command, true)
+    test.assert_true(gui.checked(command))
+    gui.set_shortcut(command, gui.key_chord("s", true, false, false, false))
+    auto other = gui.create_command(window, "冲突").value()
+    try
+    {
+        gui.set_shortcut(other, gui.key_chord("s", true, false, false, false))
+        test.assert_true(false)
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("duplicate_id", e.code)
+    }
+    auto model = data.create_list_model(window).value()
+    vector<data.list_item> items = vector<data.list_item>()
+    items.push_back(data.list_item(10, "甲"))
+    items.push_back(data.list_item(20, "乙"))
+    data.replace_items(model, items)
+    items[0].text = "调用者修改不得改变模型"
+    auto view = data.create_list_view(root, model, true).value()
+    data.set_selected_ids(view, ids(20))
+    vector<int> order = ids(20)
+    order.push_back(10)
+    data.set_order(model, order)
+    test.assert_equal(20, data.selected_ids(view)[0])
+    auto revision = data.revision(model)
+    vector<data.list_item> duplicate = vector<data.list_item>(2, data.list_item(30, "重复"))
+    try
+    {
+        data.append_items(model, duplicate)
+        test.assert_true(false)
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("duplicate_id", e.code)
+    }
+    test.assert_equal(revision, data.revision(model))
+    test.assert_equal(2, data.count(model))
+    auto request = data.begin_page(model)
+    auto newer = data.begin_page(model)
+    try
+    {
+        data.apply_page(model, request, revision, items)
+        test.assert_true(false)
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("stale_revision", e.code)
+    }
+    data.apply_page(model, newer, revision, items)
+    data.remove_items(model, ids(20))
+    test.assert_true(data.selected_ids(view).empty())
+    try
+    {
+        data.append_items(model, vector<data.list_item>(1, data.list_item(20, "复用")))
+        test.assert_true(false)
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("duplicate_id", e.code)
+    }
+    vector<data.table_column> columns = vector<data.table_column>()
+    columns.push_back(data.table_column(1, "名称", 120.0, "left"))
+    auto table = data.create_table_model(window, columns).value()
+    vector<data.table_row> rows = vector<data.table_row>()
+    rows.push_back(data.table_row(100, vector<str>(1, "中文单元格")))
+    data.replace_items(table, rows)
+    auto table_view = data.create_table_view(root, table, false).value()
+    data.set_selected_ids(table_view, ids(100))
+    test.assert_equal(100, data.selected_ids(table_view)[0])
+    auto tree = data.create_tree_model(window).value()
+    vector<data.tree_item> nodes = vector<data.tree_item>()
+    nodes.push_back(data.tree_item(1, option<int>(), "目录", "unloaded"))
+    data.replace_items(tree, nodes)
+    auto tree_view = data.create_tree_view(root, tree, false).value()
+    data.set_selected_ids(tree_view, ids(1))
+    test.assert_equal(1, data.selected_ids(tree_view)[0])
+    gui.flush_layout(window)
+    auto modal = gfx.create_window(app, gfx.window_options("模态", 100.0, 80.0, true)).value()
+    gui.show_modal(modal, window).value()
+    test.assert_equal("modal_conflict", gui.show_modal(window, modal).error().code)
+    gfx.close(modal)
+    gfx.close(window)
+    test.assert_false(gui.is_open(view))
+    try
+    {
+        data.count(model)
+        test.assert_true(false)
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("closed_resource", e.code)
+    }
+    gfx.close(app)
+    print("gui U2-U3: PASS")
+    return 0
+}

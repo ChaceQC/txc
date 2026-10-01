@@ -10,7 +10,9 @@ namespace
 bool interactive(const node& state)
 {
     return state.kind == tx::graphics_kind::button ||
-        state.kind == tx::graphics_kind::text_box || state.kind == tx::graphics_kind::check_box;
+        state.kind == tx::graphics_kind::text_box || state.kind == tx::graphics_kind::check_box ||
+        state.kind == tx::graphics_kind::list_view || state.kind == tx::graphics_kind::table_view ||
+        state.kind == tx::graphics_kind::tree_view || state.toolbar;
 }
 
 void collect(node& state, std::vector<node*>& all, bool available = true)

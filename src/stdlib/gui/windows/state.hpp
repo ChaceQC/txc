@@ -7,6 +7,8 @@
 
 namespace tx_generated::gui
 {
+struct command;
+struct data_model;
 
 constexpr std::size_t node_limit = 4096;
 constexpr unsigned depth_limit = 64;
@@ -34,6 +36,14 @@ struct node : graphics::resource, std::enable_shared_from_this<node>
     bool multiline = false;
     bool three_state = false;
     bool password = false;
+    bool toolbar = false;
+    bool multiple = false;
+    std::shared_ptr<command> bound_command;
+    std::vector<std::shared_ptr<command>> tools;
+    std::shared_ptr<data_model> model;
+    std::vector<std::int64_t> selection;
+    std::map<std::int64_t, HTREEITEM> tree_handles;
+    std::wstring notification_text;
     bool composing = false;
     unsigned suppress = 0;
     int check = 0;

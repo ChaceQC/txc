@@ -1,5 +1,6 @@
 #include "stdlib/graphics/windows/state.hpp"
 #include "stdlib/gui/windows/state.hpp"
+#include "stdlib/graphics/windows/assets.hpp"
 
 namespace tx_generated::graphics
 {
@@ -86,6 +87,8 @@ std::shared_ptr<canvas> begin_frame(window& state)
         D2D1::SizeF(state.width * 96.0f / state.dpi, state.height * 96.0f / state.dpi),
         &target);
     drawing_error(state, status, "创建帧缓冲");
+    frame->bitmap_target.reset(target);
+    target->AddRef();
     frame->target.reset(target);
     ID2D1SolidColorBrush* brush = nullptr;
     const auto brush_status = target->CreateSolidColorBrush(D2D1::ColorF(0, 0.0f), &brush);
@@ -101,16 +104,28 @@ std::shared_ptr<canvas> begin_frame(window& state)
 void end_frame(canvas& state)
 {
     const auto owner = state.owner.lock();
+    if (!state.saved.empty())
+    {
+        cancel_canvas(state);
+        owner->frame.reset();
+        fail("invalid_frame", "帧结束时 save/restore 栈不平衡");
+    }
+    pop_clips(state, 0);
     // 先关闭帧状态，即使提交失败，旧画布也不能再次提交。
     const auto status = state.target->EndDraw();
     state.active = false;
     owner->frame.reset();
+    if (state.target_surface)
+    {
+        finish_surface_frame(state, status);
+        return;
+    }
     auto& target_window = *state.target_window;
     try
     {
         drawing_error(target_window, status, "结束帧绘制");
         ID2D1Bitmap* bitmap = nullptr;
-        const auto bitmap_status = state.target->GetBitmap(&bitmap);
+        const auto bitmap_status = state.bitmap_target->GetBitmap(&bitmap);
         com_ptr<ID2D1Bitmap> image(bitmap);
         drawing_error(target_window, bitmap_status, "取得帧图像");
         target_window.target->BeginDraw();
@@ -123,10 +138,12 @@ void end_frame(canvas& state)
     {
         state.brush.reset();
         state.target.reset();
+        state.bitmap_target.reset();
         throw;
     }
     state.brush.reset();
     state.target.reset();
+    state.bitmap_target.reset();
 }
 
 ID2D1SolidColorBrush* color_brush(canvas& state, rgba value)

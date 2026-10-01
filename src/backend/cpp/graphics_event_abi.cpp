@@ -17,11 +17,14 @@ dynamic_struct control_value(const char* option_type, const event::control_data&
     fields[1] = {"action", item.action};
     fields[2] = {"text", option_value("option<str>",
         item.text ? std::any(*item.text) : std::any{})};
-    fields[3] = {"number", option_value("option<float>")};
+    fields[3] = {"number", option_value("option<float>",
+        item.number ? std::any(*item.number) : std::any{})};
     fields[4] = {"state", option_value("option<bool>",
         item.state ? std::any(*item.state) : std::any{})};
-    fields[5] = {"item_id", option_value("option<int>")};
-    fields[6] = {"command_id", option_value("option<int>")};
+    fields[5] = {"item_id", option_value("option<int>",
+        item.item_id ? std::any(*item.item_id) : std::any{})};
+    fields[6] = {"command_id", option_value("option<int>",
+        item.command_id ? std::any(*item.command_id) : std::any{})};
     fields[7] = {"revision", item.revision};
     return dynamic_struct(dynamic_struct_data{type, "control_event", std::move(fields)});
 }
@@ -52,6 +55,50 @@ dynamic_struct event_value(const event& item, const char* type, const char* resi
     fields[7] = {"timer_id", option_value("option<int>")};
     fields[8] = {"control", option_value(control_type,
         item.control ? std::any(control_value(control_type, *item.control)) : std::any{})};
+    const auto payload = [](const char* option, const char* name, struct_fields values)
+    {
+        const std::string type(option);
+        return option_value(type, dynamic_struct(dynamic_struct_data{
+            type.substr(7, type.size() - 8), name, std::move(values)}));
+    };
+    if (item.pointer)
+    {
+        const auto& data = *item.pointer;
+        struct_fields values(9);
+        values[0] = {"x", data.x};
+        values[1] = {"y", data.y};
+        values[2] = {"wheel_x", data.wheel_x};
+        values[3] = {"wheel_y", data.wheel_y};
+        values[4] = {"button", data.button};
+        values[5] = {"shift", data.shift};
+        values[6] = {"ctrl", data.ctrl};
+        values[7] = {"alt", data.alt};
+        values[8] = {"meta", data.meta};
+        fields[3] = {"pointer", payload(pointer_type, "pointer_event", std::move(values))};
+    }
+    if (item.key)
+    {
+        const auto& data = *item.key;
+        struct_fields values(7);
+        values[0] = {"key", data.key};
+        values[1] = {"scan_code", data.scan_code};
+        values[2] = {"shift", data.shift};
+        values[3] = {"ctrl", data.ctrl};
+        values[4] = {"alt", data.alt};
+        values[5] = {"meta", data.meta};
+        values[6] = {"repeat", data.repeat};
+        fields[4] = {"key", payload(key_type, "key_event", std::move(values))};
+    }
+    if (item.text)
+    {
+        struct_fields values(3);
+        values[0] = {"text", item.text->text};
+        values[1] = {"selection_start", item.text->selection_start};
+        values[2] = {"selection_length", item.text->selection_length};
+        fields[5] = {"text", payload(text_type, "text_event", std::move(values))};
+    }
+    fields[7] = {"timer_id", option_value("option<int>",
+        item.timer_id ? std::any(*item.timer_id) : std::any{})};
     return dynamic_struct(dynamic_struct_data{type, "event", std::move(fields)});
 }
 

@@ -1,0 +1,68 @@
+import "gui.txh" as gui
+
+struct list_item
+{
+    id: int
+    text: str
+}
+struct table_column
+{
+    id: int
+    title: str
+    width: float
+    alignment: str
+}
+struct table_row
+{
+    id: int
+    cells: vector<str>
+}
+struct tree_item
+{
+    id: int
+    parent_id: option<int>
+    text: str
+    load_state: str
+}
+def create_list_model(window: graphics_window) -> result<gui_list_model>
+def create_table_model(window: graphics_window, columns: vector<table_column>) -> result<gui_table_model>
+def create_tree_model(window: graphics_window) -> result<gui_tree_model>
+def create_list_view(parent: gui_container, model: gui_list_model, multiple: bool) -> result<gui_list_view>
+def replace_items(model: gui_list_model, items: vector<list_item>) -> void
+def append_items(model: gui_list_model, items: vector<list_item>) -> void
+def update_items(model: gui_list_model, items: vector<list_item>) -> void
+def remove_items(model: gui_list_model, ids: vector<int>) -> void
+def set_order(model: gui_list_model, ids: vector<int>) -> void
+def revision(model: gui_list_model) -> int
+def count(model: gui_list_model) -> int
+def begin_page(model: gui_list_model) -> int
+def apply_page(model: gui_list_model, request_id: int, expected_revision: int, items: vector<list_item>) -> void
+def selected_ids(view: gui_list_view) -> vector<int>
+def set_selected_ids(view: gui_list_view, ids: vector<int>) -> void
+def close(model: gui_list_model) -> void
+def create_table_view(parent: gui_container, model: gui_table_model, multiple: bool) -> result<gui_table_view>
+def replace_items(model: gui_table_model, items: vector<table_row>) -> void
+def append_items(model: gui_table_model, items: vector<table_row>) -> void
+def update_items(model: gui_table_model, items: vector<table_row>) -> void
+def remove_items(model: gui_table_model, ids: vector<int>) -> void
+def set_order(model: gui_table_model, ids: vector<int>) -> void
+def revision(model: gui_table_model) -> int
+def count(model: gui_table_model) -> int
+def begin_page(model: gui_table_model) -> int
+def apply_page(model: gui_table_model, request_id: int, expected_revision: int, items: vector<table_row>) -> void
+def selected_ids(view: gui_table_view) -> vector<int>
+def set_selected_ids(view: gui_table_view, ids: vector<int>) -> void
+def close(model: gui_table_model) -> void
+def create_tree_view(parent: gui_container, model: gui_tree_model, multiple: bool) -> result<gui_tree_view>
+def replace_items(model: gui_tree_model, items: vector<tree_item>) -> void
+def append_items(model: gui_tree_model, items: vector<tree_item>) -> void
+def update_items(model: gui_tree_model, items: vector<tree_item>) -> void
+def remove_items(model: gui_tree_model, ids: vector<int>) -> void
+def set_order(model: gui_tree_model, ids: vector<int>) -> void
+def revision(model: gui_tree_model) -> int
+def count(model: gui_tree_model) -> int
+def begin_page(model: gui_tree_model) -> int
+def apply_page(model: gui_tree_model, request_id: int, expected_revision: int, items: vector<tree_item>) -> void
+def selected_ids(view: gui_tree_view) -> vector<int>
+def set_selected_ids(view: gui_tree_view, ids: vector<int>) -> void
+def close(model: gui_tree_model) -> void

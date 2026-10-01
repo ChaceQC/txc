@@ -1,5 +1,7 @@
 # GUI U0–U1 验证
 
+U2–U3 扩展验证使用 `python scripts/check_graphics_gui_extensions.py gui native`，具体结果见 [U2–U3 记录](../../docs/gui_u2_u3.md)。运行 `data_browser.tx` 人工核对菜单/工具栏/按钮多入口、Ctrl+O、输入法优先级、文件框取消/多选、剪贴板忙及多显示器 DPI。自动验证不读取或覆盖用户剪贴板内容。
+
 构建后运行 `python scripts/check_gui.py`，产物位于 `tx_build/gui_u0_u1/`。
 脚本覆盖具体控件错误、伪造资源、闭包捕获和嵌套 Send 拒绝，普通与 ThinLTO 的直接 ABI、属性及生命周期，原生布局边界、事件快照/合并/密码、UTF 选择、焦点转移、消息队列溢出、模拟 125%/200% DPI；最后启动两个示例验证原生输入/点击经 TX 事件循环更新标签并正常退出。
 

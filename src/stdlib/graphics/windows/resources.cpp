@@ -1,6 +1,8 @@
 #include "stdlib/graphics/windows/state.hpp"
 #include "backend/cpp/runtime_context.hpp"
 #include "stdlib/gui/windows/state.hpp"
+#include "stdlib/graphics/windows/assets.hpp"
+#include "stdlib/gui/windows/commands.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -73,7 +75,8 @@ canvas& require_canvas(resource* value)
     {
         drain(*owner);
     }
-    if (!owner || !owner->open || state.target_window->closed)
+    if (!owner || !owner->open || (state.target_window && state.target_window->closed) ||
+        (state.target_surface && state.target_surface->closed))
     {
         fail("closed_resource", "画布所属的会话或窗口已经关闭");
     }
@@ -88,11 +91,18 @@ void cancel_canvas(canvas& state) noexcept
 {
     if (state.active && state.target)
     {
+        pop_clips(state, 0);
         state.target->EndDraw();
     }
     state.active = false;
     state.brush.reset();
     state.target.reset();
+    state.bitmap_target.reset();
+    state.saved.clear();
+    if (state.target_surface)
+    {
+        state.target_surface->pending.reset();
+    }
 }
 
 void close_window(window& state) noexcept
@@ -108,7 +118,9 @@ void close_window(window& state) noexcept
         owner->frame.reset();
     }
     state.target.reset();
+    reset_input(state);
     gui::close_root(state);
+    gui::close_interactions(state);
     if (state.hwnd)
     {
         DestroyWindow(state.hwnd);
@@ -133,6 +145,11 @@ void close_app(app& state) noexcept
         close_window(*child);
     }
     state.windows.clear();
+    for (const auto& resource : state.resources)
+    {
+        close_owned(*resource);
+    }
+    state.resources.clear();
     state.events.clear();
     state.factory.reset();
     if (state.com_initialized)
@@ -172,6 +189,7 @@ void drain(app& state)
         {
             return child->closed;
         });
+        collect_resources(state);
     }
     state.draining = false;
 }

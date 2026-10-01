@@ -61,6 +61,7 @@ def main():
          ROOT / "tests/graphics/windows_lifecycle.cpp", "tx/libtxstdlib.a",
          "tx/link/gui-manifest.o", "-Ltx/link",
          "-ld2d1", "-lgdi32", "-lole32", "-luuid", "-luser32", "-lcomctl32", "-lshell32",
+         "-ldwrite", "-lwindowscodecs", "-limm32", "-lcomdlg32",
          "-lwinhttp", "-lws2_32", "-ldnsapi", "-ladvapi32", "-lbcrypt", "-lcrypt32",
          "-lncrypt", "-liconv", "-o", target])
     print(run([target], timeout=30).strip())

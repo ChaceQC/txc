@@ -1,6 +1,7 @@
 #define WINVER 0x0A00
 #define _WIN32_WINNT 0x0A00
 #include "stdlib/gui/windows/layout_internal.hpp"
+#include "stdlib/gui/windows/models.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -106,6 +107,14 @@ extent text_extent(node& state, double available)
     const auto width = rectangle.right / scale;
     const auto height = rectangle.bottom / scale;
     using tx::graphics_kind;
+    if (state.toolbar)
+    {
+        return {160, 32};
+    }
+    if (state.model)
+    {
+        return {240, 160};
+    }
     if (state.kind == graphics_kind::button)
     {
         return {std::max(75.0, width + 24), std::max(26.0, text_height + 12)};
@@ -137,7 +146,7 @@ extent measure(node& state, double available_width)
 {
     available_width = std::clamp(state.width.mode == length_mode::fixed ?
         state.width.value : available_width, state.minimum.width, state.maximum.width);
-    if (state.kind != tx::graphics_kind::container)
+    if (state.kind != tx::graphics_kind::container || state.toolbar)
     {
         state.natural = text_extent(state, available_width);
         return state.natural;
@@ -242,6 +251,7 @@ void update_font(node& root)
     const auto apply = [&](auto&& self, node& current) -> void
     {
         SendMessageW(current.hwnd, WM_SETFONT, reinterpret_cast<WPARAM>(font), TRUE);
+        view_dpi_changed(current);
         for (const auto& child : current.children)
         {
             self(self, *child);

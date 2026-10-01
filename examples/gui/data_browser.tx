@@ -1,0 +1,95 @@
+import "graphics.txh" as gfx
+import "gui.txh" as gui
+import "gui_data.txh" as data
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto window = gfx.create_window(app, gfx.window_options("TX 数据浏览器", 760.0, 520.0, true)).value()
+    auto root = gui.root(window).value()
+    gui.set_column(root, 12.0, 8.0)
+    auto open = gui.create_command(window, "打开文件(&O)").value()
+    auto copy = gui.create_command(window, "复制选中 ID(&C)").value()
+    gui.set_shortcut(open, gui.key_chord("o", true, false, false, false))
+    auto menu = gui.create_menu(window).value()
+    auto file_menu = gui.add_menu(menu, "文件(&F)").value()
+    gui.add_command(file_menu, open)
+    gui.add_command(file_menu, copy)
+    gui.set_menu(window, menu).value()
+    auto toolbar = gui.create_toolbar(root).value()
+    gui.add_tool(toolbar, open)
+    gui.add_tool(toolbar, copy)
+    auto status = gui.create_label(root, "点击列标题切换顺序；选择项以 ID 保持身份。").value()
+    vector<data.table_column> columns = vector<data.table_column>()
+    columns.push_back(data.table_column(1, "编号", 100.0, "left"))
+    columns.push_back(data.table_column(2, "内容", 500.0, "left"))
+    auto model = data.create_table_model(window, columns).value()
+    vector<data.table_row> rows = vector<data.table_row>()
+    for index in 1..=100
+    {
+        vector<str> cells = vector<str>()
+        cells.push_back((index as str))
+        cells.push_back("数据记录 " + (index as str))
+        rows.push_back(data.table_row(index, cells))
+    }
+    data.replace_items(model, rows)
+    auto table = data.create_table_view(root, model, false).value()
+    auto button = gui.create_button(root, "打开").value()
+    gui.bind_button(button, open)
+    vector<gui.file_filter> filters = vector<gui.file_filter>()
+    filters.push_back(gui.file_filter("全部文件", vector<str>(1, "*")))
+    bool reversed = false
+    gfx.show(window).value()
+    while gfx.is_open(window)
+    {
+        auto pending = gfx.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                gfx.close(window)
+            }
+            else if event.control.is_some()
+            {
+                auto action = event.control.value()
+                if action.action == "sort_requested"
+                {
+                    vector<int> order = vector<int>()
+                    for index in 1..=100
+                    {
+                        if reversed
+                        {
+                            order.push_back(index)
+                        }
+                        else
+                        {
+                            order.push_back(101 - index)
+                        }
+                    }
+                    data.set_order(model, order)
+                    reversed = !reversed
+                }
+                else if action.command_id.is_some() && action.command_id.value() == gui.id(open)
+                {
+                    auto selected = gui.open_file(window, "选择文件", filters).value()
+                    if selected.is_some()
+                    {
+                        gui.set_text(status, selected.value())
+                    }
+                }
+                else if action.command_id.is_some() && action.command_id.value() == gui.id(copy)
+                {
+                    auto selected = data.selected_ids(table)
+                    if !selected.empty()
+                    {
+                        gui.set_clipboard_text(window, (selected[0] as str)).value()
+                        gui.set_text(status, "已复制 ID " + (selected[0] as str))
+                    }
+                }
+            }
+        }
+    }
+    gfx.close(app)
+    return 0
+}

@@ -49,6 +49,7 @@ def main():
     run([shutil.which("g++"), "-std=c++23", "-O1", "-pthread", "-Isrc",
          ROOT / "tests/gui/windows_behavior.cpp", "tx/libtxstdlib.a",
          "tx/link/gui-manifest.o", "-Ltx/link", "-ld2d1", "-lgdi32", "-lole32",
+         "-ldwrite", "-lwindowscodecs", "-limm32", "-lcomdlg32",
          "-luuid", "-lcomctl32", "-luser32", "-lshell32", "-lwinhttp", "-lws2_32",
          "-ldnsapi", "-ladvapi32", "-lbcrypt", "-lcrypt32", "-lncrypt", "-liconv",
          "-o", target])

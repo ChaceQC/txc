@@ -1,0 +1,97 @@
+import "graphics.txh" as gfx
+import "graphics_text.txh" as text
+import "bytes.txh" as bytes
+import "file.txh" as file
+import "test.txh" as test
+import "error.txh" as errors
+
+def main() -> int
+{
+    auto app = gfx.open_app().value()
+    auto image = gfx.image_from_rgba(app, 2, 1, bytes.from_hex("ff000080abcdef00")).value()
+    test.assert_equal(2, gfx.image_width(image))
+    test.assert_equal("ff00008000000000", bytes.to_hex(gfx.image_rgba(image)))
+    auto filename = "tx_build/graphics_gui_g2_u3/透明 中文.png"
+    gfx.save_png(image, filename, true).value()
+    auto original = file.read_bytes(filename)
+    test.assert_true(gfx.save_png(image, filename).is_err())
+    test.assert_equal(bytes.to_hex(original), bytes.to_hex(file.read_bytes(filename)))
+    auto decoded = gfx.decode_image(app, original).value()
+    auto loaded = gfx.load_image(app, filename).value()
+    test.assert_equal(1, gfx.image_height(loaded))
+    test.assert_equal("ff00008000000000", bytes.to_hex(gfx.image_rgba(decoded)))
+    test.assert_equal("resource_limit", gfx.create_surface(app, 16385, 1, 96.0).error().code)
+    test.assert_equal("decode_failed", gfx.decode_image(app, bytes.from_hex("1234")).error().code)
+    auto surface = gfx.create_surface(app, 128, 80, 96.0).value()
+    auto path = gfx.create_path(app, "winding").value()
+    gfx.move_to(path, gfx.point(8.0, 8.0))
+    gfx.line_to(path, gfx.point(64.0, 8.0))
+    gfx.bezier_to(path, gfx.point(90.0, 20.0), gfx.point(40.0, 60.0), gfx.point(8.0, 30.0))
+    gfx.close_path(path)
+    gfx.finish_path(path)
+    vector<gfx.gradient_stop> stops = vector<gfx.gradient_stop>()
+    stops.push_back(gfx.gradient_stop(0.0, 0.2, 0.4, 1.0, 1.0))
+    stops.push_back(gfx.gradient_stop(1.0, 0.8, 0.2, 0.6, 0.7))
+    auto gradient = gfx.linear_gradient(app, gfx.point(0.0, 0.0), gfx.point(80.0, 0.0), stops).value()
+    auto font = text.create_font(app, "Segoe UI", 16.0).value()
+    auto layout = text.create_layout(font, "中文😀 é שלום", 120.0, 50.0).value()
+    gfx.close(font)
+    text.set_layout_options(layout, "left", "top", true, "zh-CN")
+    test.assert_true(text.measure(layout).line_count >= 1)
+    auto hit = text.hit_test(layout, gfx.point(0.0, 0.0))
+    test.assert_equal(0, hit.position)
+    auto selection = text.selection_rects(layout, 2, 3)
+    test.assert_true(selection.size() >= 1)
+    test.assert_true(selection[0].width > 0.0)
+    auto canvas = gfx.begin_surface_frame(surface).value()
+    gfx.save(canvas)
+    gfx.clip_rect(canvas, gfx.rect(0.0, 0.0, 1.0, 1.0))
+    gfx.clear(canvas, gfx.color(1.0, 1.0, 1.0, 1.0))
+    gfx.restore(canvas)
+    gfx.fill_path(canvas, path, gradient)
+    gfx.draw_rect(canvas, gfx.rect(1.0, 1.0, 126.0, 78.0), gradient, 1.0)
+    gfx.draw_image(canvas, image, gfx.rect(0.0, 0.0, 2.0, 1.0), gfx.rect(100.0, 0.0, 20.0, 10.0), "nearest", 1.0)
+    text.draw_layout(canvas, layout, gfx.point(2.0, 35.0), gfx.color(0.0, 0.0, 0.0, 1.0))
+    gfx.end_frame(canvas).value()
+    auto before = gfx.snapshot(surface).value()
+    auto next = gfx.begin_surface_frame(surface).value()
+    gfx.clear(next, gfx.color(0.0, 0.0, 0.0, 0.0))
+    gfx.cancel_frame(next)
+    auto after = gfx.snapshot(surface).value()
+    test.assert_equal(bytes.to_hex(gfx.image_rgba(before)), bytes.to_hex(gfx.image_rgba(after)))
+    gfx.save_png(surface, "tx_build/graphics_gui_g2_u3/绘图.png", true).value()
+    auto unbalanced = gfx.begin_surface_frame(surface).value()
+    gfx.save(unbalanced)
+    test.assert_equal("invalid_frame", gfx.end_frame(unbalanced).error().code)
+    auto window = gfx.create_window(app, gfx.window_options("输入定时器验证", 160.0, 120.0, true)).value()
+    auto timer = gfx.start_timer(window, 10).value()
+    bool received = false
+    int attempts = 0
+    while !received && attempts < 20
+    {
+        auto pending = gfx.next_event(app, 50).value()
+        if pending.is_some() && pending.value().kind == "timer"
+        {
+            test.assert_equal(timer, pending.value().timer_id.value())
+            received = true
+        }
+        attempts += 1
+    }
+    test.assert_true(received)
+    gfx.stop_timer(window, timer)
+    gfx.enable_text_input(window, true)
+    gfx.set_ime_rect(window, gfx.rect(10.0, 10.0, 2.0, 20.0))
+    gfx.enable_text_input(window, false)
+    gfx.close(app)
+    try
+    {
+        text.measure(layout)
+        test.assert_true(false)
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal("closed_resource", e.code)
+    }
+    print("graphics G2-G3: PASS")
+    return 0
+}

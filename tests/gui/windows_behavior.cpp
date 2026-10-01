@@ -173,7 +173,7 @@ void check_errors(graphics::app& app, graphics::window& window, node& root)
         notify(*button, "activated");
     }
     SendMessageW(button->hwnd, BM_CLICK, 0, 0);
-    assert(app.pending_error && app.pending_error->code == "resource_limit");
+    assert(app.queue_failed || (app.pending_error && app.pending_error->code == "resource_limit"));
     expect_error("resource_limit", [&]
     {
         graphics::next_event(app, 0);

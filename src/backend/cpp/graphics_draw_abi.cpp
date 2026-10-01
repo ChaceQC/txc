@@ -80,7 +80,7 @@ extern "C" int txrt_graphics_clear(resource* value,
     return detail::invoke_leaf([&]
     {
         auto& state = require_canvas(value);
-        state.target->Clear(checked_color({red, green, blue, alpha}));
+        clear_canvas(state, {red, green, blue, alpha});
     });
 }
 

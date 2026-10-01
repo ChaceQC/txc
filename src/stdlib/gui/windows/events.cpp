@@ -1,4 +1,6 @@
 #include "stdlib/gui/windows/state.hpp"
+#include "stdlib/gui/windows/commands.hpp"
+#include "stdlib/gui/windows/models.hpp"
 
 namespace tx_generated::gui
 {
@@ -59,7 +61,17 @@ void process_command(HWND child, unsigned code)
     }
     else if (state.kind == graphics_kind::button && code == BN_CLICKED)
     {
-        notify(state, "activated");
+        if (state.bound_command)
+        {
+            if (!state.bound_command->closed)
+            {
+                activate_command(owner_window(state), state.bound_command->native_id, state.id);
+            }
+        }
+        else
+        {
+            notify(state, "activated");
+        }
     }
     else if (state.kind == graphics_kind::check_box && code == BN_CLICKED)
     {
@@ -82,9 +94,22 @@ LRESULT CALLBACK control_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpa
         notification_guard guard(state);
         switch (message)
         {
+        case WM_NOTIFY:
+            return data_notification(*reinterpret_cast<NMHDR*>(lparam));
         case WM_COMMAND:
+        {
+            DWORD_PTR reference = 0;
+            if (GetWindowSubclass(reinterpret_cast<HWND>(lparam), control_proc, 1, &reference))
+            {
+                const auto& child = *reinterpret_cast<node*>(reference);
+                if (child.toolbar && activate_command(owner_window(state), LOWORD(wparam), child.id))
+                {
+                    return 0;
+                }
+            }
             process_command(reinterpret_cast<HWND>(lparam), HIWORD(wparam));
             return 0;
+        }
         case WM_IME_STARTCOMPOSITION:
             state.composing = true;
             break;
@@ -99,7 +124,7 @@ LRESULT CALLBACK control_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpa
             notify(state, "focus_lost");
             break;
         case WM_ERASEBKGND:
-            if (state.kind == tx::graphics_kind::container)
+            if (state.kind == tx::graphics_kind::container && !state.toolbar)
             {
                 RECT rect{};
                 GetClientRect(hwnd, &rect);
@@ -118,7 +143,7 @@ LRESULT CALLBACK control_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpa
             return reinterpret_cast<LRESULT>(GetSysColorBrush(edit ? COLOR_WINDOW : COLOR_BTNFACE));
         }
         case WM_PAINT:
-            if (state.kind == tx::graphics_kind::container)
+            if (state.kind == tx::graphics_kind::container && !state.toolbar)
             {
                 PAINTSTRUCT paint{};
                 const auto dc = BeginPaint(hwnd, &paint);

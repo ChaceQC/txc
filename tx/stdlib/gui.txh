@@ -1,4 +1,75 @@
 # Windows GUI U0–U1；图形事件与窗口由唯一图形会话管理。
+# U2–U3 扩展；完整契约见 docs/gui_u2_u3.md。
+
+struct key_chord
+{
+    key: str
+    ctrl: bool
+    alt: bool
+    shift: bool
+    win: bool
+}
+struct file_filter
+{
+    name: str
+    extensions: vector<str>
+}
+def create_command(window: graphics_window, text: str) -> result<gui_command>
+def bind_button(button: gui_button, command: gui_command) -> void
+def set_shortcut(command: gui_command, chord: key_chord) -> void
+def clear_shortcut(command: gui_command) -> void
+def create_menu(window: graphics_window) -> result<gui_menu>
+def add_menu(parent: gui_menu, text: str) -> result<gui_menu>
+def add_command(menu: gui_menu, command: gui_command) -> void
+def add_separator(menu: gui_menu) -> void
+def set_menu(window: graphics_window, menu: gui_menu) -> result<void>
+def create_toolbar(parent: gui_container) -> result<gui_container>
+def add_tool(toolbar: gui_container, command: gui_command) -> void
+def show_modal(child: graphics_window, owner: graphics_window) -> result<void>
+def open_file(window: graphics_window, title: str, filters: vector<file_filter>) -> result<option<str>>
+def open_files(window: graphics_window, title: str, filters: vector<file_filter>) -> result<option<vector<str>>>
+def save_file(window: graphics_window, title: str, filters: vector<file_filter>, extension: str) -> result<option<str>>
+def pick_folder(window: graphics_window, title: str) -> result<option<str>>
+def message_box(window: graphics_window, title: str, text: str, buttons: str) -> result<str>
+def clipboard_text(window: graphics_window) -> result<option<str>>
+def set_clipboard_text(window: graphics_window, text: str) -> result<void>
+def id(command: gui_command) -> int
+def text(command: gui_command) -> str
+def set_text(command: gui_command, text: str) -> void
+def set_enabled(command: gui_command, enabled: bool) -> void
+def enabled(command: gui_command) -> bool
+def set_checked(command: gui_command, checked: bool) -> void
+def checked(command: gui_command) -> bool
+def revision(command: gui_command) -> int
+def close(command: gui_command) -> void
+def close(menu: gui_menu) -> void
+def id(control: gui_list_view) -> int
+def close(control: gui_list_view) -> void
+def is_open(control: gui_list_view) -> bool
+def focus(control: gui_list_view) -> result<void>
+def set_visible(control: gui_list_view, visible: bool) -> void
+def set_enabled(control: gui_list_view, enabled: bool) -> void
+def set_width(control: gui_list_view, value: length) -> void
+def set_height(control: gui_list_view, value: length) -> void
+def set_cell(control: gui_list_view, row: int, column: int, row_span: int, column_span: int) -> void
+def id(control: gui_table_view) -> int
+def close(control: gui_table_view) -> void
+def is_open(control: gui_table_view) -> bool
+def focus(control: gui_table_view) -> result<void>
+def set_visible(control: gui_table_view, visible: bool) -> void
+def set_enabled(control: gui_table_view, enabled: bool) -> void
+def set_width(control: gui_table_view, value: length) -> void
+def set_height(control: gui_table_view, value: length) -> void
+def set_cell(control: gui_table_view, row: int, column: int, row_span: int, column_span: int) -> void
+def id(control: gui_tree_view) -> int
+def close(control: gui_tree_view) -> void
+def is_open(control: gui_tree_view) -> bool
+def focus(control: gui_tree_view) -> result<void>
+def set_visible(control: gui_tree_view, visible: bool) -> void
+def set_enabled(control: gui_tree_view, enabled: bool) -> void
+def set_width(control: gui_tree_view, value: length) -> void
+def set_height(control: gui_tree_view, value: length) -> void
+def set_cell(control: gui_tree_view, row: int, column: int, row_span: int, column_span: int) -> void
 import "graphics.txh" as gfx
 
 struct length

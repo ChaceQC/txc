@@ -80,7 +80,12 @@ void create_native(node& state, HWND parent)
     const wchar_t* name = L"STATIC";
     DWORD style = WS_CHILD | WS_VISIBLE;
     DWORD extended = 0;
-    if (state.kind == graphics_kind::container)
+    if (state.toolbar)
+    {
+        name = TOOLBARCLASSNAMEW;
+        style |= WS_TABSTOP | TBSTYLE_FLAT | TBSTYLE_LIST | CCS_NORESIZE | CCS_NOPARENTALIGN | CCS_NODIVIDER;
+    }
+    else if (state.kind == graphics_kind::container)
     {
         style |= WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
         extended = WS_EX_CONTROLPARENT;
@@ -94,6 +99,20 @@ void create_native(node& state, HWND parent)
         name = L"EDIT";
         style |= WS_TABSTOP | (state.multiline ?
             ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL : ES_AUTOHSCROLL);
+        extended = WS_EX_CLIENTEDGE;
+    }
+    else if (state.kind == graphics_kind::list_view || state.kind == graphics_kind::table_view)
+    {
+        name = WC_LISTVIEWW;
+        style |= WS_TABSTOP | LVS_OWNERDATA | LVS_SHOWSELALWAYS |
+            (state.kind == graphics_kind::table_view ? LVS_REPORT : LVS_LIST) |
+            (state.multiple ? 0 : LVS_SINGLESEL);
+        extended = WS_EX_CLIENTEDGE;
+    }
+    else if (state.kind == graphics_kind::tree_view)
+    {
+        name = WC_TREEVIEWW;
+        style |= WS_TABSTOP | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS;
         extended = WS_EX_CLIENTEDGE;
     }
     else
@@ -121,6 +140,10 @@ void create_native(node& state, HWND parent)
         // Windows 按 UTF-16 单元限长，标量及 UTF-8 字节限额在通知边界再次检查。
         SendMessageW(state.hwnd, EM_SETLIMITTEXT, 32768, 0);
     }
+    if (state.toolbar)
+    {
+        SendMessageW(state.hwnd, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
+    }
 }
 
 } // namespace
@@ -135,7 +158,8 @@ std::shared_ptr<node> root(graphics::window& window)
     {
         fail("invalid_frame", "活动帧内不能创建 GUI 根容器");
     }
-    INITCOMMONCONTROLSEX controls{sizeof(controls), ICC_STANDARD_CLASSES};
+    INITCOMMONCONTROLSEX controls{sizeof(controls), ICC_STANDARD_CLASSES | ICC_BAR_CLASSES |
+        ICC_LISTVIEW_CLASSES | ICC_TREEVIEW_CLASSES};
     if (!InitCommonControlsEx(&controls))
     {
         platform_fail(window.owner.lock().get(), "初始化系统控件", GetLastError());
@@ -155,6 +179,10 @@ std::shared_ptr<node> create(node& parent, tx::graphics_kind kind,
     const std::string& text, bool option)
 {
     require_idle(parent);
+    if (parent.toolbar)
+    {
+        fail("invalid_layout", "toolbar 只接受 add_tool 命令入口");
+    }
     if (parent.depth + 1 >= depth_limit || count_nodes(root_node(parent)) >= node_limit)
     {
         fail("resource_limit", "GUI 控件树超过 4096 节点或 64 层限制");
@@ -167,6 +195,8 @@ std::shared_ptr<node> create(node& parent, tx::graphics_kind kind,
     result->text = text;
     result->multiline = kind == tx::graphics_kind::text_box && option;
     result->three_state = kind == tx::graphics_kind::check_box && option;
+    result->toolbar = kind == tx::graphics_kind::container && option;
+    result->multiple = option && (kind == tx::graphics_kind::list_view || kind == tx::graphics_kind::table_view);
     result->id = owner_window(parent).owner.lock()->next_id++;
     // 先获得树的拥有权，再创建会同步触发 Windows 消息的对象。
     parent.children.push_back(result);
@@ -209,6 +239,9 @@ void close(node& state) noexcept
         }
     }
     state.closed = true;
+    state.bound_command.reset();
+    state.tools.clear();
+    state.model.reset();
     while (!state.children.empty())
     {
         close(*state.children.back());
