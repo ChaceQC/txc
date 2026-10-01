@@ -36,6 +36,7 @@ public:
     std::uint64_t offset() const;
 
 private:
+    char consume(int byte);
     format_source source_;
     std::string buffer_;
     std::string_view memory_;

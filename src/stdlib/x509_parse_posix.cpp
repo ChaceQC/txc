@@ -198,7 +198,15 @@ std::vector<byte_value> parse_pem(std::string_view text)
 
 byte_value parse_der(const byte_value& data)
 {
+    // bytes 是不可变值；弱引用只记住本线程最近一次成功的结构解析，
+    // 不保活证书，也不缓存任何依赖时间、信任或外部状态的验证结论。
+    thread_local std::weak_ptr<const byte_storage> last_valid;
+    if (const auto previous = last_valid.lock(); previous && previous == data)
+    {
+        return data;
+    }
     (void)certificate(data);
+    last_valid = data;
     return data;
 }
 

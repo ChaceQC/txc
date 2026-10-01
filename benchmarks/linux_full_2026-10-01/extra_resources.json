@@ -1,0 +1,98 @@
+{
+  "startup": [
+    {
+      "wall_seconds": 0.2,
+      "peak_rss_kib": 11724.0,
+      "user_seconds": 0.0,
+      "system_seconds": 0.04
+    },
+    {
+      "wall_seconds": 0.2,
+      "peak_rss_kib": 11444.0,
+      "user_seconds": 0.0,
+      "system_seconds": 0.05
+    },
+    {
+      "wall_seconds": 0.18,
+      "peak_rss_kib": 11612.0,
+      "user_seconds": 0.0,
+      "system_seconds": 0.03
+    },
+    {
+      "wall_seconds": 0.17,
+      "peak_rss_kib": 11352.0,
+      "user_seconds": 0.0,
+      "system_seconds": 0.03
+    },
+    {
+      "wall_seconds": 0.17,
+      "peak_rss_kib": 11764.0,
+      "user_seconds": 0.0,
+      "system_seconds": 0.03
+    }
+  ],
+  "language": [
+    {
+      "wall_seconds": 0.21,
+      "peak_rss_kib": 11652.0,
+      "user_seconds": 0.04,
+      "system_seconds": 0.02
+    },
+    {
+      "wall_seconds": 0.2,
+      "peak_rss_kib": 11792.0,
+      "user_seconds": 0.03,
+      "system_seconds": 0.03
+    },
+    {
+      "wall_seconds": 0.22,
+      "peak_rss_kib": 11472.0,
+      "user_seconds": 0.03,
+      "system_seconds": 0.03
+    },
+    {
+      "wall_seconds": 0.24,
+      "peak_rss_kib": 11876.0,
+      "user_seconds": 0.04,
+      "system_seconds": 0.03
+    },
+    {
+      "wall_seconds": 0.21,
+      "peak_rss_kib": 11840.0,
+      "user_seconds": 0.05,
+      "system_seconds": 0.01
+    }
+  ],
+  "diverse": [
+    {
+      "wall_seconds": 0.2,
+      "peak_rss_kib": 12192.0,
+      "user_seconds": 0.03,
+      "system_seconds": 0.02
+    },
+    {
+      "wall_seconds": 0.2,
+      "peak_rss_kib": 12096.0,
+      "user_seconds": 0.04,
+      "system_seconds": 0.02
+    },
+    {
+      "wall_seconds": 0.2,
+      "peak_rss_kib": 11984.0,
+      "user_seconds": 0.03,
+      "system_seconds": 0.03
+    },
+    {
+      "wall_seconds": 0.2,
+      "peak_rss_kib": 12264.0,
+      "user_seconds": 0.03,
+      "system_seconds": 0.02
+    },
+    {
+      "wall_seconds": 0.21,
+      "peak_rss_kib": 12076.0,
+      "user_seconds": 0.03,
+      "system_seconds": 0.03
+    }
+  ]
+}

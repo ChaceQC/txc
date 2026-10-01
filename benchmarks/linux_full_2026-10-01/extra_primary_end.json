@@ -1,0 +1,5 @@
+{
+  "unchanged": true,
+  "changed": [],
+  "status": "primary interrupted before PostgreSQL: initdb unavailable; failed fixture cases rerun separately"
+}

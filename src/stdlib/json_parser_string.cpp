@@ -98,12 +98,14 @@ std::string json_parser::parse_string()
             continue;
         }
         const auto lead = input_.peek();
-        if (input_.take('"'))
+        if (lead == '"')
         {
+            (void)input_.get();
             return output;
         }
-        if (input_.take('\\'))
+        if (lead == '\\')
         {
+            (void)input_.get();
             parse_escape(output);
             continue;
         }

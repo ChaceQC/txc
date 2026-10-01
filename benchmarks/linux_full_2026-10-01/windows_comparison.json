@@ -1,0 +1,2022 @@
+{
+  "matched": 180,
+  "missing": [],
+  "windows_head": "f1cc9a5368d01d8a9b413facf2495af8f63e5c57",
+  "linux_worktree_head": "9a8ba2e789a57a2801a04d4ef8ebae3aef5f652c",
+  "faster_10_percent": 99,
+  "slower_10_percent": 53,
+  "groups": [
+    {
+      "suite": "language",
+      "cases": 22,
+      "median_ratio": 1.0416666666666667,
+      "faster_10_percent": 7,
+      "slower_10_percent": 6
+    },
+    {
+      "suite": "library",
+      "cases": 10,
+      "median_ratio": 0.7361111111111112,
+      "faster_10_percent": 6,
+      "slower_10_percent": 3
+    },
+    {
+      "suite": "compute",
+      "cases": 21,
+      "median_ratio": 0.5884892086330935,
+      "faster_10_percent": 15,
+      "slower_10_percent": 3
+    },
+    {
+      "suite": "features",
+      "cases": 10,
+      "median_ratio": 1.1114623018672687,
+      "faster_10_percent": 3,
+      "slower_10_percent": 5
+    },
+    {
+      "suite": "diverse",
+      "cases": 18,
+      "median_ratio": 0.8164102720670455,
+      "faster_10_percent": 12,
+      "slower_10_percent": 6
+    },
+    {
+      "suite": "borrowing",
+      "cases": 5,
+      "median_ratio": 1.1987281399046106,
+      "faster_10_percent": 1,
+      "slower_10_percent": 4
+    },
+    {
+      "suite": "static_runtime",
+      "cases": 5,
+      "median_ratio": 0.7453869260477758,
+      "faster_10_percent": 3,
+      "slower_10_percent": 1
+    },
+    {
+      "suite": "parse_paths",
+      "cases": 4,
+      "median_ratio": 1.0455261958997721,
+      "faster_10_percent": 1,
+      "slower_10_percent": 2
+    },
+    {
+      "suite": "format_paths",
+      "cases": 3,
+      "median_ratio": 0.28803827751196176,
+      "faster_10_percent": 3,
+      "slower_10_percent": 0
+    },
+    {
+      "suite": "serde_paths",
+      "cases": 4,
+      "median_ratio": 0.6572916311652033,
+      "faster_10_percent": 3,
+      "slower_10_percent": 0
+    },
+    {
+      "suite": "paths_09_11",
+      "cases": 6,
+      "median_ratio": 1.1048824130879344,
+      "faster_10_percent": 2,
+      "slower_10_percent": 3
+    },
+    {
+      "suite": "paths_12_14",
+      "cases": 8,
+      "median_ratio": 0.41163363341340703,
+      "faster_10_percent": 5,
+      "slower_10_percent": 2
+    },
+    {
+      "suite": "paths_15_16",
+      "cases": 10,
+      "median_ratio": 0.737879874790591,
+      "faster_10_percent": 7,
+      "slower_10_percent": 0
+    },
+    {
+      "suite": "file_io",
+      "cases": 1,
+      "median_ratio": 2.330112007133151,
+      "faster_10_percent": 0,
+      "slower_10_percent": 1
+    },
+    {
+      "suite": "format_contract",
+      "cases": 2,
+      "median_ratio": 0.4450769953692739,
+      "faster_10_percent": 2,
+      "slower_10_percent": 0
+    },
+    {
+      "suite": "concurrency",
+      "cases": 5,
+      "median_ratio": 0.8149270968673307,
+      "faster_10_percent": 3,
+      "slower_10_percent": 2
+    },
+    {
+      "suite": "sqlite",
+      "cases": 6,
+      "median_ratio": 0.6133450337347564,
+      "faster_10_percent": 5,
+      "slower_10_percent": 1
+    },
+    {
+      "suite": "async_file",
+      "cases": 1,
+      "median_ratio": 4.500868146900978,
+      "faster_10_percent": 0,
+      "slower_10_percent": 1
+    },
+    {
+      "suite": "profile",
+      "cases": 1,
+      "median_ratio": 1.3269639065817411,
+      "faster_10_percent": 0,
+      "slower_10_percent": 1
+    },
+    {
+      "suite": "network",
+      "cases": 4,
+      "median_ratio": 1.7698224858018714,
+      "faster_10_percent": 1,
+      "slower_10_percent": 3
+    },
+    {
+      "suite": "random_long",
+      "cases": 1,
+      "median_ratio": 0.5365853658536586,
+      "faster_10_percent": 1,
+      "slower_10_percent": 0
+    },
+    {
+      "suite": "diagnostics",
+      "cases": 4,
+      "median_ratio": 3.365906342230606,
+      "faster_10_percent": 0,
+      "slower_10_percent": 3
+    },
+    {
+      "suite": "graph_contract",
+      "cases": 2,
+      "median_ratio": 0.5904032796927753,
+      "faster_10_percent": 2,
+      "slower_10_percent": 0
+    },
+    {
+      "suite": "security",
+      "cases": 5,
+      "median_ratio": 0.9967939496074644,
+      "faster_10_percent": 1,
+      "slower_10_percent": 2
+    },
+    {
+      "suite": "postgres",
+      "cases": 3,
+      "median_ratio": 1.2814238511965714,
+      "faster_10_percent": 1,
+      "slower_10_percent": 2
+    },
+    {
+      "suite": "system",
+      "cases": 6,
+      "median_ratio": 0.45400466898662817,
+      "faster_10_percent": 5,
+      "slower_10_percent": 1
+    },
+    {
+      "suite": "http",
+      "cases": 2,
+      "median_ratio": 0.08164743407516772,
+      "faster_10_percent": 2,
+      "slower_10_percent": 0
+    },
+    {
+      "suite": "ws",
+      "cases": 1,
+      "median_ratio": 5.048369488089771,
+      "faster_10_percent": 0,
+      "slower_10_percent": 1
+    },
+    {
+      "suite": "mini-filesystem",
+      "cases": 5,
+      "median_ratio": 0.5114861697140178,
+      "faster_10_percent": 5,
+      "slower_10_percent": 0
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "cases": 5,
+      "median_ratio": 0.8652439024390245,
+      "faster_10_percent": 3,
+      "slower_10_percent": 0
+    }
+  ],
+  "rows": [
+    {
+      "suite": "language",
+      "case": "scalar_control",
+      "windows_ms": 0.168,
+      "linux_ms": 1.339,
+      "linux_over_windows": 7.970238095238095,
+      "change_percent": 697.0238095238095,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "updates",
+      "windows_ms": 1.417,
+      "linux_ms": 1.534,
+      "linux_over_windows": 1.0825688073394495,
+      "change_percent": 8.25688073394495,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "while_logic",
+      "windows_ms": 0.177,
+      "linux_ms": 0.187,
+      "linux_over_windows": 1.056497175141243,
+      "change_percent": 5.649717514124308,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "float_arithmetic",
+      "windows_ms": 0.355,
+      "linux_ms": 0.389,
+      "linux_over_windows": 1.095774647887324,
+      "change_percent": 9.577464788732403,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "overloads",
+      "windows_ms": 0.188,
+      "linux_ms": 0.199,
+      "linux_over_windows": 1.0585106382978724,
+      "change_percent": 5.85106382978724,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "named_arguments",
+      "windows_ms": 0.404,
+      "linux_ms": 0.407,
+      "linux_over_windows": 1.0074257425742572,
+      "change_percent": 0.742574257425721,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "recursion",
+      "windows_ms": 0.035,
+      "linux_ms": 0.043,
+      "linux_over_windows": 1.2285714285714284,
+      "change_percent": 22.857142857142843,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "variadic_unpack",
+      "windows_ms": 11.229000000000001,
+      "linux_ms": 4.068,
+      "linux_over_windows": 0.36227624899812977,
+      "change_percent": -63.77237510018703,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "array_destructure",
+      "windows_ms": 0.01,
+      "linux_ms": 0.01,
+      "linux_over_windows": 1.0,
+      "change_percent": 0.0,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "array_padded",
+      "windows_ms": 0.024,
+      "linux_ms": 0.025,
+      "linux_over_windows": 1.0416666666666667,
+      "change_percent": 4.166666666666674,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "dict_iteration",
+      "windows_ms": 7.313,
+      "linux_ms": 5.051,
+      "linux_over_windows": 0.6906878162176946,
+      "change_percent": -30.93121837823054,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "struct_operators",
+      "windows_ms": 0.025,
+      "linux_ms": 0.026,
+      "linux_over_windows": 1.0399999999999998,
+      "change_percent": 3.9999999999999813,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "class_methods",
+      "windows_ms": 0.662,
+      "linux_ms": 0.739,
+      "linux_over_windows": 1.1163141993957704,
+      "change_percent": 11.631419939577036,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "virtual_interface",
+      "windows_ms": 0.904,
+      "linux_ms": 1.368,
+      "linux_over_windows": 1.513274336283186,
+      "change_percent": 51.327433628318595,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "class_operator",
+      "windows_ms": 0.598,
+      "linux_ms": 0.673,
+      "linux_over_windows": 1.125418060200669,
+      "change_percent": 12.541806020066893,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "runtime_cast",
+      "windows_ms": 0.23600000000000002,
+      "linux_ms": 0.276,
+      "linux_over_windows": 1.1694915254237288,
+      "change_percent": 16.94915254237288,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "module_call",
+      "windows_ms": 0.024,
+      "linux_ms": 0.025,
+      "linux_over_windows": 1.0416666666666667,
+      "change_percent": 4.166666666666674,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "string_conversion",
+      "windows_ms": 16.576,
+      "linux_ms": 4.257,
+      "linux_over_windows": 0.25681708494208494,
+      "change_percent": -74.3182915057915,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "deep_copy",
+      "windows_ms": 25.082,
+      "linux_ms": 10.594,
+      "linux_over_windows": 0.4223746112750179,
+      "change_percent": -57.762538872498205,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "copy_cycle",
+      "windows_ms": 9.302,
+      "linux_ms": 3.356,
+      "linux_over_windows": 0.3607826273919587,
+      "change_percent": -63.92173726080412,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "deinit",
+      "windows_ms": 15.378,
+      "linux_ms": 3.872,
+      "linux_over_windows": 0.25178826895565093,
+      "change_percent": -74.8211731044349,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "language",
+      "case": "cycle_gc",
+      "windows_ms": 1.542,
+      "linux_ms": 0.711,
+      "linux_over_windows": 0.4610894941634241,
+      "change_percent": -53.891050583657595,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "library",
+      "case": "math",
+      "windows_ms": 4.0,
+      "linux_ms": 7.0,
+      "linux_over_windows": 1.75,
+      "change_percent": 75.0,
+      "workload_source_hash_equal": true,
+      "note": "TX 使用整数毫秒；短项比例精度有限"
+    },
+    {
+      "suite": "library",
+      "case": "random",
+      "windows_ms": 1.0,
+      "linux_ms": 1.0,
+      "linux_over_windows": 1.0,
+      "change_percent": 0.0,
+      "workload_source_hash_equal": true,
+      "note": "TX 使用整数毫秒；短项比例精度有限"
+    },
+    {
+      "suite": "library",
+      "case": "string",
+      "windows_ms": 9.0,
+      "linux_ms": 4.0,
+      "linux_over_windows": 0.4444444444444444,
+      "change_percent": -55.55555555555556,
+      "workload_source_hash_equal": true,
+      "note": "TX 使用整数毫秒；短项比例精度有限"
+    },
+    {
+      "suite": "library",
+      "case": "array",
+      "windows_ms": 18.0,
+      "linux_ms": 13.0,
+      "linux_over_windows": 0.7222222222222222,
+      "change_percent": -27.77777777777778,
+      "workload_source_hash_equal": true,
+      "note": "TX 使用整数毫秒；短项比例精度有限"
+    },
+    {
+      "suite": "library",
+      "case": "path",
+      "windows_ms": 21.0,
+      "linux_ms": 9.0,
+      "linux_over_windows": 0.42857142857142855,
+      "change_percent": -57.14285714285714,
+      "workload_source_hash_equal": true,
+      "note": "TX 使用整数毫秒；短项比例精度有限"
+    },
+    {
+      "suite": "library",
+      "case": "fs",
+      "windows_ms": 43.0,
+      "linux_ms": 850.0,
+      "linux_over_windows": 19.767441860465116,
+      "change_percent": 1876.7441860465117,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "library",
+      "case": "file",
+      "windows_ms": 1317.0,
+      "linux_ms": 2464.0,
+      "linux_over_windows": 1.870918754745634,
+      "change_percent": 87.09187547456341,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "library",
+      "case": "io",
+      "windows_ms": 9.0,
+      "linux_ms": 4.0,
+      "linux_over_windows": 0.4444444444444444,
+      "change_percent": -55.55555555555556,
+      "workload_source_hash_equal": true,
+      "note": "TX 使用整数毫秒；短项比例精度有限"
+    },
+    {
+      "suite": "library",
+      "case": "time",
+      "windows_ms": 4.0,
+      "linux_ms": 3.0,
+      "linux_over_windows": 0.75,
+      "change_percent": -25.0,
+      "workload_source_hash_equal": true,
+      "note": "TX 使用整数毫秒；短项比例精度有限"
+    },
+    {
+      "suite": "library",
+      "case": "dict",
+      "windows_ms": 3.0,
+      "linux_ms": 1.0,
+      "linux_over_windows": 0.3333333333333333,
+      "change_percent": -66.66666666666667,
+      "workload_source_hash_equal": true,
+      "note": "TX 使用整数毫秒；短项比例精度有限"
+    },
+    {
+      "suite": "compute",
+      "case": "algorithm_sort",
+      "windows_ms": 5.469,
+      "linux_ms": 5.372,
+      "linux_over_windows": 0.9822636679466081,
+      "change_percent": -1.7736332053391868,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "bytes_hex",
+      "windows_ms": 8.617,
+      "linux_ms": 3.012,
+      "linux_over_windows": 0.3495416038064291,
+      "change_percent": -65.04583961935708,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "cancel_status",
+      "windows_ms": 0.573,
+      "linux_ms": 0.904,
+      "linux_over_windows": 1.5776614310645727,
+      "change_percent": 57.76614310645727,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "cbor_roundtrip",
+      "windows_ms": 22.235,
+      "linux_ms": 10.888,
+      "linux_over_windows": 0.48967843489993257,
+      "change_percent": -51.03215651000674,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "crypto_sha256",
+      "windows_ms": 8.852,
+      "linux_ms": 6.205,
+      "linux_over_windows": 0.7009715318572074,
+      "change_percent": -29.90284681427926,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "csv_parse",
+      "windows_ms": 24.532,
+      "linux_ms": 10.347,
+      "linux_over_windows": 0.4217756399804337,
+      "change_percent": -57.822436001956625,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "decimal_add",
+      "windows_ms": 10.978,
+      "linux_ms": 3.613,
+      "linux_over_windows": 0.3291127709965385,
+      "change_percent": -67.08872290034616,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "dictionary_contains",
+      "windows_ms": 0.362,
+      "linux_ms": 0.27,
+      "linux_over_windows": 0.7458563535911603,
+      "change_percent": -25.414364640883967,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "encoding_utf8",
+      "windows_ms": 4.33,
+      "linux_ms": 0.256,
+      "linux_over_windows": 0.05912240184757506,
+      "change_percent": -94.08775981524249,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "env_get",
+      "windows_ms": 9.844,
+      "linux_ms": 2.716,
+      "linux_over_windows": 0.275904104022755,
+      "change_percent": -72.4095895977245,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "format_text",
+      "windows_ms": 1.231,
+      "linux_ms": 0.11,
+      "linux_over_windows": 0.0893582453290008,
+      "change_percent": -91.06417546709991,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "json_parse",
+      "windows_ms": 23.194,
+      "linux_ms": 12.745,
+      "linux_over_windows": 0.5494955591963439,
+      "change_percent": -45.050444080365615,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "math_sqrt",
+      "windows_ms": 4.153,
+      "linux_ms": 5.286,
+      "linux_over_windows": 1.2728148326510955,
+      "change_percent": 27.28148326510955,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "parse_int",
+      "windows_ms": 11.408,
+      "linux_ms": 3.621,
+      "linux_over_windows": 0.3174088359046284,
+      "change_percent": -68.25911640953717,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "random_int",
+      "windows_ms": 1.39,
+      "linux_ms": 0.818,
+      "linux_over_windows": 0.5884892086330935,
+      "change_percent": -41.15107913669065,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "regex_search",
+      "windows_ms": 12.651,
+      "linux_ms": 8.082,
+      "linux_over_windows": 0.6388427792269387,
+      "change_percent": -36.11572207730613,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "serde_json",
+      "windows_ms": 13.898,
+      "linux_ms": 8.79,
+      "linux_over_windows": 0.6324651028925025,
+      "change_percent": -36.753489710749754,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "statistics_mean",
+      "windows_ms": 4.457,
+      "linux_ms": 4.423,
+      "linux_over_windows": 0.9923715503702042,
+      "change_percent": -0.7628449629795808,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "test_assert",
+      "windows_ms": 7.654,
+      "linux_ms": 2.012,
+      "linux_over_windows": 0.2628690880585315,
+      "change_percent": -73.71309119414686,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "unicode_nfc",
+      "windows_ms": 5.347,
+      "linux_ms": 7.426,
+      "linux_over_windows": 1.3888161585936039,
+      "change_percent": 38.88161585936039,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "compute",
+      "case": "xml_parse",
+      "windows_ms": 32.989,
+      "linux_ms": 30.707,
+      "linux_over_windows": 0.9308254266573708,
+      "change_percent": -6.917457334262922,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "vector_push",
+      "windows_ms": 1.938,
+      "linux_ms": 2.884,
+      "linux_over_windows": 1.4881320949432404,
+      "change_percent": 48.81320949432404,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "vector_index",
+      "windows_ms": 0.146,
+      "linux_ms": 0.232,
+      "linux_over_windows": 1.589041095890411,
+      "change_percent": 58.90410958904111,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "map_lookup",
+      "windows_ms": 0.325,
+      "linux_ms": 0.513,
+      "linux_over_windows": 1.5784615384615384,
+      "change_percent": 57.84615384615384,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "set_contains",
+      "windows_ms": 0.259,
+      "linux_ms": 0.347,
+      "linux_over_windows": 1.3397683397683395,
+      "change_percent": 33.97683397683395,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "heap_push_pop",
+      "windows_ms": 29.891,
+      "linux_ms": 7.67,
+      "linux_over_windows": 0.2565989762804858,
+      "change_percent": -74.34010237195142,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "queue_push_pop",
+      "windows_ms": 1.119,
+      "linux_ms": 1.286,
+      "linux_over_windows": 1.1492403932082216,
+      "change_percent": 14.924039320822157,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "iterator_snapshot",
+      "windows_ms": 1.468,
+      "linux_ms": 0.105,
+      "linux_over_windows": 0.07152588555858311,
+      "change_percent": -92.8474114441417,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "option_value",
+      "windows_ms": 0.025,
+      "linux_ms": 0.026,
+      "linux_over_windows": 1.0399999999999998,
+      "change_percent": 3.9999999999999813,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "function_value",
+      "windows_ms": 0.286,
+      "linux_ms": 0.231,
+      "linux_over_windows": 0.8076923076923078,
+      "change_percent": -19.23076923076922,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "features",
+      "case": "closure_bind",
+      "windows_ms": 0.19,
+      "linux_ms": 0.204,
+      "linux_over_windows": 1.0736842105263158,
+      "change_percent": 7.36842105263158,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "vector_scan_1k",
+      "windows_ms": 0.262,
+      "linux_ms": 1.299,
+      "linux_over_windows": 4.958015267175572,
+      "change_percent": 395.8015267175572,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "vector_scan_100k",
+      "windows_ms": 2.479,
+      "linux_ms": 2.879,
+      "linux_over_windows": 1.1613553852359821,
+      "change_percent": 16.135538523598214,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "vector_index_sequential",
+      "windows_ms": 0.301,
+      "linux_ms": 0.469,
+      "linux_over_windows": 1.5581395348837208,
+      "change_percent": 55.81395348837208,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "vector_index_strided",
+      "windows_ms": 0.298,
+      "linux_ms": 0.428,
+      "linux_over_windows": 1.436241610738255,
+      "change_percent": 43.6241610738255,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "map_hit_128",
+      "windows_ms": 1.606,
+      "linux_ms": 2.136,
+      "linux_over_windows": 1.3300124533001245,
+      "change_percent": 33.00124533001245,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "map_hit_8192",
+      "windows_ms": 2.215,
+      "linux_ms": 2.532,
+      "linux_over_windows": 1.143115124153499,
+      "change_percent": 14.311512415349892,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "map_hit_10_percent",
+      "windows_ms": 2.522,
+      "linux_ms": 2.133,
+      "linux_over_windows": 0.8457573354480572,
+      "change_percent": -15.42426645519428,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "dictionary_int_hit",
+      "windows_ms": 2.364,
+      "linux_ms": 0.991,
+      "linux_over_windows": 0.41920473773265654,
+      "change_percent": -58.079526226734345,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "dictionary_text_hit",
+      "windows_ms": 3.157,
+      "linux_ms": 2.614,
+      "linux_over_windows": 0.8280012670256572,
+      "change_percent": -17.199873297434277,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "dictionary_mostly_miss",
+      "windows_ms": 0.845,
+      "linux_ms": 0.604,
+      "linux_over_windows": 0.714792899408284,
+      "change_percent": -28.520710059171595,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "format_literal",
+      "windows_ms": 6.574,
+      "linux_ms": 0.685,
+      "linux_over_windows": 0.10419835716458778,
+      "change_percent": -89.58016428354122,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "format_dynamic",
+      "windows_ms": 6.923,
+      "linux_ms": 0.649,
+      "linux_over_windows": 0.09374548606095623,
+      "change_percent": -90.62545139390437,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "encoding_literal",
+      "windows_ms": 12.491,
+      "linux_ms": 0.798,
+      "linux_over_windows": 0.06388599791850133,
+      "change_percent": -93.61140020814986,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "encoding_dynamic",
+      "windows_ms": 11.221,
+      "linux_ms": 0.844,
+      "linux_over_windows": 0.07521611264593173,
+      "change_percent": -92.47838873540682,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "serde_short_text",
+      "windows_ms": 9.825,
+      "linux_ms": 5.924,
+      "linux_over_windows": 0.6029516539440204,
+      "change_percent": -39.70483460559796,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "serde_long_text",
+      "windows_ms": 8.712,
+      "linux_ms": 5.141,
+      "linux_over_windows": 0.5901056014692379,
+      "change_percent": -40.98943985307621,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "parse_valid",
+      "windows_ms": 0.83,
+      "linux_ms": 0.668,
+      "linux_over_windows": 0.8048192771084338,
+      "change_percent": -19.518072289156617,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "diverse",
+      "case": "parse_invalid",
+      "windows_ms": 0.745,
+      "linux_ms": 0.669,
+      "linux_over_windows": 0.8979865771812081,
+      "change_percent": -10.201342281879189,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "borrowing",
+      "case": "dictionary",
+      "windows_ms": 3.298,
+      "linux_ms": 2.578,
+      "linux_over_windows": 0.7816858702243784,
+      "change_percent": -21.83141297756216,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "borrowing",
+      "case": "map",
+      "windows_ms": 2.878,
+      "linux_ms": 3.501,
+      "linux_over_windows": 1.2164697706740792,
+      "change_percent": 21.646977067407924,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "borrowing",
+      "case": "set",
+      "windows_ms": 2.55,
+      "linux_ms": 2.843,
+      "linux_over_windows": 1.1149019607843138,
+      "change_percent": 11.490196078431381,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "borrowing",
+      "case": "queue",
+      "windows_ms": 1.258,
+      "linux_ms": 1.508,
+      "linux_over_windows": 1.1987281399046106,
+      "change_percent": 19.872813990461058,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "borrowing",
+      "case": "cancel",
+      "windows_ms": 5.504,
+      "linux_ms": 9.013,
+      "linux_over_windows": 1.6375363372093024,
+      "change_percent": 63.75363372093024,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "static_runtime",
+      "case": "vector_foreach",
+      "windows_ms": 1.263,
+      "linux_ms": 3.433,
+      "linux_over_windows": 2.7181314330958037,
+      "change_percent": 171.81314330958037,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "static_runtime",
+      "case": "serde_json",
+      "windows_ms": 13.982,
+      "linux_ms": 10.422,
+      "linux_over_windows": 0.7453869260477758,
+      "change_percent": -25.46130739522242,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "static_runtime",
+      "case": "format_text",
+      "windows_ms": 13.734,
+      "linux_ms": 1.238,
+      "linux_over_windows": 0.09014125527886996,
+      "change_percent": -90.98587447211301,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "static_runtime",
+      "case": "statistics_mean",
+      "windows_ms": 10.43,
+      "linux_ms": 10.894,
+      "linux_over_windows": 1.0444870565675934,
+      "change_percent": 4.448705656759344,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "static_runtime",
+      "case": "encoding_utf8",
+      "windows_ms": 22.987,
+      "linux_ms": 1.5,
+      "linux_over_windows": 0.06525427415495716,
+      "change_percent": -93.47457258450429,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "parse_paths",
+      "case": "local_valid",
+      "windows_ms": 0.766,
+      "linux_ms": 1.767,
+      "linux_over_windows": 2.306788511749347,
+      "change_percent": 130.6788511749347,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "parse_paths",
+      "case": "local_invalid",
+      "windows_ms": 0.75,
+      "linux_ms": 0.861,
+      "linux_over_windows": 1.148,
+      "change_percent": 14.79999999999999,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "parse_paths",
+      "case": "full_valid",
+      "windows_ms": 0.878,
+      "linux_ms": 0.828,
+      "linux_over_windows": 0.9430523917995444,
+      "change_percent": -5.6947608200455635,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "parse_paths",
+      "case": "full_invalid",
+      "windows_ms": 3.241,
+      "linux_ms": 2.913,
+      "linux_over_windows": 0.8987966676951558,
+      "change_percent": -10.120333230484423,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "format_paths",
+      "case": "format_literal",
+      "windows_ms": 7.315,
+      "linux_ms": 2.107,
+      "linux_over_windows": 0.28803827751196176,
+      "change_percent": -71.19617224880382,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "format_paths",
+      "case": "format_local",
+      "windows_ms": 7.316,
+      "linux_ms": 0.671,
+      "linux_over_windows": 0.09171678512848552,
+      "change_percent": -90.82832148715146,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "format_paths",
+      "case": "format_dynamic",
+      "windows_ms": 19.273,
+      "linux_ms": 8.213,
+      "linux_over_windows": 0.42614019612930004,
+      "change_percent": -57.38598038706999,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "serde_paths",
+      "case": "serde_json_short",
+      "windows_ms": 7.21,
+      "linux_ms": 6.548,
+      "linux_over_windows": 0.9081830790568655,
+      "change_percent": -9.181692094313455,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "serde_paths",
+      "case": "serde_cbor_short",
+      "windows_ms": 4.732,
+      "linux_ms": 2.755,
+      "linux_over_windows": 0.5822062552831783,
+      "change_percent": -41.779374471682175,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "serde_paths",
+      "case": "serde_json_long",
+      "windows_ms": 8.425,
+      "linux_ms": 5.021,
+      "linux_over_windows": 0.5959643916913946,
+      "change_percent": -40.40356083086054,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "serde_paths",
+      "case": "serde_cbor_long",
+      "windows_ms": 8.341,
+      "linux_ms": 5.994,
+      "linux_over_windows": 0.7186188706390121,
+      "change_percent": -28.138112936098793,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_09_11",
+      "case": "struct_fields",
+      "windows_ms": 0.662,
+      "linux_ms": 1.515,
+      "linux_over_windows": 2.2885196374622354,
+      "change_percent": 128.85196374622353,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_09_11",
+      "case": "class_methods",
+      "windows_ms": 1.63,
+      "linux_ms": 1.904,
+      "linux_over_windows": 1.1680981595092024,
+      "change_percent": 16.80981595092024,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_09_11",
+      "case": "module_call",
+      "windows_ms": 0.024,
+      "linux_ms": 0.025,
+      "linux_over_windows": 1.0416666666666667,
+      "change_percent": 4.166666666666674,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_09_11",
+      "case": "function_value",
+      "windows_ms": 2.81,
+      "linux_ms": 2.303,
+      "linux_over_windows": 0.8195729537366547,
+      "change_percent": -18.042704626334526,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_09_11",
+      "case": "closure_bind",
+      "windows_ms": 1.645,
+      "linux_ms": 2.014,
+      "linux_over_windows": 1.2243161094224924,
+      "change_percent": 22.431610942249236,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_09_11",
+      "case": "heap_push_pop",
+      "windows_ms": 29.949,
+      "linux_ms": 7.879,
+      "linux_over_windows": 0.26308057030284815,
+      "change_percent": -73.69194296971519,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_12_14",
+      "case": "snapshot",
+      "windows_ms": 14.787,
+      "linux_ms": 4.024,
+      "linux_over_windows": 0.2721309258132143,
+      "change_percent": -72.78690741867857,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_12_14",
+      "case": "vector_1k",
+      "windows_ms": 0.24,
+      "linux_ms": 0.43,
+      "linux_over_windows": 1.7916666666666667,
+      "change_percent": 79.16666666666667,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_12_14",
+      "case": "vector_100k",
+      "windows_ms": 0.297,
+      "linux_ms": 0.295,
+      "linux_over_windows": 0.9932659932659933,
+      "change_percent": -0.6734006734006703,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_12_14",
+      "case": "division",
+      "windows_ms": 0.398,
+      "linux_ms": 0.869,
+      "linux_over_windows": 2.1834170854271355,
+      "change_percent": 118.34170854271355,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_12_14",
+      "case": "recursion",
+      "windows_ms": 0.001,
+      "linux_ms": 0.0,
+      "linux_over_windows": 0.0,
+      "change_percent": -100.0,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_12_14",
+      "case": "static_spread",
+      "windows_ms": 19.563,
+      "linux_ms": 8.117,
+      "linux_over_windows": 0.4149159126923274,
+      "change_percent": -58.50840873076726,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_12_14",
+      "case": "dynamic_spread",
+      "windows_ms": 19.422,
+      "linux_ms": 7.931,
+      "linux_over_windows": 0.40835135413448664,
+      "change_percent": -59.16486458655134,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_12_14",
+      "case": "deep_copy",
+      "windows_ms": 78.753,
+      "linux_ms": 27.297,
+      "linux_over_windows": 0.3466153670336368,
+      "change_percent": -65.33846329663632,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "hex_encode_short",
+      "windows_ms": 18.549,
+      "linux_ms": 5.692,
+      "linux_over_windows": 0.3068629036605747,
+      "change_percent": -69.31370963394252,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "hex_decode_short",
+      "windows_ms": 31.879,
+      "linux_ms": 8.099,
+      "linux_over_windows": 0.2540543931741899,
+      "change_percent": -74.59456068258102,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "hex_encode_large",
+      "windows_ms": 4.566,
+      "linux_ms": 3.915,
+      "linux_over_windows": 0.8574244415243102,
+      "change_percent": -14.25755584756898,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "hex_decode_large",
+      "windows_ms": 6.752,
+      "linux_ms": 4.175,
+      "linux_over_windows": 0.618335308056872,
+      "change_percent": -38.1664691943128,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "utf8_encode_short",
+      "windows_ms": 24.57,
+      "linux_ms": 1.3,
+      "linux_over_windows": 0.052910052910052914,
+      "change_percent": -94.70899470899471,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "utf8_decode_short",
+      "windows_ms": 14.067,
+      "linux_ms": 2.612,
+      "linux_over_windows": 0.1856828037250302,
+      "change_percent": -81.43171962749697,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "utf8_encode_large",
+      "windows_ms": 16.209,
+      "linux_ms": 15.405,
+      "linux_over_windows": 0.9503979270775494,
+      "change_percent": -4.960207292245055,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "utf8_decode_large",
+      "windows_ms": 32.357,
+      "linux_ms": 30.892,
+      "linux_over_windows": 0.9547238619155052,
+      "change_percent": -4.527613808449482,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "mean_short",
+      "windows_ms": 5.125,
+      "linux_ms": 4.588,
+      "linux_over_windows": 0.895219512195122,
+      "change_percent": -10.478048780487804,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "paths_15_16",
+      "case": "mean_large",
+      "windows_ms": 25.333,
+      "linux_ms": 22.969,
+      "linux_over_windows": 0.9066829826708247,
+      "change_percent": -9.33170173291753,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "file_io",
+      "case": "file_stream_rw",
+      "windows_ms": 888.247,
+      "linux_ms": 2069.715,
+      "linux_over_windows": 2.330112007133151,
+      "change_percent": 133.0112007133151,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "format_contract",
+      "case": "format_alternating",
+      "windows_ms": 17.629,
+      "linux_ms": 8.09,
+      "linux_over_windows": 0.4589029440127063,
+      "change_percent": -54.10970559872936,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "format_contract",
+      "case": "format_parameter",
+      "windows_ms": 17.913,
+      "linux_ms": 7.725,
+      "linux_over_windows": 0.4312510467258415,
+      "change_percent": -56.87489532741586,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "concurrency",
+      "case": "thread_spawn_join",
+      "windows_ms": 13.854,
+      "linux_ms": 11.29,
+      "linux_over_windows": 0.8149270968673307,
+      "change_percent": -18.50729031326693,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "concurrency",
+      "case": "mutex_uncontended",
+      "windows_ms": 20.517,
+      "linux_ms": 1.835,
+      "linux_over_windows": 0.08943802700199835,
+      "change_percent": -91.05619729980017,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "concurrency",
+      "case": "atomic_add",
+      "windows_ms": 0.384,
+      "linux_ms": 0.443,
+      "linux_over_windows": 1.1536458333333333,
+      "change_percent": 15.364583333333325,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "concurrency",
+      "case": "channel_send_recv",
+      "windows_ms": 1.978,
+      "linux_ms": 1.573,
+      "linux_over_windows": 0.795247724974722,
+      "change_percent": -20.475227502527805,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "concurrency",
+      "case": "task_spawn_wait",
+      "windows_ms": 7.506,
+      "linux_ms": 26.869,
+      "linux_over_windows": 3.579669597655209,
+      "change_percent": 257.96695976552087,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "sqlite",
+      "case": "sqlite_insert",
+      "windows_ms": 11.422,
+      "linux_ms": 13.597,
+      "linux_over_windows": 1.1904219926457713,
+      "change_percent": 19.042199264577132,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "sqlite",
+      "case": "sqlite_read",
+      "windows_ms": 26.133,
+      "linux_ms": 17.366,
+      "linux_over_windows": 0.6645237821910994,
+      "change_percent": -33.547621780890054,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "sqlite",
+      "case": "sqlite_savepoint",
+      "windows_ms": 2.622,
+      "linux_ms": 1.474,
+      "linux_over_windows": 0.5621662852784134,
+      "change_percent": -43.78337147215866,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "sqlite",
+      "case": "sqlite_pool",
+      "windows_ms": 137.792,
+      "linux_ms": 6.758,
+      "linux_over_windows": 0.04904493729679517,
+      "change_percent": -95.09550627032048,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "sqlite",
+      "case": "sqlite_async",
+      "windows_ms": 54.773,
+      "linux_ms": 9.059,
+      "linux_over_windows": 0.1653917075931572,
+      "change_percent": -83.46082924068428,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "sqlite",
+      "case": "migration_recheck",
+      "windows_ms": 2.117,
+      "linux_ms": 1.634,
+      "linux_over_windows": 0.7718469532357108,
+      "change_percent": -22.815304676428916,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "async_file",
+      "case": "async_file_rw",
+      "windows_ms": 38.012,
+      "linux_ms": 171.087,
+      "linux_over_windows": 4.500868146900978,
+      "change_percent": 350.0868146900978,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "profile",
+      "case": "profile_spans",
+      "windows_ms": 0.471,
+      "linux_ms": 0.625,
+      "linux_over_windows": 1.3269639065817411,
+      "change_percent": 32.69639065817411,
+      "workload_source_hash_equal": true,
+      "note": ""
+    },
+    {
+      "suite": "network",
+      "case": "dns_localhost",
+      "windows_ms": 0.266,
+      "linux_ms": 2.213,
+      "linux_over_windows": 8.319548872180452,
+      "change_percent": 731.9548872180452,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "network",
+      "case": "udp_echo",
+      "windows_ms": 34.354,
+      "linux_ms": 41.369,
+      "linux_over_windows": 1.204197473365547,
+      "change_percent": 20.419747336554693,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "network",
+      "case": "ipc_echo",
+      "windows_ms": 12.771,
+      "linux_ms": 29.826,
+      "linux_over_windows": 2.335447498238196,
+      "change_percent": 133.5447498238196,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "network",
+      "case": "tls_handshake",
+      "windows_ms": 144.254,
+      "linux_ms": 52.926,
+      "linux_over_windows": 0.3668945055249768,
+      "change_percent": -63.31054944750232,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "random_long",
+      "case": "random_long",
+      "windows_ms": 41.0,
+      "linux_ms": 22.0,
+      "linux_over_windows": 0.5365853658536586,
+      "change_percent": -46.34146341463414,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "diagnostics",
+      "case": "test_parameterized",
+      "windows_ms": 0.223,
+      "linux_ms": 1.124,
+      "linux_over_windows": 5.040358744394619,
+      "change_percent": 404.0358744394619,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "diagnostics",
+      "case": "test_property",
+      "windows_ms": 0.334,
+      "linux_ms": 0.313,
+      "linux_over_windows": 0.9371257485029939,
+      "change_percent": -6.28742514970061,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "diagnostics",
+      "case": "log_filtered",
+      "windows_ms": 0.901,
+      "linux_ms": 1.524,
+      "linux_over_windows": 1.6914539400665927,
+      "change_percent": 69.14539400665927,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "diagnostics",
+      "case": "log_file",
+      "windows_ms": 31.396,
+      "linux_ms": 1008.452,
+      "linux_over_windows": 32.12039750286661,
+      "change_percent": 3112.039750286661,
+      "workload_source_hash_equal": false,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "graph_contract",
+      "case": "graph_copy",
+      "windows_ms": 7.334,
+      "linux_ms": 4.396,
+      "linux_over_windows": 0.5994000545404964,
+      "change_percent": -40.05999454595036,
+      "workload_source_hash_equal": false,
+      "note": "直接 TX runtime 契约；仅内存采集移植为 getrusage"
+    },
+    {
+      "suite": "graph_contract",
+      "case": "graph_gc",
+      "windows_ms": 10.423,
+      "linux_ms": 6.06,
+      "linux_over_windows": 0.5814065048450542,
+      "change_percent": -41.85934951549458,
+      "workload_source_hash_equal": false,
+      "note": "直接 TX runtime 契约；仅内存采集移植为 getrusage"
+    },
+    {
+      "suite": "security",
+      "case": "secret_equal",
+      "windows_ms": 14.163,
+      "linux_ms": 9.353,
+      "linux_over_windows": 0.6603826872837676,
+      "change_percent": -33.96173127162324,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "security",
+      "case": "argon2_hash_verify",
+      "windows_ms": 163.263,
+      "linux_ms": 207.871,
+      "linux_over_windows": 1.2732278593435133,
+      "change_percent": 27.322785934351334,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "security",
+      "case": "ed25519_sign",
+      "windows_ms": 17.126,
+      "linux_ms": 16.818,
+      "linux_over_windows": 0.9820156487212426,
+      "change_percent": -1.7984351278757416,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "security",
+      "case": "ed25519_verify",
+      "windows_ms": 24.329,
+      "linux_ms": 24.251,
+      "linux_over_windows": 0.9967939496074644,
+      "change_percent": -0.3206050392535631,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "security",
+      "case": "x509_parse_der",
+      "windows_ms": 2.965,
+      "linux_ms": 67.975,
+      "linux_over_windows": 22.925801011804385,
+      "change_percent": 2192.5801011804383,
+      "workload_source_hash_equal": false,
+      "note": "独立生成的证书夹具；比较相同次数，字节长度可能不同"
+    },
+    {
+      "suite": "postgres",
+      "case": "postgres_insert",
+      "windows_ms": 189.458,
+      "linux_ms": 242.776,
+      "linux_over_windows": 1.2814238511965714,
+      "change_percent": 28.142385119657142,
+      "workload_source_hash_equal": true,
+      "note": "服务器 Windows 18.4 / Linux 16.15；临时 TLS 数据库"
+    },
+    {
+      "suite": "postgres",
+      "case": "postgres_read",
+      "windows_ms": 41.141,
+      "linux_ms": 24.552,
+      "linux_over_windows": 0.596776937847889,
+      "change_percent": -40.3223062152111,
+      "workload_source_hash_equal": true,
+      "note": "服务器 Windows 18.4 / Linux 16.15；临时 TLS 数据库"
+    },
+    {
+      "suite": "postgres",
+      "case": "postgres_savepoint",
+      "windows_ms": 115.403,
+      "linux_ms": 340.026,
+      "linux_over_windows": 2.946422536675823,
+      "change_percent": 194.6422536675823,
+      "workload_source_hash_equal": true,
+      "note": "服务器 Windows 18.4 / Linux 16.15；临时 TLS 数据库"
+    },
+    {
+      "suite": "system",
+      "case": "debug_location",
+      "windows_ms": 5.391,
+      "linux_ms": 3.41,
+      "linux_over_windows": 0.6325357076609164,
+      "change_percent": -36.74642923390836,
+      "workload_source_hash_equal": false,
+      "note": "进程路径已移植；debug_location/system_os 的输出长度随平台改变"
+    },
+    {
+      "suite": "system",
+      "case": "error_stack",
+      "windows_ms": 1.953,
+      "linux_ms": 0.538,
+      "linux_over_windows": 0.27547363031234,
+      "change_percent": -72.452636968766,
+      "workload_source_hash_equal": false,
+      "note": "进程路径已移植；debug_location/system_os 的输出长度随平台改变"
+    },
+    {
+      "suite": "system",
+      "case": "file_stream_rw",
+      "windows_ms": 843.336,
+      "linux_ms": 1750.237,
+      "linux_over_windows": 2.075373279452081,
+      "change_percent": 107.53732794520809,
+      "workload_source_hash_equal": false,
+      "note": "进程路径已移植；debug_location/system_os 的输出长度随平台改变"
+    },
+    {
+      "suite": "system",
+      "case": "log_event",
+      "windows_ms": 7.738,
+      "linux_ms": 5.083,
+      "linux_over_windows": 0.656888084776428,
+      "change_percent": -34.3111915223572,
+      "workload_source_hash_equal": false,
+      "note": "进程路径已移植；debug_location/system_os 的输出长度随平台改变"
+    },
+    {
+      "suite": "system",
+      "case": "process_spawn",
+      "windows_ms": 907.729,
+      "linux_ms": 204.448,
+      "linux_over_windows": 0.22523021738866997,
+      "change_percent": -77.476978261133,
+      "workload_source_hash_equal": false,
+      "note": "进程路径已移植；debug_location/system_os 的输出长度随平台改变"
+    },
+    {
+      "suite": "system",
+      "case": "system_os",
+      "windows_ms": 2.363,
+      "linux_ms": 0.648,
+      "linux_over_windows": 0.2742276766821837,
+      "change_percent": -72.57723233178164,
+      "workload_source_hash_equal": false,
+      "note": "进程路径已移植；debug_location/system_os 的输出长度随平台改变"
+    },
+    {
+      "suite": "http",
+      "case": "httpx_get",
+      "windows_ms": 975.974,
+      "linux_ms": 86.726,
+      "linux_over_windows": 0.0888609737554484,
+      "change_percent": -91.11390262445515,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "http",
+      "case": "requests_get",
+      "windows_ms": 981.354,
+      "linux_ms": 73.046,
+      "linux_over_windows": 0.07443389439488707,
+      "change_percent": -92.5566105605113,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "ws",
+      "case": "websocket_echo",
+      "windows_ms": 894.903,
+      "linux_ms": 4517.801,
+      "linux_over_windows": 5.048369488089771,
+      "change_percent": 404.8369488089771,
+      "workload_source_hash_equal": true,
+      "note": "系统/网络/文件负载；Linux 为 WSL2 /mnt/e，平台后端也不同"
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "fanout-2000",
+      "windows_ms": 11.182,
+      "linux_ms": 5.111,
+      "linux_over_windows": 0.45707386871758177,
+      "change_percent": -54.292613128241825,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "deep-pwd-2000",
+      "windows_ms": 12.568,
+      "linux_ms": 10.925,
+      "linux_over_windows": 0.8692711648631446,
+      "change_percent": -13.07288351368554,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "moves-2000",
+      "windows_ms": 5.442,
+      "linux_ms": 2.949,
+      "linux_over_windows": 0.541896361631753,
+      "change_percent": -45.8103638368247,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "random-2000-1",
+      "windows_ms": 6.399,
+      "linux_ms": 3.273,
+      "linux_over_windows": 0.5114861697140178,
+      "change_percent": -48.851383028598214,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "linklong-2000",
+      "windows_ms": 32.177,
+      "linux_ms": 14.248,
+      "linux_over_windows": 0.442800758305622,
+      "change_percent": -55.7199241694378,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "all-free-max",
+      "windows_ms": 0.993,
+      "linux_ms": 0.786,
+      "linux_over_windows": 0.7915407854984895,
+      "change_percent": -20.84592145015105,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "forced-increasing-max",
+      "windows_ms": 4.299,
+      "linux_ms": 4.296,
+      "linux_over_windows": 0.9993021632937892,
+      "change_percent": -0.06978367062108193,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "forced-decreasing-max",
+      "windows_ms": 1.01,
+      "linux_ms": 0.828,
+      "linux_over_windows": 0.8198019801980198,
+      "change_percent": -18.019801980198025,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "shuffled-tight-max-1",
+      "windows_ms": 3.28,
+      "linux_ms": 2.838,
+      "linux_over_windows": 0.8652439024390245,
+      "change_percent": -13.475609756097551,
+      "workload_source_hash_equal": false,
+      "note": ""
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "alternating-tight-max",
+      "windows_ms": 2.701,
+      "linux_ms": 2.527,
+      "linux_over_windows": 0.9355794150314699,
+      "change_percent": -6.44205849685301,
+      "workload_source_hash_equal": false,
+      "note": ""
+    }
+  ]
+}

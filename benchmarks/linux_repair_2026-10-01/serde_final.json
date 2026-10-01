@@ -1,0 +1,1234 @@
+{
+  "diverse": {
+    "samples": {
+      "old": [
+        {
+          "vector_scan_1k": [
+            0.317,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.562,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.317,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.316,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.116,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.664,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.385,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            1.034,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.465,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.58,
+            "1"
+          ],
+          "format_literal": [
+            0.636,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.657,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.801,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.782,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.136,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.078,
+            "655000"
+          ],
+          "parse_valid": [
+            0.681,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.678,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.27,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.696,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.319,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.318,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.043,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.335,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.025,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.967,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.49,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.58,
+            "1"
+          ],
+          "format_literal": [
+            0.661,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.64,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.785,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.792,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.201,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.196,
+            "655000"
+          ],
+          "parse_valid": [
+            0.765,
+            "100000"
+          ],
+          "parse_invalid": [
+            1.374,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.283,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.59,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.316,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.34,
+            "47857965"
+          ],
+          "map_hit_128": [
+            4.632,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.461,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.011,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.974,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.43,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.571,
+            "1"
+          ],
+          "format_literal": [
+            0.649,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.632,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.872,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.902,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.337,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.334,
+            "655000"
+          ],
+          "parse_valid": [
+            0.642,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.65,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.276,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.621,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.32,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.319,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.076,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.329,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.035,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.948,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.459,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.575,
+            "1"
+          ],
+          "format_literal": [
+            0.646,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.64,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.825,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.914,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.283,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.072,
+            "655000"
+          ],
+          "parse_valid": [
+            0.666,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.662,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.278,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.633,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.321,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.318,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.037,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.357,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.118,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.98,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.604,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.568,
+            "1"
+          ],
+          "format_literal": [
+            0.673,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.629,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.778,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.79,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.037,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.044,
+            "655000"
+          ],
+          "parse_valid": [
+            0.72,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.669,
+            "100000"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "vector_scan_1k": [
+            0.408,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            3.8,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.324,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.356,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.881,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.374,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.009,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.945,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.458,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.579,
+            "1"
+          ],
+          "format_literal": [
+            0.57,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.57,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.736,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.767,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.464,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.407,
+            "655000"
+          ],
+          "parse_valid": [
+            0.638,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.643,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.406,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            3.955,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.321,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.32,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.928,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.382,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.115,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.971,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.546,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.584,
+            "1"
+          ],
+          "format_literal": [
+            0.59,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.579,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.755,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.822,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.534,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.455,
+            "655000"
+          ],
+          "parse_valid": [
+            0.694,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.757,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.4,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            3.896,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.318,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.318,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.952,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.183,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.507,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            1.009,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.592,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.574,
+            "1"
+          ],
+          "format_literal": [
+            0.569,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.577,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.737,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.83,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.411,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.405,
+            "655000"
+          ],
+          "parse_valid": [
+            0.658,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.651,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.427,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            3.971,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.328,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.318,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.912,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.265,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.015,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.969,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.528,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.593,
+            "1"
+          ],
+          "format_literal": [
+            0.573,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.655,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.771,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.765,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.498,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.411,
+            "655000"
+          ],
+          "parse_valid": [
+            0.646,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.644,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.45,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            3.781,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.312,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.311,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.935,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.232,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.993,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.974,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.4,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.573,
+            "1"
+          ],
+          "format_literal": [
+            0.998,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.644,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.863,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.836,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.389,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.358,
+            "655000"
+          ],
+          "parse_valid": [
+            0.644,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.633,
+            "100000"
+          ]
+        }
+      ],
+      "cpp": [
+        {
+          "vector_scan_1k": [
+            0.129,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.301,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.335,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.347,
+            "47857965"
+          ],
+          "map_hit_128": [
+            0.923,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            0.937,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.66,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.832,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.248,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.929,
+            "1"
+          ],
+          "format_literal": [
+            1.094,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.989,
+            "488890"
+          ],
+          "encoding_literal": [
+            2.644,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            2.02,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.504,
+            "40000"
+          ],
+          "serde_long_text": [
+            3.577,
+            "655000"
+          ],
+          "parse_valid": [
+            1.888,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.703,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.14,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.256,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.333,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.327,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.013,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            0.923,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.65,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.83,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.123,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.992,
+            "1"
+          ],
+          "format_literal": [
+            1.329,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.261,
+            "488890"
+          ],
+          "encoding_literal": [
+            1.973,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            2.124,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.513,
+            "40000"
+          ],
+          "serde_long_text": [
+            3.445,
+            "655000"
+          ],
+          "parse_valid": [
+            1.832,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.689,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.129,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.281,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.335,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.359,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.01,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            0.929,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.646,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.844,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.2,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.906,
+            "1"
+          ],
+          "format_literal": [
+            1.232,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.023,
+            "488890"
+          ],
+          "encoding_literal": [
+            1.961,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            1.951,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.524,
+            "40000"
+          ],
+          "serde_long_text": [
+            3.352,
+            "655000"
+          ],
+          "parse_valid": [
+            1.86,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.723,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.128,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.405,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.333,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.331,
+            "47857965"
+          ],
+          "map_hit_128": [
+            0.99,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            0.947,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.7,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.812,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.124,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.885,
+            "1"
+          ],
+          "format_literal": [
+            0.961,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.018,
+            "488890"
+          ],
+          "encoding_literal": [
+            1.933,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            2.573,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.498,
+            "40000"
+          ],
+          "serde_long_text": [
+            3.387,
+            "655000"
+          ],
+          "parse_valid": [
+            1.839,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.618,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.13,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.29,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.365,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.331,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.105,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            0.995,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.697,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.821,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            4.838,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.933,
+            "1"
+          ],
+          "format_literal": [
+            0.943,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.018,
+            "488890"
+          ],
+          "encoding_literal": [
+            2.223,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            2.343,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.573,
+            "40000"
+          ],
+          "serde_long_text": [
+            3.688,
+            "655000"
+          ],
+          "parse_valid": [
+            1.881,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.643,
+            "100000"
+          ]
+        }
+      ]
+    },
+    "medians_ms": {
+      "vector_scan_1k": {
+        "old": 0.278,
+        "new": 0.408,
+        "cpp": 0.129
+      },
+      "vector_scan_100k": {
+        "old": 2.621,
+        "new": 3.896,
+        "cpp": 1.29
+      },
+      "vector_index_sequential": {
+        "old": 0.319,
+        "new": 0.321,
+        "cpp": 0.335
+      },
+      "vector_index_strided": {
+        "old": 0.318,
+        "new": 0.318,
+        "cpp": 0.331
+      },
+      "map_hit_128": {
+        "old": 2.076,
+        "new": 1.928,
+        "cpp": 1.01
+      },
+      "map_hit_8192": {
+        "old": 2.357,
+        "new": 2.265,
+        "cpp": 0.937
+      },
+      "map_hit_10_percent": {
+        "old": 2.035,
+        "new": 2.015,
+        "cpp": 1.66
+      },
+      "dictionary_int_hit": {
+        "old": 0.974,
+        "new": 0.971,
+        "cpp": 0.83
+      },
+      "dictionary_text_hit": {
+        "old": 2.465,
+        "new": 2.528,
+        "cpp": 5.124
+      },
+      "dictionary_mostly_miss": {
+        "old": 0.575,
+        "new": 0.579,
+        "cpp": 0.929
+      },
+      "format_literal": {
+        "old": 0.649,
+        "new": 0.573,
+        "cpp": 1.094
+      },
+      "format_dynamic": {
+        "old": 0.64,
+        "new": 0.579,
+        "cpp": 1.023
+      },
+      "encoding_literal": {
+        "old": 0.801,
+        "new": 0.755,
+        "cpp": 1.973
+      },
+      "encoding_dynamic": {
+        "old": 0.792,
+        "new": 0.822,
+        "cpp": 2.124
+      },
+      "serde_short_text": {
+        "old": 4.201,
+        "new": 3.464,
+        "cpp": 0.513
+      },
+      "serde_long_text": {
+        "old": 5.078,
+        "new": 4.407,
+        "cpp": 3.445
+      },
+      "parse_valid": {
+        "old": 0.681,
+        "new": 0.646,
+        "cpp": 1.86
+      },
+      "parse_invalid": {
+        "old": 0.669,
+        "new": 0.644,
+        "cpp": 3.689
+      }
+    },
+    "checksums": {
+      "vector_scan_1k": "3000000",
+      "vector_scan_100k": "30000000",
+      "vector_index_sequential": "47857475",
+      "vector_index_strided": "47857965",
+      "map_hit_128": "31748464",
+      "map_hit_8192": "2047690384",
+      "map_hit_10_percent": "50000",
+      "dictionary_int_hit": "200000",
+      "dictionary_text_hit": "200000",
+      "dictionary_mostly_miss": "1",
+      "format_literal": "488890",
+      "format_dynamic": "488890",
+      "encoding_literal": "900000",
+      "encoding_dynamic": "900000",
+      "serde_short_text": "40000",
+      "serde_long_text": "655000",
+      "parse_valid": "100000",
+      "parse_invalid": "100000"
+    }
+  }
+}

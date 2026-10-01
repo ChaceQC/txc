@@ -40,6 +40,22 @@ void send_ws_frame(tcp_stream& stream, std::uint8_t opcode,
         crypto::fill_random(mask);
         header.append(reinterpret_cast<const char*>(mask.data()), mask.size());
     }
+    // 短帧必须把头和正文一次交给 TCP，避免分开发送触发 Nagle/延迟确认。
+    // 大帧仍按块掩码，避免复制整个消息。
+    if (payload.size() <= 16 * 1024)
+    {
+        const auto offset = header.size();
+        header.append(payload);
+        if (masked)
+        {
+            for (std::size_t index = 0; index < payload.size(); ++index)
+            {
+                header[offset + index] ^= static_cast<char>(mask[index % 4]);
+            }
+        }
+        stream.send_all(header);
+        return;
+    }
     stream.send_all(header);
     if (!masked)
     {

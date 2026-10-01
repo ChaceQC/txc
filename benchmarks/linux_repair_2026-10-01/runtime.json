@@ -1,0 +1,3434 @@
+{
+  "diverse": {
+    "samples": {
+      "old": [
+        {
+          "vector_scan_1k": [
+            0.272,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.621,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.32,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.38,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.267,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.686,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.039,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.931,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.49,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.582,
+            "1"
+          ],
+          "format_literal": [
+            0.642,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.701,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.787,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.787,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.181,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.414,
+            "655000"
+          ],
+          "parse_valid": [
+            0.742,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.651,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.28,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.916,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.323,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.321,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.102,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.353,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.079,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.98,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.716,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.585,
+            "1"
+          ],
+          "format_literal": [
+            0.653,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.69,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.793,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.951,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.471,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.15,
+            "655000"
+          ],
+          "parse_valid": [
+            0.718,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.716,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.278,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.656,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.326,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.341,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.401,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.54,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.038,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.937,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.6,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.626,
+            "1"
+          ],
+          "format_literal": [
+            0.672,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.675,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.905,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.827,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.55,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.593,
+            "655000"
+          ],
+          "parse_valid": [
+            0.786,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.723,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.308,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            3.063,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.319,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.37,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.152,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.503,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.15,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.99,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.648,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.598,
+            "1"
+          ],
+          "format_literal": [
+            0.771,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.718,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.811,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            1.13,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.56,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.3,
+            "655000"
+          ],
+          "parse_valid": [
+            0.649,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.673,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.275,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.609,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.332,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.321,
+            "47857965"
+          ],
+          "map_hit_128": [
+            2.069,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.391,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.208,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            1.141,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.48,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.582,
+            "1"
+          ],
+          "format_literal": [
+            0.748,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.654,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.791,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.828,
+            "900000"
+          ],
+          "serde_short_text": [
+            4.241,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.717,
+            "655000"
+          ],
+          "parse_valid": [
+            0.71,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.699,
+            "100000"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "vector_scan_1k": [
+            0.282,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.666,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.323,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.398,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.806,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.263,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.057,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.967,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.488,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.59,
+            "1"
+          ],
+          "format_literal": [
+            0.606,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.606,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.842,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.834,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.3,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.298,
+            "655000"
+          ],
+          "parse_valid": [
+            0.663,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.699,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.28,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.59,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.32,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.382,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.843,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.365,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.073,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.952,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.496,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.584,
+            "1"
+          ],
+          "format_literal": [
+            0.603,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.591,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.877,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.844,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.343,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.503,
+            "655000"
+          ],
+          "parse_valid": [
+            0.846,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.75,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.582,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            12.083,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.497,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.681,
+            "47857965"
+          ],
+          "map_hit_128": [
+            3.178,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            4.642,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            4.009,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            1.141,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            3.016,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.643,
+            "1"
+          ],
+          "format_literal": [
+            0.633,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.654,
+            "488890"
+          ],
+          "encoding_literal": [
+            1.031,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            1.004,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.585,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.715,
+            "655000"
+          ],
+          "parse_valid": [
+            0.779,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.785,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.281,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            2.661,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.321,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.384,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.809,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.768,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.311,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.962,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.716,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.593,
+            "1"
+          ],
+          "format_literal": [
+            0.588,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.601,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.898,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            1.015,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.286,
+            "40000"
+          ],
+          "serde_long_text": [
+            5.333,
+            "655000"
+          ],
+          "parse_valid": [
+            0.697,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.699,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.328,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            3.72,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.34,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.399,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.868,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            2.304,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            2.105,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.977,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            2.595,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.579,
+            "1"
+          ],
+          "format_literal": [
+            0.611,
+            "488890"
+          ],
+          "format_dynamic": [
+            0.645,
+            "488890"
+          ],
+          "encoding_literal": [
+            0.836,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            0.847,
+            "900000"
+          ],
+          "serde_short_text": [
+            3.28,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.314,
+            "655000"
+          ],
+          "parse_valid": [
+            0.657,
+            "100000"
+          ],
+          "parse_invalid": [
+            0.689,
+            "100000"
+          ]
+        }
+      ],
+      "cpp": [
+        {
+          "vector_scan_1k": [
+            0.14,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.302,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.522,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.364,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.032,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            0.978,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.765,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.815,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.156,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.885,
+            "1"
+          ],
+          "format_literal": [
+            0.981,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.016,
+            "488890"
+          ],
+          "encoding_literal": [
+            1.902,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            2.231,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.543,
+            "40000"
+          ],
+          "serde_long_text": [
+            3.469,
+            "655000"
+          ],
+          "parse_valid": [
+            1.87,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.998,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.129,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.323,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.337,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.331,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.047,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            1.037,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.708,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.841,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.195,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            1.314,
+            "1"
+          ],
+          "format_literal": [
+            0.965,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.082,
+            "488890"
+          ],
+          "encoding_literal": [
+            1.92,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            1.927,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.502,
+            "40000"
+          ],
+          "serde_long_text": [
+            3.515,
+            "655000"
+          ],
+          "parse_valid": [
+            1.895,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.661,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.13,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.31,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.34,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.333,
+            "47857965"
+          ],
+          "map_hit_128": [
+            0.916,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            1.312,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.751,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.839,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.2,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            1.114,
+            "1"
+          ],
+          "format_literal": [
+            0.922,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.084,
+            "488890"
+          ],
+          "encoding_literal": [
+            2.257,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            2.57,
+            "900000"
+          ],
+          "serde_short_text": [
+            1.096,
+            "40000"
+          ],
+          "serde_long_text": [
+            6.765,
+            "655000"
+          ],
+          "parse_valid": [
+            2.679,
+            "100000"
+          ],
+          "parse_invalid": [
+            6.88,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.131,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.356,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.342,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.336,
+            "47857965"
+          ],
+          "map_hit_128": [
+            0.995,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            0.933,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.752,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.825,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.391,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            1.504,
+            "1"
+          ],
+          "format_literal": [
+            1.326,
+            "488890"
+          ],
+          "format_dynamic": [
+            2.202,
+            "488890"
+          ],
+          "encoding_literal": [
+            2.535,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            2.345,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.547,
+            "40000"
+          ],
+          "serde_long_text": [
+            3.745,
+            "655000"
+          ],
+          "parse_valid": [
+            1.924,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.971,
+            "100000"
+          ]
+        },
+        {
+          "vector_scan_1k": [
+            0.132,
+            "3000000"
+          ],
+          "vector_scan_100k": [
+            1.303,
+            "30000000"
+          ],
+          "vector_index_sequential": [
+            0.356,
+            "47857475"
+          ],
+          "vector_index_strided": [
+            0.35,
+            "47857965"
+          ],
+          "map_hit_128": [
+            1.031,
+            "31748464"
+          ],
+          "map_hit_8192": [
+            0.921,
+            "2047690384"
+          ],
+          "map_hit_10_percent": [
+            1.822,
+            "50000"
+          ],
+          "dictionary_int_hit": [
+            0.825,
+            "200000"
+          ],
+          "dictionary_text_hit": [
+            5.245,
+            "200000"
+          ],
+          "dictionary_mostly_miss": [
+            0.913,
+            "1"
+          ],
+          "format_literal": [
+            0.947,
+            "488890"
+          ],
+          "format_dynamic": [
+            1.035,
+            "488890"
+          ],
+          "encoding_literal": [
+            2.264,
+            "900000"
+          ],
+          "encoding_dynamic": [
+            2.223,
+            "900000"
+          ],
+          "serde_short_text": [
+            0.546,
+            "40000"
+          ],
+          "serde_long_text": [
+            4.184,
+            "655000"
+          ],
+          "parse_valid": [
+            2.012,
+            "100000"
+          ],
+          "parse_invalid": [
+            3.89,
+            "100000"
+          ]
+        }
+      ]
+    },
+    "medians_ms": {
+      "vector_scan_1k": {
+        "old": 0.278,
+        "new": 0.282,
+        "cpp": 0.131
+      },
+      "vector_scan_100k": {
+        "old": 2.656,
+        "new": 2.666,
+        "cpp": 1.31
+      },
+      "vector_index_sequential": {
+        "old": 0.323,
+        "new": 0.323,
+        "cpp": 0.342
+      },
+      "vector_index_strided": {
+        "old": 0.341,
+        "new": 0.398,
+        "cpp": 0.336
+      },
+      "map_hit_128": {
+        "old": 2.152,
+        "new": 1.843,
+        "cpp": 1.031
+      },
+      "map_hit_8192": {
+        "old": 2.503,
+        "new": 2.365,
+        "cpp": 0.978
+      },
+      "map_hit_10_percent": {
+        "old": 2.079,
+        "new": 2.105,
+        "cpp": 1.752
+      },
+      "dictionary_int_hit": {
+        "old": 0.98,
+        "new": 0.967,
+        "cpp": 0.825
+      },
+      "dictionary_text_hit": {
+        "old": 2.6,
+        "new": 2.595,
+        "cpp": 5.2
+      },
+      "dictionary_mostly_miss": {
+        "old": 0.585,
+        "new": 0.59,
+        "cpp": 1.114
+      },
+      "format_literal": {
+        "old": 0.672,
+        "new": 0.606,
+        "cpp": 0.965
+      },
+      "format_dynamic": {
+        "old": 0.69,
+        "new": 0.606,
+        "cpp": 1.082
+      },
+      "encoding_literal": {
+        "old": 0.793,
+        "new": 0.877,
+        "cpp": 2.257
+      },
+      "encoding_dynamic": {
+        "old": 0.828,
+        "new": 0.847,
+        "cpp": 2.231
+      },
+      "serde_short_text": {
+        "old": 4.471,
+        "new": 3.3,
+        "cpp": 0.546
+      },
+      "serde_long_text": {
+        "old": 5.414,
+        "new": 4.503,
+        "cpp": 3.745
+      },
+      "parse_valid": {
+        "old": 0.718,
+        "new": 0.697,
+        "cpp": 1.924
+      },
+      "parse_invalid": {
+        "old": 0.699,
+        "new": 0.699,
+        "cpp": 3.971
+      }
+    },
+    "checksums": {
+      "vector_scan_1k": "3000000",
+      "vector_scan_100k": "30000000",
+      "vector_index_sequential": "47857475",
+      "vector_index_strided": "47857965",
+      "map_hit_128": "31748464",
+      "map_hit_8192": "2047690384",
+      "map_hit_10_percent": "50000",
+      "dictionary_int_hit": "200000",
+      "dictionary_text_hit": "200000",
+      "dictionary_mostly_miss": "1",
+      "format_literal": "488890",
+      "format_dynamic": "488890",
+      "encoding_literal": "900000",
+      "encoding_dynamic": "900000",
+      "serde_short_text": "40000",
+      "serde_long_text": "655000",
+      "parse_valid": "100000",
+      "parse_invalid": "100000"
+    }
+  },
+  "features": {
+    "samples": {
+      "old": [
+        {
+          "vector_push": [
+            1.571,
+            "199999"
+          ],
+          "vector_index": [
+            0.148,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.356,
+            "6348464"
+          ],
+          "set_contains": [
+            0.276,
+            "100000"
+          ],
+          "heap_push_pop": [
+            7.664,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.435,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.1,
+            "49950000"
+          ],
+          "option_value": [
+            0.024,
+            "350000"
+          ],
+          "function_value": [
+            0.227,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.315,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.584,
+            "199999"
+          ],
+          "vector_index": [
+            0.22,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.356,
+            "6348464"
+          ],
+          "set_contains": [
+            0.276,
+            "100000"
+          ],
+          "heap_push_pop": [
+            7.941,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.137,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.098,
+            "49950000"
+          ],
+          "option_value": [
+            0.024,
+            "350000"
+          ],
+          "function_value": [
+            0.215,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.2,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.885,
+            "199999"
+          ],
+          "vector_index": [
+            0.148,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.354,
+            "6348464"
+          ],
+          "set_contains": [
+            0.277,
+            "100000"
+          ],
+          "heap_push_pop": [
+            7.588,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.136,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.097,
+            "49950000"
+          ],
+          "option_value": [
+            0.024,
+            "350000"
+          ],
+          "function_value": [
+            0.214,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.19,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.571,
+            "199999"
+          ],
+          "vector_index": [
+            0.148,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.356,
+            "6348464"
+          ],
+          "set_contains": [
+            0.296,
+            "100000"
+          ],
+          "heap_push_pop": [
+            6.9,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.165,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.102,
+            "49950000"
+          ],
+          "option_value": [
+            0.024,
+            "350000"
+          ],
+          "function_value": [
+            0.216,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.192,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.74,
+            "199999"
+          ],
+          "vector_index": [
+            0.148,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.424,
+            "6348464"
+          ],
+          "set_contains": [
+            0.277,
+            "100000"
+          ],
+          "heap_push_pop": [
+            6.736,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.215,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.11,
+            "49950000"
+          ],
+          "option_value": [
+            0.024,
+            "350000"
+          ],
+          "function_value": [
+            0.216,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.192,
+            "5000450000"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "vector_push": [
+            1.691,
+            "199999"
+          ],
+          "vector_index": [
+            0.149,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.367,
+            "6348464"
+          ],
+          "set_contains": [
+            0.277,
+            "100000"
+          ],
+          "heap_push_pop": [
+            6.858,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.743,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.097,
+            "49950000"
+          ],
+          "option_value": [
+            0.025,
+            "350000"
+          ],
+          "function_value": [
+            0.214,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.197,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.66,
+            "199999"
+          ],
+          "vector_index": [
+            0.183,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.37,
+            "6348464"
+          ],
+          "set_contains": [
+            0.296,
+            "100000"
+          ],
+          "heap_push_pop": [
+            7.403,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.136,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.096,
+            "49950000"
+          ],
+          "option_value": [
+            0.024,
+            "350000"
+          ],
+          "function_value": [
+            0.211,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.188,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.904,
+            "199999"
+          ],
+          "vector_index": [
+            0.149,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.382,
+            "6348464"
+          ],
+          "set_contains": [
+            0.279,
+            "100000"
+          ],
+          "heap_push_pop": [
+            7.187,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.337,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.102,
+            "49950000"
+          ],
+          "option_value": [
+            0.025,
+            "350000"
+          ],
+          "function_value": [
+            0.216,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.192,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.677,
+            "199999"
+          ],
+          "vector_index": [
+            0.149,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.373,
+            "6348464"
+          ],
+          "set_contains": [
+            0.339,
+            "100000"
+          ],
+          "heap_push_pop": [
+            7.063,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.348,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.128,
+            "49950000"
+          ],
+          "option_value": [
+            0.024,
+            "350000"
+          ],
+          "function_value": [
+            0.224,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.19,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.526,
+            "199999"
+          ],
+          "vector_index": [
+            0.148,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.359,
+            "6348464"
+          ],
+          "set_contains": [
+            0.277,
+            "100000"
+          ],
+          "heap_push_pop": [
+            7.544,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            1.141,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.098,
+            "49950000"
+          ],
+          "option_value": [
+            0.024,
+            "350000"
+          ],
+          "function_value": [
+            0.241,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.204,
+            "5000450000"
+          ]
+        }
+      ],
+      "cpp": [
+        {
+          "vector_push": [
+            0.955,
+            "199999"
+          ],
+          "vector_index": [
+            0.119,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.173,
+            "6348464"
+          ],
+          "set_contains": [
+            0.171,
+            "100000"
+          ],
+          "heap_push_pop": [
+            3.141,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            0.136,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.02,
+            "49950000"
+          ],
+          "option_value": [
+            0.013,
+            "350000"
+          ],
+          "function_value": [
+            0.142,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.142,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            0.967,
+            "199999"
+          ],
+          "vector_index": [
+            0.131,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.194,
+            "6348464"
+          ],
+          "set_contains": [
+            0.169,
+            "100000"
+          ],
+          "heap_push_pop": [
+            3.452,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            0.254,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.019,
+            "49950000"
+          ],
+          "option_value": [
+            0.013,
+            "350000"
+          ],
+          "function_value": [
+            0.141,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.156,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.059,
+            "199999"
+          ],
+          "vector_index": [
+            0.119,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.27,
+            "6348464"
+          ],
+          "set_contains": [
+            0.171,
+            "100000"
+          ],
+          "heap_push_pop": [
+            3.031,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            0.144,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.02,
+            "49950000"
+          ],
+          "option_value": [
+            0.013,
+            "350000"
+          ],
+          "function_value": [
+            0.142,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.142,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.072,
+            "199999"
+          ],
+          "vector_index": [
+            0.119,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.197,
+            "6348464"
+          ],
+          "set_contains": [
+            0.171,
+            "100000"
+          ],
+          "heap_push_pop": [
+            3.05,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            0.126,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.019,
+            "49950000"
+          ],
+          "option_value": [
+            0.013,
+            "350000"
+          ],
+          "function_value": [
+            0.142,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.142,
+            "5000450000"
+          ]
+        },
+        {
+          "vector_push": [
+            1.203,
+            "199999"
+          ],
+          "vector_index": [
+            0.156,
+            "3500000"
+          ],
+          "map_lookup": [
+            0.197,
+            "6348464"
+          ],
+          "set_contains": [
+            0.171,
+            "100000"
+          ],
+          "heap_push_pop": [
+            3.116,
+            "24975000"
+          ],
+          "queue_push_pop": [
+            0.13,
+            "4999950000"
+          ],
+          "iterator_snapshot": [
+            0.02,
+            "49950000"
+          ],
+          "option_value": [
+            0.013,
+            "350000"
+          ],
+          "function_value": [
+            0.142,
+            "9999900000"
+          ],
+          "closure_bind": [
+            0.142,
+            "5000450000"
+          ]
+        }
+      ]
+    },
+    "medians_ms": {
+      "vector_push": {
+        "old": 1.584,
+        "new": 1.677,
+        "cpp": 1.059
+      },
+      "vector_index": {
+        "old": 0.148,
+        "new": 0.149,
+        "cpp": 0.119
+      },
+      "map_lookup": {
+        "old": 0.356,
+        "new": 0.37,
+        "cpp": 0.197
+      },
+      "set_contains": {
+        "old": 0.277,
+        "new": 0.279,
+        "cpp": 0.171
+      },
+      "heap_push_pop": {
+        "old": 7.588,
+        "new": 7.187,
+        "cpp": 3.116
+      },
+      "queue_push_pop": {
+        "old": 1.165,
+        "new": 1.337,
+        "cpp": 0.136
+      },
+      "iterator_snapshot": {
+        "old": 0.1,
+        "new": 0.098,
+        "cpp": 0.02
+      },
+      "option_value": {
+        "old": 0.024,
+        "new": 0.024,
+        "cpp": 0.013
+      },
+      "function_value": {
+        "old": 0.216,
+        "new": 0.216,
+        "cpp": 0.142
+      },
+      "closure_bind": {
+        "old": 0.192,
+        "new": 0.192,
+        "cpp": 0.142
+      }
+    },
+    "checksums": {
+      "vector_push": "199999",
+      "vector_index": "3500000",
+      "map_lookup": "6348464",
+      "set_contains": "100000",
+      "heap_push_pop": "24975000",
+      "queue_push_pop": "4999950000",
+      "iterator_snapshot": "49950000",
+      "option_value": "350000",
+      "function_value": "9999900000",
+      "closure_bind": "5000450000"
+    }
+  },
+  "language": {
+    "samples": {
+      "old": [
+        {
+          "scalar_control": [
+            0.168,
+            "-62500000000"
+          ],
+          "updates": [
+            1.583,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.386,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.373,
+            "62500125000"
+          ],
+          "overloads": [
+            0.204,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.47,
+            "18731467920"
+          ],
+          "recursion": [
+            0.043,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            6.095,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.01,
+            "400060000"
+          ],
+          "array_padded": [
+            0.024,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            5.007,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.052,
+            "5000350000"
+          ],
+          "class_methods": [
+            1.243,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            1.57,
+            "3200000"
+          ],
+          "class_operator": [
+            0.754,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.373,
+            "800000"
+          ],
+          "module_call": [
+            0.025,
+            "15000950000"
+          ],
+          "string_conversion": [
+            4.152,
+            "1250413894"
+          ],
+          "deep_copy": [
+            13.859,
+            "50005001"
+          ],
+          "copy_cycle": [
+            4.551,
+            "50005007"
+          ],
+          "deinit": [
+            5.85,
+            "20000"
+          ],
+          "cycle_gc": [
+            1.234,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.197,
+            "-62500000000"
+          ],
+          "updates": [
+            1.456,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.226,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.368,
+            "62500125000"
+          ],
+          "overloads": [
+            0.203,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.606,
+            "18731467920"
+          ],
+          "recursion": [
+            0.085,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            6.886,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.011,
+            "400060000"
+          ],
+          "array_padded": [
+            0.024,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            6.737,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.048,
+            "5000350000"
+          ],
+          "class_methods": [
+            1.316,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            1.855,
+            "3200000"
+          ],
+          "class_operator": [
+            0.685,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.27,
+            "800000"
+          ],
+          "module_call": [
+            0.024,
+            "15000950000"
+          ],
+          "string_conversion": [
+            4.351,
+            "1250413894"
+          ],
+          "deep_copy": [
+            11.046,
+            "50005001"
+          ],
+          "copy_cycle": [
+            3.597,
+            "50005007"
+          ],
+          "deinit": [
+            4.996,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.75,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.163,
+            "-62500000000"
+          ],
+          "updates": [
+            1.445,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.179,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.359,
+            "62500125000"
+          ],
+          "overloads": [
+            0.244,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.383,
+            "18731467920"
+          ],
+          "recursion": [
+            0.042,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            5.217,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.021,
+            "400060000"
+          ],
+          "array_padded": [
+            0.024,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            4.44,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.025,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.689,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.981,
+            "3200000"
+          ],
+          "class_operator": [
+            0.662,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.269,
+            "800000"
+          ],
+          "module_call": [
+            0.024,
+            "15000950000"
+          ],
+          "string_conversion": [
+            4.033,
+            "1250413894"
+          ],
+          "deep_copy": [
+            9.656,
+            "50005001"
+          ],
+          "copy_cycle": [
+            4.203,
+            "50005007"
+          ],
+          "deinit": [
+            5.57,
+            "20000"
+          ],
+          "cycle_gc": [
+            1.078,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.479,
+            "-62500000000"
+          ],
+          "updates": [
+            1.801,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.225,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.373,
+            "62500125000"
+          ],
+          "overloads": [
+            0.288,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.432,
+            "18731467920"
+          ],
+          "recursion": [
+            0.062,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            4.309,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.01,
+            "400060000"
+          ],
+          "array_padded": [
+            0.025,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            4.926,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.026,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.736,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            1.186,
+            "3200000"
+          ],
+          "class_operator": [
+            0.918,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.352,
+            "800000"
+          ],
+          "module_call": [
+            0.025,
+            "15000950000"
+          ],
+          "string_conversion": [
+            4.837,
+            "1250413894"
+          ],
+          "deep_copy": [
+            12.902,
+            "50005001"
+          ],
+          "copy_cycle": [
+            3.846,
+            "50005007"
+          ],
+          "deinit": [
+            4.092,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.79,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.171,
+            "-62500000000"
+          ],
+          "updates": [
+            1.439,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.175,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.351,
+            "62500125000"
+          ],
+          "overloads": [
+            0.195,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.375,
+            "18731467920"
+          ],
+          "recursion": [
+            0.041,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            3.75,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.01,
+            "400060000"
+          ],
+          "array_padded": [
+            0.023,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            4.329,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.024,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.66,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.937,
+            "3200000"
+          ],
+          "class_operator": [
+            0.655,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.259,
+            "800000"
+          ],
+          "module_call": [
+            0.023,
+            "15000950000"
+          ],
+          "string_conversion": [
+            3.994,
+            "1250413894"
+          ],
+          "deep_copy": [
+            9.065,
+            "50005001"
+          ],
+          "copy_cycle": [
+            3.178,
+            "50005007"
+          ],
+          "deinit": [
+            3.54,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.662,
+            "1000"
+          ]
+        }
+      ],
+      "new": [
+        {
+          "scalar_control": [
+            0.179,
+            "-62500000000"
+          ],
+          "updates": [
+            1.469,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.195,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.363,
+            "62500125000"
+          ],
+          "overloads": [
+            0.193,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.386,
+            "18731467920"
+          ],
+          "recursion": [
+            0.043,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            3.945,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.01,
+            "400060000"
+          ],
+          "array_padded": [
+            0.025,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            5.582,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.025,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.844,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.994,
+            "3200000"
+          ],
+          "class_operator": [
+            0.652,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.291,
+            "800000"
+          ],
+          "module_call": [
+            0.024,
+            "15000950000"
+          ],
+          "string_conversion": [
+            4.2,
+            "1250413894"
+          ],
+          "deep_copy": [
+            14.525,
+            "50005001"
+          ],
+          "copy_cycle": [
+            3.245,
+            "50005007"
+          ],
+          "deinit": [
+            5.45,
+            "20000"
+          ],
+          "cycle_gc": [
+            1.09,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.271,
+            "-62500000000"
+          ],
+          "updates": [
+            1.504,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.386,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.395,
+            "62500125000"
+          ],
+          "overloads": [
+            0.264,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.679,
+            "18731467920"
+          ],
+          "recursion": [
+            0.086,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            7.204,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.011,
+            "400060000"
+          ],
+          "array_padded": [
+            0.028,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            4.87,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.027,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.684,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.983,
+            "3200000"
+          ],
+          "class_operator": [
+            0.801,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.327,
+            "800000"
+          ],
+          "module_call": [
+            0.026,
+            "15000950000"
+          ],
+          "string_conversion": [
+            6.924,
+            "1250413894"
+          ],
+          "deep_copy": [
+            18.594,
+            "50005001"
+          ],
+          "copy_cycle": [
+            4.134,
+            "50005007"
+          ],
+          "deinit": [
+            4.57,
+            "20000"
+          ],
+          "cycle_gc": [
+            1.08,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.172,
+            "-62500000000"
+          ],
+          "updates": [
+            1.492,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.192,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.364,
+            "62500125000"
+          ],
+          "overloads": [
+            0.193,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.395,
+            "18731467920"
+          ],
+          "recursion": [
+            0.143,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            5.464,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.01,
+            "400060000"
+          ],
+          "array_padded": [
+            0.024,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            5.997,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.046,
+            "5000350000"
+          ],
+          "class_methods": [
+            1.227,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            1.523,
+            "3200000"
+          ],
+          "class_operator": [
+            0.923,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.464,
+            "800000"
+          ],
+          "module_call": [
+            0.027,
+            "15000950000"
+          ],
+          "string_conversion": [
+            6.663,
+            "1250413894"
+          ],
+          "deep_copy": [
+            11.252,
+            "50005001"
+          ],
+          "copy_cycle": [
+            3.212,
+            "50005007"
+          ],
+          "deinit": [
+            3.7,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.738,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.165,
+            "-62500000000"
+          ],
+          "updates": [
+            1.482,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.18,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.376,
+            "62500125000"
+          ],
+          "overloads": [
+            0.19,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.395,
+            "18731467920"
+          ],
+          "recursion": [
+            0.042,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            3.82,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.01,
+            "400060000"
+          ],
+          "array_padded": [
+            0.024,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            5.017,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.025,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.679,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.964,
+            "3200000"
+          ],
+          "class_operator": [
+            0.629,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.265,
+            "800000"
+          ],
+          "module_call": [
+            0.024,
+            "15000950000"
+          ],
+          "string_conversion": [
+            4.023,
+            "1250413894"
+          ],
+          "deep_copy": [
+            9.68,
+            "50005001"
+          ],
+          "copy_cycle": [
+            3.251,
+            "50005007"
+          ],
+          "deinit": [
+            3.541,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.671,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.163,
+            "-62500000000"
+          ],
+          "updates": [
+            1.412,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.176,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.365,
+            "62500125000"
+          ],
+          "overloads": [
+            0.187,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.375,
+            "18731467920"
+          ],
+          "recursion": [
+            0.042,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            3.992,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.015,
+            "400060000"
+          ],
+          "array_padded": [
+            0.036,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            4.598,
+            "5000350000"
+          ],
+          "struct_operators": [
+            0.023,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.758,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.936,
+            "3200000"
+          ],
+          "class_operator": [
+            0.605,
+            "1000000"
+          ],
+          "runtime_cast": [
+            0.255,
+            "800000"
+          ],
+          "module_call": [
+            0.023,
+            "15000950000"
+          ],
+          "string_conversion": [
+            3.872,
+            "1250413894"
+          ],
+          "deep_copy": [
+            9.131,
+            "50005001"
+          ],
+          "copy_cycle": [
+            3.19,
+            "50005007"
+          ],
+          "deinit": [
+            3.478,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.662,
+            "1000"
+          ]
+        }
+      ],
+      "cpp": [
+        {
+          "scalar_control": [
+            0.490483,
+            "-62500000000"
+          ],
+          "updates": [
+            1.374205,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.380228,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.362952,
+            "62500125000"
+          ],
+          "overloads": [
+            0.193965,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.462067,
+            "18731467920"
+          ],
+          "recursion": [
+            0.149631,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            0.813477,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.974058,
+            "400060000"
+          ],
+          "array_padded": [
+            1.495078,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            5.535447,
+            "5000350000"
+          ],
+          "struct_operators": [
+            6.330776,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.195141,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.767443,
+            "3200000"
+          ],
+          "class_operator": [
+            0.27868,
+            "1000000"
+          ],
+          "runtime_cast": [
+            2.490504,
+            "800000"
+          ],
+          "module_call": [
+            1.564127,
+            "15000950000"
+          ],
+          "string_conversion": [
+            1.098541,
+            "1250413894"
+          ],
+          "deep_copy": [
+            1.859409,
+            "50005001"
+          ],
+          "copy_cycle": [
+            1.1966,
+            "50005007"
+          ],
+          "deinit": [
+            0.388734,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.065319,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.515279,
+            "-62500000000"
+          ],
+          "updates": [
+            1.431862,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.352123,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.367085,
+            "62500125000"
+          ],
+          "overloads": [
+            0.230757,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.501242,
+            "18731467920"
+          ],
+          "recursion": [
+            0.071844,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            0.77045,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.910841,
+            "400060000"
+          ],
+          "array_padded": [
+            1.72658,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            5.642087,
+            "5000350000"
+          ],
+          "struct_operators": [
+            7.768649,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.243511,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.663815,
+            "3200000"
+          ],
+          "class_operator": [
+            0.28222,
+            "1000000"
+          ],
+          "runtime_cast": [
+            3.08727,
+            "800000"
+          ],
+          "module_call": [
+            2.345135,
+            "15000950000"
+          ],
+          "string_conversion": [
+            1.835055,
+            "1250413894"
+          ],
+          "deep_copy": [
+            1.774683,
+            "50005001"
+          ],
+          "copy_cycle": [
+            1.61368,
+            "50005007"
+          ],
+          "deinit": [
+            0.536033,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.05827,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.243889,
+            "-62500000000"
+          ],
+          "updates": [
+            1.356024,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.182895,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.364532,
+            "62500125000"
+          ],
+          "overloads": [
+            0.20395,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.387688,
+            "18731467920"
+          ],
+          "recursion": [
+            0.071834,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            0.635629,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.856754,
+            "400060000"
+          ],
+          "array_padded": [
+            2.157053,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            5.291041,
+            "5000350000"
+          ],
+          "struct_operators": [
+            8.990749,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.165589,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.506602,
+            "3200000"
+          ],
+          "class_operator": [
+            0.254598,
+            "1000000"
+          ],
+          "runtime_cast": [
+            2.676746,
+            "800000"
+          ],
+          "module_call": [
+            2.13454,
+            "15000950000"
+          ],
+          "string_conversion": [
+            2.365397,
+            "1250413894"
+          ],
+          "deep_copy": [
+            1.257494,
+            "50005001"
+          ],
+          "copy_cycle": [
+            1.074651,
+            "50005007"
+          ],
+          "deinit": [
+            0.524942,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.056731,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.33871,
+            "-62500000000"
+          ],
+          "updates": [
+            1.292385,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.267137,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.365175,
+            "62500125000"
+          ],
+          "overloads": [
+            0.189299,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.380137,
+            "18731467920"
+          ],
+          "recursion": [
+            0.070085,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            0.601331,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.832633,
+            "400060000"
+          ],
+          "array_padded": [
+            1.416354,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            5.020791,
+            "5000350000"
+          ],
+          "struct_operators": [
+            4.666786,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.159818,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.467992,
+            "3200000"
+          ],
+          "class_operator": [
+            0.242312,
+            "1000000"
+          ],
+          "runtime_cast": [
+            1.997236,
+            "800000"
+          ],
+          "module_call": [
+            1.401975,
+            "15000950000"
+          ],
+          "string_conversion": [
+            1.052624,
+            "1250413894"
+          ],
+          "deep_copy": [
+            1.090111,
+            "50005001"
+          ],
+          "copy_cycle": [
+            0.930564,
+            "50005007"
+          ],
+          "deinit": [
+            0.353061,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.054459,
+            "1000"
+          ]
+        },
+        {
+          "scalar_control": [
+            0.235323,
+            "-62500000000"
+          ],
+          "updates": [
+            1.303443,
+            "391096443253"
+          ],
+          "while_logic": [
+            0.18921,
+            "-62500000000"
+          ],
+          "float_arithmetic": [
+            0.353191,
+            "62500125000"
+          ],
+          "overloads": [
+            0.188195,
+            "4838081397"
+          ],
+          "named_arguments": [
+            0.388717,
+            "18731467920"
+          ],
+          "recursion": [
+            0.069723,
+            "3420000"
+          ],
+          "variadic_unpack": [
+            0.59505,
+            "50095000"
+          ],
+          "array_destructure": [
+            0.781072,
+            "400060000"
+          ],
+          "array_padded": [
+            1.314051,
+            "1250225000"
+          ],
+          "dict_iteration": [
+            4.931089,
+            "5000350000"
+          ],
+          "struct_operators": [
+            4.737927,
+            "5000350000"
+          ],
+          "class_methods": [
+            0.161497,
+            "2726759900400"
+          ],
+          "virtual_interface": [
+            0.479626,
+            "3200000"
+          ],
+          "class_operator": [
+            0.213111,
+            "1000000"
+          ],
+          "runtime_cast": [
+            1.920594,
+            "800000"
+          ],
+          "module_call": [
+            1.409898,
+            "15000950000"
+          ],
+          "string_conversion": [
+            1.047547,
+            "1250413894"
+          ],
+          "deep_copy": [
+            1.107316,
+            "50005001"
+          ],
+          "copy_cycle": [
+            0.96073,
+            "50005007"
+          ],
+          "deinit": [
+            0.371441,
+            "20000"
+          ],
+          "cycle_gc": [
+            0.048516,
+            "1000"
+          ]
+        }
+      ]
+    },
+    "medians_ms": {
+      "scalar_control": {
+        "old": 0.171,
+        "new": 0.172,
+        "cpp": 0.33871
+      },
+      "updates": {
+        "old": 1.456,
+        "new": 1.482,
+        "cpp": 1.356024
+      },
+      "while_logic": {
+        "old": 0.225,
+        "new": 0.192,
+        "cpp": 0.267137
+      },
+      "float_arithmetic": {
+        "old": 0.368,
+        "new": 0.365,
+        "cpp": 0.364532
+      },
+      "overloads": {
+        "old": 0.204,
+        "new": 0.193,
+        "cpp": 0.193965
+      },
+      "named_arguments": {
+        "old": 0.432,
+        "new": 0.395,
+        "cpp": 0.388717
+      },
+      "recursion": {
+        "old": 0.043,
+        "new": 0.043,
+        "cpp": 0.071834
+      },
+      "variadic_unpack": {
+        "old": 5.217,
+        "new": 3.992,
+        "cpp": 0.635629
+      },
+      "array_destructure": {
+        "old": 0.01,
+        "new": 0.01,
+        "cpp": 0.856754
+      },
+      "array_padded": {
+        "old": 0.024,
+        "new": 0.025,
+        "cpp": 1.495078
+      },
+      "dict_iteration": {
+        "old": 4.926,
+        "new": 5.017,
+        "cpp": 5.291041
+      },
+      "struct_operators": {
+        "old": 0.026,
+        "new": 0.025,
+        "cpp": 6.330776
+      },
+      "class_methods": {
+        "old": 0.736,
+        "new": 0.758,
+        "cpp": 0.165589
+      },
+      "virtual_interface": {
+        "old": 1.186,
+        "new": 0.983,
+        "cpp": 0.506602
+      },
+      "class_operator": {
+        "old": 0.685,
+        "new": 0.652,
+        "cpp": 0.254598
+      },
+      "runtime_cast": {
+        "old": 0.27,
+        "new": 0.291,
+        "cpp": 2.490504
+      },
+      "module_call": {
+        "old": 0.024,
+        "new": 0.024,
+        "cpp": 1.564127
+      },
+      "string_conversion": {
+        "old": 4.152,
+        "new": 4.2,
+        "cpp": 1.098541
+      },
+      "deep_copy": {
+        "old": 11.046,
+        "new": 11.252,
+        "cpp": 1.257494
+      },
+      "copy_cycle": {
+        "old": 3.846,
+        "new": 3.245,
+        "cpp": 1.074651
+      },
+      "deinit": {
+        "old": 4.996,
+        "new": 3.7,
+        "cpp": 0.388734
+      },
+      "cycle_gc": {
+        "old": 0.79,
+        "new": 0.738,
+        "cpp": 0.056731
+      }
+    },
+    "checksums": {
+      "scalar_control": "-62500000000",
+      "updates": "391096443253",
+      "while_logic": "-62500000000",
+      "float_arithmetic": "62500125000",
+      "overloads": "4838081397",
+      "named_arguments": "18731467920",
+      "recursion": "3420000",
+      "variadic_unpack": "50095000",
+      "array_destructure": "400060000",
+      "array_padded": "1250225000",
+      "dict_iteration": "5000350000",
+      "struct_operators": "5000350000",
+      "class_methods": "2726759900400",
+      "virtual_interface": "3200000",
+      "class_operator": "1000000",
+      "runtime_cast": "800000",
+      "module_call": "15000950000",
+      "string_conversion": "1250413894",
+      "deep_copy": "50005001",
+      "copy_cycle": "50005007",
+      "deinit": "20000",
+      "cycle_gc": "1000"
+    }
+  }
+}
