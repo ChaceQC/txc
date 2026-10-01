@@ -37,9 +37,13 @@ std::any json_parser::parse()
 
 void json_parser::skip_space()
 {
-    while (input_.peek() == ' ' || input_.peek() == '\t' ||
-           input_.peek() == '\r' || input_.peek() == '\n')
+    for (;;)
     {
+        const auto byte = input_.peek();
+        if (byte != ' ' && byte != '\t' && byte != '\r' && byte != '\n')
+        {
+            return;
+        }
         (void)input_.get();
     }
 }

@@ -1,0 +1,6 @@
+{
+  "version": "postgres (PostgreSQL) 16.15 (Ubuntu 16.15-1.pgdg24.04+2)\n",
+  "package_sha256": {
+    "postgresql-16_16.15-1.pgdg24.04+2_amd64.deb": "abe560fc574383f520753dfaef79ab24081cda488293d5c991a9f77ac98ef18f"
+  }
+}

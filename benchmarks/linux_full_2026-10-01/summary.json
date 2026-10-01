@@ -1,0 +1,952 @@
+{
+  "suites": 30,
+  "cases_including_specialized_repeats": 181,
+  "covered_modules": 52,
+  "total_modules": 52,
+  "inputs_stable": true,
+  "unresolved": {},
+  "historical_checks": [
+    "compute/algorithm_sort",
+    "compute/bytes_hex",
+    "compute/cancel_status",
+    "compute/cbor_roundtrip",
+    "compute/crypto_sha256",
+    "compute/csv_parse",
+    "compute/decimal_add",
+    "compute/dictionary_contains",
+    "compute/encoding_utf8",
+    "compute/env_get",
+    "compute/format_text",
+    "compute/json_parse",
+    "compute/math_sqrt",
+    "compute/parse_int",
+    "compute/random_int",
+    "compute/regex_search",
+    "compute/serde_json",
+    "compute/statistics_mean",
+    "compute/test_assert",
+    "compute/unicode_nfc",
+    "compute/xml_parse",
+    "features/vector_push",
+    "features/vector_index",
+    "features/map_lookup",
+    "features/set_contains",
+    "features/heap_push_pop",
+    "features/queue_push_pop",
+    "features/iterator_snapshot",
+    "features/option_value",
+    "features/function_value",
+    "features/closure_bind"
+  ],
+  "historical_checksum_mismatches": [],
+  "comparisons": [
+    {
+      "suite": "library",
+      "case": "dict_hash",
+      "tx_ms": 1.0,
+      "cpp_ms": 0.064234,
+      "ratio": 15.568079210387022
+    },
+    {
+      "suite": "language",
+      "case": "cycle_gc",
+      "tx_ms": 0.711,
+      "cpp_ms": 0.053538,
+      "ratio": 13.28028689902499
+    },
+    {
+      "suite": "diverse",
+      "case": "serde_short_text",
+      "tx_ms": 5.924,
+      "cpp_ms": 0.53,
+      "ratio": 11.177358490566037
+    },
+    {
+      "suite": "language",
+      "case": "deinit",
+      "tx_ms": 3.872,
+      "cpp_ms": 0.38537,
+      "ratio": 10.047486830837896
+    },
+    {
+      "suite": "diverse",
+      "case": "vector_scan_1k",
+      "tx_ms": 1.299,
+      "cpp_ms": 0.135,
+      "ratio": 9.622222222222222
+    },
+    {
+      "suite": "features",
+      "case": "queue_push_pop",
+      "tx_ms": 1.286,
+      "cpp_ms": 0.134,
+      "ratio": 9.597014925373134
+    },
+    {
+      "suite": "language",
+      "case": "deep_copy",
+      "tx_ms": 10.594,
+      "cpp_ms": 1.128957,
+      "ratio": 9.38388264566321
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "moves-2000",
+      "tx_ms": 2.949,
+      "cpp_ms": 0.341,
+      "ratio": 8.648093841642227
+    },
+    {
+      "suite": "language",
+      "case": "variadic_unpack",
+      "tx_ms": 4.068,
+      "cpp_ms": 0.629217,
+      "ratio": 6.465178149986411
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "random-2000-1",
+      "tx_ms": 3.273,
+      "cpp_ms": 0.565,
+      "ratio": 5.792920353982302
+    },
+    {
+      "suite": "language",
+      "case": "scalar_control",
+      "tx_ms": 1.339,
+      "cpp_ms": 0.247078,
+      "ratio": 5.41934126065453
+    },
+    {
+      "suite": "features",
+      "case": "iterator_snapshot",
+      "tx_ms": 0.105,
+      "cpp_ms": 0.021,
+      "ratio": 4.999999999999999
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "fanout-2000",
+      "tx_ms": 5.111,
+      "cpp_ms": 1.038,
+      "ratio": 4.923892100192678
+    },
+    {
+      "suite": "language",
+      "case": "class_methods",
+      "tx_ms": 0.739,
+      "cpp_ms": 0.169775,
+      "ratio": 4.352819908702695
+    },
+    {
+      "suite": "language",
+      "case": "string_conversion",
+      "tx_ms": 4.257,
+      "cpp_ms": 1.11312,
+      "ratio": 3.8243855109961182
+    },
+    {
+      "suite": "language",
+      "case": "copy_cycle",
+      "tx_ms": 3.356,
+      "cpp_ms": 0.975683,
+      "ratio": 3.4396417688942003
+    },
+    {
+      "suite": "library",
+      "case": "string",
+      "tx_ms": 4.0,
+      "cpp_ms": 1.176617,
+      "ratio": 3.399576922651976
+    },
+    {
+      "suite": "library",
+      "case": "path",
+      "tx_ms": 9.0,
+      "cpp_ms": 2.679406,
+      "ratio": 3.358953439680287
+    },
+    {
+      "suite": "graph_contract",
+      "case": "graph_copy",
+      "tx_ms": 4.396,
+      "cpp_ms": 1.364,
+      "ratio": 3.222873900293255
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "forced-increasing-max",
+      "tx_ms": 4.296,
+      "cpp_ms": 1.366,
+      "ratio": 3.144948755490483
+    },
+    {
+      "suite": "language",
+      "case": "class_operator",
+      "tx_ms": 0.673,
+      "cpp_ms": 0.225076,
+      "ratio": 2.9901011213989945
+    },
+    {
+      "suite": "library",
+      "case": "math",
+      "tx_ms": 7.0,
+      "cpp_ms": 2.36376,
+      "ratio": 2.9613835583984836
+    },
+    {
+      "suite": "format_contract",
+      "case": "format_parameter",
+      "tx_ms": 7.725,
+      "cpp_ms": 2.674,
+      "ratio": 2.8889304412864623
+    },
+    {
+      "suite": "diverse",
+      "case": "map_hit_8192",
+      "tx_ms": 2.532,
+      "cpp_ms": 0.917,
+      "ratio": 2.7611777535441657
+    },
+    {
+      "suite": "language",
+      "case": "virtual_interface",
+      "tx_ms": 1.368,
+      "cpp_ms": 0.504386,
+      "ratio": 2.7122085069767996
+    },
+    {
+      "suite": "library",
+      "case": "random",
+      "tx_ms": 1.0,
+      "cpp_ms": 0.375993,
+      "ratio": 2.6596239823613734
+    },
+    {
+      "suite": "format_contract",
+      "case": "format_alternating",
+      "tx_ms": 8.09,
+      "cpp_ms": 3.136,
+      "ratio": 2.5797193877551017
+    },
+    {
+      "suite": "features",
+      "case": "vector_push",
+      "tx_ms": 2.884,
+      "cpp_ms": 1.123,
+      "ratio": 2.568121104185218
+    },
+    {
+      "suite": "features",
+      "case": "map_lookup",
+      "tx_ms": 0.513,
+      "cpp_ms": 0.205,
+      "ratio": 2.502439024390244
+    },
+    {
+      "suite": "features",
+      "case": "heap_push_pop",
+      "tx_ms": 7.67,
+      "cpp_ms": 3.233,
+      "ratio": 2.3724095267553356
+    },
+    {
+      "suite": "diverse",
+      "case": "vector_scan_100k",
+      "tx_ms": 2.879,
+      "cpp_ms": 1.292,
+      "ratio": 2.2283281733746128
+    },
+    {
+      "suite": "diverse",
+      "case": "map_hit_128",
+      "tx_ms": 2.136,
+      "cpp_ms": 0.991,
+      "ratio": 2.1553985872855703
+    },
+    {
+      "suite": "features",
+      "case": "set_contains",
+      "tx_ms": 0.347,
+      "cpp_ms": 0.183,
+      "ratio": 1.896174863387978
+    },
+    {
+      "suite": "features",
+      "case": "option_value",
+      "tx_ms": 0.026,
+      "cpp_ms": 0.014,
+      "ratio": 1.857142857142857
+    },
+    {
+      "suite": "features",
+      "case": "vector_index",
+      "tx_ms": 0.232,
+      "cpp_ms": 0.126,
+      "ratio": 1.8412698412698414
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "shuffled-tight-max-1",
+      "tx_ms": 2.838,
+      "cpp_ms": 1.697,
+      "ratio": 1.672362993517973
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "alternating-tight-max",
+      "tx_ms": 2.527,
+      "cpp_ms": 1.517,
+      "ratio": 1.6657877389584708
+    },
+    {
+      "suite": "features",
+      "case": "function_value",
+      "tx_ms": 0.231,
+      "cpp_ms": 0.151,
+      "ratio": 1.5298013245033113
+    },
+    {
+      "suite": "diverse",
+      "case": "serde_long_text",
+      "tx_ms": 5.141,
+      "cpp_ms": 3.664,
+      "ratio": 1.4031113537117903
+    },
+    {
+      "suite": "diverse",
+      "case": "vector_index_sequential",
+      "tx_ms": 0.469,
+      "cpp_ms": 0.347,
+      "ratio": 1.3515850144092219
+    },
+    {
+      "suite": "features",
+      "case": "closure_bind",
+      "tx_ms": 0.204,
+      "cpp_ms": 0.151,
+      "ratio": 1.3509933774834437
+    },
+    {
+      "suite": "diverse",
+      "case": "vector_index_strided",
+      "tx_ms": 0.428,
+      "cpp_ms": 0.331,
+      "ratio": 1.2930513595166162
+    },
+    {
+      "suite": "diverse",
+      "case": "map_hit_10_percent",
+      "tx_ms": 2.133,
+      "cpp_ms": 1.703,
+      "ratio": 1.2524955960070463
+    },
+    {
+      "suite": "diverse",
+      "case": "dictionary_int_hit",
+      "tx_ms": 0.991,
+      "cpp_ms": 0.822,
+      "ratio": 1.205596107055961
+    },
+    {
+      "suite": "library",
+      "case": "time",
+      "tx_ms": 3.0,
+      "cpp_ms": 2.491814,
+      "ratio": 1.203942188301374
+    },
+    {
+      "suite": "library",
+      "case": "io",
+      "tx_ms": 4.0,
+      "cpp_ms": 3.358789,
+      "ratio": 1.1909054126353278
+    },
+    {
+      "suite": "library",
+      "case": "array",
+      "tx_ms": 13.0,
+      "cpp_ms": 11.387498,
+      "ratio": 1.1416028349686647
+    },
+    {
+      "suite": "language",
+      "case": "updates",
+      "tx_ms": 1.534,
+      "cpp_ms": 1.374567,
+      "ratio": 1.1159877983394042
+    },
+    {
+      "suite": "graph_contract",
+      "case": "graph_gc",
+      "tx_ms": 6.06,
+      "cpp_ms": 5.447,
+      "ratio": 1.1125390123003487
+    },
+    {
+      "suite": "language",
+      "case": "float_arithmetic",
+      "tx_ms": 0.389,
+      "cpp_ms": 0.373399,
+      "ratio": 1.0417810438699622
+    },
+    {
+      "suite": "language",
+      "case": "named_arguments",
+      "tx_ms": 0.407,
+      "cpp_ms": 0.395157,
+      "ratio": 1.029970366208874
+    },
+    {
+      "suite": "language",
+      "case": "while_logic",
+      "tx_ms": 0.187,
+      "cpp_ms": 0.185295,
+      "ratio": 1.0092015434847137
+    },
+    {
+      "suite": "language",
+      "case": "overloads",
+      "tx_ms": 0.199,
+      "cpp_ms": 0.197584,
+      "ratio": 1.0071665721920804
+    },
+    {
+      "suite": "library",
+      "case": "fs",
+      "tx_ms": 850.0,
+      "cpp_ms": 851.318606,
+      "ratio": 0.9984511016313908
+    },
+    {
+      "suite": "library",
+      "case": "file",
+      "tx_ms": 2464.0,
+      "cpp_ms": 2470.084016,
+      "ratio": 0.9975369194081697
+    },
+    {
+      "suite": "language",
+      "case": "dict_iteration",
+      "tx_ms": 5.051,
+      "cpp_ms": 5.224217,
+      "ratio": 0.9668434523297941
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "deep-pwd-2000",
+      "tx_ms": 10.925,
+      "cpp_ms": 11.757,
+      "ratio": 0.929233648039466
+    },
+    {
+      "suite": "diverse",
+      "case": "format_literal",
+      "tx_ms": 0.685,
+      "cpp_ms": 0.919,
+      "ratio": 0.7453754080522307
+    },
+    {
+      "suite": "diverse",
+      "case": "dictionary_mostly_miss",
+      "tx_ms": 0.604,
+      "cpp_ms": 0.921,
+      "ratio": 0.6558089033659066
+    },
+    {
+      "suite": "diverse",
+      "case": "format_dynamic",
+      "tx_ms": 0.649,
+      "cpp_ms": 1.07,
+      "ratio": 0.6065420560747663
+    },
+    {
+      "suite": "language",
+      "case": "recursion",
+      "tx_ms": 0.043,
+      "cpp_ms": 0.073206,
+      "ratio": 0.5873835477966287
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "forced-decreasing-max",
+      "tx_ms": 0.828,
+      "cpp_ms": 1.554,
+      "ratio": 0.5328185328185328
+    },
+    {
+      "suite": "not-yet-on-stage",
+      "case": "all-free-max",
+      "tx_ms": 0.786,
+      "cpp_ms": 1.529,
+      "ratio": 0.5140614780902552
+    },
+    {
+      "suite": "diverse",
+      "case": "dictionary_text_hit",
+      "tx_ms": 2.614,
+      "cpp_ms": 5.171,
+      "ratio": 0.5055115064784373
+    },
+    {
+      "suite": "diverse",
+      "case": "encoding_dynamic",
+      "tx_ms": 0.844,
+      "cpp_ms": 2.244,
+      "ratio": 0.37611408199643487
+    },
+    {
+      "suite": "diverse",
+      "case": "parse_valid",
+      "tx_ms": 0.668,
+      "cpp_ms": 1.875,
+      "ratio": 0.3562666666666667
+    },
+    {
+      "suite": "diverse",
+      "case": "encoding_literal",
+      "tx_ms": 0.798,
+      "cpp_ms": 2.264,
+      "ratio": 0.3524734982332156
+    },
+    {
+      "suite": "diverse",
+      "case": "parse_invalid",
+      "tx_ms": 0.669,
+      "cpp_ms": 3.65,
+      "ratio": 0.18328767123287673
+    },
+    {
+      "suite": "language",
+      "case": "runtime_cast",
+      "tx_ms": 0.276,
+      "cpp_ms": 2.042615,
+      "ratio": 0.13512091118492717
+    },
+    {
+      "suite": "mini-filesystem",
+      "case": "linklong-2000",
+      "tx_ms": 14.248,
+      "cpp_ms": 107.232,
+      "ratio": 0.13287078484034617
+    },
+    {
+      "suite": "library",
+      "case": "dict_dynamic",
+      "tx_ms": 1.0,
+      "cpp_ms": 17.50669,
+      "ratio": 0.057121020592699134
+    },
+    {
+      "suite": "language",
+      "case": "array_padded",
+      "tx_ms": 0.025,
+      "cpp_ms": 1.444099,
+      "ratio": 0.01731183249901842
+    },
+    {
+      "suite": "language",
+      "case": "module_call",
+      "tx_ms": 0.025,
+      "cpp_ms": 1.487479,
+      "ratio": 0.016806959963804532
+    },
+    {
+      "suite": "language",
+      "case": "array_destructure",
+      "tx_ms": 0.01,
+      "cpp_ms": 0.8711,
+      "ratio": 0.011479738261967628
+    },
+    {
+      "suite": "language",
+      "case": "struct_operators",
+      "tx_ms": 0.026,
+      "cpp_ms": 5.064629,
+      "ratio": 0.00513364355019884
+    }
+  ],
+  "coverage": [
+    {
+      "module": "algorithm",
+      "cases": [
+        "algorithm_sort"
+      ],
+      "covered": true
+    },
+    {
+      "module": "array",
+      "cases": [
+        "array"
+      ],
+      "covered": true
+    },
+    {
+      "module": "async_file",
+      "cases": [
+        "async_file_rw"
+      ],
+      "covered": true
+    },
+    {
+      "module": "bytes",
+      "cases": [
+        "bytes_hex"
+      ],
+      "covered": true
+    },
+    {
+      "module": "cancel",
+      "cases": [
+        "cancel_status"
+      ],
+      "covered": true
+    },
+    {
+      "module": "cbor",
+      "cases": [
+        "cbor_roundtrip"
+      ],
+      "covered": true
+    },
+    {
+      "module": "channel",
+      "cases": [
+        "channel_send_recv"
+      ],
+      "covered": true
+    },
+    {
+      "module": "crypto",
+      "cases": [
+        "crypto_sha256"
+      ],
+      "covered": true
+    },
+    {
+      "module": "csv",
+      "cases": [
+        "csv_parse"
+      ],
+      "covered": true
+    },
+    {
+      "module": "db",
+      "cases": [
+        "migration_recheck",
+        "postgres_insert",
+        "postgres_read",
+        "postgres_savepoint",
+        "sqlite_async",
+        "sqlite_insert",
+        "sqlite_pool",
+        "sqlite_read",
+        "sqlite_savepoint"
+      ],
+      "covered": true
+    },
+    {
+      "module": "debug",
+      "cases": [
+        "debug_location"
+      ],
+      "covered": true
+    },
+    {
+      "module": "decimal",
+      "cases": [
+        "decimal_add"
+      ],
+      "covered": true
+    },
+    {
+      "module": "dictionary",
+      "cases": [
+        "dictionary_contains"
+      ],
+      "covered": true
+    },
+    {
+      "module": "dns",
+      "cases": [
+        "dns_localhost"
+      ],
+      "covered": true
+    },
+    {
+      "module": "encoding",
+      "cases": [
+        "encoding_utf8"
+      ],
+      "covered": true
+    },
+    {
+      "module": "env",
+      "cases": [
+        "env_get"
+      ],
+      "covered": true
+    },
+    {
+      "module": "error",
+      "cases": [
+        "error_stack"
+      ],
+      "covered": true
+    },
+    {
+      "module": "file",
+      "cases": [
+        "file"
+      ],
+      "covered": true
+    },
+    {
+      "module": "file_stream",
+      "cases": [
+        "file_stream_rw"
+      ],
+      "covered": true
+    },
+    {
+      "module": "format",
+      "cases": [
+        "format_text"
+      ],
+      "covered": true
+    },
+    {
+      "module": "fs",
+      "cases": [
+        "fs"
+      ],
+      "covered": true
+    },
+    {
+      "module": "httpx",
+      "cases": [
+        "httpx_get"
+      ],
+      "covered": true
+    },
+    {
+      "module": "io",
+      "cases": [
+        "io"
+      ],
+      "covered": true
+    },
+    {
+      "module": "ipc",
+      "cases": [
+        "ipc_echo"
+      ],
+      "covered": true
+    },
+    {
+      "module": "json",
+      "cases": [
+        "json_parse"
+      ],
+      "covered": true
+    },
+    {
+      "module": "log",
+      "cases": [
+        "log_event",
+        "log_file",
+        "log_filtered"
+      ],
+      "covered": true
+    },
+    {
+      "module": "math",
+      "cases": [
+        "math_sqrt"
+      ],
+      "covered": true
+    },
+    {
+      "module": "parse",
+      "cases": [
+        "parse_int"
+      ],
+      "covered": true
+    },
+    {
+      "module": "password",
+      "cases": [
+        "argon2_hash_verify"
+      ],
+      "covered": true
+    },
+    {
+      "module": "path",
+      "cases": [
+        "path"
+      ],
+      "covered": true
+    },
+    {
+      "module": "process",
+      "cases": [
+        "process_spawn"
+      ],
+      "covered": true
+    },
+    {
+      "module": "profile",
+      "cases": [
+        "profile_spans"
+      ],
+      "covered": true
+    },
+    {
+      "module": "public_key",
+      "cases": [
+        "ed25519_sign",
+        "ed25519_verify"
+      ],
+      "covered": true
+    },
+    {
+      "module": "random",
+      "cases": [
+        "random_int",
+        "random_long"
+      ],
+      "covered": true
+    },
+    {
+      "module": "regex",
+      "cases": [
+        "regex_search"
+      ],
+      "covered": true
+    },
+    {
+      "module": "requests",
+      "cases": [
+        "requests_get"
+      ],
+      "covered": true
+    },
+    {
+      "module": "secret",
+      "cases": [
+        "secret_equal"
+      ],
+      "covered": true
+    },
+    {
+      "module": "serde",
+      "cases": [
+        "serde_json",
+        "serde_short_text"
+      ],
+      "covered": true
+    },
+    {
+      "module": "socket",
+      "cases": [
+        "udp_echo"
+      ],
+      "covered": true
+    },
+    {
+      "module": "statistics",
+      "cases": [
+        "statistics_mean"
+      ],
+      "covered": true
+    },
+    {
+      "module": "string",
+      "cases": [
+        "string"
+      ],
+      "covered": true
+    },
+    {
+      "module": "sync",
+      "cases": [
+        "atomic_add",
+        "mutex_uncontended"
+      ],
+      "covered": true
+    },
+    {
+      "module": "system",
+      "cases": [
+        "system_os"
+      ],
+      "covered": true
+    },
+    {
+      "module": "task",
+      "cases": [
+        "sqlite_async",
+        "task_spawn_wait"
+      ],
+      "covered": true
+    },
+    {
+      "module": "test",
+      "cases": [
+        "test_assert",
+        "test_parameterized",
+        "test_property"
+      ],
+      "covered": true
+    },
+    {
+      "module": "thread",
+      "cases": [
+        "thread_spawn_join"
+      ],
+      "covered": true
+    },
+    {
+      "module": "time",
+      "cases": [
+        "time"
+      ],
+      "covered": true
+    },
+    {
+      "module": "tls",
+      "cases": [
+        "tls_handshake"
+      ],
+      "covered": true
+    },
+    {
+      "module": "unicode",
+      "cases": [
+        "unicode_nfc"
+      ],
+      "covered": true
+    },
+    {
+      "module": "websocket",
+      "cases": [
+        "websocket_echo"
+      ],
+      "covered": true
+    },
+    {
+      "module": "x509",
+      "cases": [
+        "x509_parse_der"
+      ],
+      "covered": true
+    },
+    {
+      "module": "xml",
+      "cases": [
+        "xml_parse"
+      ],
+      "covered": true
+    }
+  ]
+}

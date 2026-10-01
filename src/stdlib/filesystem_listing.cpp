@@ -5,6 +5,11 @@
 #include "stdlib/stdlib.hpp"
 
 #include <algorithm>
+#ifndef _WIN32
+#include <cerrno>
+#include <dirent.h>
+#include <memory>
+#endif
 
 namespace tx_generated
 {
@@ -18,17 +23,52 @@ std::vector<std::string> collect_names(const std::string& path, bool recursive)
 {
     const auto root = path_from_utf8(path);
     std::error_code error;
-    directory_iterator item(root, error);
-    check_filesystem_error(error, "列出目录", path);
     std::vector<std::string> names;
-    const directory_iterator end;
-    while (item != end)
+#ifndef _WIN32
+    if (!recursive)
     {
-        const auto entry = recursive ? item->path().lexically_relative(root)
-                                     : item->path().filename();
-        names.push_back(path_text(entry));
-        item.increment(error);
+        // 名称枚举不需要 stat。某些挂载盘未提供 d_type，标准迭代器会
+        // 为每项补查元数据；直接 readdir 保持悬空符号链接等名称可见。
+        const auto close_directory = [](DIR* directory)
+        {
+            closedir(directory);
+        };
+        std::unique_ptr<DIR, decltype(close_directory)> directory(
+            opendir(root.c_str()), close_directory);
+        if (!directory)
+        {
+            check_filesystem_error({errno, std::generic_category()}, "列出目录", path);
+        }
+        for (;;)
+        {
+            errno = 0;
+            const auto* entry = readdir(directory.get());
+            if (!entry)
+            {
+                check_filesystem_error({errno, std::generic_category()}, "列出目录", path);
+                break;
+            }
+            const std::string_view name(entry->d_name);
+            if (name != "." && name != "..")
+            {
+                names.push_back(path_text(std::filesystem::path(entry->d_name)));
+            }
+        }
+    }
+    else
+#endif
+    {
+        directory_iterator item(root, error);
         check_filesystem_error(error, "列出目录", path);
+        const directory_iterator end;
+        while (item != end)
+        {
+            const auto entry = recursive ? item->path().lexically_relative(root)
+                                         : item->path().filename();
+            names.push_back(path_text(entry));
+            item.increment(error);
+            check_filesystem_error(error, "列出目录", path);
+        }
     }
     // 按无符号 UTF-8 字节排序，保持旧 list_directory 的排序契约。
     std::sort(names.begin(), names.end(),

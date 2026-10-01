@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "collection": "Collected from completed targeted checks on the final Linux package. After correcting test-harness expectations, only remaining checks were rerun.",
+  "outputs": [
+    "JSON_OK",
+    "SERDE_DIRECT_TX_OK",
+    "call effects 0",
+    "QUEUE_EMPTY_CLEANUP_OK",
+    "maps true; fields true; order true; queue<str> representation preserved",
+    "JSON_STREAM_NATIVE_OK",
+    "SERDE_DIRECT_NATIVE_OK: fixed_encode_tx_allocations=0, fixed_decode_tx_allocations=1, ignored_decode_tx_allocations=1, json_error_cases=19, cbor_error_cases=8, partial_struct_released=true",
+    "LINUX_DIRECTORY_NAMES_OK",
+    "X509_OK",
+    "X509_PKCS8_INTEROP_OK",
+    "valid not_checked",
+    "X509_RESOURCE_OK",
+    "LINUX_NETWORK_OK (ws)"
+  ]
+}

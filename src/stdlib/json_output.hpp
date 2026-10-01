@@ -29,6 +29,26 @@ public:
         {
             flush();
         }
+        // 连续 ASCII 快路径可能一次传来很长的文本。流式输出仍必须有界，
+        // 分块位置退到 UTF-8 标量边界；内存输出不增加分块或复制。
+        if (sink_)
+        {
+            while (text.size() > 4096)
+            {
+                std::size_t count = 4096;
+                while (count > 0 && (static_cast<unsigned char>(text[count]) & 0xc0) == 0x80)
+                {
+                    --count;
+                }
+                if (count == 0)
+                {
+                    throw runtime_failure({tx::error_kind::runtime, "invalid_utf8",
+                        "JSON 输出包含无效 UTF-8"});
+                }
+                sink_(text.substr(0, count));
+                text.remove_prefix(count);
+            }
+        }
         buffer_.append(text);
     }
 

@@ -4,14 +4,15 @@
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
+#include <source_location>
 
 using namespace tx_generated;
 
-void expect(bool condition)
+void expect(bool condition, std::source_location location = std::source_location::current())
 {
     if (!condition)
     {
-        throw std::runtime_error("JSON stream assertion failed");
+        throw std::runtime_error("JSON stream assertion failed at line " + std::to_string(location.line()));
     }
 }
 

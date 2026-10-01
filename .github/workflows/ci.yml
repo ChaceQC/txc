@@ -54,6 +54,8 @@ jobs:
         run: ./scripts/build.ps1
       - name: Check package compatibility
         run: python -X utf8 scripts/check_package_compatibility.py
+      - name: Verify JSON, serde, and typed queue contracts
+        run: python -X utf8 scripts/check_runtime_hotspots.py
       - name: Create release ZIP
         env:
           TXC_REF: ${{ github.ref_name }}
@@ -81,6 +83,13 @@ jobs:
             build/CMakeFiles/CMakeConfigureLog.yaml
             build/CMakeCache.txt
             build/compile_commands.json
+          if-no-files-found: ignore
+      - name: Preserve Windows runtime contract results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-runtime-contract-results
+          path: tx_build/runtime_hotspot_checks/results.json
           if-no-files-found: ignore
       - name: Save toolchains even after build failure
         if: always() && steps.toolchains.outcome == 'success' && steps.toolchain_cache.outputs.cache-hit != 'true'
@@ -124,6 +133,8 @@ jobs:
       - name: Build Linux compiler and both standard libraries
         id: build
         run: python -X utf8 scripts/build_linux.py
+      - name: Verify JSON, serde, typed queue, and directory contracts
+        run: python -X utf8 scripts/check_runtime_hotspots.py
       - name: Create Linux release archive
         env:
           TXC_REF: ${{ github.ref_name }}
@@ -160,6 +171,13 @@ jobs:
             build/linux/CMakeFiles/CMakeConfigureLog.yaml
             build/linux/CMakeCache.txt
             build/linux/compile_commands.json
+          if-no-files-found: ignore
+      - name: Preserve Linux runtime contract results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-runtime-contract-results
+          path: tx_build/runtime_hotspot_checks/results.json
           if-no-files-found: ignore
       - name: Save completed Linux compilation work
         if: always() && steps.build.outcome != 'skipped' && steps.compiler_cache.outputs.cache-hit != 'true'

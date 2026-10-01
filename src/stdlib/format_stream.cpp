@@ -104,7 +104,11 @@ int format_input::peek(std::size_t ahead)
 
 char format_input::get()
 {
-    const auto byte = peek();
+    return consume(peek());
+}
+
+char format_input::consume(int byte)
+{
     if (byte < 0)
     {
         fail("invalid_syntax", "输入意外结束");
@@ -129,11 +133,13 @@ char format_input::get()
 
 bool format_input::take(char expected)
 {
-    if (peek() != static_cast<unsigned char>(expected))
+    const auto byte = peek();
+    if (byte != static_cast<unsigned char>(expected))
     {
         return false;
     }
-    (void)get();
+    // peek 已经填充流缓冲区，直接消费同一个字符，避免重复分派输入源。
+    (void)consume(byte);
     return true;
 }
 
