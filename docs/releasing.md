@@ -2,11 +2,11 @@
 
 公开仓库：<https://github.com/ChaceQC/txc>。
 工作流位于 `.github/workflows/ci.yml`，构建、安装包验证与发布均在 GitHub 托管 runner 上执行。
-当前交付平台为 Windows x64。
+工作流分别构建 Windows x64 和 Linux x86_64（Ubuntu 24.04 / glibc 2.39）工具包。
 
 ## CI
 
-分支 push、pull request 和手动 `workflow_dispatch` 都会执行同一条构建链：
+分支 push、pull request 和手动 `workflow_dispatch` 都会执行两条构建链。Windows 链：
 
 1. 在 Windows Server 2022 runner 上使用 Python 3.12 及预装的 CMake、Ninja、7-Zip。
 2. 下载并核对 SHA-256，安装固定 GCC 13.1.0 POSIX/SEH/MSVCRT 和 LLVM 23.1.2。
@@ -14,6 +14,10 @@
 4. 验证正常工具包及 7 类兼容指纹错配；将整套产物打成 ZIP。
 5. 将实际 ZIP 解压到包含中文与空格的临时路径，清除构建工具 PATH 后检查语法，在 ThinLTO 和普通链接模式下分别编译并运行数值样例与 ICU 示例。
 6. 上传通过验证的 ZIP 和 SHA256SUMS.txt，保留 14 天。构建失败保留 CMake 诊断。
+
+Linux 链在 `ubuntu-24.04` 上执行 `scripts/setup_linux.py` 安装原生依赖，以 LLVM 18 构建编译器和两套标准库。
+`scripts/package_release.py` 生成保留可执行权限的 tar.gz，`scripts/check_linux_package.py` 把实际包解压到中文与空格路径，清空工具 PATH 和动态库搜索环境后运行普通/ThinLTO、Unicode 与系统文件接口验证。
+Linux 产物以 `txc-linux-x64` Actions artifact 上传，缓存和失败诊断与 Windows 独立。
 
 CI 缓存固定工具链及 ccache，构建失败时也保存已经完成的编译缓存；没有运行性能测试或全量标准库测试。
 上游 MinGW 缺少默认 manifest 对象时，构建脚本通过 windres 生成相同权限和系统兼容声明的对象。
@@ -31,16 +35,17 @@ git tag -a v0.1.0 -m "TX Compiler v0.1.0"
 git push origin v0.1.0
 ```
 
-Tag push 会重新在 GitHub 上执行完整构建链。只有构建和 ZIP 安装验证均成功，
+Tag push 会重新在 GitHub 上执行两端构建链。只有两端构建和安装验证均成功，
 发布 job 才下载这次构建的 artifact、核对 SHA-256，并生成 Release 与更新记录。
 工作流使用 GitHub 自动提供的 `GITHUB_TOKEN`，仅发布 job 授予 `contents: write`，
 无需配置个人令牌。发布内容为：
 
 - `txc-vX.Y.Z-windows-x64.zip`：编译器、clang、两套标准库、链接组件、运行时 DLL、
   第三方许可证、`stdlib/*.txh`、README、`docs/usage.md`、`docs/syntax.md`、全部文档与示例。
-- `SHA256SUMS.txt`：上述 ZIP 的 SHA-256。
+- `txc-vX.Y.Z-linux-x64.tar.gz`：Linux ELF 编译器、clang/LLD、普通/ThinLTO 标准库、原生共享库、接口、文档、示例和许可证。宿主提供 glibc 与系统加载器。
+- `SHA256SUMS.txt`：两份安装包的 SHA-256，发布前分别验证再合并。
 
-ZIP 内的 `build-info.json` 记录版本、源码提交、工具链版本和 Actions 运行地址。
+安装包内的 `build-info.json` 记录版本、源码提交、工具链版本和 Actions 运行地址；Linux 的 `tx/licenses/packages.txt` 另记录实际系统依赖版本。
 请整体保留 `tx/`；禁止混用不同版本的编译器、库、接口或 DLL。
 解压到任意路径后可在 ZIP 顶层执行 README 的快速使用命令。
 

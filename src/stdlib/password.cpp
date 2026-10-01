@@ -3,8 +3,10 @@
 #include "stdlib/error.hpp"
 
 // 与 libsodium 静态归档中的 Argon2 实现隔离公共符号。
+#ifdef _WIN32
 #define argon2id_hash_encoded tx_argon2id_hash_encoded
 #define argon2id_verify tx_argon2id_verify
+#endif
 #include <argon2.h>
 
 #include <array>

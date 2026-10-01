@@ -1,11 +1,17 @@
 #include "driver/compatibility.hpp"
 #include "driver/compatibility_data.hpp"
+#include "common/platform.hpp"
 
+#ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
 #include <windows.h>
 #include <bcrypt.h>
+#else
+#include <openssl/evp.h>
+#include <memory>
+#endif
 
 #include <algorithm>
 #include <array>
@@ -29,6 +35,7 @@ std::string path_text(const fs::path& path)
     return {reinterpret_cast<const char*>(utf8.data()), utf8.size()};
 }
 
+#ifdef _WIN32
 struct algorithm_handle
 {
     BCRYPT_ALG_HANDLE value = nullptr;
@@ -116,6 +123,42 @@ std::string sha256_file(const fs::path& path)
     }
     return result;
 }
+
+#else
+std::string sha256_file(const fs::path& path)
+{
+    std::ifstream input(path, std::ios::binary);
+    std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> context(
+        EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (!input || !context || EVP_DigestInit_ex(context.get(), EVP_sha256(), nullptr) != 1)
+    {
+        throw std::runtime_error("无法读取或校验工具链产物：" + path_text(path));
+    }
+    std::array<char, 65536> buffer{};
+    while (input)
+    {
+        input.read(buffer.data(), buffer.size());
+        if (EVP_DigestUpdate(context.get(), buffer.data(), input.gcount()) != 1)
+        {
+            throw std::runtime_error("无法计算工具链 SHA-256");
+        }
+    }
+    std::array<unsigned char, 32> digest{};
+    unsigned size = 0;
+    if (!input.eof() || EVP_DigestFinal_ex(context.get(), digest.data(), &size) != 1 || size != 32)
+    {
+        throw std::runtime_error("无法完成工具链 SHA-256");
+    }
+    constexpr char hex[] = "0123456789abcdef";
+    std::string result;
+    for (const auto byte : digest)
+    {
+        result += hex[byte >> 4];
+        result += hex[byte & 15];
+    }
+    return result;
+}
+#endif
 
 std::string manifest_field(std::ifstream& input, std::string_view name)
 {
@@ -214,6 +257,7 @@ void verify_tool_package(const fs::path& tool_dir)
     const auto lto_library = manifest_field(manifest, "stdlib_lto");
     const auto clang = manifest_field(manifest, "clang");
     const auto lld = manifest_field(manifest, "lld");
+#ifdef _WIN32
     for (const auto* name : {"libgcc_s_seh-1.dll", "libstdc++-6.dll",
                              "libwinpthread-1.dll", "libstdc++-u.dll",
                              "libwinpthread-u.dll",
@@ -229,15 +273,36 @@ void verify_tool_package(const fs::path& tool_dir)
     {
         throw std::runtime_error("工具链兼容清单存在多余内容");
     }
+#else
+    std::vector<fs::path> files;
+    for (const auto& entry : fs::directory_iterator(tool_dir / "lib"))
+    {
+        if (entry.is_regular_file())
+        {
+            files.push_back(entry.path());
+        }
+    }
+    std::sort(files.begin(), files.end());
+    for (const auto& path : files)
+    {
+        const auto name = "lib/" + path.filename().string();
+        require_digest(path, manifest_field(manifest, name), name);
+    }
+    std::string extra;
+    if (files.empty() || std::getline(manifest, extra))
+    {
+        throw std::runtime_error("Linux 共享库清单不完整或存在多余内容");
+    }
+#endif
     if (abi != compatibility_data::abi_fingerprint)
     {
         throw std::runtime_error("txc 与运行时 ABI 指纹不匹配；请重新构建并整体替换 tx/ 目录");
     }
-    require_digest(tool_dir / "txc.exe", compiler, "txc");
+    require_digest(tool_dir / executable_name("txc"), compiler, "txc");
     require_digest(tool_dir / "libtxstdlib.a", library, "标准库静态库");
     require_digest(tool_dir / "libtxstdlib_lto.a", lto_library, "ThinLTO 标准库");
-    require_digest(tool_dir / "clang.exe", clang, "LLVM 编译器");
-    require_digest(tool_dir / "link" / "ld.lld.exe", lld, "LLVM 链接器");
+    require_digest(tool_dir / executable_name("clang"), clang, "LLVM 编译器");
+    require_digest(tool_dir / "link" / executable_name("ld.lld"), lld, "LLVM 链接器");
 }
 
 } // namespace tx

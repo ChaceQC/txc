@@ -2,6 +2,9 @@
 
 #include "stdlib/process.hpp"
 
+#ifndef _WIN32
+#include "stdlib/process_posix_internal.hpp"
+#else
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -116,3 +119,4 @@ struct process_child_state
 };
 
 } // namespace tx_generated
+#endif

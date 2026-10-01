@@ -283,7 +283,7 @@ void send_control(std::int64_t id, std::string_view data,
     {
         network::fail("connection_closed", "WebSocket 连接已关闭");
     }
-    if (!state->server)
+    if (!state->stream)
     {
         network::fail("unsupported_option", "WinHTTP 客户端由系统处理 ping/pong");
     }

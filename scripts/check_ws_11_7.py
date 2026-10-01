@@ -17,6 +17,8 @@ from check_tls import fixtures
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SUFFIX = ".exe" if os.name == "nt" else ""
+TOOL_DIR = Path(os.environ.get("TXC_TOOL_DIR", ROOT / "tx"))
 
 
 def free_port():
@@ -27,13 +29,13 @@ def free_port():
 
 def environment():
     values = os.environ.copy()
-    values["PATH"] = str(ROOT / "tx") + os.pathsep + values["PATH"]
+    values["PATH"] = str(TOOL_DIR) + os.pathsep + values["PATH"]
     return values
 
 
 def compile_case(source, destination, env):
     result = subprocess.run(
-        [str(ROOT / "tx/txc.exe"), str(source), "-o", str(destination)],
+        [str(TOOL_DIR / f"txc{SUFFIX}"), str(source), "-o", str(destination)],
         cwd=ROOT, env=env, capture_output=True, timeout=90)
     if result.returncode:
         output = (result.stdout + result.stderr).decode("utf-8", "replace")
@@ -230,10 +232,10 @@ def main():
     with tempfile.TemporaryDirectory(prefix="tx-ws-11-7-") as location:
         directory = Path(location)
         fixtures(directory)
-        upgrade_program = directory / "upgrade.exe"
-        tls_program = directory / "tls.exe"
-        async_program = directory / "async.exe"
-        close_client_program = directory / "close-client.exe"
+        upgrade_program = directory / f"upgrade{SUFFIX}"
+        tls_program = directory / f"tls{SUFFIX}"
+        async_program = directory / f"async{SUFFIX}"
+        close_client_program = directory / f"close-client{SUFFIX}"
         compile_case(ROOT / "tests/network/ws_upgrade_server.tx",
                      upgrade_program, env)
         compile_case(ROOT / "tests/network/ws_tls_server.tx", tls_program, env)

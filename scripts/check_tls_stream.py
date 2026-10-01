@@ -1,7 +1,6 @@
 """用临时证书验证 11.3 的本机 TLS 双向安全流。"""
 
 from pathlib import Path
-import os
 import socket
 import subprocess
 import sys
@@ -9,20 +8,15 @@ import tempfile
 import time
 
 from check_tls import fixtures
+from check_platform import TXC, environment
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def environment():
-    values = os.environ.copy()
-    values["PATH"] = str(ROOT / "tx") + os.pathsep + values["PATH"]
-    return values
-
-
 def compile_case(source, target, env):
     result = subprocess.run(
-        [str(ROOT / "tx/txc.exe"), str(source), "-o", str(target)],
+        [str(TXC), str(source), "-o", str(target)],
         cwd=ROOT, env=env, capture_output=True, timeout=60)
     if result.returncode:
         output = (result.stdout + result.stderr).decode("utf-8", "replace")

@@ -2,7 +2,9 @@
 #include "stdlib/secret.hpp"
 #include "stdlib/x509.hpp"
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 #include <cstdint>
 #include <filesystem>
@@ -26,14 +28,21 @@ tx_generated::byte_value read_bytes(const std::filesystem::path& path)
     return tx_generated::make_bytes({data.begin(), data.end()});
 }
 
-DWORD handle_count()
+std::size_t handle_count()
 {
+#ifdef _WIN32
     DWORD count = 0;
     if (!GetProcessHandleCount(GetCurrentProcess(), &count))
     {
         throw std::runtime_error("GetProcessHandleCount failed");
     }
     return count;
+#else
+    // 枚举时目录自身占用一个 fd；每次以同样方式读取，比较前后数量。
+    const auto entries = std::filesystem::directory_iterator("/proc/self/fd");
+    return static_cast<std::size_t>(std::distance(entries,
+        std::filesystem::directory_iterator{}));
+#endif
 }
 
 void exercise(const tx_generated::byte_value& leaf,

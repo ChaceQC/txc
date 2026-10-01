@@ -1,5 +1,7 @@
 # 本机 IPC 与版本化 CBOR 消息
 
+Linux 后端使用非阻塞 Unix domain stream socket，监听名映射到当前有效 UID 下的抽象命名空间；客户端和服务端均检查 `SO_PEERCRED` 的 UID。相同名称由不同用户各自监听，不创建或遗留磁盘 socket 文件。Windows 后端仍使用本机命名管道。两端共用下文的 TXIP/CBOR 帧、取消、超时和半包恢复逻辑；进程标准流适配使用 POSIX 管道。
+
 `ipc.txh` 提供 `listen/accept/connect` 本机命名管道，以及 `from_process_pipes(reader, writer, max_bytes)` 把 `process.stdout_pipe` 和 `process.stdin_pipe` 作为同一双向消息流。管道名只接受 1～64 个 ASCII 字母、数字、下划线和连字符；Windows 服务端使用拒绝远程客户端的字节管道。`ipc_stream` 和 `ipc_listener` 是不透明的非 `Send` 句柄；关闭流也关闭被适配的进程管道别名。`max_bytes` 须为 1～16 MiB，限制单个 CBOR 载荷。
 
 每条消息为 20 字节定长头 `TXIP`、小端 32 位版本号、小端 64 位发送方会话号、小端 32 位载荷长度，后接规范 CBOR。`send(stream, version, value, timeout_ms, token)` 在写入前编码并检查限额；版本为 1～4294967295。`recv` 解码并返回 `message`，其中 `value` 是动态 `any`，调用方应按已协商版本显式恢复类型。调用方重连后可比较 `session` 来辨认新进程；同一流内发送方会话号变化时返回 `restarted` 并仍交付该条消息。

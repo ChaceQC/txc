@@ -2,12 +2,16 @@
 
 import gzip
 import http.server
+import os
 import pathlib
 import subprocess
+import tempfile
 import threading
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+SUFFIX = ".exe" if os.name == "nt" else ""
+TOOL_DIR = pathlib.Path(os.environ.get("TXC_TOOL_DIR", ROOT / "tx"))
 BODY = bytes.fromhex("00ff80010203")
 
 
@@ -35,9 +39,11 @@ def main():
     thread.start()
     try:
         source = ROOT / "tests/network/http_session_proxy.tx"
-        subprocess.run([ROOT / "tx/txc.exe", source], cwd=ROOT, check=True)
-        subprocess.run([ROOT / "tx_build/http_session_proxy.exe"], cwd=ROOT,
-                       check=True, timeout=15)
+        with tempfile.TemporaryDirectory(prefix="tx-http-proxy-") as directory:
+            target = pathlib.Path(directory) / f"http_session_proxy{SUFFIX}"
+            subprocess.run([TOOL_DIR / f"txc{SUFFIX}", source, "-o", target],
+                           cwd=ROOT, check=True)
+            subprocess.run([target], cwd=ROOT, check=True, timeout=15)
     finally:
         server.shutdown()
         server.server_close()

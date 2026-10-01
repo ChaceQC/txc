@@ -9,6 +9,11 @@ Windows x64 用户可从 [GitHub Releases](https://github.com/ChaceQC/txc/releas
 ZIP 同时包含本文、[说明文档](docs/usage.md)、[语法文档](docs/syntax.md)、标准库文档及示例。
 自动构建与 tag 发布流程见 [GitHub CI/CD](docs/releasing.md)。
 
+Linux x86_64 原生适配与构建方式见 [Linux 平台说明](docs/linux_port.md)。
+Linux 发行格式为 `txc-vX.Y.Z-linux-x64.tar.gz`，运行基线是 Ubuntu 24.04 / glibc 2.39。
+解压后执行 `./tx/txc example.tx`，再执行 `./tx_build/example`；需要把程序旁的 `tx_lib/` 一起保留。
+Windows 和 Linux 包独立构建，不能混用其中的标准库与链接组件。
+
 运行 `scripts/build.ps1` 构建 txc 后，在仓库根目录执行：
 
 ```powershell
@@ -19,7 +24,7 @@ ZIP 同时包含本文、[说明文档](docs/usage.md)、[语法文档](docs/syn
 
 check 会检查语法和静态类型；`example.tx` 是当前语言的完整可运行语法展示。完整构建步骤和命令参数见 [编译与运行](docs/usage.md)，当前语言支持的语法和类型规则见 [语法说明](docs/syntax.md)。
 
-用户测试可运行 `tx/txc.exe test examples/toolchain_test.tx --format json`；性能分析可运行 `tx/txc.exe profile examples/profile_workload.tx --warmup 1 --samples 3`。参数化/性质测试、并行/超时、日志轮转见[工具链说明](docs/toolchain_completion.md)，CPU/内存统计范围与基准开销见[性能分析](docs/profile.md)。构建包同时交付 `tx/examples/` 和 `tx/docs/`。
+用户测试可运行 `tx/txc.exe test examples/toolchain_test.tx --format json`；性能分析可运行 `tx/txc.exe profile examples/profile_workload.tx --warmup 1 --samples 3`。参数化/性质测试、并行/超时、日志轮转见[工具链说明](docs/toolchain_completion.md)，CPU/内存统计范围与基准开销见[性能分析](docs/profile.md)。Linux 使用无 `.exe` 后缀的对应命令；发行包顶层同时交付 `examples/` 和 `docs/`。
 
 主示例也展示容器原地操作、字典条目快照和 none 键、类型化 map/set、大小顶堆、FIFO 队列、algorithm 排序查找与数值统计，以及文件系统与路径接口；运行时在 `tx_build/` 下创建独立示例目录，完成文件操作后自行清理。
 

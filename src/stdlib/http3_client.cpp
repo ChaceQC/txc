@@ -107,6 +107,11 @@ client_connection::client_connection(std::int64_t timeout_ms, bool binary,
                 credential.Flags |
                 QUIC_CREDENTIAL_FLAG_INDICATE_CERTIFICATE_RECEIVED |
                 QUIC_CREDENTIAL_FLAG_DEFER_CERTIFICATE_VALIDATION);
+#ifndef _WIN32
+            // 通过 DER/PKCS#7 交换证书，避免依赖 MsQuic 内部 OpenSSL 的对象 ABI。
+            credential.Flags = static_cast<QUIC_CREDENTIAL_FLAGS>(credential.Flags |
+                QUIC_CREDENTIAL_FLAG_USE_PORTABLE_CERTIFICATES);
+#endif
         }
         require_quic(api_->ConfigurationLoadCredential(configuration_,
             &credential), "配置 HTTP/3 证书验证");

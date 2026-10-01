@@ -1,6 +1,6 @@
 # `httpx` 可复用会话与分块传输（11.4）
 
-`httpx.open_session(proxy_url, max_connections, decompress)` 建立一个客户端会话。Windows 普通会话使用 WinHTTP，系统按源站复用空闲 TCP/TLS 连接；带自定义信任锚的 `open_secure_session` 使用握手时完成证书验证的 Mbed TLS 连接，并由 TX 会话池复用已验证连接。`max_connections` 为每主机连接数上限，取 1～64。会话可跨多个顺序或并发请求使用，但请求句柄的各阶段由调用方串行推进。`close_session` 后不能再开始请求；已开始的请求持有会话到自身结束。请求读取到 EOF 时释放请求及连接句柄，`close_request` 可提前终止传输且可重复调用。网络资源编号只在当前进程有效。
+`httpx.open_session(proxy_url, max_connections, decompress)` 建立一个客户端会话。Linux 使用 libcurl multi/OpenSSL，具体代理、TLS 和分块行为见[Linux 网络实现](linux_network.md)。下述 WinHTTP 和 Mbed TLS 客户端实现细节限于 Windows。Windows 普通会话使用 WinHTTP，系统按源站复用空闲 TCP/TLS 连接；带自定义信任锚的 `open_secure_session` 使用握手时完成证书验证的 Mbed TLS 连接，并由 TX 会话池复用已验证连接。`max_connections` 为每主机连接数上限，取 1～64。会话可跨多个顺序或并发请求使用，但请求句柄的各阶段由调用方串行推进。`close_session` 后不能再开始请求；已开始的请求持有会话到自身结束。请求读取到 EOF 时释放请求及连接句柄，`close_request` 可提前终止传输且可重复调用。网络资源编号只在当前进程有效。
 
 `proxy_url=""` 使用系统代理，`"direct"` 直连，`"http://host:port"` 指定 HTTP 代理。HTTPS 目的站通过 WinHTTP 建立 CONNECT 隧道并验证源站证书。代理 URL 不接受凭据、路径或片段；代理认证尚无公开接口。`decompress=true` 启用 WinHTTP 对 gzip/deflate 的自动解压；返回的块为解压后的字节，`max_response_bytes` 约束实际交付量。解压比例限制为编码字节的 100 倍加 1024 字节余量，通过 WinHTTP 请求统计核对；无法读取统计时当前请求以 `operation_failed` 关闭。调用方按需把块解释为 UTF-8。旧 `send/get/post` 与显式 `send_http2/get_http2/post_http2` 不借用新会话，返回类型和选协议规则保持原样。
 
@@ -36,4 +36,4 @@ httpx.close_session(session)
 
 ## 验证边界
 
-Windows x64 增量构建通过。`http_session_server/client.tx` 验证本机连续请求、分块上传与读取、合法空正文、EOF 和关闭后状态；`scripts/check_http_session_proxy.py` 使用本机显式 HTTP 代理交付 gzip 正文，验证正常解压和接收上限；11.9 的高压缩比拒绝见[网络边界专项](network_11_9.md)。原有 `http_binary_server/client.tx` 在修正 TX 回调环境参数和句柄所有权后重新通过。Windows 以外尚无 WinHTTP 实现；跨公网代理认证和 HTTP/2 h2c 会话池仍未覆盖。
+Windows x64 增量构建通过。`http_session_server/client.tx` 验证本机连续请求、分块上传与读取、合法空正文、EOF 和关闭后状态；`scripts/check_http_session_proxy.py` 使用本机显式 HTTP 代理交付 gzip 正文，验证正常解压和接收上限；11.9 的高压缩比拒绝见[网络边界专项](network_11_9.md)。原有 `http_binary_server/client.tx` 在修正 TX 回调环境参数和句柄所有权后重新通过。Linux 实现与验证入口见上述平台说明；跨公网代理认证和 HTTP/2 h2c 会话池仍未覆盖。

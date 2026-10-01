@@ -6,14 +6,22 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#include "common/platform.hpp"
+#include <thread>
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 namespace tx_generated
 {
 
 std::string tx_fn_system_operating_system()
 {
+#ifdef _WIN32
     return "windows";
+#else
+    return "linux";
+#endif
 }
 
 std::string tx_fn_system_architecture()
@@ -29,7 +37,11 @@ std::string tx_fn_system_architecture()
 
 std::int64_t tx_fn_system_cpu_count()
 {
+#ifdef _WIN32
     const auto count = GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
+#else
+    const auto count = std::thread::hardware_concurrency();
+#endif
     if (count == 0)
     {
         throw std::runtime_error("无法查询活动逻辑处理器数量");
@@ -39,7 +51,7 @@ std::int64_t tx_fn_system_cpu_count()
 
 std::int64_t tx_fn_system_process_id()
 {
-    return GetCurrentProcessId();
+    return tx::process_id();
 }
 
 bool tx_fn_system_has_capability(const std::string& name)

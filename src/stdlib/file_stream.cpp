@@ -7,7 +7,13 @@
 #include <cerrno>
 #include <filesystem>
 #include <limits>
+#ifdef _WIN32
 #include <share.h>
+#else
+#include <unistd.h>
+#define _fseeki64 fseeko
+#define _ftelli64 ftello
+#endif
 #include <string>
 #include <vector>
 
@@ -73,6 +79,7 @@ stream_file::stream_file(std::string_view path, stream_mode mode, bool shared)
     : mode_(mode)
 {
     const auto native_path = stream_path(path);
+#ifdef _WIN32
     const wchar_t* native_mode = mode == stream_mode::read ? L"rb"
         : mode == stream_mode::write ? L"wb"
         : mode == stream_mode::append ? L"ab" : L"r+b";
@@ -86,6 +93,14 @@ stream_file::stream_file(std::string_view path, stream_mode mode, bool shared)
     {
         status = _wfopen_s(&file_, native_path.c_str(), native_mode);
     }
+#else
+    (void)shared;
+    const char* native_mode = mode == stream_mode::read ? "rb"
+        : mode == stream_mode::write ? "wb"
+        : mode == stream_mode::append ? "ab" : "r+b";
+    file_ = std::fopen(native_path.c_str(), native_mode);
+    const int status = errno;
+#endif
     if (!file_)
     {
         io_failure(system_error_code(status), "无法打开文件流：" +

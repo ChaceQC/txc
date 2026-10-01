@@ -2,13 +2,14 @@
 
 #include <limits>
 #include <memory>
-#include <ws2tcpip.h>
+
 
 namespace tx_generated::network
 {
 namespace
 {
 
+#ifdef _WIN32
 struct winsock_session
 {
     winsock_session()
@@ -25,10 +26,14 @@ struct winsock_session
     }
 };
 
+#endif
+
 void require_winsock()
 {
+#ifdef _WIN32
     static winsock_session session;
     (void)session;
+#endif
 }
 
 } // namespace
@@ -62,19 +67,17 @@ socket_handle listen_tcp(std::string_view host, std::int64_t port)
     std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> guard(addresses, freeaddrinfo);
     for (auto* item = addresses; item; item = item->ai_next)
     {
-        socket_handle socket(::socket(item->ai_family, item->ai_socktype,
+        socket_handle socket(network::create_native_socket(item->ai_family, item->ai_socktype,
                                       item->ai_protocol));
         if (!socket.valid())
         {
             continue;
         }
-        const BOOL exclusive = TRUE;
-        setsockopt(socket.get(), SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
-                   reinterpret_cast<const char*>(&exclusive), sizeof(exclusive));
+        network::set_socket_exclusive(socket.get());
         if (item->ai_family == AF_INET6 && host.empty())
         {
             const DWORD dual_stack = 0;
-            setsockopt(socket.get(), IPPROTO_IPV6, IPV6_V6ONLY,
+            network::set_socket_option(socket.get(), IPPROTO_IPV6, IPV6_V6ONLY,
                        reinterpret_cast<const char*>(&dual_stack), sizeof(dual_stack));
         }
         if (bind(socket.get(), item->ai_addr, static_cast<int>(item->ai_addrlen)) == 0 &&
@@ -94,12 +97,7 @@ socket_handle accept_tcp(SOCKET listener, std::int64_t timeout_ms)
     }
     if (timeout_ms != 0)
     {
-        fd_set ready;
-        FD_ZERO(&ready);
-        FD_SET(listener, &ready);
-        timeval limit{static_cast<long>(timeout_ms / 1000),
-                      static_cast<long>((timeout_ms % 1000) * 1000)};
-        const int selected = select(0, &ready, nullptr, nullptr, &limit);
+        const int selected = network::wait_socket(listener, false, static_cast<int>(timeout_ms));
         if (selected == 0)
         {
             fail("timeout", "等待连接超时");
@@ -109,13 +107,13 @@ socket_handle accept_tcp(SOCKET listener, std::int64_t timeout_ms)
             socket_failure("等待连接");
         }
     }
-    socket_handle result(::accept(listener, nullptr, nullptr));
+    socket_handle result(network::accept_native_socket(listener));
     if (!result.valid())
     {
         socket_failure("接受连接");
     }
     const DWORD send_timeout = 30000;
-    setsockopt(result.get(), SOL_SOCKET, SO_SNDTIMEO,
+    network::set_socket_option(result.get(), SOL_SOCKET, SO_SNDTIMEO,
                reinterpret_cast<const char*>(&send_timeout), sizeof(send_timeout));
     return result;
 }

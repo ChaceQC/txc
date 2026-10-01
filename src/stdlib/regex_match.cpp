@@ -8,7 +8,9 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 namespace tx_generated
 {
@@ -28,6 +30,7 @@ struct match_workspace
     bool busy = false;
 };
 
+#ifdef _WIN32
 void NTAPI release_workspace(void* value) noexcept
 {
     delete static_cast<match_workspace*>(value);
@@ -39,6 +42,8 @@ DWORD workspace_slot() noexcept
     return slot;
 }
 
+#endif
+
 class workspace_lease
 {
 public:
@@ -46,6 +51,7 @@ public:
     {
         // MinGW 的 C++ thread_local 析构可能晚于其模拟 TLS 存储释放。
         // FLS 在退出线程时直接回收工作区，重入仍使用临时工作区。
+#ifdef _WIN32
         const DWORD slot = workspace_slot();
         match_workspace* cached = slot == FLS_OUT_OF_INDEXES ? nullptr :
             static_cast<match_workspace*>(FlsGetValue(slot));
@@ -57,6 +63,10 @@ public:
                 cached = pending.release();
             }
         }
+#else
+        thread_local match_workspace workspace;
+        auto* cached = &workspace;
+#endif
         value_ = cached && !cached->busy ? cached : &fallback_;
         if (value_->pairs < pairs)
         {

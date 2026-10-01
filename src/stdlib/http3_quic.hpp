@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef _WIN32
 #ifndef _Pre_defensive_
 #define _Pre_defensive_
 #endif
@@ -10,6 +11,9 @@
 #define WINAPI_FAMILY WINAPI_FAMILY_GAMES
 #include <msquic.h>
 #pragma pop_macro("WINAPI_FAMILY")
+#else
+#include <msquic.h>
+#endif
 
 #include <string_view>
 
@@ -34,7 +38,11 @@ public:
     }
 
 private:
+#ifdef _WIN32
     HMODULE module_ = nullptr;
+#else
+    void* module_ = nullptr;
+#endif
     MsQuicCloseFn close_ = nullptr;
     const QUIC_API_TABLE* api_ = nullptr;
     HQUIC registration_ = nullptr;

@@ -5,51 +5,34 @@
 #include <algorithm>
 #include <limits>
 #include <memory>
-#include <ws2tcpip.h>
+
 
 namespace tx_generated::http2
 {
 namespace
 {
 
-struct winsock_session
-{
-    winsock_session()
-    {
-        WSADATA data{};
-        const auto status = WSAStartup(MAKEWORD(2, 2), &data);
-        if (status != 0)
-        {
-            network::fail("operation_failed", "初始化 HTTP/2 客户端网络失败");
-        }
-    }
-    ~winsock_session()
-    {
-        WSACleanup();
-    }
-};
-
 network::socket_handle connect_h2c(const network::parsed_url& address,
                                     std::int64_t timeout_ms)
 {
-    static winsock_session winsock;
-    (void)winsock;
-    const auto port = std::to_wstring(address.port);
-    ADDRINFOW hints{};
+    network::initialize_winsock();
+    const auto host = detail::wide_to_utf8(address.host);
+    const auto port = std::to_string(address.port);
+    addrinfo hints{};
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
-    ADDRINFOW* addresses = nullptr;
-    if (GetAddrInfoW(address.host.c_str(), port.c_str(), &hints, &addresses) != 0)
+    addrinfo* addresses = nullptr;
+    if (getaddrinfo(host.c_str(), port.c_str(), &hints, &addresses) != 0)
     {
         network::fail("invalid_url", "无法解析 HTTP/2 主机");
     }
-    std::unique_ptr<ADDRINFOW, decltype(&FreeAddrInfoW)> guard(addresses,
-                                                               FreeAddrInfoW);
+    std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> guard(addresses,
+                                                               freeaddrinfo);
     bool timed_out = false;
     for (auto* item = addresses; item; item = item->ai_next)
     {
-        network::socket_handle socket(::socket(item->ai_family,
+        network::socket_handle socket(network::create_native_socket(item->ai_family,
             item->ai_socktype, item->ai_protocol));
         if (!socket.valid())
         {
@@ -68,12 +51,7 @@ network::socket_handle connect_h2c(const network::parsed_url& address,
         }
         if (connected != 0)
         {
-            fd_set writable;
-            FD_ZERO(&writable);
-            FD_SET(socket.get(), &writable);
-            timeval limit{static_cast<long>(timeout_ms / 1000),
-                          static_cast<long>((timeout_ms % 1000) * 1000)};
-            const auto selected = select(0, nullptr, &writable, nullptr, &limit);
+            const auto selected = network::wait_socket(socket.get(), true, static_cast<int>(timeout_ms));
             if (selected <= 0)
             {
                 timed_out = timed_out || selected == 0;
@@ -81,7 +59,7 @@ network::socket_handle connect_h2c(const network::parsed_url& address,
             }
             int error = 0;
             int length = sizeof(error);
-            if (getsockopt(socket.get(), SOL_SOCKET, SO_ERROR,
+            if (network::get_socket_option(socket.get(), SOL_SOCKET, SO_ERROR,
                            reinterpret_cast<char*>(&error), &length) != 0 ||
                 error != 0)
             {
@@ -94,7 +72,7 @@ network::socket_handle connect_h2c(const network::parsed_url& address,
             continue;
         }
         const DWORD timeout = static_cast<DWORD>(timeout_ms);
-        setsockopt(socket.get(), SOL_SOCKET, SO_SNDTIMEO,
+        network::set_socket_option(socket.get(), SOL_SOCKET, SO_SNDTIMEO,
                    reinterpret_cast<const char*>(&timeout), sizeof(timeout));
         return socket;
     }

@@ -1,11 +1,9 @@
 #pragma once
 
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <winsock2.h>
-#include <windows.h>
+#include "stdlib/socket_native.hpp"
+#ifdef _WIN32
 #include <winhttp.h>
+#endif
 
 #include <cstdint>
 #include <chrono>
@@ -39,7 +37,7 @@ struct parsed_url
 {
     std::wstring host;
     std::wstring target;
-    INTERNET_PORT port = 0;
+    std::uint16_t port = 0;
     bool secure = false;
 };
 
@@ -79,6 +77,7 @@ private:
     SOCKET value_;
 };
 
+#ifdef _WIN32
 class http_handle
 {
 public:
@@ -98,6 +97,8 @@ public:
 private:
     HINTERNET value_;
 };
+
+#endif
 
 class tcp_stream
 {
@@ -121,6 +122,14 @@ public:
     [[nodiscard]] std::string read_exact(std::size_t length);
     void send_all(std::string_view data);
     void close() noexcept;
+    void set_websocket_client(bool value) noexcept
+    {
+        websocket_client_ = value;
+    }
+    [[nodiscard]] bool websocket_client() const noexcept
+    {
+        return websocket_client_;
+    }
 private:
     [[nodiscard]] std::string read_some(std::size_t limit);
     std::size_t send_some(std::string_view data);
@@ -129,12 +138,15 @@ private:
     std::int64_t receive_timeout_ms_ = 0;
     std::optional<std::chrono::steady_clock::time_point> receive_deadline_;
     std::string pending_;
+    bool websocket_client_ = false;
 };
 
 socket_handle listen_tcp(std::string_view host, std::int64_t port);
 socket_handle accept_tcp(SOCKET listener, std::int64_t timeout_ms);
 void initialize_winsock();
 [[noreturn]] void socket_failure(std::string_view action);
+#ifdef _WIN32
 [[noreturn]] void http_failure(std::string_view action);
+#endif
 
 } // namespace tx_generated::network

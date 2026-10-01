@@ -4,7 +4,9 @@
 #include "stdlib/error.hpp"
 #include "stdlib/stdlib.hpp"
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 #include <limits>
 #include <stdexcept>
@@ -101,6 +103,7 @@ std::string tx_fn_path_stem(std::string path)
 
 tx_int tx_fn_path_compare(std::string left, std::string right)
 {
+#ifdef _WIN32
     const auto first = detail::checked_path(left).lexically_normal().generic_wstring();
     const auto second = detail::checked_path(right).lexically_normal().generic_wstring();
     if (first.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()) ||
@@ -117,6 +120,11 @@ tx_int tx_fn_path_compare(std::string left, std::string right)
         detail::fail_windows("比较路径", left + " / " + right, GetLastError());
     }
     return result == CSTR_LESS_THAN ? -1 : result == CSTR_GREATER_THAN ? 1 : 0;
+#else
+    const auto first = detail::checked_path(left).lexically_normal().generic_string();
+    const auto second = detail::checked_path(right).lexically_normal().generic_string();
+    return first < second ? -1 : first > second ? 1 : 0;
+#endif
 }
 
 bool tx_fn_path_equivalent(std::string left, std::string right)

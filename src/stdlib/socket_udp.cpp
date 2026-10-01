@@ -33,7 +33,7 @@ resource bind_udp(std::string_view ip, std::int64_t port)
         if (ip.empty() && item->ai_family == AF_INET6)
         {
             const DWORD dual_stack = 0;
-            setsockopt(native.get(), IPPROTO_IPV6, IPV6_V6ONLY,
+            network::set_socket_option(native.get(), IPPROTO_IPV6, IPV6_V6ONLY,
                 reinterpret_cast<const char*>(&dual_stack),
                 sizeof(dual_stack));
         }
@@ -109,7 +109,7 @@ datagram receive_from(const std::shared_ptr<state>& endpoint,
     {
         wait_ready(endpoint, native->get(), false, deadline, cancellation);
         sockaddr_storage source{};
-        int source_length = sizeof(source);
+        network::socket_length source_length = sizeof(source);
         const int received = recvfrom(native->get(),
             reinterpret_cast<char*>(buffer.data()),
             static_cast<int>(buffer.size()), 0,

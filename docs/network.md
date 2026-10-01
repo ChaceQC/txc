@@ -1,6 +1,8 @@
 # 网络模块：`httpx` 与 `websocket`
 
-`httpx` 和 `websocket` 已实现同步文本与二进制接口。公开契约在 `tx/stdlib/httpx.txh`、`websocket.txh`；Windows 网络核心和 C ABI 位于 `src/stdlib/`、`src/backend/cpp/`。回调包装源码位于 `src/stdlib/`，构建时先编成目标文件，再归档进 `tx/libtxstdlib.a`；`tx/stdlib/` 只交付 `.txh`。实现基于已有 `bytes`、`error.io_error`、类型化 `map<str, str>` 和[函数参数 `fn`](function_values.md)，没有增加语言语法。客户端会话、连接池、显式代理、自动解压及按块读写见[可复用会话](httpx_sessions.md)。
+`httpx` 和 `websocket` 已实现同步文本与二进制接口。公开契约在 `tx/stdlib/httpx.txh`、`websocket.txh`；Windows/Linux 网络核心和 C ABI 位于 `src/stdlib/`、`src/backend/cpp/`。回调包装源码位于 `src/stdlib/`，构建时先编成目标文件，再归档进 `tx/libtxstdlib.a`；`tx/stdlib/` 只交付 `.txh`。实现基于已有 `bytes`、`error.io_error`、类型化 `map<str, str>` 和[函数参数 `fn`](function_values.md)，没有增加语言语法。客户端会话、连接池、显式代理、自动解压及按块读写见[可复用会话](httpx_sessions.md)。
+
+Linux 的 POSIX socket、libcurl/OpenSSL 客户端、c-ares DNS 与 WebSocket 帧实现见[Linux 网络实现](linux_network.md)。Windows 继续使用 WinHTTP/Winsock。
 
 服务端路由、共享监听器并发与 HTTP/2 多流边界见[服务端路由与并发](httpx_server.md)。
 
@@ -8,7 +10,7 @@ HTTP/3 的显式客户端、QUIC 服务端、协议回退与证书边界见[HTTP
 
 ## 目标与边界
 
-- `httpx` 覆盖 HTTP/1.1、HTTP/2、HTTP/3 的显式客户端与对应监听入口；新增可复用 WinHTTP 客户端会话、按块传输、服务端路由与并发。HTTP/3 使用独立 MsQuic/nghttp3 路径。`websocket` 覆盖 WS/WSS 客户端和服务端。
+- `httpx` 覆盖 HTTP/1.1、HTTP/2、HTTP/3 的显式客户端与对应监听入口；新增可复用客户端会话、按块传输、服务端路由与并发。HTTP/3 使用独立 MsQuic/nghttp3 路径。`websocket` 覆盖 WS/WSS 客户端和服务端。
 - 同步接口由调用方控制超时和循环。服务端既能显式 `accept`、处理、`respond`，也能把不同的处理函数传给同一个 `serve_once`。回调类型在模块实现中确定，调用时仍由编译器按函数签名检查；不按字符串在运行时查找函数。
 - 文本接口要求正文和消息为有效 UTF-8；二进制接口直接使用已有 `bytes` 值，不把任意字节伪装成 `str`。[文件流](bytes_file_stream.md)可直接接入新增流式接口；传输按固定大小缓冲逐块推进。
 - 网络状态是进程内资源。`listener`、`connection` 为带内部编号的结构体，必须显式关闭；重复关闭无害。句柄不允许序列化后跨进程使用。进程退出时运行时兜底释放仍存活的连接。

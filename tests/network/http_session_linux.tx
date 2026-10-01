@@ -1,0 +1,119 @@
+import "httpx.txh" as httpx
+import "bytes.txh" as byte_values
+import "encoding.txh" as encoding
+import "error.txh" as errors
+import "system.txh" as system
+import "requests.txh" as requests
+
+def read_all(peer: httpx.client_request) -> bytes
+{
+    bytes result = byte_values.empty()
+    bool eof = false
+    while !eof
+    {
+        httpx.response_chunk part = httpx.read_response_chunk(peer, 4096)
+        eof = part.eof
+        result = byte_values.concat(result, part.data)
+    }
+    return result
+}
+
+def fetch(session: httpx.client_session, url: str) -> str
+{
+    httpx.client_request peer = httpx.begin_request(session, "GET", url,
+        map<str, str>(), 0, 65536, 3000, false)
+    httpx.response_head head = httpx.finish_request(peer)
+    if head.status != 200
+    {
+        return "invalid"
+    }
+    str result = encoding.decode(read_all(peer), "utf-8")
+    httpx.close_request(peer)
+    return result
+}
+
+def main() -> int
+{
+    vector<str> args = system.args()
+    str root = "http://127.0.0.1:" + args[0]
+    httpx.client_session session = httpx.open_session("direct", 2, true)
+    str first = fetch(session, root + "/id")
+    str second = fetch(session, root + "/id")
+    if first != second || first == "invalid"
+    {
+        return 1
+    }
+    if (fetch(session, root + "/set") != "set" ||
+        fetch(session, root + "/cookies") != "")
+    {
+        return 2
+    }
+
+    bytes block = encoding.encode("0123456789abcdef", "utf-8")
+    int index = 0
+    while index < 10
+    {
+        block = byte_values.concat(block, block)
+        index = index + 1
+    }
+    httpx.client_request upload = httpx.begin_request(session, "POST",
+        root + "/echo", map<str, str>(), 32768, 32768, 3000, false)
+    if (httpx.write_request(upload, block) != 16384 ||
+        httpx.write_request(upload, block) != 16384)
+    {
+        return 3
+    }
+    httpx.finish_request(upload)
+    bytes echoed = read_all(upload)
+    if echoed != byte_values.concat(block, block)
+    {
+        return 4
+    }
+    httpx.close_request(upload)
+
+    httpx.client_request limited = httpx.begin_request(session, "GET",
+        root + "/gzip", map<str, str>(), 0, 4, 3000, false)
+    httpx.finish_request(limited)
+    bool rejected = false
+    try
+    {
+        read_all(limited)
+    }
+    exception errors.io_error as failure
+    {
+        rejected = failure.code == "size_limit"
+    }
+    httpx.close_request(limited)
+    if !rejected
+    {
+        return 5
+    }
+
+    httpx.client_request slow = httpx.begin_request(session, "GET",
+        root + "/slow", map<str, str>(), 0, 8, 100, false)
+    httpx.finish_request(slow)
+    bool timed_out = false
+    try
+    {
+        read_all(slow)
+    }
+    exception errors.io_error as failure
+    {
+        timed_out = failure.code == "timeout"
+    }
+    httpx.close_request(slow)
+    httpx.close_session(session)
+    if !timed_out
+    {
+        return 6
+    }
+    auto client = requests.session()
+    dict direct = {"http": "direct"}
+    client.get(root + "/set", proxies=direct)
+    if client.get(root + "/cookies", proxies=direct).text() != "session=linux"
+    {
+        return 7
+    }
+    client.close()
+    return 0
+}

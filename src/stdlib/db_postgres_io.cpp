@@ -1,7 +1,8 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #else
-#include <sys/select.h>
+#include <poll.h>
+#include <cerrno>
 #endif
 
 #include "stdlib/db_internal.hpp"
@@ -65,15 +66,25 @@ void db_pg_wait(db_connection_state& connection, bool writing)
         {
             db_pg_lost(connection);
         }
+        const auto slice = db_current_operation ? std::min<std::int64_t>(remaining, 10000) : remaining;
+#ifdef _WIN32
         fd_set descriptors;
         FD_ZERO(&descriptors);
         FD_SET(socket, &descriptors);
         // Windows 非阻塞 connect 失败通过 exceptfds 唤醒，不能把轮询间隔误当成就绪。
         auto exceptional = descriptors;
-        const auto slice = db_current_operation ? std::min<std::int64_t>(remaining, 10000) : remaining;
         timeval timeout{static_cast<long>(slice / 1000000), static_cast<long>(slice % 1000000)};
         const auto status = select(socket + 1, writing ? nullptr : &descriptors,
             writing ? &descriptors : nullptr, &exceptional, &timeout);
+#else
+        pollfd descriptor{socket, static_cast<short>(writing ? POLLOUT : POLLIN), 0};
+        const auto status = poll(&descriptor, 1, static_cast<int>(std::min<std::int64_t>(
+            (slice + 999) / 1000, 2147483647)));
+        if (status < 0 && errno == EINTR)
+        {
+            continue;
+        }
+#endif
         if (status < 0)
         {
             db_pg_lost(connection);

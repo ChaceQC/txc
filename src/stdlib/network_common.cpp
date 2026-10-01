@@ -201,6 +201,7 @@ void socket_handle::reset(SOCKET value) noexcept
     value_ = value;
 }
 
+#ifdef _WIN32
 http_handle::http_handle(http_handle&& other) noexcept
     : value_(std::exchange(other.value_, nullptr))
 {
@@ -226,19 +227,24 @@ void http_handle::reset(HINTERNET value) noexcept
     value_ = value;
 }
 
+#endif
+
 [[noreturn]] void socket_failure(std::string_view action)
 {
     const int code = WSAGetLastError();
     fail(code == WSAETIMEDOUT || code == WSAEWOULDBLOCK ? "timeout" : "operation_failed",
-         std::string(action) + "失败，Winsock 错误码 " + std::to_string(code));
+         std::string(action) + "失败，socket 错误码 " + std::to_string(code));
 }
 
+#ifdef _WIN32
 [[noreturn]] void http_failure(std::string_view action)
 {
     const auto code = GetLastError();
     fail(code == ERROR_WINHTTP_TIMEOUT ? "timeout" : "operation_failed",
          std::string(action) + "失败，WinHTTP 错误码 " + std::to_string(code));
 }
+
+#endif
 
 void tcp_stream::set_receive_timeout(std::int64_t timeout_ms)
 {
@@ -252,7 +258,7 @@ void tcp_stream::set_receive_timeout(std::int64_t timeout_ms)
         return;
     }
     const DWORD value = static_cast<DWORD>(timeout_ms);
-    if (setsockopt(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
+    if (network::set_socket_option(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
                    reinterpret_cast<const char*>(&value), sizeof(value)) != 0)
     {
         socket_failure("设置读取超时");
@@ -320,7 +326,7 @@ std::string tcp_stream::read_some(std::size_t limit)
         if (!secure_)
         {
             const DWORD value = static_cast<DWORD>(timeout_ms);
-            if (setsockopt(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
+            if (network::set_socket_option(socket_.get(), SOL_SOCKET, SO_RCVTIMEO,
                            reinterpret_cast<const char*>(&value), sizeof(value)) != 0)
             {
                 socket_failure("设置读取超时");
@@ -356,7 +362,7 @@ std::string tcp_stream::read_some(std::size_t limit)
         }
     }
     std::string result(limit, '\0');
-    const int count = recv(socket_.get(), result.data(),
+    const int count = network::socket_receive(socket_.get(), result.data(),
         static_cast<int>(limit), 0);
     if (count < 0)
     {
@@ -372,7 +378,7 @@ std::size_t tcp_stream::send_some(std::string_view data)
     {
         return static_cast<std::size_t>(secure_->write(data, 30000));
     }
-    const int sent = send(socket_.get(), data.data(),
+    const int sent = network::socket_send(socket_.get(), data.data(),
         static_cast<int>(data.size()), 0);
     if (sent < 0)
     {

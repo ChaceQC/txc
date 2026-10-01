@@ -11,10 +11,15 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
 #include <windows.h>
+#else
+#include <pthread.h>
+#include <time.h>
+#endif
 
 namespace tx_generated::profiling
 {
@@ -23,7 +28,12 @@ using clock_type = std::chrono::steady_clock;
 
 struct sampled_thread
 {
+#ifdef _WIN32
     HANDLE handle = nullptr;
+#else
+    pthread_t handle{};
+    clockid_t cpu_clock{};
+#endif
     detail::runtime_context** context = nullptr;
     std::uint64_t cpu = 0;
 };
@@ -37,6 +47,10 @@ struct allocation
 struct cpu_sample
 {
     detail::source_frame source;
+#ifndef _WIN32
+    std::string source_file;
+    std::string source_function;
+#endif
     std::string abi;
     std::uint64_t instruction = 0;
     std::uint64_t cpu_100ns = 0;
@@ -56,7 +70,11 @@ struct profile_state
     std::mutex control;
     std::atomic_bool enabled{false};
     std::jthread sampler;
+#ifdef _WIN32
     std::map<DWORD, sampled_thread> threads;
+#else
+    std::map<pthread_t, sampled_thread> threads;
+#endif
     std::unordered_map<void*, allocation> allocations;
     std::map<std::string, cpu_sample> samples;
     std::map<std::int64_t, span> spans;

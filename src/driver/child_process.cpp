@@ -106,7 +106,7 @@ void drain_output(HANDLE pipe, child_result& result)
 
 child_result run_child_process(const std::filesystem::path& executable,
     const std::filesystem::path& working_directory, std::uint32_t timeout_ms,
-    const std::vector<std::wstring>& arguments)
+    const std::vector<std::string>& arguments)
 {
     SECURITY_ATTRIBUTES security{sizeof(security), nullptr, TRUE};
     windows_handle reader;
@@ -140,7 +140,7 @@ child_result run_child_process(const std::filesystem::path& executable,
     auto command = quote_argument(executable.wstring());
     for (const auto& argument : arguments)
     {
-        command += L" " + quote_argument(argument);
+        command += L" " + quote_argument(std::filesystem::u8path(argument).wstring());
     }
     if (!CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, TRUE,
         CREATE_NO_WINDOW | CREATE_SUSPENDED | EXTENDED_STARTUPINFO_PRESENT,

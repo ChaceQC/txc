@@ -26,8 +26,14 @@ void source_fields(std::ostream& output, const detail::source_frame& source)
 std::string report_locked(profile_state& current)
 {
     std::ostringstream output;
+#ifdef _WIN32
     output << "{\"version\":1,\"platform\":\"windows-x64\","
-           << "\"sampler\":\"thread_cpu_time_weighted_pc\",\"interval_ms\":" << current.interval_ms
+           << "\"sampler\":\"thread_cpu_time_weighted_pc\",";
+#else
+    output << "{\"version\":1,\"platform\":\"linux-x64\","
+           << "\"sampler\":\"thread_cpu_time_weighted_tx_frame\",";
+#endif
+    output << "\"interval_ms\":" << current.interval_ms
            << ",\"elapsed_us\":" << current.elapsed_us << ",\"sampler_us\":" << current.sampler_us
            << ",\"missed_samples\":" << current.missed_samples
            << ",\"allocation_scope\":\"cxx_new_since_start\",\"allocation_count\":" << current.allocation_count

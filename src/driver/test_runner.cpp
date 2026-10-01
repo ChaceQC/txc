@@ -17,7 +17,7 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <windows.h>
+#include "common/platform.hpp"
 
 namespace tx
 {
@@ -43,7 +43,7 @@ struct temporary_root
         for (int suffix = 0; suffix < 100; ++suffix)
         {
             auto candidate = fs::temp_directory_path() /
-                ("txc_test_" + std::to_string(GetCurrentProcessId()) + "_" +
+                ("txc_test_" + std::to_string(tx::process_id()) + "_" +
                  std::to_string(stamp) + "_" + std::to_string(suffix));
             std::error_code error;
             if (fs::create_directory(candidate, error))
@@ -202,7 +202,7 @@ int run_test_suite(const fs::path& source,
         auto& item = cases[index];
         const auto case_dir = root.path / std::to_string(index);
         fs::create_directory(case_dir);
-        const auto executable = case_dir / "test.exe";
+        const auto executable = case_dir / tx::executable_name("test");
         item.executable = executable;
         item.working_directory = options.source_directory ? item.source.parent_path() : case_dir;
         try

@@ -9,10 +9,20 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 namespace tx_generated::crypto
 {
+
+#ifdef _WIN32
+using file_handle = HANDLE;
+inline const file_handle invalid_file_handle = INVALID_HANDLE_VALUE;
+#else
+using file_handle = int;
+inline constexpr file_handle invalid_file_handle = -1;
+#endif
 
 class file_input
 {
@@ -26,7 +36,7 @@ public:
     void read_exact(std::span<std::uint8_t> output);
 
 private:
-    HANDLE handle_ = INVALID_HANDLE_VALUE;
+    file_handle handle_ = invalid_file_handle;
 };
 
 class file_output
@@ -42,7 +52,7 @@ public:
 
 private:
     std::filesystem::path path_;
-    HANDLE handle_ = INVALID_HANDLE_VALUE;
+    file_handle handle_ = invalid_file_handle;
     bool remove_on_exit_ = true;
 };
 

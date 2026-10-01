@@ -60,3 +60,11 @@ txc 将类型检查后的 AST 转成 LLVM IR，再由随 TX 分发的 `clang.exe
 发行时必须保留整个 `tx/` 目录。链接器、启动文件和链接库位于 `tx/link/`；编译器和目标程序所需的 MinGW 运行时 DLL 会随工具或目标程序放置。默认输出仍为 `tx_build/<源码名>.exe`，`-o` 可指定位置。调试后端时可用 `txc emit-llvm <源码.tx> [-o <输出.ll>]` 查看中间 LLVM IR。
 
 当前目标平台为 Windows x64。普通源码模块和仓库提供的标准库二进制接口均可编译；没有实现的其他二进制 `.txh` 函数会在编译时报错。本机验证曾将 PATH 收窄到 Windows 系统目录，再用交付的 `tx/` 编译并运行整数、递归、重载、数据类型、终端 I/O 和文件编码示例。此验证说明编译过程不调用 PATH 中的 g++；完整发行目录仍需要在另一台干净机器上验收。
+
+## Linux 原生后端补充
+
+Linux 构建使用同一 LLVM 发射器，目标为 `x86_64-unknown-linux-gnu`。编译器驱动直接传递参数数组调用随包 clang 和 LLD，输出 ELF；不会通过 shell 拼接编译命令。普通标准库与 ThinLTO 标准库分别构建，桥接 `.tx` 模块分别生成普通对象与 bitcode。
+
+`tx/link/` 保存启动对象和链接器，`tx/lib/` 保存原生共享依赖。生成程序通过 `$ORIGIN/tx_lib` 定位同目录依赖，工具本身通过包内相对 RPATH 定位库；宿主 glibc 与动态加载器不打入包中，最低基线为 Ubuntu 24.04 / glibc 2.39。移动生成程序时必须连同 `tx_lib/` 复制。
+
+上文保留 Windows 工具链的具体布局与历史验证说明；Linux 平台范围及当前验证结果见 [Linux 适配](linux_port.md)。

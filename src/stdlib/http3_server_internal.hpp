@@ -5,7 +5,9 @@
 
 #include <nghttp3/nghttp3.h>
 
+#ifdef _WIN32
 #include <wincrypt.h>
+#endif
 
 #include <atomic>
 #include <chrono>
@@ -83,8 +85,10 @@ private:
     const QUIC_API_TABLE* api_ = nullptr;
     HQUIC configuration_ = nullptr;
     HQUIC listener_ = nullptr;
+#ifdef _WIN32
     HCERTSTORE certificate_store_ = nullptr;
     PCCERT_CONTEXT certificate_ = nullptr;
+#endif
     std::mutex mutex_;
     std::condition_variable changed_;
     std::mutex reaper_mutex_;

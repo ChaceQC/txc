@@ -1,7 +1,8 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #else
-#include <sys/select.h>
+#include <poll.h>
+#include <cerrno>
 #endif
 
 #include "stdlib/db_internal.hpp"
@@ -36,17 +37,25 @@ void db_pg_cancel_pending(db_connection_state& connection) noexcept
         {
             return;
         }
+        const bool writing = status == PGRES_POLLING_WRITING;
+#ifdef _WIN32
         fd_set descriptors;
         FD_ZERO(&descriptors);
         FD_SET(socket, &descriptors);
         auto exceptional = descriptors;
         timeval timeout{0, 10000};
-        const bool writing = status == PGRES_POLLING_WRITING;
         if (select(socket + 1, writing ? nullptr : &descriptors,
             writing ? &descriptors : nullptr, &exceptional, &timeout) < 0)
         {
             return;
         }
+#else
+        pollfd descriptor{socket, static_cast<short>(writing ? POLLOUT : POLLIN), 0};
+        if (poll(&descriptor, 1, 10) < 0 && errno != EINTR)
+        {
+            return;
+        }
+#endif
     }
 }
 

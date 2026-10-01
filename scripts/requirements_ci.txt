@@ -1,0 +1,2 @@
+cryptography>=44,<47
+aioquic>=1.2,<2

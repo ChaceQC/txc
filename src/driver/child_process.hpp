@@ -19,7 +19,7 @@ struct child_result
 
 child_result run_child_process(const std::filesystem::path& executable,
     const std::filesystem::path& working_directory, std::uint32_t timeout_ms,
-    const std::vector<std::wstring>& arguments = {});
+    const std::vector<std::string>& arguments = {});
 bool windows_crash_status(std::uint32_t code);
 std::string json_quote(const std::string& value);
 

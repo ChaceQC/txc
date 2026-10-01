@@ -95,18 +95,91 @@ jobs:
           path: .ccache
           key: ${{ steps.compiler_cache.outputs.cache-primary-key }}
 
+  linux:
+    name: Linux x64 build and package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      PYTHONUTF8: '1'
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 2G
+      CCACHE_BASEDIR: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Linux toolchain and native dependencies
+        run: sudo python3 scripts/setup_linux.py
+      - name: Install certificate and QUIC verification dependencies
+        run: python -m pip install -r scripts/requirements_ci.txt
+      - name: Restore Linux compiler cache
+        id: compiler_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .ccache
+          key: ubuntu-24.04-ccache-${{ hashFiles('scripts/setup_linux.py', 'CMakeLists.txt', 'cmake/**') }}-${{ github.sha }}
+          restore-keys: |
+            ubuntu-24.04-ccache-${{ hashFiles('scripts/setup_linux.py', 'CMakeLists.txt', 'cmake/**') }}-
+      - name: Build Linux compiler and both standard libraries
+        id: build
+        run: python -X utf8 scripts/build_linux.py
+      - name: Create Linux release archive
+        env:
+          TXC_REF: ${{ github.ref_name }}
+          TXC_REF_TYPE: ${{ github.ref_type }}
+          TXC_COMMIT: ${{ github.sha }}
+        run: python -X utf8 scripts/package_release.py
+      - name: Verify extracted Linux package
+        run: python -X utf8 scripts/check_linux_package.py
+      - name: Verify Linux process, async, and network contracts
+        run: |
+          python -X utf8 scripts/check_linux_runtime.py
+          python -X utf8 scripts/check_linux_network.py
+      - name: Verify Linux certificate, TLS, and HTTP3 contracts
+        run: |
+          python -X utf8 scripts/check_x509.py
+          python -X utf8 scripts/check_tls_stream.py
+          python -X utf8 scripts/check_http3_server.py
+      - name: Upload verified Linux package
+        uses: actions/upload-artifact@v4
+        with:
+          name: txc-linux-x64
+          path: |
+            dist/*.tar.gz
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+      - name: Preserve Linux build diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build-diagnostics
+          path: |
+            build/linux/CMakeFiles/CMakeConfigureLog.yaml
+            build/linux/CMakeCache.txt
+            build/linux/compile_commands.json
+          if-no-files-found: ignore
+      - name: Save completed Linux compilation work
+        if: always() && steps.build.outcome != 'skipped' && steps.compiler_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .ccache
+          key: ${{ steps.compiler_cache.outputs.cache-primary-key }}
+
   release:
     name: Publish tag release
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [build, linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: txc-windows-x64
-          path: dist
+          pattern: txc-*-x64
+          path: artifacts
       - name: Verify and publish the built assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -115,8 +188,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir dist
+          for platform in windows linux; do
+            directory="artifacts/txc-${platform}-x64"
+            (cd "$directory" && sha256sum --check SHA256SUMS.txt)
+            cat "$directory/SHA256SUMS.txt" >> dist/SHA256SUMS.txt
+          done
+          cp artifacts/txc-windows-x64/*.zip dist/
+          cp artifacts/txc-linux-x64/*.tar.gz dist/
           cd dist
-          sha256sum --check SHA256SUMS.txt
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             echo 'This tag already has a release; refusing to replace published assets.' >&2
             exit 1
@@ -125,6 +205,6 @@ jobs:
           if [[ "$RELEASE_TAG" == *-* ]]; then
             options+=(--prerelease)
           fi
-          gh release create "$RELEASE_TAG" ./*.zip SHA256SUMS.txt \
+          gh release create "$RELEASE_TAG" ./*.zip ./*.tar.gz SHA256SUMS.txt \
             --verify-tag --title "TX Compiler $RELEASE_TAG" \
             --generate-notes "${options[@]}"

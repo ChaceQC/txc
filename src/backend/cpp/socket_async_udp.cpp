@@ -109,7 +109,7 @@ std::shared_ptr<operation> make_receive_from(
         buffer](operation& pending) -> step_result
     {
         sockaddr_storage source{};
-        int source_length = sizeof(source);
+        network::socket_length source_length = sizeof(source);
         const int received = recvfrom(pending.native->get(),
             reinterpret_cast<char*>(buffer->data()),
             static_cast<int>(buffer->size()), 0,
