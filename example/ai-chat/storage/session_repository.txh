@@ -1,0 +1,27 @@
+import "../domain/conversation.txh" as domain
+
+struct history_entry
+{
+    id: int
+    filename: str
+    title: str
+}
+
+class session_repository
+{
+    private:
+        root_directory: str
+        items: vector<history_entry>
+        next_id: int
+        skipped_count: int
+    public:
+        def init(directory: str)
+        def directory() -> str
+        def set_directory(directory: str) -> void
+        def entries() -> vector<history_entry>
+        def skipped() -> int
+        def find(id: int) -> str
+        def refresh() -> void
+        def save(value: domain.conversation) -> void
+        def load_into(value: domain.conversation, filename: str) -> void
+}

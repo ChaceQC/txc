@@ -66,6 +66,7 @@ struct gc_registry
 {
     std::mutex mutex;
     std::vector<detail::registered_gc_node> nodes;
+    std::size_t registrations_since_prune = 0;
 };
 
 gc_registry& registered_graph()
@@ -275,6 +276,19 @@ void register_gc_node(const std::shared_ptr<void>& object, gc_trace trace,
     const auto owner = ensure_gc_owner_id(context);
     {
         std::lock_guard lock(registry.mutex);
+        // 工作线程可能长期持有执行共享锁，阻止全图扫描。
+        // 已过期的弱引用不会复活，可在登记锁内独立清理，不读取活对象图。
+        ++registry.registrations_since_prune;
+        if (registry.registrations_since_prune >=
+            std::max(collection_interval, registry.nodes.size() / 2))
+        {
+            std::erase_if(registry.nodes,
+                [](const detail::registered_gc_node& entry)
+                {
+                    return entry.object.expired();
+                });
+            registry.registrations_since_prune = 0;
+        }
         registry.nodes.push_back({object, trace, clear, finalize, owner});
         // 登记完成后发布数量提示；真正扫描仍在锁内取快照。
         registered_nodes_hint.store(registry.nodes.size(),

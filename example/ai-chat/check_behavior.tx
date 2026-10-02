@@ -1,0 +1,99 @@
+import "network/response_stream.txh" as stream
+import "domain/conversation.txh" as sessions
+import "storage/session_repository.txh" as repository
+import "network/responses_client.txh" as api
+import "storage/connection_settings.txh" as settings
+import "encoding.txh" as encoding
+import "bytes.txh" as bytes
+import "string.txh" as strings
+import "json.txh" as json
+import "fs.txh" as fs
+import "file.txh" as file
+import "system.txh" as system
+import "path.txh" as path
+import "error.txh" as errors
+
+def main() -> int
+{
+    auto decoder = encoding.new_decoder("utf-8", "strict")
+    auto state = stream.response_stream()
+    str events = ": heartbeat\r\nevent: response.output_text.delta\r\ndata: {\"type\":\"response.output_text.delta\",\"delta\":\"你好🙂\"}\r\n\r\ndata: {\"type\":\"response.completed\"}\n\n"
+    auto encoded = encoding.encode(events, "utf-8")
+    int index = 0
+    while index < len(encoded)
+    {
+        state.feed(encoding.decode_chunk(decoder, bytes.slice(encoded, index, index + 1), false))
+        index += 1
+    }
+    auto client = api.responses_client("https://example.com/v1/chat/completions/", "", "")
+    if !state.finished() || state.content() != "你好🙂" || client.endpoint() != "https://example.com/v1/responses"
+    {
+        return 1
+    }
+    bool failed = false
+    try
+    {
+        auto broken = stream.response_stream()
+        broken.feed("data: {\"type\":\"response.incomplete\",\"response\":{\"incomplete_details\":{\"reason\":\"max_output_tokens\"}}}\n\n")
+    }
+    exception errors.io_error as failure
+    {
+        failed = failure.code == "stream_error"
+    }
+    if !failed
+    {
+        return 2
+    }
+    str directory = path.join(system.temp_directory(), "tx-ai-chat-check-" + (system.process_id() as str))
+    auto first = sessions.conversation()
+    first.set_connection("https://example.com/v1", "mock-model")
+    first.commit("你好", "你好🙂")
+    auto store = repository.session_repository(directory)
+    store.save(first)
+    store.refresh()
+    if len(store.entries()) != 1 || first.is_dirty()
+    {
+        return 3
+    }
+    auto restored = sessions.conversation()
+    store.load_into(restored, store.entries()[0].filename)
+    array input = json.parse(restored.request("继续"))
+    if len(input) != 3 || restored.get_model() != "mock-model" || !strings.contains(restored.transcript(), "你好🙂")
+    {
+        return 4
+    }
+    dict record = json.parse_object(file.read_text(first.file_path(), "utf-8"))
+    if json.contains(record, "api_key")
+    {
+        return 5
+    }
+    restored.commit("继续", "第二轮")
+    store.save(restored)
+    store.refresh()
+    if len(store.entries()) != 1
+    {
+        return 6
+    }
+    fs.remove(restored.file_path())
+    auto config = settings.connection_settings()
+    config.api_key = "local-test-credential"
+    config.model = "mock-model"
+    str config_file = path.join(directory, "settings.json")
+    config.save(config_file)
+    dict stored = json.parse_object(file.read_text(config_file, "utf-8"))
+    if json.contains(stored, "api_key") || json.get_str(stored, "api_key_encrypted") == config.api_key
+    {
+        return 7
+    }
+    auto loaded = settings.connection_settings()
+    loaded.load(config_file)
+    if loaded.api_key != config.api_key || loaded.model != "mock-model"
+    {
+        return 8
+    }
+    fs.remove(config_file)
+    fs.remove(path.join(directory, "settings.key"))
+    fs.remove(directory)
+    print("UTF-8/SSE 分块、流式失败、会话保存/恢复/覆盖、crypto 加密配置检查通过")
+    return 0
+}

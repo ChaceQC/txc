@@ -97,6 +97,88 @@ void set_text(node& state, const std::string& text)
     dirty(state);
 }
 
+namespace
+{
+class text_update_guard
+{
+public:
+    explicit text_update_guard(node& state) : state_(state), visible_(IsWindowVisible(state.hwnd)),
+        read_only_((GetWindowLongPtrW(state.hwnd, GWL_STYLE) & ES_READONLY) != 0)
+    {
+        ++state_.suppress;
+        // WM_SETREDRAW 会改变 WS_VISIBLE；隐藏页签不能因此被意外显示。
+        if (visible_)
+        {
+            SendMessageW(state_.hwnd, WM_SETREDRAW, FALSE, 0);
+        }
+        if (read_only_)
+        {
+            SendMessageW(state_.hwnd, EM_SETREADONLY, FALSE, 0);
+        }
+    }
+
+    ~text_update_guard()
+    {
+        if (read_only_)
+        {
+            SendMessageW(state_.hwnd, EM_SETREADONLY, TRUE, 0);
+        }
+        --state_.suppress;
+        if (visible_)
+        {
+            SendMessageW(state_.hwnd, WM_SETREDRAW, TRUE, 0);
+            RedrawWindow(state_.hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME);
+        }
+    }
+
+private:
+    node& state_;
+    bool visible_;
+    bool read_only_;
+};
+}
+
+void set_text_follow_end(node& state, const std::string& text)
+{
+    require_idle(state);
+    if (state.kind != tx::graphics_kind::text_box || !state.multiline)
+    {
+        fail("invalid_argument", "跟随文本末尾仅支持多行文本框");
+    }
+    const auto wide = wide_text(text);
+    if (scalar_offsets(wide).size() - 1 > static_cast<std::size_t>(state.text_limit))
+    {
+        fail("invalid_argument", "文本超过输入框 Unicode 标量长度上限");
+    }
+    if (state.text == text)
+    {
+        return;
+    }
+    const bool append = !state.text.empty() && text.starts_with(state.text);
+    const auto prefix_length = append ? wide_text(state.text).size() : 0;
+    auto replacement = text;
+    text_update_guard guard(state);
+    if (append)
+    {
+        SendMessageW(state.hwnd, EM_SETSEL, static_cast<WPARAM>(-1), -1);
+        SendMessageW(state.hwnd, EM_REPLACESEL, FALSE,
+            reinterpret_cast<LPARAM>(wide.c_str() + prefix_length));
+        if (static_cast<std::size_t>(GetWindowTextLengthW(state.hwnd)) != wide.size())
+        {
+            fail("operation_failed", "追加文本未完整写入");
+        }
+    }
+    else if (!SetWindowTextW(state.hwnd, wide.c_str()))
+    {
+        platform_fail(owner_window(state).owner.lock().get(), "更新跟随文本", GetLastError());
+    }
+    state.text.swap(replacement);
+    ++state.revision;
+    // 选区与垂直视口一并提交，不转移输入焦点，也不触发整棵控件树重排。
+    SendMessageW(state.hwnd, EM_SETSEL, wide.size(), wide.size());
+    SendMessageW(state.hwnd, WM_VSCROLL, SB_BOTTOM, 0);
+}
+
 void set_selection(node& state, std::int64_t start, std::int64_t end)
 {
     const auto offsets = scalar_offsets(wide_text(state.text));

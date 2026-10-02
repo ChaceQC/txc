@@ -1,0 +1,7 @@
+import "app/application.txh" as app
+
+def main() -> int
+{
+    auto application = app.application()
+    return application.run()
+}

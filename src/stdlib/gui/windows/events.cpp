@@ -94,6 +94,10 @@ LRESULT CALLBACK control_proc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpa
     {
         notification_guard guard(state);
         LRESULT result = 0;
+        if (theme_message(state, message, wparam, lparam, result))
+        {
+            return result;
+        }
         if (complex_message(state, message, wparam, lparam, result))
         {
             return result;

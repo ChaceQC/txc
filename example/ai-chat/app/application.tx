@@ -1,0 +1,120 @@
+import "error.txh" as errors
+
+class application
+{
+    private:
+        app: graphics_app
+        view: ui.chat_view
+        model: domain.conversation
+        workspace: workspace.workspace_controller
+        chat: chat.chat_controller
+        closing: bool
+
+        def dispatch(action: str) -> void
+        {
+            if action == "paint"
+            {
+                self.view.paint_header()
+                return
+            }
+            if action == "close"
+            {
+                if self.chat.is_busy()
+                {
+                    self.view.status("回答仍在生成，请等待结束后关闭。")
+                }
+                else
+                {
+                    self.closing = self.workspace.can_leave()
+                }
+                return
+            }
+            if self.chat.is_busy() || self.closing
+            {
+                return
+            }
+            if action == "send"
+            {
+                self.chat.submit()
+            }
+            else if action == "save"
+            {
+                self.workspace.save_session()
+            }
+            else if action == "new"
+            {
+                self.workspace.new_session()
+            }
+            else if action == "history"
+            {
+                self.workspace.switch_history()
+            }
+            else if action == "save_settings"
+            {
+                self.workspace.save_settings()
+            }
+            else if action == "browse_directory"
+            {
+                self.view.choose_directory()
+            }
+            else if action == "apply_directory"
+            {
+                self.workspace.apply_directory()
+            }
+        }
+
+        def process_next_event() -> void
+        {
+            int timeout = -1
+            if self.chat.is_busy()
+            {
+                timeout = 25
+            }
+            auto pending = gfx.next_event(self.app, timeout).value()
+            if pending.is_some()
+            {
+                self.dispatch(self.view.action(pending.value()))
+            }
+            if self.chat.is_busy()
+            {
+                self.chat.poll()
+            }
+            self.closing = self.closing || self.chat.worker_closed()
+            if self.closing && !self.chat.is_busy()
+            {
+                gfx.close(self.view.host())
+            }
+        }
+
+    public:
+        def init()
+        {
+            self.app = gfx.open_app().value()
+            self.view = ui.chat_view(self.app)
+            self.model = domain.conversation()
+            self.workspace = workspace.workspace_controller(self.view, self.model)
+            self.chat = chat.chat_controller(self.view, self.model)
+            self.closing = false
+        }
+
+        def run() -> int
+        {
+            int exit_code = 0
+            try
+            {
+                self.workspace.start()
+                while gfx.is_open(self.view.host())
+                {
+                    self.process_next_event()
+                }
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.report_error(failure.code)
+                exit_code = 1
+            }
+            self.chat.shutdown()
+            gfx.close(self.app)
+            return exit_code
+        }
+}

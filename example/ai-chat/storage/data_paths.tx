@@ -1,0 +1,54 @@
+import "env.txh" as env
+import "system.txh" as system
+import "path.txh" as path
+import "json.txh" as json
+import "fs.txh" as fs
+import "file.txh" as file
+import "error.txh" as errors
+
+class data_paths
+{
+    private:
+        original_root: str
+    public:
+        def init()
+        {
+            self.original_root = path.join(env.get("LOCALAPPDATA", system.home_directory()), "TX/ai-chat")
+        }
+        def fallback() -> str
+        {
+            return self.original_root
+        }
+        def resolve() -> str
+        {
+            str original = self.original_root
+            str location = path.join(original, "location.json")
+            if !fs.exists(location)
+            {
+                return original
+            }
+            if fs.file_size(location) > 16384
+            {
+                errors.fail_io("data_location", "数据目录配置过大。")
+            }
+            dict value = json.parse_object(file.read_text(location, "utf-8"))
+            str directory = json.get_str(value, "directory")
+            if !path.is_absolute(directory)
+            {
+                errors.fail_io("data_location", "数据保存路径必须是绝对路径。")
+            }
+            return directory
+        }
+
+        def activate(directory: str) -> void
+        {
+            if !path.is_absolute(directory)
+            {
+                errors.fail_io("data_location", "数据保存路径必须是绝对路径。")
+            }
+            fs.create_directories(path.join(directory, "sessions"))
+            str original = self.original_root
+            fs.create_directories(original)
+            file.atomic_write_text(path.join(original, "location.json"), json.stringify({"directory": directory}), "utf-8")
+        }
+}

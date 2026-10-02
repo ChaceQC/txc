@@ -1,0 +1,70 @@
+import "credential_cipher.txh" as vault
+import "file.txh" as file
+import "fs.txh" as fs
+import "path.txh" as path
+import "json.txh" as json
+import "error.txh" as errors
+
+class connection_settings
+{
+    public:
+        base_url: str
+        api_key: str
+        model: str
+        needs_key: bool
+        def init()
+        {
+            self.base_url = "https://api.openai.com/v1"
+            self.api_key = ""
+            self.model = ""
+            self.needs_key = false
+        }
+
+        def save(filename: str) -> void
+        {
+            auto cipher = vault.credential_cipher(filename)
+            str protected_key = cipher.encrypt(self.api_key)
+            dict value = {"version": 2, "base_url": self.base_url, "model": self.model, "api_key_encrypted": protected_key}
+            fs.create_directories(path.parent(filename))
+            if fs.exists(filename) && !fs.exists(filename + ".v1.bak")
+            {
+                dict old = json.parse_object(file.read_text(filename, "utf-8"))
+                if json.get_int(old, "version") == 1
+                {
+                    fs.copy_file(filename, filename + ".v1.bak", false)
+                }
+            }
+            file.atomic_write_text(filename, json.stringify_pretty(value, 2), "utf-8")
+            self.needs_key = false
+        }
+
+        def load(filename: str) -> void
+        {
+            if !fs.exists(filename)
+            {
+                return
+            }
+            if fs.file_size(filename) > 65536
+            {
+                errors.fail_io("settings_format", "连接配置过大。")
+            }
+            dict value = json.parse_object(file.read_text(filename, "utf-8"))
+            int version = json.get_int(value, "version")
+            if version != 1 && version != 2
+            {
+                errors.fail_io("settings_format", "不支持的连接配置版本。")
+            }
+            str base_url = json.get_str(value, "base_url")
+            str model = json.get_str(value, "model")
+            str api_key = ""
+            if version == 2
+            {
+                auto cipher = vault.credential_cipher(filename)
+                api_key = cipher.decrypt(json.get_str(value, "api_key_encrypted"))
+            }
+            self.base_url = base_url
+            self.model = model
+            self.api_key = api_key
+            self.needs_key = version == 1
+        }
+}

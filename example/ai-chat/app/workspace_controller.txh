@@ -1,0 +1,26 @@
+import "../ui/chat_view.txh" as ui
+import "../domain/conversation.txh" as domain
+import "../storage/session_repository.txh" as repository
+import "../storage/data_paths.txh" as locations
+
+class workspace_controller
+{
+    private:
+        view: ui.chat_view
+        model: domain.conversation
+        history: repository.session_repository
+        paths: locations.data_paths
+        def restore_location() -> void
+        def restore_connection() -> void
+        def refresh_history() -> void
+        def show_current() -> void
+    public:
+        def init(view: ui.chat_view, model: domain.conversation)
+        def start() -> void
+        def save_settings() -> bool
+        def save_session() -> bool
+        def can_leave() -> bool
+        def new_session() -> void
+        def switch_history() -> void
+        def apply_directory() -> void
+}

@@ -1,0 +1,31 @@
+import "responses_client.txh" as api
+
+struct chat_job
+{
+    base_url: str
+    api_key: str
+    model: str
+    messages_json: str
+}
+
+# thread.bind 要求顶层函数；回调不捕获应用或控件。
+def serve(jobs: channel<chat_job>, replies: channel<api.chat_reply>, token: cancel_token) -> int
+
+class chat_worker
+{
+    private:
+        source: cancel_source
+        token: cancel_token
+        jobs: channel<chat_job>
+        replies: channel<api.chat_reply>
+        channels: vector<channel<api.chat_reply>>
+        worker: join_handle<int>
+        stopped: bool
+        ended: bool
+    public:
+        def init()
+        def submit(base_url: str, api_key: str, model: str, input: str) -> bool
+        def poll() -> option<api.chat_reply>
+        def is_closed() -> bool
+        def shutdown() -> void
+}

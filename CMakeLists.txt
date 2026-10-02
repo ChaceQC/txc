@@ -564,6 +564,8 @@ if(WIN32)
         src/backend/cpp/graphics_input_abi.cpp
         src/backend/cpp/gui_control_abi.cpp
         src/backend/cpp/gui_form_abi.cpp
+        src/backend/cpp/gui_theme_abi.cpp
+        src/stdlib/gui/windows/theme.cpp
         src/backend/cpp/gui_complex_abi.cpp
         src/backend/cpp/gui_canvas_abi.cpp
         src/backend/cpp/gui_accessibility_abi.cpp

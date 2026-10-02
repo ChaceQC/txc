@@ -1,0 +1,21 @@
+import "graphics.txh" as gfx
+import "../ui/chat_view.txh" as ui
+import "../domain/conversation.txh" as domain
+import "workspace_controller.txh" as workspace
+import "chat_controller.txh" as chat
+
+class application
+{
+    private:
+        app: graphics_app
+        view: ui.chat_view
+        model: domain.conversation
+        workspace: workspace.workspace_controller
+        chat: chat.chat_controller
+        closing: bool
+        def dispatch(action: str) -> void
+        def process_next_event() -> void
+    public:
+        def init()
+        def run() -> int
+}

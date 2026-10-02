@@ -1,0 +1,11 @@
+class connection_settings
+{
+    public:
+        base_url: str
+        api_key: str
+        model: str
+        needs_key: bool
+        def init()
+        def save(filename: str) -> void
+        def load(filename: str) -> void
+}

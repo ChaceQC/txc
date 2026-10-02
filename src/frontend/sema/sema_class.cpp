@@ -13,6 +13,8 @@ void semantic_analyzer::index_classes(program& source)
     classes_.clear();
     source.field_slot_count = 0;
     source.virtual_slot_count = 0;
+    std::vector<std::pair<std::string, class_decl*>> precompiled;
+    std::vector<class_decl*> application;
     for (auto& definition : source.classes)
     {
         if (!classes_.emplace(definition.name, &definition).second)
@@ -20,10 +22,46 @@ void semantic_analyzer::index_classes(program& source)
             throw compile_error(definition.position,
                                 "重复的类名：" + definition.source_name);
         }
+        std::string layout_key;
+        for (const auto& method : definition.methods)
+        {
+            if (method.external_name.starts_with("requests.response.") ||
+                method.external_name.starts_with("requests.session."))
+            {
+                layout_key = method.external_name.substr(0, method.external_name.find_last_of('.'));
+                break;
+            }
+        }
+        if (layout_key.empty())
+        {
+            application.push_back(&definition);
+        }
+        else
+        {
+            precompiled.emplace_back(std::move(layout_key), &definition);
+        }
+    }
+    // Requests 的对象来自独立编译的桥接库。先按固定顺序登记其字段，
+    // 再分配应用字段，保证库与调用方不受各自模块导入顺序影响。
+    std::sort(precompiled.begin(), precompiled.end(), [](const auto& left, const auto& right)
+    {
+        return left.first < right.first;
+    });
+    const auto assign_fields = [&](class_decl& definition)
+    {
         for (auto& field : definition.fields)
         {
             field.slot = source.field_slot_count++;
         }
+    };
+    for (const auto& [key, definition] : precompiled)
+    {
+        (void)key;
+        assign_fields(*definition);
+    }
+    for (auto* definition : application)
+    {
+        assign_fields(*definition);
     }
 }
 

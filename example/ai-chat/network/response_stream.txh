@@ -1,0 +1,16 @@
+class response_stream
+{
+    private:
+        line: str
+        data: str
+        text: str
+        skip_lf: bool
+        done: bool
+        def dispatch() -> void
+        def finish_line() -> void
+    public:
+        def init()
+        def content() -> str
+        def finished() -> bool
+        def feed(text: str) -> void
+}

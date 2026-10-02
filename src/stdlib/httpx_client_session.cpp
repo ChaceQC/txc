@@ -448,9 +448,15 @@ response_chunk read(std::int64_t request, std::int64_t max_bytes)
         return result;
     }
     std::array<char, 16 * 1024> buffer{};
+    // 流式读取只消费当前可用数据，不能等到 max_bytes 填满才交付 SSE。
+    DWORD available = 0;
+    if (!WinHttpQueryDataAvailable(state->handle.get(), &available))
+    {
+        network::http_failure("等待 HTTP 响应正文");
+    }
     DWORD received = 0;
-    if (!WinHttpReadData(state->handle.get(), buffer.data(),
-                          static_cast<DWORD>(max_bytes), &received))
+    if (available > 0 && !WinHttpReadData(state->handle.get(), buffer.data(),
+                          std::min(static_cast<DWORD>(max_bytes), available), &received))
     {
         network::http_failure("读取 HTTP 响应正文");
     }

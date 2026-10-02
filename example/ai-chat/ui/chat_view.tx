@@ -1,0 +1,419 @@
+import "graphics_text.txh" as text
+import "gui.txh" as gui
+import "string.txh" as strings
+import "json.txh" as json
+import "gui_data.txh" as data
+import "error.txh" as errors
+
+class chat_view
+{
+    private:
+        window: graphics_window
+        base_url: gui_text_box
+        api_key: gui_text_box
+        model: gui_text_box
+        transcript: gui_text_box
+        prompt: gui_text_box
+        send: gui_button
+        send_command: gui_command
+        clear: gui_button
+        save: gui_button
+        history: gui_table_view
+        history_model: gui_table_model
+        history_count: gui_label
+        history_empty: gui_label
+        conversation_title: gui_label
+        save_settings: gui_button
+        data_directory: gui_text_box
+        browse_directory: gui_button
+        apply_directory: gui_button
+        tabs: gui_tabs
+        chat_page: gui_container
+        settings_page: gui_container
+        storage_page: gui_container
+        header: gui_canvas
+        heading: graphics_text_layout
+        subheading: graphics_text_layout
+        status_label: gui_label
+        def make_input(parent: gui_container, title: str, value: str) -> gui_text_box
+        {
+            auto label = gui.create_label(parent, title).value()
+            auto input = gui.create_text_box(parent, false).value()
+            gui.set_height(input, gui.fixed(34.0))
+            gui.set_text(input, value)
+            gui.set_label(input, label)
+            return input
+        }
+
+        def build_sidebar(outer: gui_container) -> void
+        {
+            auto sidebar = gui.create_container(outer).value()
+            gui.set_width(sidebar, gui.fixed(244.0))
+            gui.set_height(sidebar, gui.stretch(1.0))
+            gui.set_column(sidebar, 0.0, 12.0)
+            auto brand = gui.create_label(sidebar, "个人工作空间").value()
+            gui.set_height(brand, gui.fixed(24.0))
+            self.clear = gui.create_button(sidebar, "+  新对话").value()
+            gui.set_height(self.clear, gui.fixed(42.0))
+            self.history_count = gui.create_label(sidebar, "历史会话 · 0").value()
+            self.history_empty = gui.create_label(sidebar, "还没有保存的会话\r\n开始聊天后，点击“保存会话”。").value()
+            gui.set_height(self.history_empty, gui.fixed(48.0))
+            vector<data.table_column> columns = vector<data.table_column>()
+            columns.push_back(data.table_column(1, "已保存的会话", 218.0, "left"))
+            self.history_model = data.create_table_model(self.window, columns).value()
+            self.history = data.create_table_view(sidebar, self.history_model, false).value()
+            gui.set_height(self.history, gui.stretch(1.0))
+            auto privacy = gui.create_label(sidebar, "会话保存在本地\r\n点击列表中的会话，即可继续。").value()
+            gui.set_height(privacy, gui.fixed(42.0))
+        }
+
+        def build_header(app: graphics_app, root: gui_container) -> void
+        {
+            self.header = gui.create_canvas(root).value()
+            gui.set_height(self.header, gui.fixed(76.0))
+            gui.set_accessibility(self.header, "TX Chat", "Responses 流式对话，本地保存会话")
+            auto title_font = text.create_font(app, "Microsoft YaHei UI", 25.0).value()
+            auto body_font = text.create_font(app, "Microsoft YaHei UI", 13.0).value()
+            self.heading = text.create_layout(title_font, "TX Chat", 650.0, 38.0).value()
+            self.subheading = text.create_layout(body_font, "专注思考，自然对话。", 650.0, 24.0).value()
+        }
+
+        def build_connection_page() -> void
+        {
+            gui.set_column(self.settings_page, 28.0, 14.0)
+            auto settings_title = gui.create_label(self.settings_page, "模型服务").value()
+            auto settings_intro = gui.create_label(self.settings_page, "连接兼容 Responses 的服务，配置保存后下次自动恢复。").value()
+            self.base_url = self.make_input(self.settings_page, "接口地址  /  Base URL", "https://api.openai.com/v1")
+            self.api_key = self.make_input(self.settings_page, "访问密钥  /  API key", "")
+            gui.set_password(self.api_key, true)
+            self.model = self.make_input(self.settings_page, "模型名称  /  Model", "")
+            auto hint = gui.create_label(self.settings_page, "接口示例：https://api.openai.com/v1").value()
+            self.save_settings = gui.create_button(self.settings_page, "保存连接设置").value()
+            gui.set_width(self.save_settings, gui.fixed(170.0))
+            gui.set_height(self.save_settings, gui.fixed(38.0))
+            auto security = gui.create_label(self.settings_page, "密钥使用 crypto 加密；请一并保管数据目录中的 settings.key。").value()
+        }
+
+        def build_storage_page() -> void
+        {
+            gui.set_column(self.storage_page, 28.0, 16.0)
+            auto storage_title = gui.create_label(self.storage_page, "会话与配置的存放位置").value()
+            auto storage_intro = gui.create_label(self.storage_page, "所有已保存的会话和连接配置，都保存在此数据目录。").value()
+            self.data_directory = self.make_input(self.storage_page, "数据保存路径", "")
+            auto directory_actions = gui.create_container(self.storage_page).value()
+            gui.set_row(directory_actions, 0.0, 12.0)
+            self.browse_directory = gui.create_button(directory_actions, "选择文件夹…").value()
+            self.apply_directory = gui.create_button(directory_actions, "应用目录").value()
+            gui.set_width(self.browse_directory, gui.fixed(146.0))
+            gui.set_height(self.browse_directory, gui.fixed(38.0))
+            gui.set_width(self.apply_directory, gui.fixed(130.0))
+            gui.set_height(self.apply_directory, gui.fixed(38.0))
+            auto directory_hint = gui.create_label(self.storage_page, "切换后显示目标目录的历史会话。\r\n原目录的文件会保留，不会自动搬移或删除。").value()
+            gui.set_height(directory_hint, gui.fixed(54.0))
+            auto storage_files = gui.create_label(self.storage_page, "sessions / 聊天记录\r\nsettings.json / 连接配置与加密密钥").value()
+            gui.set_height(storage_files, gui.fixed(54.0))
+        }
+
+        def build_chat_page() -> void
+        {
+            gui.set_column(self.chat_page, 20.0, 12.0)
+            auto conversation_bar = gui.create_container(self.chat_page).value()
+            gui.set_row(conversation_bar, 0.0, 12.0)
+            self.conversation_title = gui.create_label(conversation_bar, "新对话").value()
+            gui.set_width(self.conversation_title, gui.stretch(1.0))
+            self.save = gui.create_button(conversation_bar, "保存会话").value()
+            gui.set_width(self.save, gui.fixed(120.0))
+            gui.set_height(self.save, gui.fixed(32.0))
+            self.transcript = gui.create_text_box(self.chat_page, true).value()
+            gui.set_read_only(self.transcript, true)
+            gui.set_height(self.transcript, gui.stretch(1.0))
+            gui.set_accessibility(self.transcript, "聊天记录", "可以选择和复制对话文本")
+            gui.set_text(self.transcript, "你好，今天想聊些什么？\r\n\r\n可以一起梳理思路、解释概念，或完善一段文字。\r\n\r\n首次使用，请先在“连接设置”中配置模型服务。")
+            auto composer = gui.create_container(self.chat_page).value()
+            gui.set_column(composer, 0.0, 8.0)
+            auto prompt_label = gui.create_label(composer, "你的消息").value()
+            self.prompt = gui.create_text_box(composer, true).value()
+            gui.set_height(self.prompt, gui.fixed(88.0))
+            gui.set_text_limit(self.prompt, 16000)
+            gui.set_label(self.prompt, prompt_label)
+            auto actions = gui.create_container(composer).value()
+            gui.set_row(actions, 0.0, 12.0)
+            auto shortcut = gui.create_label(actions, "Enter 换行 · Ctrl+Enter 发送").value()
+            gui.set_width(shortcut, gui.stretch(1.0))
+            self.send = gui.create_button(actions, "发送消息  →").value()
+            gui.set_width(self.send, gui.fixed(142.0))
+            gui.set_height(self.send, gui.fixed(36.0))
+            self.send_command = gui.create_command(self.window, "发送消息  →").value()
+            gui.bind_button(self.send, self.send_command)
+            gui.set_shortcut(self.send_command, gui.key_chord("enter", true, false, false, false))
+        }
+    public:
+        def init(app: graphics_app)
+        {
+            self.window = gfx.create_window(app,
+                gfx.window_options("TX Chat — 你的 AI 对话空间", 1160.0, 820.0, true)).value()
+            auto outer = gui.root(self.window).value()
+            gui.set_row(outer, 20.0, 24.0)
+            self.build_sidebar(outer)
+            auto root = gui.create_container(outer).value()
+            gui.set_width(root, gui.stretch(1.0))
+            gui.set_height(root, gui.stretch(1.0))
+            gui.set_column(root, 0.0, 12.0)
+            self.build_header(app, root)
+            self.tabs = gui.create_tabs(root).value()
+            gui.set_height(self.tabs, gui.stretch(1.0))
+            self.chat_page = gui.add_tab(self.tabs, "对话").value()
+            self.settings_page = gui.add_tab(self.tabs, "连接设置").value()
+            self.storage_page = gui.add_tab(self.tabs, "本地数据").value()
+            self.build_connection_page()
+            self.build_storage_page()
+            self.build_chat_page()
+            self.status_label = gui.create_label(root, "就绪 · Responses 流式对话").value()
+            gui.set_height(self.status_label, gui.fixed(36.0))
+            gui.set_theme(outer, "light")
+            gui.set_button_appearance(self.send, "primary")
+            gui.set_button_appearance(self.clear, "primary")
+            gui.set_button_appearance(self.save_settings, "primary")
+            gui.set_button_appearance(self.apply_directory, "primary")
+            gui.select_tab(self.tabs, self.chat_page)
+            gfx.show(self.window).value()
+        }
+
+        def set_busy(busy: bool) -> void
+        {
+            gui.set_enabled(self.base_url, !busy)
+            gui.set_enabled(self.api_key, !busy)
+            gui.set_enabled(self.model, !busy)
+            gui.set_enabled(self.prompt, !busy)
+            gui.set_enabled(self.send, !busy)
+            gui.set_enabled(self.send_command, !busy)
+            gui.set_enabled(self.clear, !busy)
+            gui.set_enabled(self.save, !busy)
+            gui.set_enabled(self.save_settings, !busy)
+            gui.set_enabled(self.data_directory, !busy)
+            gui.set_enabled(self.browse_directory, !busy)
+            gui.set_enabled(self.apply_directory, !busy)
+            gui.set_enabled(self.history, !busy)
+        }
+
+        def show_transcript(content: str) -> void
+        {
+            str visible = strings.replace(content, json.parse("\"\\u0000\"") as str, "")
+            if len(visible) > 15000
+            {
+                visible = "（仅显示最近内容，对话上下文仍保留）\r\n" + strings.slice(visible, len(visible) - 15000, len(visible))
+            }
+            gui.set_text_follow_end(self.transcript, visible)
+        }
+
+        def paint_header() -> void
+        {
+            # 尺寸查询会刷新布局，必须在建立活动绘图帧之前执行。
+            float width = gui.canvas_width(self.header)
+            auto pending = gui.begin_canvas(self.header).value()
+            if pending.is_none()
+            {
+                return
+            }
+            auto frame = pending.value()
+            bool submitted = false
+            try
+            {
+                gfx.clear(frame, gui.theme_color("window"))
+                gfx.fill_rounded_rect(frame, gfx.rect(0.0, 0.0, width, 74.0), 12.0, 12.0, gfx.color(0.94, 0.96, 0.99, 1.0))
+                gfx.fill_rounded_rect(frame, gfx.rect(18.0, 18.0, 36.0, 36.0), 10.0, 10.0, gfx.color(0.27, 0.39, 0.72, 1.0))
+                gfx.draw_line(frame, gfx.point(28.0, 30.0), gfx.point(44.0, 30.0), gfx.color(1.0, 1.0, 1.0, 1.0), 2.0)
+                gfx.draw_line(frame, gfx.point(28.0, 39.0), gfx.point(38.0, 39.0), gfx.color(1.0, 1.0, 1.0, 1.0), 2.0)
+                text.draw_layout(frame, self.heading, gfx.point(70.0, 7.0), gfx.color(0.14, 0.20, 0.32, 1.0))
+                text.draw_layout(frame, self.subheading, gfx.point(72.0, 45.0), gfx.color(0.39, 0.45, 0.55, 1.0))
+                submitted = true
+                gfx.end_frame(frame).value()
+            }
+            exception errors.graphics_error as failure
+            {
+                if !submitted
+                {
+                    gfx.cancel_frame(frame)
+                }
+                if failure.code == "device_lost"
+                {
+                    gui.invalidate_canvas(self.header)
+                }
+                else
+                {
+                    # 参数或调用顺序错误不能靠重绘恢复，否则空闲时也会持续空转。
+                    gui.set_text(self.status_label, "标题绘制失败（" + failure.code + "），对话功能仍可使用。")
+                }
+            }
+        }
+
+
+        def host() -> graphics_window
+        {
+            return self.window
+        }
+        def status(message: str) -> void
+        {
+            gui.set_text(self.status_label, message)
+        }
+        def read_connection() -> config.connection_settings
+        {
+            auto value = config.connection_settings()
+            value.base_url = strings.trim(gui.text(self.base_url))
+            value.model = strings.trim(gui.text(self.model))
+            value.api_key = strings.trim(gui.text(self.api_key))
+            return value
+        }
+        def apply_connection(value: config.connection_settings) -> void
+        {
+            gui.set_text(self.base_url, value.base_url)
+            gui.set_text(self.model, value.model)
+            gui.set_text(self.api_key, value.api_key)
+        }
+        def set_model_connection(base_url: str, model: str) -> void
+        {
+            gui.set_text(self.base_url, base_url)
+            gui.set_text(self.model, model)
+        }
+        def input() -> str
+        {
+            return strings.trim(gui.text(self.prompt))
+        }
+        def clear_input() -> void
+        {
+            gui.set_text(self.prompt, "")
+        }
+        def focus_input() -> void
+        {
+            gui.focus(self.prompt).value()
+        }
+        def show_chat() -> void
+        {
+            gui.select_tab(self.tabs, self.chat_page)
+        }
+        def show_settings() -> void
+        {
+            gui.select_tab(self.tabs, self.settings_page)
+        }
+        def show_title(title: str) -> void
+        {
+            gui.set_text(self.conversation_title, title)
+        }
+        def show_conversation(title: str, content: str) -> void
+        {
+            self.show_title(title)
+            self.show_transcript(content)
+            self.clear_input()
+            self.show_chat()
+        }
+        def read_directory() -> str
+        {
+            return strings.trim(gui.text(self.data_directory))
+        }
+        def write_directory(directory: str) -> void
+        {
+            gui.set_text(self.data_directory, directory)
+        }
+        def choose_directory() -> void
+        {
+            auto selected = gui.pick_folder(self.window, "选择 AI 对话数据目录").value()
+            if selected.is_some()
+            {
+                self.write_directory(selected.value())
+            }
+        }
+        def confirm_save() -> str
+        {
+            return gui.message_box(self.window, "未保存的会话", "是否保存当前会话后继续？选择“否”放弃未保存的修改。", "yes_no_cancel").value()
+        }
+        def confirm_discard_input() -> bool
+        {
+            return gui.message_box(self.window, "未发送的消息", "继续会放弃输入框中的消息，是否继续？", "yes_no").value() == "yes"
+        }
+        def report_error(code: str) -> void
+        {
+            gui.message_box(self.window, "AI 对话", "应用错误（" + code + "），请关闭后重试。", "ok")
+        }
+        def render_history(entries: vector<repository.history_entry>, filename: str, title: str) -> void
+        {
+            vector<data.table_row> rows = vector<data.table_row>()
+            vector<int> selected = vector<int>()
+            for entry in entries
+            {
+                rows.push_back(data.table_row(entry.id, vector<str>(1, entry.title)))
+                if entry.filename == filename
+                {
+                    selected.push_back(entry.id)
+                }
+            }
+            data.replace_items(self.history_model, rows)
+            data.set_selected_ids(self.history, selected)
+            gui.set_text(self.history_count, "历史会话 · " + (len(entries) as str))
+            gui.set_visible(self.history_empty, len(entries) == 0)
+            gui.set_reserved_space(self.history_empty, false)
+            self.show_title(title)
+        }
+        def selected_history() -> int
+        {
+            auto selected = data.selected_ids(self.history)
+            if len(selected) == 0
+            {
+                return -1
+            }
+            return selected[0]
+        }
+        def action(event: gfx.event) -> str
+        {
+            if event.kind == "close_requested"
+            {
+                return "close"
+            }
+            if event.control.is_none()
+            {
+                return ""
+            }
+            auto value = event.control.value()
+            if value.source_id == gui.id(self.header) && value.action == "canvas_paint"
+            {
+                return "paint"
+            }
+            if value.source_id == gui.id(self.history) && value.action == "selection_changed"
+            {
+                return "history"
+            }
+            if value.action != "activated"
+            {
+                return ""
+            }
+            bool send = value.source_id == gui.id(self.send)
+            if value.command_id.is_some()
+            {
+                send = send || value.command_id.value() == gui.id(self.send_command)
+            }
+            if send
+            {
+                return "send"
+            }
+            if value.source_id == gui.id(self.save)
+            {
+                return "save"
+            }
+            if value.source_id == gui.id(self.clear)
+            {
+                return "new"
+            }
+            if value.source_id == gui.id(self.save_settings)
+            {
+                return "save_settings"
+            }
+            if value.source_id == gui.id(self.browse_directory)
+            {
+                return "browse_directory"
+            }
+            if value.source_id == gui.id(self.apply_directory)
+            {
+                return "apply_directory"
+            }
+            return ""
+        }
+}

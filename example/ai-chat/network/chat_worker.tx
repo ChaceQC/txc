@@ -1,0 +1,85 @@
+import "thread.txh" as thread
+import "channel.txh" as channel
+import "cancel.txh" as cancel
+import "error.txh" as errors
+
+def serve(jobs: channel<chat_job>, replies: channel<api.chat_reply>, token: cancel_token) -> int
+{
+    try
+    {
+        bool running = true
+        while running
+        {
+            auto pending = channel.recv(jobs, -1, token)
+            if pending.is_none()
+            {
+                running = false
+            }
+            else
+            {
+                auto job = pending.value()
+                auto client = api.responses_client(job.base_url, job.api_key, job.model)
+                auto reply = client.stream(job.messages_json, replies, token)
+                channel.send(replies, api.chat_reply(reply.ok, reply.text, true), -1, token)
+            }
+        }
+    }
+    exception errors.cancelled_error as failure
+    {
+        # UI 异常退出时取消等待，避免最终消息堵住后台线程。
+    }
+    channel.close(replies)
+    return 0
+}
+
+class chat_worker
+{
+    private:
+        source: cancel_source
+        token: cancel_token
+        jobs: channel<chat_job>
+        replies: channel<api.chat_reply>
+        channels: vector<channel<api.chat_reply>>
+        worker: join_handle<int>
+        stopped: bool
+        ended: bool
+    public:
+        def init()
+        {
+            self.source = cancel.source()
+            self.token = cancel.token(self.source)
+            self.jobs = channel.bounded<chat_job>(1)
+            self.replies = channel.bounded<api.chat_reply>(1)
+            self.channels = vector<channel<api.chat_reply>>(1, self.replies)
+            self.worker = thread.spawn(bind(serve, self.jobs, self.replies, self.token))
+            self.stopped = false
+            self.ended = false
+        }
+        def submit(base_url: str, api_key: str, model: str, input: str) -> bool
+        {
+            return channel.send(self.jobs, chat_job(base_url, api_key, model, input), 0, self.token)
+        }
+        def poll() -> option<api.chat_reply>
+        {
+            auto selected = channel.select(self.channels, 0, self.token)
+            if selected.index >= 0 && selected.value.is_none()
+            {
+                self.ended = true
+            }
+            return selected.value
+        }
+        def is_closed() -> bool
+        {
+            return self.ended
+        }
+        def shutdown() -> void
+        {
+            if !self.stopped
+            {
+                self.stopped = true
+                channel.close(self.jobs)
+                cancel.cancel(self.source)
+                thread.join(self.worker)
+            }
+        }
+}

@@ -1,0 +1,143 @@
+import "json.txh" as json
+import "array.txh" as arrays
+import "string.txh" as strings
+import "error.txh" as errors
+
+class conversation
+{
+    private:
+        messages: array
+        filename: str
+        base_url: str
+        model: str
+        dirty: bool
+    public:
+        def init()
+        {
+            self.base_url = "https://api.openai.com/v1"
+            self.model = ""
+            self.reset()
+        }
+
+        def reset() -> void
+        {
+            self.messages = []
+            self.filename = ""
+            self.dirty = false
+        }
+
+        def request(prompt: str) -> str
+        {
+            array input = arrays.slice(self.messages, 0, len(self.messages))
+            arrays.push_back(input, {"role": "user", "content": prompt})
+            return json.stringify(input)
+        }
+
+        def commit(prompt: str, text: str) -> void
+        {
+            arrays.push_back(self.messages, {"role": "user", "content": prompt})
+            arrays.push_back(self.messages, {"role": "assistant", "content": text})
+            self.dirty = true
+        }
+
+        def transcript() -> str
+        {
+            str text = ""
+            for value in self.messages
+            {
+                dict message = value
+                str label = "AI"
+                if json.get_str(message, "role") == "user"
+                {
+                    label = "你"
+                }
+                text += label + "：\r\n" + json.get_str(message, "content") + "\r\n\r\n"
+            }
+            return text
+        }
+
+        def title() -> str
+        {
+            if len(self.messages) == 0
+            {
+                return "新会话"
+            }
+            dict first = self.messages[0]
+            str title = strings.replace(json.get_str(first, "content"), "\n", " ")
+            title = strings.replace(title, "\r", " ")
+            if len(title) > 32
+            {
+                title = strings.slice(title, 0, 32) + "…"
+            }
+            return title
+        }
+
+        def restore(record: dict, filename: str) -> void
+        {
+            if json.get_int(record, "version") != 1 || json.get_str(record, "protocol") != "responses"
+            {
+                errors.fail_io("history_format", "不支持的历史会话格式。")
+            }
+            array messages = json.get_array(record, "messages")
+            int index = 0
+            for value in messages
+            {
+                dict message = value
+                str role = json.get_str(message, "role")
+                str expected = "user"
+                if index % 2 == 1
+                {
+                    expected = "assistant"
+                }
+                if role != expected
+                {
+                    errors.fail_io("history_format", "历史消息顺序无效。")
+                }
+                json.get_str(message, "content")
+                index += 1
+            }
+            if index % 2 != 0
+            {
+                errors.fail_io("history_format", "历史会话含未完成消息。")
+            }
+            str base_url = json.get_str(record, "base_url")
+            str model = json.get_str(record, "model")
+            # 完整验证后再替换当前会话，损坏文件不会覆盖未保存数据。
+            self.reset()
+            self.messages = messages
+            self.base_url = base_url
+            self.model = model
+            self.filename = filename
+        }
+
+        def file_path() -> str
+        {
+            return self.filename
+        }
+        def get_base_url() -> str
+        {
+            return self.base_url
+        }
+        def get_model() -> str
+        {
+            return self.model
+        }
+        def is_dirty() -> bool
+        {
+            return self.dirty
+        }
+        def set_connection(base_url: str, model: str) -> void
+        {
+            self.base_url = base_url
+            self.model = model
+        }
+        def mark_saved(filename: str) -> void
+        {
+            self.filename = filename
+            self.dirty = false
+        }
+        def document() -> dict
+        {
+            return {"version": 1, "protocol": "responses", "title": self.title(), "base_url": self.base_url, "model": self.model, "messages": self.messages}
+        }
+}

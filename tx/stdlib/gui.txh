@@ -192,6 +192,8 @@ def create_button(parent: gui_container, text: str) -> result<gui_button>
 def create_text_box(parent: gui_container, multiline: bool) -> result<gui_text_box>
 def create_check_box(parent: gui_container, text: str, three_state: bool) -> result<gui_check_box>
 def set_column(parent: gui_container, padding: float, gap: float) -> void
+def set_theme(root: gui_container, theme: str) -> void
+def set_button_appearance(control: gui_button, appearance: str) -> void
 def set_row(parent: gui_container, padding: float, gap: float) -> void
 def set_grid(parent: gui_container, rows: int, columns: int, padding: float, gap: float) -> void
 def set_grid_row(parent: gui_container, index: int, value: length) -> void
@@ -207,6 +209,7 @@ def set_read_only(control: gui_text_box, read_only: bool) -> void
 def set_password(control: gui_text_box, password: bool) -> void
 def set_text_limit(control: gui_text_box, limit: int) -> void
 def set_selection(control: gui_text_box, start: int, end: int) -> void
+def set_text_follow_end(control: gui_text_box, text: str) -> void
 def selection_start(control: gui_text_box) -> int
 def selection_end(control: gui_text_box) -> int
 

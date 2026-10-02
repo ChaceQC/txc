@@ -1,0 +1,103 @@
+import "json.txh" as json
+import "string.txh" as strings
+import "error.txh" as errors
+
+class response_stream
+{
+    private:
+        line: str
+        data: str
+        text: str
+        skip_lf: bool
+        done: bool
+        def dispatch() -> void
+        {
+            str data = strings.trim(self.data)
+            self.data = ""
+            if data == ""
+            {
+                return
+            }
+            dict event = json.parse_object(data)
+            str kind = json.get_str(event, "type")
+            if kind == "error" || kind == "response.failed" || kind == "response.incomplete"
+            {
+                errors.fail_io("stream_error", json.stringify_pretty(event, 2))
+            }
+            if kind == "response.output_text.delta" || kind == "response.refusal.delta"
+            {
+                self.text += json.get_str(event, "delta")
+            }
+            else if kind == "response.completed"
+            {
+                self.done = true
+            }
+        }
+        
+        def finish_line() -> void
+        {
+            str line = self.line
+            self.line = ""
+            if line == ""
+            {
+                self.dispatch()
+            }
+            else if line == "data" || strings.starts_with(line, "data:")
+            {
+                str value = ""
+                if len(line) > 4
+                {
+                    value = strings.slice(line, 5, len(line))
+                }
+                if strings.starts_with(value, " ")
+                {
+                    value = strings.slice(value, 1, len(value))
+                }
+                self.data += value + "\n"
+            }
+            # event 字段仅标注事件名；以 JSON type 为准，忽略注释心跳和 id/retry。
+        }
+    public:
+        def init()
+        {
+            self.line = ""
+            self.data = ""
+            self.text = ""
+            self.skip_lf = false
+            self.done = false
+        }
+        def content() -> str
+        {
+            return self.text
+        }
+        def finished() -> bool
+        {
+            return self.done
+        }
+        def feed(text: str) -> void
+        {
+            int index = 0
+            while index < len(text) && !self.done
+            {
+                str character = strings.slice(text, index, index + 1)
+                index += 1
+                if self.skip_lf && character == "\n"
+                {
+                    self.skip_lf = false
+                }
+                else
+                {
+                    self.skip_lf = false
+                    if character == "\r" || character == "\n"
+                    {
+                        self.skip_lf = character == "\r"
+                        self.finish_line()
+                    }
+                    else
+                    {
+                        self.line += character
+                    }
+                }
+            }
+        }
+}

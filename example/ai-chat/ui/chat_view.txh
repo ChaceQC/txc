@@ -1,0 +1,67 @@
+import "graphics.txh" as gfx
+import "../storage/connection_settings.txh" as config
+import "../storage/session_repository.txh" as repository
+
+class chat_view
+{
+    private:
+        window: graphics_window
+        base_url: gui_text_box
+        api_key: gui_text_box
+        model: gui_text_box
+        transcript: gui_text_box
+        prompt: gui_text_box
+        send: gui_button
+        send_command: gui_command
+        clear: gui_button
+        save: gui_button
+        history: gui_table_view
+        history_model: gui_table_model
+        history_count: gui_label
+        history_empty: gui_label
+        conversation_title: gui_label
+        save_settings: gui_button
+        data_directory: gui_text_box
+        browse_directory: gui_button
+        apply_directory: gui_button
+        tabs: gui_tabs
+        chat_page: gui_container
+        settings_page: gui_container
+        storage_page: gui_container
+        header: gui_canvas
+        heading: graphics_text_layout
+        subheading: graphics_text_layout
+        status_label: gui_label
+        def make_input(parent: gui_container, title: str, value: str) -> gui_text_box
+        def build_sidebar(outer: gui_container) -> void
+        def build_header(app: graphics_app, root: gui_container) -> void
+        def build_connection_page() -> void
+        def build_storage_page() -> void
+        def build_chat_page() -> void
+    public:
+        def init(app: graphics_app)
+        def set_busy(busy: bool) -> void
+        def show_transcript(content: str) -> void
+        def paint_header() -> void
+        def host() -> graphics_window
+        def status(message: str) -> void
+        def read_connection() -> config.connection_settings
+        def apply_connection(value: config.connection_settings) -> void
+        def set_model_connection(base_url: str, model: str) -> void
+        def input() -> str
+        def clear_input() -> void
+        def focus_input() -> void
+        def show_chat() -> void
+        def show_settings() -> void
+        def show_title(title: str) -> void
+        def show_conversation(title: str, content: str) -> void
+        def read_directory() -> str
+        def write_directory(directory: str) -> void
+        def choose_directory() -> void
+        def confirm_save() -> str
+        def confirm_discard_input() -> bool
+        def report_error(code: str) -> void
+        def render_history(entries: vector<repository.history_entry>, filename: str, title: str) -> void
+        def selected_history() -> int
+        def action(event: gfx.event) -> str
+}

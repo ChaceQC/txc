@@ -1,0 +1,154 @@
+import "json.txh" as json
+import "string.txh" as strings
+import "error.txh" as errors
+import "encoding.txh" as encoding
+import "channel.txh" as channel
+import "response_stream.txh" as events
+
+class responses_client
+{
+    private:
+        url: str
+        api_key: str
+        model: str
+        def normalize_endpoint(base_url: str) -> str
+        {
+            str url = strings.trim(base_url)
+            while strings.ends_with(url, "/")
+            {
+                url = strings.slice(url, 0, len(url) - 1)
+            }
+            if !strings.starts_with(url, "https://") && !strings.starts_with(url, "http://")
+            {
+                errors.fail_io("invalid_url", "Base URL 必须以 https:// 或 http:// 开头。")
+            }
+            if strings.contains(url, "?") || strings.contains(url, "#") || strings.contains(url, "@")
+            {
+                errors.fail_io("invalid_url", "Base URL 不应包含查询参数、片段或用户名密码。")
+            }
+            if strings.ends_with(url, "/chat/completions")
+            {
+                url = strings.slice(url, 0, len(url) - len("/chat/completions"))
+            }
+            if strings.ends_with(url, "/responses")
+            {
+                return url
+            }
+            return url + "/responses"
+        }
+        
+        def safe_detail(text: str) -> str
+        {
+            str detail = text
+            if self.api_key != ""
+            {
+                detail = strings.replace(detail, self.api_key, "[API key 已隐藏]")
+                str encoded_key = json.stringify(self.api_key)
+                encoded_key = strings.slice(encoded_key, 1, len(encoded_key) - 1)
+                detail = strings.replace(detail, encoded_key, "[API key 已隐藏]")
+            }
+            detail = strings.replace(detail, json.parse("\"\\u0000\"") as str, "")
+            if len(detail) > 8000
+            {
+                detail = strings.slice(detail, 0, 8000) + "\r\n（错误内容过长，后续已截断）"
+            }
+            return detail
+        }
+        
+        def http_failure(status: int, body: str) -> chat_reply
+        {
+            str detail = body
+            try
+            {
+                detail = json.stringify_pretty(json.parse(body), 2)
+            }
+            exception errors.runtime_error as failure
+            {
+                # 网关可能返回纯文本或 HTML，按文本显示，不执行其中的标记。
+            }
+            if strings.trim(detail) == ""
+            {
+                detail = "服务器未提供响应正文。"
+            }
+            return chat_reply(false, "请求被服务器拒绝或处理失败（HTTP " + (status as str) + "）\r\n\r\n" + self.safe_detail(detail), true)
+        }
+        
+        def consume(response: requests.response, updates: channel<chat_reply>, token: cancel_token) -> chat_reply
+        {
+            try
+            {
+                if response.status_code < 200 || response.status_code >= 300
+                {
+                    return self.http_failure(response.status_code, response.text())
+                }
+                auto decoder = encoding.new_decoder("utf-8", "strict")
+                auto state = events.response_stream()
+                bool eof = false
+                while !state.finished() && !eof
+                {
+                    auto chunk = response.next_chunk(4096)
+                    eof = chunk.eof
+                    # HTTP 分块可能截断 UTF-8 字符、SSE 行和 JSON，分别增量解码与组帧。
+                    state.feed(encoding.decode_chunk(decoder, chunk.data, eof))
+                    if state.content() != ""
+                    {
+                        # 中间快照允许合并；最终结果单独可靠发送，不受 UI 刷新速度影响。
+                        channel.send(updates, chat_reply(true, state.content(), false), 0, token)
+                    }
+                }
+                if !state.finished()
+                {
+                    return chat_reply(false, "流式连接在收到 response.completed 前结束，回答不完整，请重试。", true)
+                }
+                if strings.trim(state.content()) == ""
+                {
+                    return chat_reply(false, "服务未返回文本回答；此应用支持文本对话模型。", true)
+                }
+                return chat_reply(true, state.content(), true)
+            }
+            exception errors.runtime_error as failure
+            {
+                return chat_reply(false, "流式接收失败（" + failure.code + "）\r\n" + self.safe_detail(failure.message), true)
+            }
+        }
+    public:
+        def init(base_url: str, api_key: str, model: str)
+        {
+            self.url = self.normalize_endpoint(base_url)
+            self.api_key = api_key
+            self.model = model
+        }
+        def endpoint() -> str
+        {
+            return self.url
+        }
+        def stream(messages_json: str, updates: channel<chat_reply>, token: cancel_token) -> chat_reply
+        {
+            try
+            {
+                array messages = json.parse(messages_json)
+                dict payload = {"model": self.model, "input": messages, "stream": true, "store": false}
+                auto options = requests.with_json(requests.default_options(), payload)
+                options.headers["Authorization"] = "Bearer " + self.api_key
+                options.headers["Accept"] = "text/event-stream"
+                options.stream = true
+                options.timeout_ms = 60000
+                options.max_response_bytes = 4 * 1024 * 1024
+                # 禁止自动重试和重定向，避免重复计费或把凭据发送到其他地址。
+                options.max_retries = 0
+                options.allow_redirects = false
+                auto response = requests.post(self.url, options)
+                auto reply = self.consume(response, updates, token)
+                response.close()
+                return reply
+            }
+            exception errors.io_error as failure
+            {
+                return chat_reply(false, "网络请求失败（" + failure.code + "）\r\n" + self.safe_detail(failure.message), true)
+            }
+            exception errors.runtime_error as failure
+            {
+                return chat_reply(false, "请求或响应解析失败（" + failure.code + "）\r\n" + self.safe_detail(failure.message), true)
+            }
+        }
+}

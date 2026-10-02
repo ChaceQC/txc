@@ -1,0 +1,24 @@
+import "../ui/chat_view.txh" as ui
+import "../domain/conversation.txh" as domain
+import "../network/chat_worker.txh" as background
+import "../network/responses_client.txh" as network
+
+class chat_controller
+{
+    private:
+        view: ui.chat_view
+        model: domain.conversation
+        worker: background.chat_worker
+        pending: str
+        partial: str
+        busy: bool
+        def show_partial() -> void
+        def finish(reply: network.chat_reply) -> void
+    public:
+        def init(view: ui.chat_view, model: domain.conversation)
+        def is_busy() -> bool
+        def worker_closed() -> bool
+        def submit() -> void
+        def poll() -> void
+        def shutdown() -> void
+}

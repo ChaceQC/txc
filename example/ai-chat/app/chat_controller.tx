@@ -1,0 +1,122 @@
+import "error.txh" as errors
+
+class chat_controller
+{
+    private:
+        view: ui.chat_view
+        model: domain.conversation
+        worker: background.chat_worker
+        pending: str
+        partial: str
+        busy: bool
+        def show_partial() -> void
+        {
+            self.view.show_transcript(self.model.transcript() + "你：\r\n" + self.pending + "\r\n\r\nAI：\r\n" + self.partial)
+            self.view.status("正在生成回答…")
+        }
+
+        def finish(reply: network.chat_reply) -> void
+        {
+            self.busy = false
+            self.view.set_busy(false)
+            if reply.ok
+            {
+                self.model.commit(self.pending, reply.text)
+                self.view.show_conversation(self.model.title() + " · 未保存", self.model.transcript())
+                self.view.status("回答完成；点击“保存会话”保存本次进度。")
+            }
+            else
+            {
+                self.view.status("请求失败，详细信息见聊天区。输入已保留，不完整回答未加入上下文。")
+                self.view.show_transcript(self.model.transcript() + "未完成的回答：\r\n" + self.partial + "\r\n\r\n本次请求失败：\r\n" + reply.text)
+            }
+            self.pending = ""
+            self.partial = ""
+            self.view.focus_input()
+        }
+
+    public:
+        def init(view: ui.chat_view, model: domain.conversation)
+        {
+            self.view = view
+            self.model = model
+            self.worker = background.chat_worker()
+            self.pending = ""
+            self.partial = ""
+            self.busy = false
+        }
+
+        def is_busy() -> bool
+        {
+            return self.busy
+        }
+
+        def worker_closed() -> bool
+        {
+            return self.worker.is_closed()
+        }
+
+        def submit() -> void
+        {
+            auto config = self.view.read_connection()
+            str prompt = self.view.input()
+            if config.base_url == "" || config.api_key == "" || config.model == "" || prompt == ""
+            {
+                self.view.status("请填写 Base URL、API key、模型名称和消息。")
+                if config.base_url == "" || config.api_key == "" || config.model == ""
+                {
+                    self.view.show_settings()
+                }
+                return
+            }
+            try
+            {
+                auto client = network.responses_client(config.base_url, config.api_key, config.model)
+            }
+            exception errors.io_error as failure
+            {
+                self.view.status(failure.message)
+                return
+            }
+            if !self.worker.submit(config.base_url, config.api_key, config.model, self.model.request(prompt))
+            {
+                return
+            }
+            self.model.set_connection(config.base_url, config.model)
+            self.pending = prompt
+            self.partial = ""
+            self.busy = true
+            self.view.show_chat()
+            self.view.set_busy(true)
+            self.view.show_transcript(self.model.transcript() + "你：\r\n" + prompt + "\r\n\r\nAI：正在思考…")
+            self.view.status("正在等待 Responses 流式回答…")
+        }
+
+        def poll() -> void
+        {
+            auto pending = self.worker.poll()
+            if pending.is_none()
+            {
+                if self.worker.is_closed()
+                {
+                    self.busy = false
+                }
+                return
+            }
+            auto reply = pending.value()
+            if reply.done
+            {
+                self.finish(reply)
+            }
+            else
+            {
+                self.partial = reply.text
+                self.show_partial()
+            }
+        }
+
+        def shutdown() -> void
+        {
+            self.worker.shutdown()
+        }
+}

@@ -1,0 +1,124 @@
+import "file.txh" as file
+import "fs.txh" as fs
+import "path.txh" as path
+import "time.txh" as time
+import "system.txh" as system
+import "json.txh" as json
+import "error.txh" as errors
+
+class session_repository
+{
+    private:
+        root_directory: str
+        items: vector<history_entry>
+        next_id: int
+        skipped_count: int
+    public:
+        def init(directory: str)
+        {
+            self.root_directory = directory
+            self.items = vector<history_entry>()
+            self.next_id = 1
+            self.skipped_count = 0
+        }
+
+        def directory() -> str
+        {
+            return self.root_directory
+        }
+
+        def set_directory(directory: str) -> void
+        {
+            self.root_directory = directory
+        }
+
+        def entries() -> vector<history_entry>
+        {
+            return self.items
+        }
+
+        def skipped() -> int
+        {
+            return self.skipped_count
+        }
+
+        def find(id: int) -> str
+        {
+            for item in self.items
+            {
+                if item.id == id
+                {
+                    return item.filename
+                }
+            }
+            return ""
+        }
+
+        def refresh() -> void
+        {
+            vector<history_entry> next = vector<history_entry>()
+            int skipped = 0
+            if fs.exists(self.root_directory)
+            {
+                auto names = fs.list_directory_filtered(self.root_directory, "file", ".json", false)
+                int index = len(names)
+                while index > 0
+                {
+                    index -= 1
+                    try
+                    {
+                        str filename = path.join(self.root_directory, names[index])
+                        auto value = domain.conversation()
+                        self.load_into(value, filename)
+                        int id = 0
+                        for previous in self.items
+                        {
+                            if previous.filename == filename
+                            {
+                                id = previous.id
+                            }
+                        }
+                        if id == 0
+                        {
+                            id = self.next_id
+                            self.next_id += 1
+                        }
+                        next.push_back(history_entry(id, filename, value.title()))
+                    }
+                    exception errors.runtime_error as failure
+                    {
+                        skipped += 1
+                    }
+                }
+            }
+            # 完成扫描后整体替换索引；已移除条目的 ID 不会再次使用。
+            self.items = next
+            self.skipped_count = skipped
+        }
+
+        def save(value: domain.conversation) -> void
+        {
+            fs.create_directories(self.root_directory)
+            str target = value.file_path()
+            if target == ""
+            {
+                target = path.join(self.root_directory, (time.unix_millis() as str) + "-" + (system.process_id() as str) + ".json")
+                while fs.exists(target)
+                {
+                    target = path.join(self.root_directory, (time.unix_millis() as str) + "-" + (time.monotonic_micros() as str) + ".json")
+                }
+            }
+            file.atomic_write_text(target, json.stringify_pretty(value.document(), 2), "utf-8")
+            value.mark_saved(target)
+        }
+
+        def load_into(value: domain.conversation, filename: str) -> void
+        {
+            if fs.file_size(filename) > 16 * 1024 * 1024
+            {
+                errors.fail_io("history_size", "历史会话文件超过 16 MiB。")
+            }
+            dict record = json.parse_object(file.read_text(filename, "utf-8"))
+            value.restore(record, filename)
+        }
+}

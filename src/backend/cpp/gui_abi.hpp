@@ -20,6 +20,8 @@ int txrt_gui_create_button(tx_generated::graphics::resource* parent, const void*
 int txrt_gui_create_text_box(tx_generated::graphics::resource* parent, bool multiline, const char* result_type, void** result) noexcept;
 int txrt_gui_create_check_box(tx_generated::graphics::resource* parent, const void* text, bool three_state, const char* result_type, void** result) noexcept;
 int txrt_gui_set_column(tx_generated::graphics::resource* parent, double padding, double gap) noexcept;
+int txrt_gui_set_theme(tx_generated::graphics::resource* root, const void* theme) noexcept;
+int txrt_gui_set_button_appearance(tx_generated::graphics::resource* control, const void* appearance) noexcept;
 int txrt_gui_set_row(tx_generated::graphics::resource* parent, double padding, double gap) noexcept;
 int txrt_gui_set_grid(tx_generated::graphics::resource* parent, std::int64_t rows, std::int64_t columns, double padding, double gap) noexcept;
 int txrt_gui_set_grid_row(tx_generated::graphics::resource* parent, std::int64_t index, const void* value_mode, double value_value) noexcept;
@@ -35,6 +37,7 @@ int txrt_gui_set_read_only(tx_generated::graphics::resource* control, bool read_
 int txrt_gui_set_password(tx_generated::graphics::resource* control, bool password) noexcept;
 int txrt_gui_set_text_limit(tx_generated::graphics::resource* control, std::int64_t limit) noexcept;
 int txrt_gui_set_selection(tx_generated::graphics::resource* control, std::int64_t start, std::int64_t end) noexcept;
+int txrt_gui_set_text_follow_end(tx_generated::graphics::resource* control, const void* text) noexcept;
 int txrt_gui_selection_start(tx_generated::graphics::resource* control, std::int64_t* result) noexcept;
 int txrt_gui_selection_end(tx_generated::graphics::resource* control, std::int64_t* result) noexcept;
 int txrt_gui_id_container(tx_generated::graphics::resource* control, std::int64_t* result) noexcept;

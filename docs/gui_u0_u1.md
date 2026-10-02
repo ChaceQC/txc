@@ -47,3 +47,12 @@ Tab/Shift+Tab 按树创建顺序遍历可见、启用的 button/text/check；关
 生成的图形/GUI 程序同时链接 Common Controls 与 `tx/link/gui-manifest.o`，清单启用 Common Controls v6 和 Per-Monitor V2。直接从 C++ 链接图形原生实现也必须使用该清单及 comctl32，两个原生验证入口已按此设置。GUI 子系统、无控制台发行体验仍属于后续发行阶段。
 
 本文记录 U0–U1 的原始交付。真实 125%/200% 混合显示器、微软拼音、视觉、实际键盘和最低系统版本仍待人工验收，清单见 [tests/gui/README.md](../tests/gui/README.md)；后续已实现的命令和数据控件见 [U2–U3](gui_u2_u3.md)，复杂界面及辅助功能见 [U4–U5](gui_u4_u5.md)。U6 尚未实施。
+# 可选浅色样式
+
+多行文本框可使用 `gui.set_text_follow_end(control, text)` 原子更新正文并跟随末尾。内容为旧文本的扩展时只追加后缀；替换、滚动和最终重绘在同一更新内完成，不转移焦点，不触发用户编辑事件或整棵布局刷新。支持只读文本框；调用后仍保持只读。隐藏控件不会因恢复重绘而被显示；相同正文不重复更新。
+
+`gui.set_theme(root: gui_container, theme: str)` 对窗口控件树应用 `light` 或 `system` 样式，默认仍使用系统样式。建议在完成控件创建后、显示窗口前设置。`light` 提供浅灰背景、白色容器与输入框、14 DIP 正文字体、平面边框以及圆角按钮；此后动态新增控件可再次应用主题。
+
+`gui.set_button_appearance(control: gui_button, appearance: str)` 支持 `primary` 与 `secondary`，在浅色样式中分别使用强调色与白色按钮。按钮保留原有命令绑定、键盘激活和焦点提示，并绘制悬停、按下、禁用状态。未支持的主题或样式报 `invalid_argument`。
+
+绘制使用窗口消息驱动，不启动刷新定时器。GDI 绘制使用保存/恢复的 DC 和系统库存画刷，不积累逐帧 GDI 对象；字体仍由根控件拥有并在替换或关闭时释放。

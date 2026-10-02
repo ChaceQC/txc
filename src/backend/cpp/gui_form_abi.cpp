@@ -229,6 +229,14 @@ extern "C" int txrt_gui_set_text_limit(tx_generated::graphics::resource* control
     });
 }
 
+extern "C" int txrt_gui_set_text_follow_end(tx_generated::graphics::resource* control, const void* text) noexcept
+{
+    return detail::invoke_leaf([&]
+    {
+        gui::set_text_follow_end(require_node(control), detail::text_value(text));
+    });
+}
+
 extern "C" int txrt_gui_set_selection(tx_generated::graphics::resource* control, std::int64_t start, std::int64_t end) noexcept
 {
     return detail::invoke_leaf([&]

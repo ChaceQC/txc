@@ -1,0 +1,24 @@
+class conversation
+{
+    private:
+        messages: array
+        filename: str
+        base_url: str
+        model: str
+        dirty: bool
+    public:
+        def init()
+        def reset() -> void
+        def request(prompt: str) -> str
+        def commit(prompt: str, text: str) -> void
+        def transcript() -> str
+        def title() -> str
+        def restore(record: dict, filename: str) -> void
+        def file_path() -> str
+        def get_base_url() -> str
+        def get_model() -> str
+        def is_dirty() -> bool
+        def set_connection(base_url: str, model: str) -> void
+        def mark_saved(filename: str) -> void
+        def document() -> dict
+}

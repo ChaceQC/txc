@@ -1,0 +1,24 @@
+import "requests.txh" as requests
+
+struct chat_reply
+{
+    ok: bool
+    text: str
+    done: bool
+}
+
+class responses_client
+{
+    private:
+        url: str
+        api_key: str
+        model: str
+        def normalize_endpoint(base_url: str) -> str
+        def safe_detail(text: str) -> str
+        def http_failure(status: int, body: str) -> chat_reply
+        def consume(response: requests.response, updates: channel<chat_reply>, token: cancel_token) -> chat_reply
+    public:
+        def init(base_url: str, api_key: str, model: str)
+        def endpoint() -> str
+        def stream(messages_json: str, updates: channel<chat_reply>, token: cancel_token) -> chat_reply
+}

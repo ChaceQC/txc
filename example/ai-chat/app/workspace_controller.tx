@@ -1,0 +1,234 @@
+import "path.txh" as path
+import "error.txh" as errors
+import "../storage/connection_settings.txh" as settings
+import "../network/responses_client.txh" as network
+
+class workspace_controller
+{
+    private:
+        view: ui.chat_view
+        model: domain.conversation
+        history: repository.session_repository
+        paths: locations.data_paths
+        def restore_location() -> void
+        {
+            try
+            {
+                self.history.set_directory(path.join(self.paths.resolve(), "sessions"))
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.status("数据目录配置无法读取，暂用默认目录；原配置未改动。")
+            }
+            self.view.write_directory(path.parent(self.history.directory()))
+        }
+
+        def restore_connection() -> void
+        {
+            try
+            {
+                auto config = settings.connection_settings()
+                config.load(path.join(path.parent(self.history.directory()), "settings.json"))
+                self.view.apply_connection(config)
+                self.model.set_connection(config.base_url, config.model)
+                if config.needs_key
+                {
+                    self.view.status("旧版连接地址和模型已恢复。请重新填写 API key 并保存，原配置将保留备份。")
+                    self.view.show_settings()
+                }
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.status("连接配置无法加载，请在连接设置中重新填写；原配置未改动。")
+            }
+        }
+
+        def refresh_history() -> void
+        {
+            self.history.refresh()
+            self.view.render_history(self.history.entries(), self.model.file_path(), self.model.title())
+        }
+
+        def show_current() -> void
+        {
+            self.view.set_model_connection(self.model.get_base_url(), self.model.get_model())
+            self.view.show_conversation(self.model.title(), self.model.transcript())
+        }
+
+    public:
+        def init(view: ui.chat_view, model: domain.conversation)
+        {
+            self.view = view
+            self.model = model
+            self.paths = locations.data_paths()
+            self.history = repository.session_repository(path.join(self.paths.fallback(), "sessions"))
+        }
+
+        def start() -> void
+        {
+            self.restore_location()
+            self.restore_connection()
+            try
+            {
+                self.refresh_history()
+                if self.history.skipped() > 0
+                {
+                    self.view.status("部分历史文件损坏或格式不支持，已跳过；原文件未改动。")
+                }
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.status("历史目录暂不可读，仍可开始新会话。")
+            }
+        }
+
+        def save_settings() -> bool
+        {
+            try
+            {
+                auto config = self.view.read_connection()
+                auto client = network.responses_client(config.base_url, config.api_key, config.model)
+                config.save(path.join(path.parent(self.history.directory()), "settings.json"))
+                self.view.status("连接设置已保存；API key 已使用 crypto 加密。")
+                return true
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.status("连接设置保存失败（" + failure.code + "），当前输入仍保留。")
+                return false
+            }
+        }
+
+        def save_session() -> bool
+        {
+            if !self.save_settings()
+            {
+                return false
+            }
+            try
+            {
+                auto config = self.view.read_connection()
+                self.model.set_connection(config.base_url, config.model)
+                self.history.save(self.model)
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.status("保存失败（" + failure.code + "），会话仍保留在内存，请重试。")
+                return false
+            }
+            try
+            {
+                self.refresh_history()
+                self.view.status("会话和连接设置已保存，可从左侧列表恢复继续。")
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.status("会话已保存，但历史列表刷新失败（" + failure.code + "）；重启后可重新加载。")
+            }
+            return true
+        }
+
+        def can_leave() -> bool
+        {
+            if self.model.is_dirty()
+            {
+                str answer = self.view.confirm_save()
+                if answer == "cancel"
+                {
+                    return false
+                }
+                if answer == "yes" && !self.save_session()
+                {
+                    return false
+                }
+            }
+            if self.view.input() != ""
+            {
+                return self.view.confirm_discard_input()
+            }
+            return true
+        }
+
+        def new_session() -> void
+        {
+            if self.can_leave()
+            {
+                self.model.reset()
+                self.view.show_conversation("新对话", "")
+                self.view.render_history(self.history.entries(), "", "新对话")
+                self.view.status("已开始新对话，连接设置保留。")
+            }
+        }
+
+        def switch_history() -> void
+        {
+            str filename = self.history.find(self.view.selected_history())
+            if filename == "" || filename == self.model.file_path()
+            {
+                return
+            }
+            if !self.can_leave()
+            {
+                self.refresh_history()
+                return
+            }
+            try
+            {
+                self.history.load_into(self.model, filename)
+                self.show_current()
+                self.view.status("已恢复历史会话。确认当前 API key 适用于此接口后即可继续。")
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.status("无法加载历史会话（" + failure.code + "），原会话已保留。")
+            }
+            self.refresh_history()
+        }
+
+        def apply_directory() -> void
+        {
+            str directory = self.view.read_directory()
+            if !path.is_absolute(directory)
+            {
+                self.view.status("请填写绝对路径，或点击“选择文件夹”。")
+                return
+            }
+            directory = path.normalize(directory)
+            if path.compare(directory, path.parent(self.history.directory())) == 0
+            {
+                self.view.status("当前已经使用此数据目录。")
+                return
+            }
+            if !self.can_leave()
+            {
+                return
+            }
+            try
+            {
+                auto target = repository.session_repository(path.join(directory, "sessions"))
+                target.refresh()
+                auto config = self.view.read_connection()
+                str config_file = path.join(directory, "settings.json")
+                config.load(config_file)
+                if config.needs_key
+                {
+                    self.view.status("目标目录使用旧版密钥格式，请先迁移配置或选择新目录；原文件保留。")
+                    return
+                }
+                config.save(config_file)
+                self.paths.activate(directory)
+                self.history.set_directory(target.directory())
+                self.model.reset()
+                self.model.set_connection(config.base_url, config.model)
+                self.view.apply_connection(config)
+                self.view.write_directory(directory)
+                self.view.show_conversation("新对话", "")
+                self.refresh_history()
+                self.view.status("数据目录已切换，原目录文件保留。新会话将保存到此目录。")
+            }
+            exception errors.runtime_error as failure
+            {
+                self.view.status("无法切换数据目录（" + failure.code + "），请检查路径及权限。")
+            }
+        }
+}

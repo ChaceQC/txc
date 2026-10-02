@@ -265,6 +265,13 @@ void update_font(node& root)
     {
         platform_fail(owner_window(root).owner.lock().get(), "读取系统 GUI 字体", GetLastError());
     }
+    if (light_theme_active(root))
+    {
+        metrics.lfMessageFont.lfHeight = -MulDiv(14, dpi, 96);
+        metrics.lfMessageFont.lfWeight = FW_NORMAL;
+        const wchar_t family[] = L"Microsoft YaHei UI";
+        std::copy(std::begin(family), std::end(family), metrics.lfMessageFont.lfFaceName);
+    }
     const auto font = CreateFontIndirectW(&metrics.lfMessageFont);
     if (!font)
     {

@@ -1,0 +1,10 @@
+class data_paths
+{
+    private:
+        original_root: str
+    public:
+        def init()
+        def fallback() -> str
+        def resolve() -> str
+        def activate(directory: str) -> void
+}
