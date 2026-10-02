@@ -15,6 +15,10 @@ std::string key_name(std::uint32_t symbol)
     {
         return std::string(1, static_cast<char>(symbol - 'A' + 'a'));
     }
+    if (symbol >= '0' && symbol <= '9')
+    {
+        return std::string(1, static_cast<char>(symbol));
+    }
     switch (symbol)
     {
     case 0xff08: return "backspace";
@@ -31,6 +35,7 @@ std::string key_name(std::uint32_t symbol)
     case 0xff55: return "page_up";
     case 0xff56: return "page_down";
     case 0xff57: return "end";
+    case 0xffc1: return "f4";
     case 0x20: return "space";
     default: return "unknown";
     }

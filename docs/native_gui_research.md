@@ -65,3 +65,26 @@ X11 窗口和像素提交已自行编码；XIM 的连接、属性协商、输入
   不混用新版数据。实现已通过本版全部 16,672 条官方用例。
 - 文本布局采用合法机会上的贪心断行和字素级紧急折行；没有采用 Knuth–Plass 全局最优断行。
   这次核对的是协议与 Unicode 规范全文相关章节，没有将先前读到的论文摘要冒充全文研究。
+
+## 本次双向文字续接
+
+通过 SciSpace 阅读 MtScript（[DOI](https://doi.org/10.1023/A:1000611103672)）与
+When Fonts Do Not Know Everything（[DOI](https://doi.org/10.1002/spe.819)）摘要，
+借鉴逻辑编辑与视觉布局分离、字体表与脚本知识分离的设计；未取得全文，不称为论文全文复现。
+双向实现直接核对 Unicode 16.0 [UAX #9 revision 50](https://www.unicode.org/reports/tr9/tr9-50.html)
+的显式隔离、isolating run sequence、弱/中性类型和括号处理规则，并以官方数据验证。
+这部分通过不等于复杂脚本整形或完整版 GUI 完成。
+
+## OpenType 整形续接
+
+2026-10-02 重新读取 Microsoft OpenType 规范的 GSUB、GPOS、GDEF 和
+[Common Table Formats](https://learn.microsoft.com/en-us/typography/opentype/spec/chapter2)。
+实现和夹具直接依据这些二进制格式，不复制外部排版器代码。
+
+- GSUB 上下文动作使用前一次替换后的序列索引；查找递归、输出膨胀和偏移均设边界。
+- 核对 GPOS ValueRecord 中 Device 偏移的直接父表规则，特别是 PairPosFormat1 内的 PairSet。
+- 区分 RightToLeft 的 Cursive 基线语义与双向排序；mark-to-mark 不能跨过非匹配的前一个字形寻找更早附标。
+- Unicode 16.0 官方 DerivedJoiningType 和 Scripts 数据提供连接状态与脚本分类，
+  GSUB 字体规则负责实际字形替换，不以阿拉伯表现形式字符转换冒充整形。
+- 本次读的是上述格式规范与官方属性数据，没有新增论文全文复现声明。
+  其他复杂脚本的重排和专门规则仍需继续研究与实现。

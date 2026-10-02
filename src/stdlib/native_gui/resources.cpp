@@ -1,4 +1,6 @@
 #include "stdlib/native_gui/state.hpp"
+#include "stdlib/native_gui/containers.hpp"
+#include "stdlib/native_gui/combo.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -78,7 +80,8 @@ bool interactive(const node& state)
         state.kind == tx::graphics_kind::native_list_view ||
         state.kind == tx::graphics_kind::native_table_view ||
         state.kind == tx::graphics_kind::native_tree_view ||
-        state.kind == tx::graphics_kind::native_tabs;
+        state.kind == tx::graphics_kind::native_tabs || state.kind == tx::graphics_kind::native_scroll ||
+        state.kind == tx::graphics_kind::native_split || state.kind == tx::graphics_kind::native_canvas;
 }
 
 gui::length checked_length(const std::string& mode, double value)
@@ -104,7 +107,7 @@ bool available(const node& state)
     const auto* current = &state;
     while (current)
     {
-        if (current->closed || !current->visible || !current->enabled)
+        if (current->closed || !current->visible || !current->layout_visible || !current->enabled)
         {
             return false;
         }
@@ -143,6 +146,12 @@ void release_tree(node& state) noexcept
     state.editor.reset();
     state.composition.clear();
     state.font.reset();
+    state.scroll.reset();
+    state.tabs.reset();
+    state.split.reset();
+    state.canvas.reset();
+    state.data.reset();
+    state.combo.reset();
     state.closed = true;
 }
 }
@@ -180,6 +189,11 @@ std::shared_ptr<node> create(node& parent, tx::graphics_kind kind, const std::st
         value->editor = std::make_unique<tx::ui::text_buffer>();
         value->editor->set_text(value->text);
         value->height = {gui::length_mode::fixed, 42};
+    }
+    else if (kind == tx::graphics_kind::native_combo_box)
+    {
+        value->combo = std::make_shared<combo_state>();
+        value->height = {gui::length_mode::fixed, 40};
     }
     else if (kind == tx::graphics_kind::native_progress_bar || kind == tx::graphics_kind::native_slider)
     {
@@ -237,6 +251,8 @@ void close(node& state)
         {
             return child.get() == &state;
         });
+        normalize_tabs(*parent);
+        reset_interaction(root_node(*parent));
         dirty(*parent);
     }
     else
@@ -277,6 +293,10 @@ void set_visible(node& state, bool value)
     if (state.visible != value)
     {
         state.visible = value;
+        if (const auto parent = state.parent.lock())
+        {
+            normalize_tabs(*parent);
+        }
         reset_interaction(root_node(state));
         ++state.revision;
         dirty(state);
@@ -289,6 +309,10 @@ void set_enabled(node& state, bool value)
     if (state.enabled != value)
     {
         state.enabled = value;
+        if (const auto parent = state.parent.lock())
+        {
+            normalize_tabs(*parent);
+        }
         reset_interaction(root_node(state));
         ++state.revision;
         dirty(state);

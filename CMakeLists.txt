@@ -547,6 +547,16 @@ target_sources(txstdlib PRIVATE
     src/stdlib/native_gui/core/font_outline.cpp
     src/stdlib/native_gui/core/font_compound.cpp
     src/stdlib/native_gui/core/font_cache.cpp
+    src/stdlib/native_gui/core/font_family.cpp
+    src/stdlib/native_gui/core/opentype_tables.cpp
+    src/stdlib/native_gui/core/opentype_processor.cpp
+    src/stdlib/native_gui/core/opentype_substitution.cpp
+    src/stdlib/native_gui/core/opentype_context.cpp
+    src/stdlib/native_gui/core/opentype_position.cpp
+    src/stdlib/native_gui/core/opentype_attachment.cpp
+    src/stdlib/native_gui/core/opentype_carets.cpp
+    src/stdlib/native_gui/core/shaping.cpp
+    src/stdlib/native_gui/core/shaping_scripts.cpp
     src/stdlib/native_gui/core/unicode.cpp
     src/stdlib/native_gui/core/unicode_properties.cpp
     src/stdlib/native_gui/core/grapheme.cpp
@@ -554,6 +564,11 @@ target_sources(txstdlib PRIVATE
     src/stdlib/native_gui/core/text_buffer.cpp
     src/stdlib/native_gui/core/text_navigation.cpp
     src/stdlib/native_gui/core/text_layout.cpp
+    src/stdlib/native_gui/core/text_shaping.cpp
+    src/stdlib/native_gui/core/text_caret.cpp
+    src/stdlib/native_gui/core/bidi.cpp
+    src/stdlib/native_gui/core/bidi_sequence.cpp
+    src/stdlib/native_gui/core/bidi_properties.cpp
     src/stdlib/native_gui/core/line_break.cpp
     src/stdlib/native_gui/core/line_break_rules.cpp
     src/stdlib/native_gui/core/image_io.cpp
@@ -577,6 +592,27 @@ target_sources(txstdlib PRIVATE
     src/stdlib/native_gui/text_keys.cpp
     src/stdlib/native_gui/text_draw.cpp
     src/stdlib/native_gui/control_actions.cpp)
+target_sources(txstdlib PRIVATE
+    src/stdlib/native_gui/window_actions.cpp
+    src/stdlib/native_gui/combo.cpp
+    src/stdlib/native_gui/combo_draw.cpp
+    src/backend/cpp/native_gui_interaction_abi.cpp)
+target_sources(txstdlib PRIVATE
+    src/stdlib/native_gui/containers.cpp
+    src/stdlib/native_gui/container_layout.cpp
+    src/stdlib/native_gui/container_input.cpp
+    src/stdlib/native_gui/container_draw.cpp
+    src/backend/cpp/native_gui_container_abi.cpp
+    src/backend/cpp/native_gui_canvas_abi.cpp)
+target_sources(txstdlib PRIVATE
+    src/stdlib/native_gui/data_model.cpp
+    src/stdlib/native_gui/data_columns.cpp
+    src/stdlib/native_gui/data_view.cpp
+    src/stdlib/native_gui/data_layout.cpp
+    src/stdlib/native_gui/data_input.cpp
+    src/stdlib/native_gui/data_draw.cpp
+    src/backend/cpp/native_gui_data_abi.cpp
+    src/backend/cpp/native_gui_data_query_abi.cpp)
 if(WIN32)
     target_sources(txstdlib PRIVATE
         src/stdlib/native_gui/platform/windows_window.cpp

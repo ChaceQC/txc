@@ -1,0 +1,32 @@
+import "native_gui.txh" as ui
+
+# 同源双平台整形示例；可观察连字内部光标、RTL 选区及软换行。
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX · OpenType 文字工作台", 980.0, 640.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 24.0, 14.0)
+    auto title = ui.create_label(root, "OpenType · 连字、字距与阿拉伯文").value()
+    auto description = ui.create_label(root, "调整窗口宽度观察换行；在阿拉伯连字内部移动光标，拖动选择混排文本。").value()
+    auto editor = ui.create_text_box(root, true).value()
+    ui.set_height(editor, ui.fixed(400.0))
+    ui.set_text(editor, "中文与 English：office ffi AVATAR\n\nالعربية: السَّلَامُ عَلَيْكُمْ\n\nسلام  لا  ل‌ا  بَب\n\nabc אבג العربية 123\n\n附标：é ä ñ。\n\nسلامسلامسلام سلامسلامسلام")
+    auto note = ui.create_label(root, "使用左右键检查视觉光标，Shift 配合方向键选择；Enter 换行，Ctrl+Z 撤销。").value()
+    ui.show(window)
+    bool running = true
+    while running
+    {
+        auto pending = ui.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                running = false
+            }
+        }
+    }
+    ui.close(app)
+    return 0
+}

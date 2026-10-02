@@ -66,6 +66,14 @@ tx_native_gui_common(text_box)
 tx_native_gui_common(progress_bar)
 tx_native_gui_common(slider)
 tx_native_gui_common(radio_button)
+tx_native_gui_common(scroll)
+tx_native_gui_common(tabs)
+tx_native_gui_common(split)
+tx_native_gui_common(canvas)
+tx_native_gui_common(list_view)
+tx_native_gui_common(table_view)
+tx_native_gui_common(tree_view)
+tx_native_gui_common(combo_box)
 #undef tx_native_gui_common
 
 #define tx_native_gui_text(kind) \

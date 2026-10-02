@@ -62,6 +62,10 @@ std::string key_name(WPARAM value)
     {
         return std::string(1, static_cast<char>(value - 'A' + 'a'));
     }
+    if (value >= '0' && value <= '9')
+    {
+        return std::string(1, static_cast<char>(value));
+    }
     switch (value)
     {
     case VK_LEFT: return "left";
@@ -78,6 +82,7 @@ std::string key_name(WPARAM value)
     case VK_SPACE: return "space";
     case VK_PRIOR: return "page_up";
     case VK_NEXT: return "page_down";
+    case VK_F4: return "f4";
     default: return "unknown";
     }
 }

@@ -1,4 +1,5 @@
 #include "stdlib/native_gui/layout_internal.hpp"
+#include "stdlib/native_gui/containers.hpp"
 
 #include <algorithm>
 #include <numeric>
@@ -19,13 +20,13 @@ void ensure_text(node& state, double width)
     }
     auto& root = root_node(state);
     state.text_layout = std::make_unique<tx::ui::text_layout>(*root.font, display_text(state), 16.0, width,
-        !state.editor || state.editor->multiline);
+        !state.combo && (!state.editor || state.editor->multiline));
     state.text_width = width;
 }
 
 double text_inset(const node& state)
 {
-    return state.kind == tx::graphics_kind::native_check_box || state.kind == tx::graphics_kind::native_radio_button ? 36 :
+    return state.combo ? 40 : state.kind == tx::graphics_kind::native_check_box || state.kind == tx::graphics_kind::native_radio_button ? 36 :
         state.kind == tx::graphics_kind::native_button || state.editor ? 24 : 0;
 }
 
@@ -80,7 +81,11 @@ gui::extent measure(node& state, double available_width)
 {
     const auto width = state.width.mode == gui::length_mode::fixed ? state.width.value : available_width;
     gui::extent natural;
-    if (state.kind == tx::graphics_kind::native_panel)
+    if (state.scroll || state.tabs || state.split || state.canvas)
+    {
+        natural = {240, 200};
+    }
+    else if (state.kind == tx::graphics_kind::native_panel)
     {
         natural = panel_size(state, width);
         natural.width += 2 * state.padding;

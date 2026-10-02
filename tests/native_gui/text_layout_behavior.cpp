@@ -54,18 +54,125 @@ void verify_layout(const font_face& font)
     require(text_layout(font, U"hello world", 20, 1, false).lines().size() == 1, "nowrap ignores soft breaks");
     require(text_layout(font, U"", 20, 1, true).lines().size() == 1, "empty text has one line");
 }
+
+void verify_bidi_layout(const font_face& font)
+{
+    const text_layout rtl(font, U"אבג", 20, 10000, false);
+    require(rtl.caret(0).x > rtl.caret(1).x && rtl.caret(1).x > rtl.caret(2).x && rtl.caret(3).x == 0,
+        "RTL caret must follow logical indices on reversed visual positions");
+    require(rtl.hit({-1, 0}) == 3 && rtl.hit({rtl.width() + 1, 0}) == 0,
+        "RTL outer hit edges");
+    const text_layout mixed(font, U"abc אבג xyz", 20, 10000, false);
+    require(mixed.selection(0, 5).size() == 2, "bidi selection must not fill unselected visual gap");
+    const text_layout hidden(font, U"a\u2067אב\u2069b", 20, 10000, false);
+    const text_layout plain(font, U"aאבb", 20, 10000, false);
+    require(std::abs(hidden.width() - plain.width()) < 0.001, "isolate controls have no advance");
+    const text_layout paragraphs(font, U"אב\nabc", 20, 10000, false);
+    require(paragraphs.caret(3).x == 0 && paragraphs.caret(0).x > paragraphs.caret(1).x,
+        "paragraph directions resolve independently");
+    const text_layout narrow(font, U"אבג אבג", 20, rtl.width() + 1, true);
+    require(narrow.lines().size() == 2 && narrow.caret(4).x > narrow.caret(5).x,
+        "soft-wrapped RTL lines preserve resolved levels");
+}
+
+void verify_fallback(const font_face& primary, const char* path)
+{
+    auto fallback = std::make_shared<font_face>(font_face::load(path));
+    font_family fonts(primary);
+    fonts.add(fallback);
+    char32_t scalar = 0;
+    for (char32_t candidate = 0x100; candidate < 0xd800; ++candidate)
+    {
+        if (!primary.glyph(candidate) && fallback->glyph(candidate))
+        {
+            scalar = candidate;
+            break;
+        }
+    }
+    require(scalar != 0, "fallback fixture needs a character absent from primary");
+    const std::u32string text(1, scalar);
+    require(&fonts.select(text) == fallback.get(), "choose covering fallback face");
+    require(&fonts.select(U"abc") == &primary, "retain primary for covered text");
+    require(&fonts.select(U"e\u0301") == (primary.glyph(0x301) ? &primary : fallback.get()),
+        "combining sequence uses one face");
+    const text_layout layout(fonts, text, 20, 10000, false);
+    require(std::abs(layout.width() - text_layout(*fallback, text, 20, 10000, false).width()) < 0.001,
+        "fallback measurement uses actual face");
+    require(layout.caret(1).x == layout.width() && layout.hit({layout.width() - 0.001, 0}) == 1,
+        "fallback hit and caret use measured advance");
+    pixel_buffer image(100, 100);
+    image.clear({255, 255, 255, 255});
+    rasterizer painter(image);
+    layout.draw(painter, {5, 5}, {0, 0, 0, 255});
+    require(std::any_of(image.pixels().begin(), image.pixels().end(), [](auto value)
+        {
+            return value != 0xffffffff;
+        }), "fallback glyph rendered");
+}
+
+void verify_visual_carets(const font_face& font)
+{
+    const text_layout mixed(font, U"abc אבג xyz", 20, 10000, false);
+    const auto upstream = mixed.caret({4, caret_affinity::upstream});
+    const auto downstream = mixed.caret({4, caret_affinity::downstream});
+    require(upstream.x < downstream.x && mixed.alternate_caret({4}).has_value(),
+        "bidi boundary has two caret positions");
+    const auto hit = mixed.hit_position({upstream.x - 0.01, 0});
+    require(hit.index == 4 && hit.affinity == caret_affinity::upstream && mixed.caret(hit).x == upstream.x,
+        "pointer hit must retain the clicked side of a bidi boundary");
+    auto position = mixed.line_edge({0}, -1);
+    std::vector<std::size_t> visited{position.index};
+    for (unsigned steps = 0; steps < 30; ++steps)
+    {
+        const auto next = mixed.move_visual(position, 1);
+        if (next == position)
+        {
+            break;
+        }
+        require(mixed.caret(next).x > mixed.caret(position).x, "right moves visually right");
+        visited.push_back(next.index);
+        position = next;
+    }
+    require(visited == std::vector<std::size_t>({0, 1, 2, 3, 4, 6, 5, 4, 8, 9, 10, 11}),
+        "visual traversal must enter and leave RTL runs without jumping or stalling");
+    require(mixed.move_visual({4, caret_affinity::downstream}, -1).index == 5,
+        "left enters the correct side of an RTL run");
+    require(mixed.selection_edge(4, 7, -1).index == 7 && mixed.selection_edge(4, 7, 1).index == 4,
+        "selection collapses to its visual edge");
+    const text_layout rtl(font, U"אבג", 20, 10000, false);
+    require(rtl.line_edge({0}, -1).index == 3 && rtl.line_edge({3}, 1).index == 0,
+        "RTL Home/End use visual line edges");
+    const text_layout wrapped(font, U"hello world", 20, text_layout(font, U"hello wo", 20, 10000, false).width(), true);
+    const auto previous_line = wrapped.caret({6, caret_affinity::upstream});
+    const auto next_line = wrapped.caret({6, caret_affinity::downstream});
+    require(previous_line.y < next_line.y && wrapped.move_visual({6, caret_affinity::upstream}, 1) ==
+        text_position{6, caret_affinity::downstream}, "soft-wrap affinity and visual line transition");
+    const text_layout empty(font, U"\n\n", 20, 100, true);
+    require(empty.move_visual({0}, 1).index == 1 && empty.move_visual({1}, 1).index == 2,
+        "empty lines remain keyboard accessible");
+    const text_layout combining(font, U"áב", 20, 100, true);
+    require(combining.move_visual({0}, 1).index == 2, "visual movement cannot split a grapheme");
+}
 }
 
 int main(int argc, char** argv)
 {
-    if (argc != 2)
+    if (argc != 2 && argc != 3)
     {
         return 2;
     }
     try
     {
-        verify_layout(font_face::load(argv[1]));
-        std::cout << "native text layout / UAX14 wrap / grapheme emergency / caret / selection PASS\n";
+        const auto font = font_face::load(argv[1]);
+        verify_layout(font);
+        verify_bidi_layout(font);
+        verify_visual_carets(font);
+        if (argc == 3)
+        {
+            verify_fallback(font, argv[2]);
+        }
+        std::cout << "native text layout / UAX14 / bidi / caret / selection PASS; fallback "
+            << (argc == 3 ? "PASS" : "not requested") << '\n';
     }
     catch (const std::exception& error)
     {

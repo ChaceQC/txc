@@ -15,7 +15,7 @@ enum class graphics_kind
     native_panel, native_label, native_button, native_check_box, native_app, native_window,
     native_text_box, native_progress_bar, native_slider, native_radio_button, native_combo_box,
     native_list_view, native_table_view, native_tree_view, native_tabs, native_canvas,
-    native_command, native_menu, unknown
+    native_command, native_menu, native_scroll, native_split, unknown
 };
 
 inline graphics_kind graphics_type_kind(std::string_view name) noexcept
@@ -31,7 +31,7 @@ inline graphics_kind graphics_type_kind(std::string_view name) noexcept
         "native_gui_app", "native_gui_window", "native_gui_text_box", "native_gui_progress_bar",
         "native_gui_slider", "native_gui_radio_button", "native_gui_combo_box", "native_gui_list_view",
         "native_gui_table_view", "native_gui_tree_view", "native_gui_tabs", "native_gui_canvas",
-        "native_gui_command", "native_gui_menu"};
+        "native_gui_command", "native_gui_menu", "native_gui_scroll", "native_gui_split"};
     for (int index = 0; index < static_cast<int>(graphics_kind::unknown); ++index)
     {
         if (name == names[index])

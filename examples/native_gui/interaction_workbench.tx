@@ -1,0 +1,63 @@
+import "native_gui.txh" as ui
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX · 基础交互工作台", 800.0, 560.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 24.0, 16.0)
+    auto title = ui.create_label(root, "下拉选择 · 访问键 · 默认与取消动作").value()
+    auto note = ui.create_label(root, "Alt+1 打开选择；方向键预览，Enter 提交，Escape 取消。Tab 移动焦点。").value()
+    auto combo = ui.create_combo_box(root).value()
+    vector<str> choices = vector<str>()
+    choices.push_back("中文 · 桌面应用")
+    choices.push_back("English · Desktop application")
+    choices.push_back("العربية · تطبيق")
+    choices.push_back("简洁模式")
+    choices.push_back("详细模式")
+    choices.push_back("只读预览")
+    choices.push_back("编辑模式")
+    choices.push_back("打印模式")
+    choices.push_back("导出模式")
+    choices.push_back("自定义模式")
+    ui.set_combo_items(combo, choices)
+    ui.set_selected_index(combo, 0)
+    ui.set_access_key(combo, "1")
+    auto input = ui.create_text_box(root, false).value()
+    ui.set_text(input, "单行输入后 Enter 确认；Alt+E 聚焦这里")
+    ui.set_access_key(input, "e")
+    auto confirm = ui.create_button(root, "确认 (Alt+A / Enter)").value()
+    auto cancel = ui.create_button(root, "取消 (Escape)").value()
+    ui.set_access_key(confirm, "a")
+    ui.set_default_button(confirm, true)
+    ui.set_cancel_button(cancel, true)
+    auto status = ui.create_label(root, "等待操作；取消按钮仅更新状态，不关闭窗口。").value()
+    ui.show(window)
+    bool running = true
+    while running
+    {
+        auto pending = ui.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                running = false
+            }
+            else if event.kind == "selection_changed" && event.source_id == ui.id(combo)
+            {
+                ui.set_text(status, "已选择：" + event.text)
+            }
+            else if event.kind == "activated" && event.source_id == ui.id(confirm)
+            {
+                ui.set_text(status, "已确认：" + ui.text(input))
+            }
+            else if event.kind == "activated" && event.source_id == ui.id(cancel)
+            {
+                ui.set_text(status, "已取消；当前选择与输入保持不变。")
+            }
+        }
+    }
+    ui.close(app)
+    return 0
+}

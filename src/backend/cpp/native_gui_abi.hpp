@@ -80,6 +80,14 @@ tx_native_gui_style_declare(text_box)
 tx_native_gui_style_declare(progress_bar)
 tx_native_gui_style_declare(slider)
 tx_native_gui_style_declare(radio_button)
+tx_native_gui_style_declare(scroll)
+tx_native_gui_style_declare(tabs)
+tx_native_gui_style_declare(split)
+tx_native_gui_style_declare(canvas)
+tx_native_gui_style_declare(list_view)
+tx_native_gui_style_declare(table_view)
+tx_native_gui_style_declare(tree_view)
+tx_native_gui_style_declare(combo_box)
 #undef tx_native_gui_style_declare
 
 #define tx_native_gui_declare(kind) \
@@ -97,6 +105,14 @@ tx_native_gui_declare(text_box)
 tx_native_gui_declare(progress_bar)
 tx_native_gui_declare(slider)
 tx_native_gui_declare(radio_button)
+tx_native_gui_declare(scroll)
+tx_native_gui_declare(tabs)
+tx_native_gui_declare(split)
+tx_native_gui_declare(canvas)
+tx_native_gui_declare(list_view)
+tx_native_gui_declare(table_view)
+tx_native_gui_declare(tree_view)
+tx_native_gui_declare(combo_box)
 #undef tx_native_gui_declare
 
 int txrt_native_gui_set_text_label(tx_generated::graphics::resource* control, const void* text) noexcept;

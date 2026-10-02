@@ -1,0 +1,33 @@
+import "native_gui.txh" as ui
+
+# 双向排版与字体回退示例；OpenType 整形另见 shaping_workbench.tx。
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX · 双向文本与字体回退", 960.0, 560.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 24.0, 16.0)
+    auto title = ui.create_label(root, "Unicode 16.0 · 双向文本与字素级字体回退").value()
+    auto description = ui.create_label(root, "希伯来文从右向左；中英文、数字及括号保留逻辑文本。用鼠标选择混排文字查看分段选区。").value()
+    auto text = ui.create_text_box(root, true).value()
+    ui.set_height(text, ui.fixed(350.0))
+    ui.set_text(text, "中文与 English，组合附标 é。\n\nאבג דהו 123 (ABC)\n\nEnglish: אבג (123) 中文，继续输入文字。\n\n隔离区：A ⁧אבג 123⁩ B。")
+    auto note = ui.create_label(root, "左右方向键按视觉字素移动，双向边界保留光标亲和性；真实输入法验收仍待完成。").value()
+    ui.save_bitmap(root, "tx_build/native_gui/bidi_text.bmp").value()
+    ui.show(window)
+    bool running = true
+    while running
+    {
+        auto pending = ui.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                running = false
+            }
+        }
+    }
+    ui.close(app)
+    return 0
+}

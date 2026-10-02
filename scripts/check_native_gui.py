@@ -28,8 +28,8 @@ def run(arguments, expected=0):
     return output
 
 
-def native_check():
-    target = OUTPUT / ("retained_windows.exe" if WINDOWS else "retained_linux")
+def native_check(source="retained_behavior.cpp", name="retained"):
+    target = OUTPUT / (f"{name}_windows.exe" if WINDOWS else f"{name}_linux")
     compiler = shutil.which("g++" if WINDOWS else "clang++-18")
     if WINDOWS:
         libraries = ["tx/link/gui-manifest.o", "-Ltx/link", "-ld2d1", "-lgdi32", "-lole32",
@@ -43,9 +43,9 @@ def native_check():
                      "-lxml2", "-lpq", "-lcurl", "-lssl", "-lcrypto", "-lcares", "-lz", "-ldl"]
     run([compiler, "-std=c++23", "-O1", "-pthread", "-Isrc",
          * (["-finput-charset=UTF-8", "-fexec-charset=UTF-8"] if WINDOWS else []),
-         ROOT / "tests/native_gui/retained_behavior.cpp", TOOL_DIR / "libtxstdlib.a",
+         ROOT / "tests/native_gui" / source, TOOL_DIR / "libtxstdlib.a",
          *libraries, "-o", target])
-    print(run([target, FONT, OUTPUT / ("retained_windows.bmp" if WINDOWS else "retained_linux.bmp")]).strip())
+    print(run([target, FONT, OUTPUT / (f"{name}_windows.bmp" if WINDOWS else f"{name}_linux.bmp")]).strip())
 
 
 def main():

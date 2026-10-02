@@ -1,4 +1,6 @@
 #include "stdlib/native_gui/state.hpp"
+#include "stdlib/native_gui/containers.hpp"
+#include "stdlib/native_gui/combo.hpp"
 
 #include <algorithm>
 
@@ -9,12 +11,30 @@ using tx::ui::window_event;
 
 void reset_interaction(node& root) noexcept
 {
+    close_combo(root);
     const bool captured = !root.pressed.expired() && !root.keyboard_pressed;
+    if (const auto pressed = root.pressed.lock())
+    {
+        cancel_container_interaction(*pressed);
+    }
     root.pressed.reset();
     root.hovered.reset();
     root.keyboard_pressed = false;
     if (const auto focus = root.focused.lock(); focus && !available(*focus))
     {
+        try
+        {
+            if (const auto window = root.window.lock(); window && !window->closed)
+            {
+                window->host->enable_ime(false);
+            }
+        }
+        catch (...)
+        {
+        }
+        focus->composing = false;
+        focus->composition.clear();
+        focus->text_layout.reset();
         root.focused.reset();
     }
     if (const auto window = root.window.lock(); window && captured)
@@ -37,6 +57,10 @@ std::shared_ptr<node> hit_test(node& state, double x, double y)
     {
         return {};
     }
+    if (container_hit(state, x, y))
+    {
+        return state.shared_from_this();
+    }
     for (auto child = state.children.rbegin(); child != state.children.rend(); ++child)
     {
         if (auto hit = hit_test(**child, x, y))
@@ -49,7 +73,7 @@ std::shared_ptr<node> hit_test(node& state, double x, double y)
 
 void focusable(node& state, std::vector<std::shared_ptr<node>>& result)
 {
-    if (!available(state) || state.clip.width <= 0 || state.clip.height <= 0)
+    if (!available(state))
     {
         return;
     }
@@ -81,16 +105,20 @@ void advance_focus(node& root, bool reverse)
 
 void pointer(node& root, const window_event& event)
 {
+    if (!root.popup.expired() && combo_pointer(root, event))
+    {
+        return;
+    }
     auto& window = owner_window(root);
     const auto hit = hit_test(root, event.x, event.y);
     bool changed = root.hovered.lock() != hit;
     root.hovered = hit;
-    if (event.kind == event_kind::wheel && hit && hit->editor)
+    if (event.kind == event_kind::wheel)
     {
-        ensure_text(*hit, std::max(1.0, hit->bounds.width - 24));
-        hit->text_scroll_y = std::clamp(hit->text_scroll_y - event.wheel * 48,
-            0.0, std::max(0.0, hit->text_layout->height() - std::max(1.0, hit->bounds.height - 16)));
-        window.repaint = true;
+        if (hit)
+        {
+            wheel_scroll(*hit, event);
+        }
         return;
     }
     if (event.kind == event_kind::pointer_down && event.button == 1)
@@ -104,7 +132,10 @@ void pointer(node& root, const window_event& event)
             window.host->capture_pointer(true);
         }
         root.pressed = hit;
-        if (hit && hit->editor)
+        if (hit && (data_pointer(*hit, event) || container_pointer(*hit, event)))
+        {
+        }
+        else if (hit && hit->editor)
         {
             text_pointer(*hit, event.x, event.y, event.shift);
         }
@@ -123,7 +154,10 @@ void pointer(node& root, const window_event& event)
             window.host->capture_pointer(false);
         }
         root.hovered = hit;
-        if (pressed && pressed->kind == tx::graphics_kind::native_slider)
+        if (pressed && (data_pointer(*pressed, event) || container_pointer(*pressed, event)))
+        {
+        }
+        else if (pressed && pressed->kind == tx::graphics_kind::native_slider)
         {
             slider_pointer(*pressed, event.x);
             slider_commit(*pressed);
@@ -131,6 +165,10 @@ void pointer(node& root, const window_event& event)
         else if (pressed && pressed->editor)
         {
             text_pointer(*pressed, event.x, event.y, true);
+        }
+        else if (pressed && pressed == hit && pressed->combo)
+        {
+            open_combo(*pressed);
         }
         else if (pressed && pressed == hit)
         {
@@ -142,7 +180,10 @@ void pointer(node& root, const window_event& event)
     {
         if (const auto pressed = root.pressed.lock())
         {
-            if (pressed->editor)
+            if (data_pointer(*pressed, event) || container_pointer(*pressed, event))
+            {
+            }
+            else if (pressed->editor)
             {
                 text_pointer(*pressed, event.x, event.y, true);
             }
@@ -150,6 +191,10 @@ void pointer(node& root, const window_event& event)
             {
                 slider_pointer(*pressed, event.x);
             }
+        }
+        else if (hit && hit->canvas)
+        {
+            canvas_event(*hit, event);
         }
     }
     if (changed)
@@ -160,11 +205,24 @@ void pointer(node& root, const window_event& event)
 
 void key(node& root, const window_event& event)
 {
-    if (event.composing)
+    const auto focused = root.focused.lock();
+    if (event.composing || (focused && focused->composing))
     {
         return;
     }
     const bool down = event.kind == event_kind::key_down;
+    if (access_key(root, event))
+    {
+        return;
+    }
+    if (focused && available(*focused) && focused->combo && combo_key(*focused, event))
+    {
+        return;
+    }
+    if (switch_tab_from_focus(root, event))
+    {
+        return;
+    }
     if (down && event.key == "tab" && !event.ctrl && !event.alt && !event.meta)
     {
         reset_interaction(root);
@@ -173,12 +231,21 @@ void key(node& root, const window_event& event)
     else if (down && event.key == "escape")
     {
         reset_interaction(root);
+        window_action(root, event);
     }
     else if (const auto focus = root.focused.lock(); focus && available(*focus))
     {
+        if (data_key(*focus, event) || container_key(*focus, event))
+        {
+            return;
+        }
         if (focus->editor)
         {
             text_key(*focus, event);
+            if (!focus->editor->multiline && event.key == "enter")
+            {
+                window_action(root, event);
+            }
             return;
         }
         if ((focus->kind == tx::graphics_kind::native_slider && slider_key(*focus, event)) ||
@@ -192,7 +259,15 @@ void key(node& root, const window_event& event)
         }
         else if (down && !event.repeat && event.key == "enter")
         {
-            activate(*focus);
+            if (focus->kind == tx::graphics_kind::native_button ||
+                focus->kind == tx::graphics_kind::native_check_box || focus->kind == tx::graphics_kind::native_radio_button)
+            {
+                activate(*focus);
+            }
+            else
+            {
+                window_action(root, event);
+            }
         }
         else if (event.key == "space")
         {
@@ -212,6 +287,10 @@ void key(node& root, const window_event& event)
                 }
             }
         }
+    }
+    else
+    {
+        window_action(root, event);
     }
     owner_window(root).repaint = true;
 }

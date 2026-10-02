@@ -8,6 +8,11 @@ struct event
     number: float
     state: bool
     revision: int
+    item_id: int
+    column_id: int
+    x: float
+    y: float
+    modifiers: int
 }
 
 struct length
@@ -166,3 +171,223 @@ def set_enabled(control: native_gui_check_box, enabled: bool) -> void
 def set_text(control: native_gui_label, text: str) -> void
 def set_text(control: native_gui_button, text: str) -> void
 def set_text(control: native_gui_check_box, text: str) -> void
+
+# 自研滚动、页签、分隔器和画布；内容面板沿用普通布局。
+def create_scroll(parent: native_gui_panel, horizontal: bool, vertical: bool) -> result<native_gui_scroll>
+def scroll_content(control: native_gui_scroll) -> result<native_gui_panel>
+def scroll_to(control: native_gui_scroll, x: float, y: float) -> void
+def scroll_x(control: native_gui_scroll) -> float
+def scroll_y(control: native_gui_scroll) -> float
+def create_tabs(parent: native_gui_panel) -> result<native_gui_tabs>
+def add_tab(control: native_gui_tabs, title: str) -> result<native_gui_panel>
+def select_tab(control: native_gui_tabs, page_id: int) -> void
+def selected_tab(control: native_gui_tabs) -> int
+def tab_count(control: native_gui_tabs) -> int
+def set_tab_title(control: native_gui_tabs, page_id: int, title: str) -> void
+def create_split(parent: native_gui_panel, horizontal: bool, ratio: float) -> result<native_gui_split>
+def split_first(control: native_gui_split) -> result<native_gui_panel>
+def split_second(control: native_gui_split) -> result<native_gui_panel>
+def set_split_ratio(control: native_gui_split, ratio: float) -> void
+def split_ratio(control: native_gui_split) -> float
+
+struct color
+{
+    red: int
+    green: int
+    blue: int
+    alpha: int
+}
+
+def create_canvas(parent: native_gui_panel) -> result<native_gui_canvas>
+def canvas_clear(control: native_gui_canvas, fill: color) -> void
+def canvas_fill_rect(control: native_gui_canvas, x: float, y: float, width: float, height: float, fill: color) -> void
+def canvas_fill_ellipse(control: native_gui_canvas, x: float, y: float, width: float, height: float, fill: color) -> void
+def canvas_line(control: native_gui_canvas, x1: float, y1: float, x2: float, y2: float, width: float, stroke: color) -> void
+def canvas_text(control: native_gui_canvas, text: str, x: float, y: float, size: float, width: float, fill: color) -> void
+
+def id(control: native_gui_scroll) -> int
+def close(control: native_gui_scroll) -> void
+def set_size(control: native_gui_scroll, width: float, height: float) -> void
+def set_visible(control: native_gui_scroll, visible: bool) -> void
+def set_enabled(control: native_gui_scroll, enabled: bool) -> void
+def set_width(control: native_gui_scroll, value: length) -> void
+def set_height(control: native_gui_scroll, value: length) -> void
+def set_constraints(control: native_gui_scroll, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_scroll, margin: float) -> void
+def set_alignment(control: native_gui_scroll, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_scroll, row: int, column: int, row_span: int, column_span: int) -> void
+
+def id(control: native_gui_tabs) -> int
+def close(control: native_gui_tabs) -> void
+def set_size(control: native_gui_tabs, width: float, height: float) -> void
+def set_visible(control: native_gui_tabs, visible: bool) -> void
+def set_enabled(control: native_gui_tabs, enabled: bool) -> void
+def set_width(control: native_gui_tabs, value: length) -> void
+def set_height(control: native_gui_tabs, value: length) -> void
+def set_constraints(control: native_gui_tabs, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_tabs, margin: float) -> void
+def set_alignment(control: native_gui_tabs, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_tabs, row: int, column: int, row_span: int, column_span: int) -> void
+
+def id(control: native_gui_split) -> int
+def close(control: native_gui_split) -> void
+def set_size(control: native_gui_split, width: float, height: float) -> void
+def set_visible(control: native_gui_split, visible: bool) -> void
+def set_enabled(control: native_gui_split, enabled: bool) -> void
+def set_width(control: native_gui_split, value: length) -> void
+def set_height(control: native_gui_split, value: length) -> void
+def set_constraints(control: native_gui_split, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_split, margin: float) -> void
+def set_alignment(control: native_gui_split, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_split, row: int, column: int, row_span: int, column_span: int) -> void
+
+def id(control: native_gui_canvas) -> int
+def close(control: native_gui_canvas) -> void
+def set_size(control: native_gui_canvas, width: float, height: float) -> void
+def set_visible(control: native_gui_canvas, visible: bool) -> void
+def set_enabled(control: native_gui_canvas, enabled: bool) -> void
+def set_width(control: native_gui_canvas, value: length) -> void
+def set_height(control: native_gui_canvas, value: length) -> void
+def set_constraints(control: native_gui_canvas, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_canvas, margin: float) -> void
+def set_alignment(control: native_gui_canvas, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_canvas, row: int, column: int, row_span: int, column_span: int) -> void
+
+# 数据模型按批次校验并提交；ID 是正整数，树根 parent_id 为 0。
+struct list_item
+{
+    id: int
+    text: str
+}
+struct table_column
+{
+    id: int
+    title: str
+    width: float
+    alignment: str
+    visible: bool
+}
+struct table_row
+{
+    id: int
+    cells: vector<str>
+}
+struct tree_item
+{
+    id: int
+    parent_id: int
+    text: str
+    has_children: bool
+}
+
+def create_list_view(parent: native_gui_panel, multiple: bool) -> result<native_gui_list_view>
+def create_table_view(parent: native_gui_panel, columns: vector<table_column>, multiple: bool) -> result<native_gui_table_view>
+def create_tree_view(parent: native_gui_panel, multiple: bool) -> result<native_gui_tree_view>
+def set_column_width(control: native_gui_table_view, column_id: int, width: float) -> void
+def set_column_visible(control: native_gui_table_view, column_id: int, visible: bool) -> void
+def set_column_order(control: native_gui_table_view, ids: vector<int>) -> void
+def cell_text(control: native_gui_table_view, row_id: int, column_id: int) -> str
+def item_text(control: native_gui_list_view, row_id: int) -> str
+def item_text(control: native_gui_tree_view, row_id: int) -> str
+def set_expanded(control: native_gui_tree_view, row_id: int, expanded: bool) -> void
+def expanded(control: native_gui_tree_view, row_id: int) -> bool
+
+def replace_items(control: native_gui_list_view, items: vector<list_item>) -> void
+def append_items(control: native_gui_list_view, items: vector<list_item>) -> void
+def update_items(control: native_gui_list_view, items: vector<list_item>) -> void
+def remove_items(control: native_gui_list_view, ids: vector<int>) -> void
+def set_order(control: native_gui_list_view, ids: vector<int>) -> void
+def revision(control: native_gui_list_view) -> int
+def count(control: native_gui_list_view) -> int
+def begin_page(control: native_gui_list_view) -> int
+def apply_page(control: native_gui_list_view, request_id: int, expected_revision: int, items: vector<list_item>) -> void
+def selected_ids(control: native_gui_list_view) -> vector<int>
+def set_selected_ids(control: native_gui_list_view, ids: vector<int>) -> void
+def visible_ids(control: native_gui_list_view) -> vector<int>
+def set_row_height(control: native_gui_list_view, height: float) -> void
+def id(control: native_gui_list_view) -> int
+def close(control: native_gui_list_view) -> void
+def set_size(control: native_gui_list_view, width: float, height: float) -> void
+def set_visible(control: native_gui_list_view, visible: bool) -> void
+def set_enabled(control: native_gui_list_view, enabled: bool) -> void
+def set_width(control: native_gui_list_view, value: length) -> void
+def set_height(control: native_gui_list_view, value: length) -> void
+def set_constraints(control: native_gui_list_view, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_list_view, margin: float) -> void
+def set_alignment(control: native_gui_list_view, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_list_view, row: int, column: int, row_span: int, column_span: int) -> void
+
+def replace_items(control: native_gui_table_view, items: vector<table_row>) -> void
+def append_items(control: native_gui_table_view, items: vector<table_row>) -> void
+def update_items(control: native_gui_table_view, items: vector<table_row>) -> void
+def remove_items(control: native_gui_table_view, ids: vector<int>) -> void
+def set_order(control: native_gui_table_view, ids: vector<int>) -> void
+def revision(control: native_gui_table_view) -> int
+def count(control: native_gui_table_view) -> int
+def begin_page(control: native_gui_table_view) -> int
+def apply_page(control: native_gui_table_view, request_id: int, expected_revision: int, items: vector<table_row>) -> void
+def selected_ids(control: native_gui_table_view) -> vector<int>
+def set_selected_ids(control: native_gui_table_view, ids: vector<int>) -> void
+def visible_ids(control: native_gui_table_view) -> vector<int>
+def set_row_height(control: native_gui_table_view, height: float) -> void
+def id(control: native_gui_table_view) -> int
+def close(control: native_gui_table_view) -> void
+def set_size(control: native_gui_table_view, width: float, height: float) -> void
+def set_visible(control: native_gui_table_view, visible: bool) -> void
+def set_enabled(control: native_gui_table_view, enabled: bool) -> void
+def set_width(control: native_gui_table_view, value: length) -> void
+def set_height(control: native_gui_table_view, value: length) -> void
+def set_constraints(control: native_gui_table_view, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_table_view, margin: float) -> void
+def set_alignment(control: native_gui_table_view, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_table_view, row: int, column: int, row_span: int, column_span: int) -> void
+
+def replace_items(control: native_gui_tree_view, items: vector<tree_item>) -> void
+def append_items(control: native_gui_tree_view, items: vector<tree_item>) -> void
+def update_items(control: native_gui_tree_view, items: vector<tree_item>) -> void
+def remove_items(control: native_gui_tree_view, ids: vector<int>) -> void
+def set_order(control: native_gui_tree_view, ids: vector<int>) -> void
+def revision(control: native_gui_tree_view) -> int
+def count(control: native_gui_tree_view) -> int
+def begin_page(control: native_gui_tree_view) -> int
+def apply_page(control: native_gui_tree_view, request_id: int, expected_revision: int, items: vector<tree_item>) -> void
+def selected_ids(control: native_gui_tree_view) -> vector<int>
+def set_selected_ids(control: native_gui_tree_view, ids: vector<int>) -> void
+def visible_ids(control: native_gui_tree_view) -> vector<int>
+def set_row_height(control: native_gui_tree_view, height: float) -> void
+def id(control: native_gui_tree_view) -> int
+def close(control: native_gui_tree_view) -> void
+def set_size(control: native_gui_tree_view, width: float, height: float) -> void
+def set_visible(control: native_gui_tree_view, visible: bool) -> void
+def set_enabled(control: native_gui_tree_view, enabled: bool) -> void
+def set_width(control: native_gui_tree_view, value: length) -> void
+def set_height(control: native_gui_tree_view, value: length) -> void
+def set_constraints(control: native_gui_tree_view, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_tree_view, margin: float) -> void
+def set_alignment(control: native_gui_tree_view, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_tree_view, row: int, column: int, row_span: int, column_span: int) -> void
+
+# 下拉选择与窗口基础动作；详细键盘规则见 docs/native_gui_interaction.md。
+def create_combo_box(parent: native_gui_panel) -> result<native_gui_combo_box>
+def set_combo_items(control: native_gui_combo_box, items: vector<str>) -> void
+def selected_index(control: native_gui_combo_box) -> int
+def set_selected_index(control: native_gui_combo_box, index: int) -> void
+def set_default_button(control: native_gui_button, enabled: bool) -> void
+def set_cancel_button(control: native_gui_button, enabled: bool) -> void
+def set_access_key(control: native_gui_button, key: str) -> void
+def set_access_key(control: native_gui_check_box, key: str) -> void
+def set_access_key(control: native_gui_radio_button, key: str) -> void
+def set_access_key(control: native_gui_text_box, key: str) -> void
+def set_access_key(control: native_gui_slider, key: str) -> void
+def set_access_key(control: native_gui_combo_box, key: str) -> void
+def id(control: native_gui_combo_box) -> int
+def close(control: native_gui_combo_box) -> void
+def set_size(control: native_gui_combo_box, width: float, height: float) -> void
+def set_visible(control: native_gui_combo_box, visible: bool) -> void
+def set_enabled(control: native_gui_combo_box, enabled: bool) -> void
+def set_width(control: native_gui_combo_box, value: length) -> void
+def set_height(control: native_gui_combo_box, value: length) -> void
+def set_constraints(control: native_gui_combo_box, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_combo_box, margin: float) -> void
+def set_alignment(control: native_gui_combo_box, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_combo_box, row: int, column: int, row_span: int, column_span: int) -> void

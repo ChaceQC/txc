@@ -1,0 +1,87 @@
+import "native_gui.txh" as ui
+import "test.txh" as test
+import "error.txh" as errors
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "容器与数据视图 ABI", 800.0, 600.0).value()
+    auto root = ui.root(window).value()
+    auto tabs = ui.create_tabs(root).value()
+    auto page = ui.add_tab(tabs, "表格").value()
+    auto other = ui.add_tab(tabs, "滚动与画布").value()
+    test.assert_equal(ui.selected_tab(tabs), ui.id(page))
+    test.assert_equal(ui.tab_count(tabs), 2)
+    vector<ui.table_column> columns = vector<ui.table_column>()
+    columns.push_back(ui.table_column(11, "名称", 160.0, "left", true))
+    columns.push_back(ui.table_column(22, "内容", 500.0, "left", true))
+    auto table = ui.create_table_view(page, columns, true).value()
+    vector<ui.table_row> rows = vector<ui.table_row>()
+    vector<str> cells = vector<str>()
+    cells.push_back("中文")
+    cells.push_back("self-drawn / stable IDs")
+    rows.push_back(ui.table_row(101, cells))
+    ui.replace_items(table, rows)
+    ui.set_selected_ids(table, vector<int>(1, 101))
+    test.assert_equal(ui.count(table), 1)
+    test.assert_equal(ui.selected_ids(table)[0], 101)
+    test.assert_equal(ui.cell_text(table, 101, 22), "self-drawn / stable IDs")
+    vector<int> order = vector<int>()
+    order.push_back(22)
+    order.push_back(11)
+    ui.set_column_order(table, order)
+    ui.set_column_width(table, 22, 480.0)
+    ui.set_column_visible(table, 11, false)
+    auto revision = ui.revision(table)
+    rows.push_back(ui.table_row(101, cells))
+    try
+    {
+        ui.replace_items(table, rows)
+        test.assert_true(false, "重复 ID 应拒绝")
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal(e.code, "invalid_argument")
+    }
+    test.assert_equal(ui.revision(table), revision)
+    test.assert_equal(ui.visible_ids(table).size(), 1)
+    auto split = ui.create_split(other, true, 0.5).value()
+    auto left = ui.split_first(split).value()
+    auto right = ui.split_second(split).value()
+    auto scroll = ui.create_scroll(left, false, true).value()
+    auto content = ui.scroll_content(scroll).value()
+    for index in 0..=19
+    {
+        auto label = ui.create_label(content, "滚动内容").value()
+        ui.set_height(label, ui.fixed(40.0))
+    }
+    auto canvas = ui.create_canvas(right).value()
+    ui.canvas_clear(canvas, ui.color(245, 248, 255, 255))
+    ui.canvas_fill_rect(canvas, 16.0, 16.0, 120.0, 80.0, ui.color(50, 100, 220, 255))
+    ui.canvas_fill_ellipse(canvas, 50.0, 60.0, 100.0, 100.0, ui.color(230, 150, 60, 180))
+    ui.canvas_line(canvas, 10.0, 200.0, 160.0, 170.0, 3.0, ui.color(40, 70, 150, 255))
+    ui.canvas_text(canvas, "自研画布", 16.0, 240.0, 20.0, 180.0, ui.color(30, 40, 60, 255))
+    ui.select_tab(tabs, ui.id(other))
+    test.assert_equal(ui.visible_ids(table).size(), 0)
+    ui.scroll_to(scroll, 0.0, 300.0)
+    test.assert_true(ui.scroll_y(scroll) > 0.0)
+    ui.set_split_ratio(split, 0.4)
+    test.assert_near(ui.split_ratio(split), 0.4, 0.001)
+    ui.save_bitmap(root, "tx_build/native_gui/extended_abi.bmp").value()
+    auto tree = ui.create_tree_view(page, false).value()
+    vector<ui.tree_item> nodes = vector<ui.tree_item>()
+    nodes.push_back(ui.tree_item(1, 0, "根", true))
+    nodes.push_back(ui.tree_item(2, 1, "子项", false))
+    ui.replace_items(tree, nodes)
+    ui.set_expanded(tree, 1, true)
+    test.assert_true(ui.expanded(tree, 1))
+    test.assert_equal(ui.item_text(tree, 2), "子项")
+    auto list = ui.create_list_view(page, false).value()
+    ui.replace_items(list, vector<ui.list_item>(1, ui.list_item(7, "条目")))
+    test.assert_equal(ui.item_text(list, 7), "条目")
+    auto request = ui.begin_page(list)
+    ui.apply_page(list, request, ui.revision(list), vector<ui.list_item>(1, ui.list_item(8, "更新")))
+    test.assert_equal(ui.item_text(list, 8), "更新")
+    ui.close(app)
+    return 0
+}

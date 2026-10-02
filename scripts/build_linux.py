@@ -41,7 +41,7 @@ def compile_lto(entry, destination, clang, cache):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--incremental", action="store_true")
-    parser.add_argument("--output", type=Path, default=root / "tx")
+    parser.add_argument("--output", type=Path, default=root / "tx/linux")
     parser.add_argument("--jobs", type=int, default=min(os.cpu_count() or 2, 8))
     options = parser.parse_args()
     if platform.system() != "Linux" or platform.machine() != "x86_64":

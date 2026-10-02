@@ -1,4 +1,6 @@
 #include "stdlib/native_gui/state.hpp"
+#include "stdlib/native_gui/containers.hpp"
+#include "stdlib/native_gui/combo.hpp"
 
 #include <algorithm>
 
@@ -12,7 +14,8 @@ void update_editor_viewport(node& state)
     }
     ensure_text(state, std::max(1.0, state.bounds.width - 24));
     const auto caret_index = state.composing ? state.editor->selection().first + state.composition_caret : state.editor->caret();
-    const auto caret = state.text_layout->caret(caret_index);
+    const auto caret = state.text_layout->caret({caret_index,
+        state.composing ? tx::ui::caret_affinity::upstream : state.caret_affinity});
     const double width = std::max(1.0, state.bounds.width - 24), height = std::max(1.0, state.bounds.height - 16);
     if (caret.x < state.text_scroll_x)
     {
@@ -97,6 +100,7 @@ void refresh_editor(node& state, bool notify)
     state.text_layout.reset();
     state.text_width = -1;
     state.preferred_x.reset();
+    state.caret_affinity = notify ? tx::ui::caret_affinity::upstream : tx::ui::caret_affinity::downstream;
     if (changed)
     {
         ++state.revision;
@@ -120,6 +124,7 @@ void focus_node(node& root, const std::shared_ptr<node>& target)
     {
         return;
     }
+    close_combo(root);
     owner_window(root).host->enable_ime(false);
     if (previous && previous->editor && previous->composing)
     {
@@ -129,6 +134,10 @@ void focus_node(node& root, const std::shared_ptr<node>& target)
         dirty(*previous);
     }
     root.focused = target;
+    if (target)
+    {
+        reveal_node(*target);
+    }
     owner_window(root).host->enable_ime(target && target->editor && !target->editor->read_only && !target->password);
     if (target && target->editor)
     {
@@ -147,9 +156,10 @@ void text_pointer(node& state, double x, double y, bool extend)
         state.text_layout.reset();
     }
     ensure_text(state, std::max(1.0, state.bounds.width - 24));
-    const auto index = state.text_layout->hit({x - state.bounds.x - 12 + state.text_scroll_x,
+    const auto position = state.text_layout->hit_position({x - state.bounds.x - 12 + state.text_scroll_x,
         y - state.bounds.y - 8 + state.text_scroll_y});
-    state.editor->select(extend ? state.editor->anchor() : index, index);
+    state.editor->select(extend ? state.editor->anchor() : position.index, position.index);
+    state.caret_affinity = state.editor->caret() == position.index ? position.affinity : tx::ui::caret_affinity::downstream;
     state.preferred_x.reset();
     selection_changed(state);
 }

@@ -23,7 +23,7 @@ Cairo、Skia 或 ICU。字体文件和 Unicode 官方属性数据作为输入，
 
 `open_app()` 读取默认 TrueType 字体；`open_app(font_path)` 显式指定 TTF/TTC 文件。
 也可以通过 `TX_GUI_FONT` 指定路径。Windows 默认微软雅黑；Linux 查找文泉驿、DejaVu Sans
-或 Liberation Sans。默认字体缺字会显示该字体的 missing glyph；自动多字体回退仍待实现。
+或 Liberation Sans。字素级回退在平台常见路径的候选字体中选择；均缺字时显示主字体 missing glyph。
 
 `create_window(app, title, width, height)` 创建窗口，`show` 显示，`root` 取得唯一根面板。
 当前面板支持 `set_column/set_row`，尺寸由 `set_size` 设置，0 表示自动测量。
@@ -54,6 +54,8 @@ Tab/Shift+Tab 遍历可用控件，Space 按下/释放激活，Enter 忽略按�
 文本控件提供单行/多行、只读、密码、长度上限和选区。端点以 Unicode 标量计数，
 落在字素内部时向前对齐；编辑导航按字素或 Unicode 词边界移动。
 Ctrl+A/C/X/V/Z/Y、Ctrl+方向键、Home/End/PageUp/PageDown 由本项目的编辑模型处理。
+普通左右键和 Home/End 按视觉方向导航；Ctrl+左右按逻辑词边界、Ctrl+Home/End 按逻辑文档边界。
+双向和软换行边界保留光标亲和性，鼠标、上下移动、绘制及 IME 候选位置使用同一显示位置。
 多行 Enter 换行，单行 Enter 或 Ctrl+Enter 产生 `text_committed`；用户编辑产生 `text_changed`。
 密码控件的用户事件不带正文，复制/剪切不导出密码。
 
@@ -96,12 +98,48 @@ Unicode 16.0 的 1093 条官方字素边界用例在双平台通过。
 
 文字布局使用自研 Unicode 16.0 UAX #14 默认断行，双平台通过 16,672 条官方用例；
 布局优先在合法机会换行，超宽词采用字素级紧急折行，并保持光标/选区与逻辑索引一致。
-仍未实现 UAX #9、GSUB/GPOS、复杂脚本整形、字体回退、hinting 或全部字体格式，不能称为完整文字引擎。
+UAX #9 核心已通过双平台官方用例并接入逐行重排、镜像、命中和分段选区；自动字体回退
+按完整字素在有限的常见字体路径中选择。视觉方向键和双重光标亲和性已接入编辑器；
+已接入 GSUB/GPOS/GDEF 水平整形、字距与附标定位及阿拉伯连接；其他复杂脚本处理、
+hinting 和其他字体格式仍缺，不能称为完整文字引擎。详见 [整形契约](native_gui_shaping.md)。
 文本缓冲的字素移动、词导航、选区、删除、撤销重做与换行归一化已接入输入控件。
 
 [宽窄文本布局](../examples/native_gui/text_wrapping.tx) 可编译运行并导出
 `tx_build/native_gui/text_wrapping.bmp`，用于检查实际 `.tx` 静态调用链生成的文本图像。
 模块完成状态、验证入口与后续工作见 [续接记录](native_gui_progress.md)。
 
-完整控件集合、滚动容器、数据模型、命令/菜单/对话框、UIA/AT-SPI、
-双平台发行与桌面验收均仍属于实施契约中的待完成工作。
+[双向文本示例](../examples/native_gui/bidi_text.tx) 可编译为交互程序，并导出
+`tx_build/native_gui/bidi_text.bmp`。主字体由 `open_app` 参数或 `TX_GUI_FONT` 指定，
+程序会自动尝试平台常见字体作为回退；跨平台比较像素需要相同字体集合。
+
+## 容器、数据视图与画布
+
+`create_scroll`、`create_tabs`、`create_split` 返回各自的不透明资源类型。
+`scroll_content`、`split_first/second` 和 `add_tab` 返回普通面板，可继续创建已有控件和嵌套布局。
+页签用页面的 `id` 选择；切换后隐藏页不接受鼠标、键盘或动画。滚动支持拖动滑块、轨道翻页、
+滚轮边界向祖先传递及屏幕外焦点自动滚入。画布用 `canvas_clear/fill_rect/fill_ellipse/line/text`
+保存绘制命令，随父项裁剪和 DPI 缩放。
+
+`create_list_view/table_view/tree_view` 使用同一套自研模型和输入层；每个视图独立拥有模型快照。
+行 ID 是生命周期内不可复用的正整数，树根的 `parent_id` 为 0。`replace_items/append_items/update_items`
+验证整批数据后提交；`set_order` 改变顺序，选择继续使用原 ID。表格列的宽度、显示和顺序与单元格身份分离。
+`begin_page/apply_page` 防止过期后台结果覆盖新修订。只为可见行创建文字布局，不为每行创建控件。
+
+新增事件使用整数 `item_id/column_id` 和局部 `x/y`，避免 ID 经浮点传递：
+
+- `tab_changed`、`scroll_changed`、`split_changed/split_committed`：用户容器操作。
+- `data_selection_changed/data_activated`、`sort_requested`、`tree_expanded/expand_requested`：数据交互。
+- `column_width_changed`：用户完成列宽拖动；`canvas_pointer_* / canvas_key_*`：画布原始交互。
+
+详见 [容器契约](native_gui_containers.md)、[数据契约](native_gui_data.md) 和
+[容器与数据工作台](../examples/native_gui/data_workbench.tx)。示例包含一万行表格、树、列表、
+分隔器、视觉文本编辑与大尺寸滚动画布。定向检查入口为 `scripts/check_native_gui_extended.py`。
+
+combo、访问键、默认/取消动作现已接入，详见 [基础交互契约](native_gui_interaction.md)。
+使用 `create_combo_box`、`set_combo_items`、`selected_index/set_selected_index` 操作下拉选择；
+`set_access_key` 绑定 Alt 访问键，`set_default_button/set_cancel_button` 绑定当前窗口动作。
+同源示例为 [基础交互工作台](../examples/native_gui/interaction_workbench.tx)，定向入口为
+`scripts/check_native_gui_interaction.py`，支持 `--only behavior|abi`。
+
+命令/菜单/对话框、UIA/AT-SPI、系统/高对比主题、
+原生 Wayland、字体与渲染余项、正式双平台发行和真实桌面验收仍未完成。

@@ -1,4 +1,7 @@
 #include "stdlib/native_gui/state.hpp"
+#include "stdlib/native_gui/drawing.hpp"
+#include "stdlib/native_gui/containers.hpp"
+#include "stdlib/native_gui/combo.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -10,11 +13,6 @@ namespace
 using tx::ui::color;
 using tx::ui::rect;
 using tx::ui::rasterizer;
-
-struct palette
-{
-    color background, panel, foreground, muted, accent, hover, pressed, border;
-};
 
 palette colors(bool dark)
 {
@@ -47,7 +45,8 @@ void control_background(node& state, node& root, rasterizer& painter, const pale
     else if (state.kind == tx::graphics_kind::native_button)
     {
         const auto fill = !enabled ? theme.background : pressed ? theme.pressed : hovered ? theme.hover : theme.panel;
-        painter.fill_rounded_rect(bounds, 8, theme.border);
+        const bool default_action = enabled && root.default_button.lock().get() == &state;
+        painter.fill_rounded_rect(bounds, 8, default_action ? theme.accent : theme.border);
         painter.fill_rounded_rect({bounds.x + 1, bounds.y + 1, std::max(0.0, bounds.width - 2),
             std::max(0.0, bounds.height - 2)}, 7, fill);
     }
@@ -114,20 +113,30 @@ void control_background(node& state, node& root, rasterizer& painter, const pale
 
 void draw_node(node& state, node& root, rasterizer& painter, const palette& theme)
 {
-    if (!state.visible || state.clip.width <= 0 || state.clip.height <= 0)
+    if (!state.visible || !state.layout_visible || state.clip.width <= 0 || state.clip.height <= 0)
     {
         return;
     }
     painter.push_clip(rectangle_of(state.clip));
     control_background(state, root, painter, theme);
+    if (state.combo)
+    {
+        draw_combo(state, painter, theme);
+    }
+    draw_container(state, painter, theme);
+    draw_data(state, painter, theme);
     if (state.editor)
     {
         draw_editor(state, painter, available(state) ? theme.foreground : theme.muted, theme.accent);
     }
-    else if (state.text_layout)
+    else if (state.text_layout && !container(state))
     {
         double x = state.bounds.x;
-        if (state.kind == tx::graphics_kind::native_button)
+        if (state.combo)
+        {
+            x += 12;
+        }
+        else if (state.kind == tx::graphics_kind::native_button)
         {
             x += std::max(12.0, (state.bounds.width - state.text_layout->width()) / 2);
         }
@@ -136,7 +145,15 @@ void draw_node(node& state, node& root, rasterizer& painter, const palette& them
             x += 36;
         }
         const double y = state.bounds.y + std::max(0.0, (state.bounds.height - state.text_layout->height()) / 2);
+        if (state.combo)
+        {
+            painter.push_clip({x, state.bounds.y, std::max(0.0, state.bounds.width - 40), state.bounds.height});
+        }
         state.text_layout->draw(painter, {x, y}, available(state) ? theme.foreground : theme.muted);
+        if (state.combo)
+        {
+            painter.pop_clip();
+        }
     }
     if (!state.editor && root.window_focused && root.focused.lock().get() == &state && available(state))
     {
@@ -148,6 +165,7 @@ void draw_node(node& state, node& root, rasterizer& painter, const palette& them
     {
         draw_node(*child, root, painter, theme);
     }
+    draw_scrollbars(state, painter, theme);
     painter.pop_clip();
 }
 }
@@ -168,6 +186,7 @@ tx::ui::pixel_buffer render(node& state)
     rasterizer painter(image);
     painter.set_scale(window.dpi / 96.0);
     draw_node(root, root, painter, theme);
+    draw_combo_popup(root, painter, theme);
     return image;
 }
 

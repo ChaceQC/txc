@@ -42,6 +42,9 @@ public:
     double advance(std::uint16_t glyph, double size) const;
     double ascender(double size) const;
     double line_height(double size) const;
+    font_reader layout_table(std::string_view name) const;
+    unsigned glyph_count() const noexcept;
+    double em_scale(double size) const;
     path outline(std::uint16_t glyph, double size, point baseline) const;
 private:
     struct table_entry

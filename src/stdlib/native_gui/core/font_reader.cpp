@@ -72,6 +72,24 @@ font_reader font_face::table(std::string_view name) const
     return font_reader(font_reader(data_).slice(found->second.offset, found->second.length));
 }
 
+font_reader font_face::layout_table(std::string_view name) const
+{
+    const auto found = tables_.find(tag(name));
+    return found == tables_.end() ? font_reader({}) :
+        font_reader(font_reader(data_).slice(found->second.offset, found->second.length));
+}
+
+unsigned font_face::glyph_count() const noexcept
+{
+    return glyph_count_;
+}
+
+double font_face::em_scale(double size) const
+{
+    advance(0, size);
+    return size / units_;
+}
+
 font_face::font_face(std::vector<std::uint8_t> data, unsigned face_index) : data_(std::move(data))
 {
     if (data_.size() > 128 * 1024 * 1024)

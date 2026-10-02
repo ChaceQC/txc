@@ -1,0 +1,16 @@
+import "native_gui.txh" as ui
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "OpenType ABI", 1000.0, 300.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 20.0, 12.0)
+    auto label = ui.create_label(root, "office AVATAR · السَّلَامُ عَلَيْكُمْ").value()
+    auto editor = ui.create_text_box(root, true).value()
+    ui.set_height(editor, ui.fixed(150.0))
+    ui.set_text(editor, "سلام لا ل‌ا\nabc אבג العربية 123")
+    ui.save_bitmap(root, "tx_build/native_gui/shaping_abi.bmp").value()
+    ui.close(app)
+    return 0
+}

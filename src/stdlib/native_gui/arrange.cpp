@@ -1,4 +1,5 @@
 #include "stdlib/native_gui/layout_internal.hpp"
+#include "stdlib/native_gui/containers.hpp"
 
 #include <algorithm>
 
@@ -89,6 +90,25 @@ void arrange(node& state, rectangle bounds, rectangle clip)
 {
     state.bounds = bounds;
     state.clip = tx::ui::intersect(bounds, clip);
+    if (!state.visible || !state.layout_visible)
+    {
+        state.clip = {};
+        return;
+    }
+    if (state.data)
+    {
+        arrange_data(state);
+        return;
+    }
+    if (state.scroll || state.tabs || state.split)
+    {
+        arrange_container(state);
+        return;
+    }
+    if (state.canvas)
+    {
+        return;
+    }
     if (state.kind != tx::graphics_kind::native_panel)
     {
         ensure_text(state, bounds.width - text_inset(state));

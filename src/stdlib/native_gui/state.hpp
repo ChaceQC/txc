@@ -5,6 +5,8 @@
 #include "stdlib/native_gui/core/text_layout.hpp"
 #include "stdlib/native_gui/core/text_buffer.hpp"
 #include "stdlib/native_gui/platform/window.hpp"
+#include "stdlib/native_gui/container_state.hpp"
+#include "stdlib/native_gui/data_view.hpp"
 #include "stdlib/gui/layout.hpp"
 
 #include <deque>
@@ -20,6 +22,7 @@ enum class layout_mode
 struct node;
 struct app;
 struct window;
+struct combo_state;
 
 struct event
 {
@@ -33,6 +36,9 @@ struct event
     double number = 0;
     bool state = false;
     std::int64_t revision = 0;
+    std::int64_t item_id = 0, column_id = 0;
+    double x = 0, y = 0;
+    std::int64_t modifiers = 0;
 };
 
 struct app : graphics::resource, std::enable_shared_from_this<app>
@@ -43,7 +49,7 @@ struct app : graphics::resource, std::enable_shared_from_this<app>
     std::thread::id thread = std::this_thread::get_id();
     bool open = true;
     std::int64_t next_id = 1;
-    std::shared_ptr<tx::ui::font_face> font;
+    std::shared_ptr<tx::ui::font_family> font;
     std::vector<std::shared_ptr<window>> windows;
     std::deque<event> events;
 };
@@ -75,6 +81,7 @@ struct node : graphics::resource, std::enable_shared_from_this<node>
     unsigned depth = 0;
     bool closed = false, visible = true, enabled = true, checked = false;
     bool dirty = true, dark = false;
+    bool layout_visible = true;
     layout_mode layout = layout_mode::column;
     gui::length width, height;
     double min_width = 0, min_height = 0, max_width = 16384, max_height = 16384;
@@ -91,16 +98,25 @@ struct node : graphics::resource, std::enable_shared_from_this<node>
     bool composing = false, password = false;
     double text_scroll_x = 0, text_scroll_y = 0;
     std::optional<double> preferred_x;
+    tx::ui::caret_affinity caret_affinity = tx::ui::caret_affinity::downstream;
     double minimum = 0, maximum = 100, value = 0, step = 1;
     bool indeterminate = false;
     std::int64_t radio_group = 0;
     std::unique_ptr<tx::ui::text_layout> text_layout;
     double text_width = -1;
-    std::shared_ptr<tx::ui::font_face> font;
+    std::shared_ptr<tx::ui::font_family> font;
     std::weak_ptr<node> hovered, pressed, focused;
+    std::weak_ptr<node> popup, default_button, cancel_button;
+    std::string access_key;
     bool keyboard_pressed = false, window_focused = false;
     bool ime_warning_sent = false;
     double layout_width = -1, layout_height = -1;
+    std::unique_ptr<scroll_state> scroll;
+    std::unique_ptr<tabs_state> tabs;
+    std::unique_ptr<split_state> split;
+    std::unique_ptr<canvas_state> canvas;
+    std::unique_ptr<data_view_state> data;
+    std::shared_ptr<combo_state> combo;
 };
 
 [[noreturn]] void fail(const char* code, const std::string& message);
@@ -115,6 +131,7 @@ double checked_size(double value);
 gui::length checked_length(const std::string& mode, double value);
 bool interactive(const node& state);
 bool available(const node& state);
+bool container(const node& state);
 void dirty(node& state);
 std::shared_ptr<app> open_app(const std::string& font_path);
 std::shared_ptr<window> create_window(app& app, const std::string& title, double width, double height);
@@ -136,6 +153,10 @@ void ensure_text(node& state, double width);
 bool contains(rectangle bounds, double x, double y);
 void process_event(window& window, const tx::ui::window_event& event);
 void activate(node& state);
+void set_access_key(node& state, const std::string& key);
+void set_action_button(node& state, bool cancel, bool enabled);
+bool access_key(node& root, const tx::ui::window_event& input);
+bool window_action(node& root, const tx::ui::window_event& input);
 void slider_pointer(node& state, double x);
 void slider_commit(node& state);
 bool slider_key(node& state, const tx::ui::window_event& event);

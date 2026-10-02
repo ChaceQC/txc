@@ -1,0 +1,125 @@
+import "native_gui.txh" as ui
+import "format.txh" as fmt
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX · 容器与数据工作台", 1040.0, 720.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 20.0, 12.0)
+    auto title = ui.create_label(root, "TX NATIVE GUI  /  容器、数据与视觉编辑").value()
+    auto actions = ui.create_panel(root).value()
+    ui.set_row(actions, 0.0, 16.0)
+    auto dark = ui.create_check_box(actions, "深色主题").value()
+    auto hide_column = ui.create_check_box(actions, "隐藏说明列").value()
+    auto tabs = ui.create_tabs(root).value()
+    auto data_page = ui.add_tab(tabs, "虚拟表格 · 10000 行").value()
+    auto tree_page = ui.add_tab(tabs, "树与列表").value()
+    auto editor_page = ui.add_tab(tabs, "视觉方向键").value()
+    auto canvas_page = ui.add_tab(tabs, "滚动与画布").value()
+    vector<ui.table_column> columns = vector<ui.table_column>()
+    columns.push_back(ui.table_column(1, "稳定 ID", 110.0, "right", true))
+    columns.push_back(ui.table_column(2, "标题", 320.0, "left", true))
+    columns.push_back(ui.table_column(3, "说明 · 可拖动列边界", 620.0, "left", true))
+    auto table = ui.create_table_view(data_page, columns, true).value()
+    vector<ui.table_row> rows = vector<ui.table_row>()
+    for index in 1..=10000
+    {
+        vector<str> cells = vector<str>()
+        cells.push_back(index as str)
+        cells.push_back(fmt.format("数据记录 {}", index))
+        cells.push_back("滚轮 / PageDown / End；Ctrl 与 Shift 多选；点击列头请求排序")
+        rows.push_back(ui.table_row(index, cells))
+    }
+    ui.replace_items(table, rows)
+    auto split = ui.create_split(tree_page, true, 0.45).value()
+    auto left = ui.split_first(split).value()
+    auto right = ui.split_second(split).value()
+    auto tree = ui.create_tree_view(left, false).value()
+    vector<ui.tree_item> nodes = vector<ui.tree_item>()
+    nodes.push_back(ui.tree_item(1, 0, "工作区", true))
+    nodes.push_back(ui.tree_item(2, 1, "src", true))
+    nodes.push_back(ui.tree_item(3, 2, "frontend", false))
+    nodes.push_back(ui.tree_item(4, 2, "backend", false))
+    nodes.push_back(ui.tree_item(5, 1, "docs", false))
+    nodes.push_back(ui.tree_item(6, 0, "数据", true))
+    ui.replace_items(tree, nodes)
+    ui.set_expanded(tree, 1, true)
+    auto list = ui.create_list_view(right, true).value()
+    vector<ui.list_item> items = vector<ui.list_item>()
+    for index in 1..=200
+    {
+        items.push_back(ui.list_item(index, fmt.format("列表项目 {}", index)))
+    }
+    ui.replace_items(list, items)
+    auto help = ui.create_label(editor_page, "左右键按视觉方向移动；Home/End 到视觉行边缘；双向边界显示辅助光标。").value()
+    auto editor = ui.create_text_box(editor_page, true).value()
+    ui.set_height(editor, ui.stretch(1.0))
+    ui.set_text(editor, "中文 / English / אבג / xyz\nabc אבג xyz\nאבג 123 (abc) 中文\né 与 emoji 👨‍👩‍👧‍👦 按完整字素移动。\n复杂脚本整形仍在后续工作范围内。")
+    auto scroll = ui.create_scroll(canvas_page, true, true).value()
+    auto content = ui.scroll_content(scroll).value()
+    auto canvas = ui.create_canvas(content).value()
+    ui.set_size(canvas, 1500.0, 900.0)
+    ui.canvas_clear(canvas, ui.color(246, 249, 255, 255))
+    ui.canvas_text(canvas, "自研画布 · Shift+滚轮横向滚动", 32.0, 24.0, 24.0, 850.0, ui.color(32, 47, 72, 255))
+    for index in 0..=7
+    {
+        ui.canvas_fill_rect(canvas, 32.0 + (index as float) * 175.0, 100.0, 145.0, 420.0,
+            ui.color(40 + index * 20, 90 + index * 12, 210, 255))
+        ui.canvas_fill_ellipse(canvas, 50.0 + (index as float) * 175.0, 560.0, 115.0, 115.0,
+            ui.color(220, 130 + index * 10, 50 + index * 16, 190))
+    }
+    auto status = ui.create_label(root, "Tab 遍历控件 · Ctrl+Tab 切换页签 · 分隔条支持方向键调整").value()
+    ui.show(window)
+    while ui.is_open(window)
+    {
+        auto pending = ui.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                ui.close(window)
+            }
+            else if event.kind == "check_changed" && event.source_id == ui.id(dark)
+            {
+                if event.state
+                {
+                    ui.set_theme(root, "dark")
+                }
+                else
+                {
+                    ui.set_theme(root, "light")
+                }
+            }
+            else if event.kind == "check_changed" && event.source_id == ui.id(hide_column)
+            {
+                ui.set_column_visible(table, 3, !event.state)
+            }
+            else if event.kind == "sort_requested" && event.source_id == ui.id(table)
+            {
+                vector<int> order = vector<int>()
+                for index in 1..=10000
+                {
+                    if event.state
+                    {
+                        order.push_back(index)
+                    }
+                    else
+                    {
+                        order.push_back(10001 - index)
+                    }
+                }
+                ui.set_order(table, order)
+                ui.set_text(status, fmt.format("排序请求列 {}；示例按 ID 排序，所选行身份保持不变", event.column_id))
+            }
+            else if event.kind == "data_selection_changed" || event.kind == "tree_expanded" || event.kind == "tab_changed"
+            {
+                ui.set_text(status, fmt.format("{} · 控件 {} · 稳定 ID {} · 修订 {}",
+                    event.kind, event.source_id, event.item_id, event.revision))
+            }
+        }
+    }
+    ui.close(app)
+    return 0
+}

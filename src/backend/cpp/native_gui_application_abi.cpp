@@ -16,7 +16,7 @@ int open_application(const std::string& font, const char* type, void** result) n
 
 dynamic_struct event_value(const native_gui::event& event, const char* type)
 {
-    struct_fields fields(7);
+    struct_fields fields(12);
     fields[0] = {"kind", event.kind};
     fields[1] = {"window_id", event.window_id};
     fields[2] = {"source_id", event.source_id};
@@ -24,6 +24,11 @@ dynamic_struct event_value(const native_gui::event& event, const char* type)
     fields[4] = {"number", event.number};
     fields[5] = {"state", event.state};
     fields[6] = {"revision", event.revision};
+    fields[7] = {"item_id", event.item_id};
+    fields[8] = {"column_id", event.column_id};
+    fields[9] = {"x", event.x};
+    fields[10] = {"y", event.y};
+    fields[11] = {"modifiers", event.modifiers};
     return dynamic_struct(dynamic_struct_data{type, "event", std::move(fields)});
 }
 }

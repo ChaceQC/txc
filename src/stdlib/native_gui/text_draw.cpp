@@ -49,8 +49,20 @@ void draw_editor(node& state, tx::ui::rasterizer& painter, tx::ui::color foregro
     if (root.window_focused && root.focused.lock().get() == &state)
     {
         const auto index = state.composing ? editor.selection().first + state.composition_caret : editor.caret();
-        const auto caret = state.text_layout->caret(index);
+        const tx::ui::text_position position{index,
+            state.composing ? tx::ui::caret_affinity::upstream : state.caret_affinity};
+        const auto caret = state.text_layout->caret(position);
         painter.fill_rect({origin.x + caret.x, origin.y + caret.y, 1, caret.height}, foreground);
+        if (!state.composing && editor.selection().first == editor.selection().second)
+        {
+            if (const auto other = state.text_layout->alternate_caret(position); other && other->y == caret.y)
+            {
+                auto secondary = foreground;
+                secondary.alpha = 140;
+                painter.fill_rect({origin.x + other->x, origin.y + other->y + other->height / 2,
+                    1, other->height / 2}, secondary);
+            }
+        }
     }
     painter.pop_clip();
 }

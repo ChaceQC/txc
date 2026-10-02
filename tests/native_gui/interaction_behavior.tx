@@ -1,0 +1,44 @@
+import "native_gui.txh" as ui
+import "test.txh" as test
+import "error.txh" as errors
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "基础交互 ABI", 640.0, 480.0).value()
+    auto root = ui.root(window).value()
+    auto combo = ui.create_combo_box(root).value()
+    vector<str> items = vector<str>()
+    items.push_back("中文选项")
+    items.push_back("English")
+    items.push_back("العربية")
+    ui.set_combo_items(combo, items)
+    test.assert_equal(ui.selected_index(combo), -1)
+    ui.set_selected_index(combo, 2)
+    test.assert_equal(ui.selected_index(combo), 2)
+    ui.set_width(combo, ui.fixed(380.0))
+    ui.set_height(combo, ui.fixed(40.0))
+    ui.set_access_key(combo, "1")
+    auto button = ui.create_button(root, "确认 (Alt+A)").value()
+    ui.set_access_key(button, "a")
+    ui.set_default_button(button, true)
+    auto cancel = ui.create_button(root, "取消 (Escape)").value()
+    ui.set_cancel_button(cancel, true)
+    bool rejected = false
+    try
+    {
+        ui.set_selected_index(combo, 3)
+    }
+    exception errors.graphics_error as error
+    {
+        rejected = true
+    }
+    test.assert_true(rejected, "越界选择应拒绝")
+    test.assert_equal(ui.selected_index(combo), 2)
+    ui.set_combo_items(combo, items)
+    test.assert_equal(ui.selected_index(combo), -1)
+    ui.set_selected_index(combo, 0)
+    ui.save_bitmap(root, "tx_build/native_gui/interaction_abi.bmp").value()
+    ui.close(app)
+    return 0
+}

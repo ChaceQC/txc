@@ -48,7 +48,9 @@ std::string graphics_symbol(const function_decl& target)
             symbol += "_with_font";
         }
         for (const auto* name : {"id", "close", "set_size", "set_visible", "set_enabled", "set_text",
-            "set_width", "set_height", "set_constraints", "set_margin", "set_alignment", "set_cell"})
+            "set_width", "set_height", "set_constraints", "set_margin", "set_alignment", "set_cell",
+            "replace_items", "append_items", "update_items", "remove_items", "set_order", "revision", "count",
+            "begin_page", "apply_page", "selected_ids", "set_selected_ids", "visible_ids", "set_row_height", "item_text", "set_access_key"})
         {
             if (operation == name)
             {

@@ -17,6 +17,8 @@ key_result shortcut(node& state, const tx::ui::window_event& input)
     if (input.key == "a")
     {
         editor.select(0, editor.text().size());
+        state.caret_affinity = tx::ui::caret_affinity::upstream;
+        state.preferred_x.reset();
         return {true, false, true};
     }
     if (input.key == "c" || input.key == "x")
@@ -40,35 +42,48 @@ key_result shortcut(node& state, const tx::ui::window_event& input)
     return {};
 }
 
+void move_horizontal(node& state, const tx::ui::window_event& input)
+{
+    auto& editor = *state.editor;
+    const int direction = input.key == "left" ? -1 : 1;
+    if (input.ctrl)
+    {
+        editor.move_word(direction, input.shift);
+        state.caret_affinity = direction < 0 ? tx::ui::caret_affinity::downstream : tx::ui::caret_affinity::upstream;
+        return;
+    }
+    const auto [begin, end] = editor.selection();
+    auto target = !input.shift && begin != end ? state.text_layout->selection_edge(begin, end, direction) :
+        state.text_layout->move_visual({editor.caret(), state.caret_affinity}, direction);
+    if (state.password)
+    {
+        // 掩码按标量绘制，编辑位置仍只能落到原文本的字素边界。
+        const auto boundaries = tx::ui::grapheme_boundaries(editor.text());
+        while (!std::binary_search(boundaries.begin(), boundaries.end(), target.index))
+        {
+            target = state.text_layout->move_visual(target, direction);
+        }
+    }
+    editor.select(input.shift ? editor.anchor() : target.index, target.index);
+    state.caret_affinity = target.affinity;
+}
+
 key_result navigate(node& state, const tx::ui::window_event& input)
 {
     auto& editor = *state.editor;
+    ensure_text(state, std::max(1.0, state.bounds.width - 24));
     if (input.key == "left" || input.key == "right")
     {
-        if (input.ctrl)
-        {
-            editor.move_word(input.key == "left" ? -1 : 1, input.shift);
-        }
-        else
-        {
-            editor.move(input.key == "left" ? -1 : 1, input.shift);
-        }
+        move_horizontal(state, input);
         state.preferred_x.reset();
         return {true, false, true};
     }
-    ensure_text(state, std::max(1.0, state.bounds.width - 24));
-    const auto caret = state.text_layout->caret(editor.caret());
-    std::size_t target = editor.caret();
+    tx::ui::text_position target{editor.caret(), state.caret_affinity};
+    const auto caret = state.text_layout->caret(target);
     if (input.key == "home" || input.key == "end")
     {
-        target = input.key == "home" ? 0 : editor.text().size();
-        for (const auto& line : state.text_layout->lines())
-        {
-            if (!input.ctrl && line.y == caret.y)
-            {
-                target = input.key == "home" ? line.begin : line.end;
-            }
-        }
+        target = input.ctrl ? tx::ui::text_position{input.key == "home" ? 0 : editor.text().size()} :
+            state.text_layout->line_edge(target, input.key == "home" ? -1 : 1);
         state.preferred_x.reset();
     }
     else if (input.key == "up" || input.key == "down" || input.key == "page_up" || input.key == "page_down")
@@ -79,13 +94,14 @@ key_result navigate(node& state, const tx::ui::window_event& input)
         }
         const double distance = input.key.starts_with("page_") ? std::max(caret.height, state.bounds.height - 16) : caret.height;
         const bool up = input.key == "up" || input.key == "page_up";
-        target = state.text_layout->hit({*state.preferred_x, caret.y + caret.height / 2 + (up ? -distance : distance)});
+        target = state.text_layout->hit_position({*state.preferred_x, caret.y + caret.height / 2 + (up ? -distance : distance)});
     }
     else
     {
         return {};
     }
-    editor.select(input.shift ? editor.anchor() : target, target);
+    editor.select(input.shift ? editor.anchor() : target.index, target.index);
+    state.caret_affinity = editor.caret() == target.index ? target.affinity : tx::ui::caret_affinity::downstream;
     return {true, false, true};
 }
 

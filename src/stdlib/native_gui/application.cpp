@@ -100,7 +100,7 @@ void poll_windows(app& state)
 
 bool animated(const node& state)
 {
-    if (!state.visible || state.closed)
+    if (!state.visible || !state.layout_visible || state.closed)
     {
         return false;
     }
@@ -157,7 +157,7 @@ std::shared_ptr<app> open_app(const std::string& requested_font)
         close_app(*value);
         delete value;
     });
-    state->font = std::make_shared<tx::ui::font_face>(tx::ui::font_face::load(font_path(requested_font)));
+    state->font = std::make_shared<tx::ui::font_family>(tx::ui::system_font_family(font_path(requested_font)));
     context.native_gui_cleanup = [](void* value) noexcept
     {
         close_app(*static_cast<app*>(value));
