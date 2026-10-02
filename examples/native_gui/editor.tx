@@ -1,0 +1,78 @@
+import "native_gui.txh" as ui
+import "format.txh" as fmt
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX · 自研编辑与交互", 800.0, 680.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 24.0, 14.0)
+    auto title = ui.create_label(root, "自研文本编辑器 · 字体、排版、字素与词边界").value()
+    auto hint = ui.create_label(root, "支持鼠标选区、方向键、Ctrl+方向键、Home/End、撤销重做和复制粘贴。").value()
+    auto input = ui.create_text_box(root, false).value()
+    ui.set_text(input, "单行：中文、组合字符 é、emoji 😀")
+    auto editor = ui.create_text_box(root, true).value()
+    ui.set_height(editor, ui.fixed(180.0))
+    ui.set_text(editor, "自研字体轮廓和 Unicode 16.0 断行：中文标点（例如这些括号）、完整英文单词 hello world 会按合法位置换行。\n缩小窗口可检查换行、光标与选区。é、🇨🇳 和家庭 emoji 👨‍👩‍👧‍👦 不会被折成半个字素。\n可以选中、编辑、撤销，或按 Ctrl+Enter 提交。")
+    auto options = ui.create_panel(root).value()
+    ui.set_row(options, 0.0, 16.0)
+    auto readonly = ui.create_check_box(options, "只读").value()
+    auto busy = ui.create_check_box(options, "不确定进度").value()
+    auto slider = ui.create_slider(root, 0.0, 100.0, 35.0, 1.0).value()
+    auto progress = ui.create_progress_bar(root).value()
+    ui.set_progress(progress, 0.0, 100.0, 35.0)
+    auto themes = ui.create_panel(root).value()
+    ui.set_row(themes, 0.0, 20.0)
+    auto light = ui.create_radio_button(themes, "浅色", 1).value()
+    auto dark = ui.create_radio_button(themes, "深色", 1).value()
+    ui.set_radio_selected(light, true)
+    auto status = ui.create_label(root, "就绪").value()
+    ui.show(window)
+    while ui.is_open(window)
+    {
+        auto pending = ui.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                ui.close(window)
+            }
+            else if event.kind == "input_method_error"
+            {
+                ui.set_text(status, event.text)
+            }
+            else if event.kind == "text_changed" || event.kind == "text_committed"
+            {
+                ui.set_text(status, fmt.format("文本已更新：{} 个字符", len(event.text)))
+            }
+            else if event.source_id == ui.id(slider)
+            {
+                ui.set_progress(progress, 0.0, 100.0, event.number)
+                ui.set_text(status, fmt.format("当前值：{}", event.number))
+            }
+            else if event.kind == "check_changed"
+            {
+                if event.source_id == ui.id(readonly)
+                {
+                    ui.set_read_only(input, event.state)
+                    ui.set_read_only(editor, event.state)
+                }
+                else if event.source_id == ui.id(busy)
+                {
+                    ui.set_indeterminate(progress, event.state)
+                }
+                else if event.source_id == ui.id(dark)
+                {
+                    ui.set_theme(root, "dark")
+                }
+                else if event.source_id == ui.id(light)
+                {
+                    ui.set_theme(root, "light")
+                }
+            }
+        }
+    }
+    ui.close(app)
+    return 0
+}

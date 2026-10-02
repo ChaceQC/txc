@@ -49,7 +49,7 @@ void semantic_analyzer::annotate_call_properties(call_expression& call) const
     }
     const auto& name = signature.external_name;
     if (name.starts_with("graphics.") || name.starts_with("gui.") ||
-        name.starts_with("graphics_text.") || name.starts_with("gui_data."))
+        name.starts_with("graphics_text.") || name.starts_with("gui_data.") || name.starts_with("native_gui."))
     {
         // Win32 回调不执行 TX；参数仅在本次调用中读取，原生资源独立管理寿命。
         const bool draw = name == "graphics.clear" || name.starts_with("graphics.draw_") ||

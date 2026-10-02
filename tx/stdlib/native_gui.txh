@@ -1,0 +1,168 @@
+# 跨平台全自研 GUI；系统仅承载窗口、输入和像素提交。
+struct event
+{
+    kind: str
+    window_id: int
+    source_id: int
+    text: str
+    number: float
+    state: bool
+    revision: int
+}
+
+struct length
+{
+    mode: str
+    value: float
+}
+
+def fixed(value: float) -> length
+def auto_length() -> length
+def stretch(weight: float) -> length
+def set_grid(panel: native_gui_panel, rows: int, columns: int, padding: float, gap: float) -> void
+def set_grid_row(panel: native_gui_panel, index: int, value: length) -> void
+def set_grid_column(panel: native_gui_panel, index: int, value: length) -> void
+def set_overlay(panel: native_gui_panel, padding: float) -> void
+
+def set_width(control: native_gui_panel, value: length) -> void
+def set_height(control: native_gui_panel, value: length) -> void
+def set_constraints(control: native_gui_panel, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_panel, margin: float) -> void
+def set_alignment(control: native_gui_panel, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_panel, row: int, column: int, row_span: int, column_span: int) -> void
+
+def set_width(control: native_gui_label, value: length) -> void
+def set_height(control: native_gui_label, value: length) -> void
+def set_constraints(control: native_gui_label, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_label, margin: float) -> void
+def set_alignment(control: native_gui_label, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_label, row: int, column: int, row_span: int, column_span: int) -> void
+
+def set_width(control: native_gui_button, value: length) -> void
+def set_height(control: native_gui_button, value: length) -> void
+def set_constraints(control: native_gui_button, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_button, margin: float) -> void
+def set_alignment(control: native_gui_button, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_button, row: int, column: int, row_span: int, column_span: int) -> void
+
+def set_width(control: native_gui_check_box, value: length) -> void
+def set_height(control: native_gui_check_box, value: length) -> void
+def set_constraints(control: native_gui_check_box, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_check_box, margin: float) -> void
+def set_alignment(control: native_gui_check_box, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_check_box, row: int, column: int, row_span: int, column_span: int) -> void
+
+def open_app() -> result<native_gui_app>
+def open_app(font_path: str) -> result<native_gui_app>
+def create_window(app: native_gui_app, title: str, width: float, height: float) -> result<native_gui_window>
+def show(window: native_gui_window) -> void
+def set_title(window: native_gui_window, title: str) -> void
+def is_open(window: native_gui_window) -> bool
+def close(window: native_gui_window) -> void
+def close(app: native_gui_app) -> void
+def next_event(app: native_gui_app, timeout_ms: int) -> result<option<event>>
+def root(window: native_gui_window) -> result<native_gui_panel>
+def create_panel(parent: native_gui_panel) -> result<native_gui_panel>
+def create_label(parent: native_gui_panel, text: str) -> result<native_gui_label>
+def create_button(parent: native_gui_panel, text: str) -> result<native_gui_button>
+def create_check_box(parent: native_gui_panel, text: str) -> result<native_gui_check_box>
+def set_column(panel: native_gui_panel, padding: float, gap: float) -> void
+def set_row(panel: native_gui_panel, padding: float, gap: float) -> void
+def set_theme(panel: native_gui_panel, theme: str) -> void
+def paint(panel: native_gui_panel) -> result<void>
+def save_bitmap(panel: native_gui_panel, path: str) -> result<void>
+def set_checked(control: native_gui_check_box, checked: bool) -> void
+def checked(control: native_gui_check_box) -> bool
+
+def create_text_box(parent: native_gui_panel, multiline: bool) -> result<native_gui_text_box>
+def text(control: native_gui_text_box) -> str
+def set_read_only(control: native_gui_text_box, read_only: bool) -> void
+def set_password(control: native_gui_text_box, password: bool) -> void
+def set_text_limit(control: native_gui_text_box, limit: int) -> void
+def set_selection(control: native_gui_text_box, start: int, end: int) -> void
+def selection_start(control: native_gui_text_box) -> int
+def selection_end(control: native_gui_text_box) -> int
+def create_progress_bar(parent: native_gui_panel) -> result<native_gui_progress_bar>
+def set_progress(control: native_gui_progress_bar, minimum: float, maximum: float, value: float) -> void
+def progress_value(control: native_gui_progress_bar) -> float
+def set_indeterminate(control: native_gui_progress_bar, enabled: bool) -> void
+def create_slider(parent: native_gui_panel, minimum: float, maximum: float, value: float, step: float) -> result<native_gui_slider>
+def set_slider_value(control: native_gui_slider, value: float) -> void
+def slider_value(control: native_gui_slider) -> float
+def create_radio_button(parent: native_gui_panel, text: str, group: int) -> result<native_gui_radio_button>
+def set_radio_selected(control: native_gui_radio_button, selected: bool) -> void
+def radio_selected(control: native_gui_radio_button) -> bool
+
+def id(control: native_gui_text_box) -> int
+def close(control: native_gui_text_box) -> void
+def set_size(control: native_gui_text_box, width: float, height: float) -> void
+def set_visible(control: native_gui_text_box, visible: bool) -> void
+def set_enabled(control: native_gui_text_box, enabled: bool) -> void
+def set_width(control: native_gui_text_box, value: length) -> void
+def set_height(control: native_gui_text_box, value: length) -> void
+def set_constraints(control: native_gui_text_box, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_text_box, margin: float) -> void
+def set_alignment(control: native_gui_text_box, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_text_box, row: int, column: int, row_span: int, column_span: int) -> void
+def set_text(control: native_gui_text_box, text: str) -> void
+
+def id(control: native_gui_progress_bar) -> int
+def close(control: native_gui_progress_bar) -> void
+def set_size(control: native_gui_progress_bar, width: float, height: float) -> void
+def set_visible(control: native_gui_progress_bar, visible: bool) -> void
+def set_enabled(control: native_gui_progress_bar, enabled: bool) -> void
+def set_width(control: native_gui_progress_bar, value: length) -> void
+def set_height(control: native_gui_progress_bar, value: length) -> void
+def set_constraints(control: native_gui_progress_bar, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_progress_bar, margin: float) -> void
+def set_alignment(control: native_gui_progress_bar, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_progress_bar, row: int, column: int, row_span: int, column_span: int) -> void
+
+def id(control: native_gui_slider) -> int
+def close(control: native_gui_slider) -> void
+def set_size(control: native_gui_slider, width: float, height: float) -> void
+def set_visible(control: native_gui_slider, visible: bool) -> void
+def set_enabled(control: native_gui_slider, enabled: bool) -> void
+def set_width(control: native_gui_slider, value: length) -> void
+def set_height(control: native_gui_slider, value: length) -> void
+def set_constraints(control: native_gui_slider, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_slider, margin: float) -> void
+def set_alignment(control: native_gui_slider, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_slider, row: int, column: int, row_span: int, column_span: int) -> void
+
+def id(control: native_gui_radio_button) -> int
+def close(control: native_gui_radio_button) -> void
+def set_size(control: native_gui_radio_button, width: float, height: float) -> void
+def set_visible(control: native_gui_radio_button, visible: bool) -> void
+def set_enabled(control: native_gui_radio_button, enabled: bool) -> void
+def set_width(control: native_gui_radio_button, value: length) -> void
+def set_height(control: native_gui_radio_button, value: length) -> void
+def set_constraints(control: native_gui_radio_button, min_width: float, min_height: float, max_width: float, max_height: float) -> void
+def set_margin(control: native_gui_radio_button, margin: float) -> void
+def set_alignment(control: native_gui_radio_button, horizontal: str, vertical: str) -> void
+def set_cell(control: native_gui_radio_button, row: int, column: int, row_span: int, column_span: int) -> void
+def set_text(control: native_gui_radio_button, text: str) -> void
+
+def id(control: native_gui_panel) -> int
+def id(control: native_gui_label) -> int
+def id(control: native_gui_button) -> int
+def id(control: native_gui_check_box) -> int
+def close(control: native_gui_panel) -> void
+def close(control: native_gui_label) -> void
+def close(control: native_gui_button) -> void
+def close(control: native_gui_check_box) -> void
+def set_size(control: native_gui_panel, width: float, height: float) -> void
+def set_size(control: native_gui_label, width: float, height: float) -> void
+def set_size(control: native_gui_button, width: float, height: float) -> void
+def set_size(control: native_gui_check_box, width: float, height: float) -> void
+def set_visible(control: native_gui_panel, visible: bool) -> void
+def set_visible(control: native_gui_label, visible: bool) -> void
+def set_visible(control: native_gui_button, visible: bool) -> void
+def set_visible(control: native_gui_check_box, visible: bool) -> void
+def set_enabled(control: native_gui_panel, enabled: bool) -> void
+def set_enabled(control: native_gui_label, enabled: bool) -> void
+def set_enabled(control: native_gui_button, enabled: bool) -> void
+def set_enabled(control: native_gui_check_box, enabled: bool) -> void
+def set_text(control: native_gui_label, text: str) -> void
+def set_text(control: native_gui_button, text: str) -> void
+def set_text(control: native_gui_check_box, text: str) -> void

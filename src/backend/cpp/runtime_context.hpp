@@ -62,9 +62,16 @@ struct runtime_context
     std::int64_t graphics_native_error = 0;
     std::shared_ptr<void> graphics_session;
     void (*graphics_cleanup)(void*) noexcept = nullptr;
+    std::shared_ptr<void> native_gui_session;
+    void (*native_gui_cleanup)(void*) noexcept = nullptr;
 
     void close_graphics() noexcept
     {
+        if (native_gui_cleanup && native_gui_session)
+        {
+            native_gui_cleanup(native_gui_session.get());
+            native_gui_session.reset();
+        }
         if (graphics_cleanup && graphics_session)
         {
             graphics_cleanup(graphics_session.get());

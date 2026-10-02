@@ -10,7 +10,7 @@ namespace
 bool supported_external_call(std::string_view name)
 {
     return name.starts_with("graphics.") || name.starts_with("gui.") ||
-        name.starts_with("graphics_text.") || name.starts_with("gui_data.") ||
+        name.starts_with("graphics_text.") || name.starts_with("gui_data.") || name.starts_with("native_gui.") ||
            name.starts_with("httpx.") || name.starts_with("websocket.") ||
            name.starts_with("dns.") || name.starts_with("socket.") ||
            name.starts_with("thread.") || name.starts_with("sync.") ||

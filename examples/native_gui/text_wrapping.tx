@@ -1,0 +1,28 @@
+import "native_gui.txh" as ui
+
+# 导出同一段文字在两种宽度下的自研排版，便于比较双平台像素结果。
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX · 自研断行", 960.0, 520.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 24.0, 16.0)
+    auto title = ui.create_label(root, "TX NATIVE GUI · Unicode 16.0 自研断行").value()
+    auto summary = ui.create_label(root, "同一份文字，不同宽度；保留单词与中文标点的合法断行位置。").value()
+    auto columns = ui.create_panel(root).value()
+    ui.set_row(columns, 0.0, 24.0)
+    auto wide = ui.create_text_box(columns, true).value()
+    ui.set_width(wide, ui.fixed(552.0))
+    ui.set_height(wide, ui.fixed(340.0))
+    auto narrow = ui.create_text_box(columns, true).value()
+    ui.set_width(narrow, ui.fixed(336.0))
+    ui.set_height(narrow, ui.fixed(340.0))
+    str sample = "中文排版：标点（包含括号）、句号与逗号，应当跟随对应的文字。\n\nEnglish words stay together when wrapping at normal opportunities.\n\n中英混排：hello world，金额 $12.50，以及组合字符 é。\n\n超宽单词会按完整字素紧急折行。"
+    ui.set_text(wide, sample)
+    ui.set_text(narrow, sample)
+    ui.set_read_only(wide, true)
+    ui.set_read_only(narrow, true)
+    ui.save_bitmap(root, "tx_build/native_gui/text_wrapping.bmp").value()
+    ui.close(app)
+    return 0
+}

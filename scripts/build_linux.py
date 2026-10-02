@@ -104,11 +104,14 @@ def main():
                          (build / "_deps/nghttp2-src/COPYING", "NGHTTP2-LICENSE"),
                          (build / "_deps/nghttp3-src/COPYING", "NGHTTP3-LICENSE"),
                          (build / "_deps/msquic_headers-src/LICENSE", "MSQUIC-LICENSE"),
-                         (root / "third_party/sqlite/LICENSE", "SQLITE-LICENSE")):
+                         (root / "third_party/sqlite/LICENSE", "SQLITE-LICENSE"),
+                         (root / "src/stdlib/native_gui/core/unicode_license.txt", "UNICODE-LICENSE")):
         shutil.copy2(source, tool_dir / "licenses" / name)
     write_manifest(tool_dir, (build / "compatibility_abi.txt").read_text(encoding="utf-8").strip())
     info = {"platform": "linux-x64", "minimum_system": "Ubuntu 24.04 / glibc 2.39",
             "llvm": run(llvm / "clang", "--version").splitlines()[0]}
+    shutil.copytree(root / "docs", tool_dir / "docs", dirs_exist_ok=True)
+    shutil.copytree(root / "examples", tool_dir / "examples", dirs_exist_ok=True)
     (tool_dir / "toolchain-info.json").write_text(json.dumps(info, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     run(tool_dir / "txc", "check", root / "example.tx")
     if not options.incremental:

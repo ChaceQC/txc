@@ -1,0 +1,11 @@
+import "native_gui.txh" as ui
+
+def invalid(button: native_gui_button) -> void
+{
+    ui.set_checked(button, true)
+}
+
+def main() -> int
+{
+    return 0
+}

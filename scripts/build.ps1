@@ -292,6 +292,8 @@ Copy-Item -LiteralPath (Join-Path $build_dir '_deps/libxml2-src/Copyright') `
     -Destination (Join-Path $tool_dir 'LIBXML2-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $project_root 'third_party/sqlite/LICENSE') `
     -Destination (Join-Path $tool_dir 'SQLITE-LICENSE') -Force
+Copy-Item -LiteralPath (Join-Path $project_root 'src/stdlib/native_gui/core/unicode_license.txt') `
+    -Destination (Join-Path $tool_dir 'UNICODE-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $postgres_root 'server_license.txt') `
     -Destination (Join-Path $tool_dir 'POSTGRESQL-LICENSE') -Force
 Copy-Item -LiteralPath (Join-Path $postgres_root 'commandlinetools_3rd_party_licenses.txt') `

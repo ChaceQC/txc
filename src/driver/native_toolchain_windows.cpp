@@ -237,7 +237,8 @@ int compile_llvm_native(const std::string& generated_source,
         arguments.insert(arguments.end(), {L"--subsystem", L"windows", L"--entry", L"mainCRTStartup"});
     }
     if (windows_subsystem || generated_source.find("call i32 @txrt_graphics_") != std::string::npos ||
-        generated_source.find("call i32 @txrt_gui_") != std::string::npos)
+        generated_source.find("call i32 @txrt_gui_") != std::string::npos ||
+        generated_source.find("call i32 @txrt_native_gui_") != std::string::npos)
     {
         arguments.insert(arguments.end(), {L"-ld2d1", L"-ldwrite", L"-lwindowscodecs", L"-limm32",
             L"-lgdi32", L"-lole32", L"-luuid", L"-lcomctl32", L"-lcomdlg32",

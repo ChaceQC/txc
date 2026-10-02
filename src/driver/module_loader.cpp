@@ -299,12 +299,16 @@ void module_loader::load_pair(const std::filesystem::path& header_path,
             {
                 relative.replace_extension();
                 const auto module_name = path_text(relative);
-                if (module_name == "gui" || module_name == "gui_data" || module_name == "graphics_text")
+                if (module_name == "gui" || module_name == "gui_data" || module_name == "graphics_text" ||
+                    module_name == "native_gui")
                 {
                     for (auto& definition : header.structs)
                     {
                         // 类型化记录由编译器描述固定槽布局，ABI 不依赖名称查找。
-                        definition.native_layout = false;
+                        if (module_name != "native_gui" || definition.name != "event")
+                        {
+                            definition.native_layout = false;
+                        }
                     }
                 }
                 if (module_name == "graphics")

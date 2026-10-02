@@ -1,0 +1,70 @@
+import "native_gui.txh" as ui
+import "format.txh" as fmt
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX · 自绘 GUI 工作台", 780.0, 560.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 28.0, 20.0)
+    auto title = ui.create_label(root, "TX NATIVE GUI  /  自绘工作台").value()
+    auto description = ui.create_label(root, "窗口内没有系统子控件。布局、命中测试、焦点和绘制由 TX GUI 库管理。").value()
+    auto card = ui.create_panel(root).value()
+    ui.set_column(card, 24.0, 16.0)
+    auto caption = ui.create_label(card, "交互实验 · 鼠标点击，或按 Tab / Shift+Tab、Space、Enter").value()
+    auto status = ui.create_label(card, "计数：0").value()
+    auto actions = ui.create_panel(card).value()
+    ui.set_row(actions, 0.0, 12.0)
+    auto increase = ui.create_button(actions, "增加计数").value()
+    ui.set_size(increase, 180.0, 48.0)
+    auto reset = ui.create_button(actions, "重置").value()
+    ui.set_size(reset, 120.0, 48.0)
+    auto dark = ui.create_check_box(card, "深色主题").value()
+    auto disable = ui.create_check_box(card, "禁用增加按钮").value()
+    auto footer = ui.create_label(root, "中文 · English · 😀   |   拖动窗口边缘，观察自动布局与裁剪").value()
+    int count = 0
+    ui.show(window)
+    while ui.is_open(window)
+    {
+        auto pending = ui.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                ui.close(window)
+            }
+            else
+            {
+                auto action = event
+                if action.source_id == ui.id(increase) && action.kind == "activated"
+                {
+                    count += 1
+                    ui.set_text(status, fmt.format("计数：{}", count))
+                }
+                else if action.source_id == ui.id(reset) && action.kind == "activated"
+                {
+                    count = 0
+                    ui.set_text(status, "计数：0")
+                }
+                else if action.source_id == ui.id(dark) && action.kind == "check_changed"
+                {
+                    if action.state
+                    {
+                        ui.set_theme(root, "dark")
+                    }
+                    else
+                    {
+                        ui.set_theme(root, "light")
+                    }
+                }
+                else if action.source_id == ui.id(disable) && action.kind == "check_changed"
+                {
+                    ui.set_enabled(increase, !action.state)
+                }
+            }
+        }
+    }
+    ui.close(app)
+    return 0
+}

@@ -1,5 +1,9 @@
 # TX 编译器
 
+独立自绘 GUI 实验库见 [native_gui](docs/native_gui.md)，可运行示例见
+[自绘工作台](examples/native_gui/workbench.tx)。目标是 Windows/Linux 全自研；当前自研渲染与字体核心已双平台验证，完整 GUI 仍在开发中。
+最近的 XIM 输入法与 Unicode 16.0 断行进展见 [续接记录](docs/native_gui_progress.md)，排版导出示例见 [宽窄文本布局](examples/native_gui/text_wrapping.tx)。
+
 使用 C++23 实现的静态强类型 .tx 语言编译器。当前版本解析、检查并编译仓库中的 example.tx，生成原生可执行文件。
 
 ## 快速使用

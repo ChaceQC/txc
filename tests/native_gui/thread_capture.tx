@@ -1,0 +1,17 @@
+import "native_gui.txh" as ui
+import "thread.txh" as thread
+
+def identify(button: native_gui_button) -> int
+{
+    return ui.id(button)
+}
+
+def invalid(button: native_gui_button) -> void
+{
+    auto task = thread.spawn(bind(identify, button))
+}
+
+def main() -> int
+{
+    return 0
+}

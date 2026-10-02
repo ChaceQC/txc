@@ -66,7 +66,8 @@ std::shared_ptr<app> open_app()
         {
             fail("wrong_owner", "进程中已有活动图形会话");
         }
-        context.close_graphics();
+        // 这里只释放已关闭的 graphics 会话，保留独立 native_gui 会话。
+        context.graphics_session.reset();
     }
     initialize_dpi();
     auto state = std::shared_ptr<app>(new app, [](app* value)

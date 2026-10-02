@@ -538,8 +538,50 @@ target_compile_features(txc PRIVATE cxx_std_23)
 include(cmake/platform_sources.cmake)
 target_compile_features(txstdlib PRIVATE cxx_std_23)
 target_sources(txstdlib PRIVATE src/backend/cpp/graphics_resource_abi.cpp)
+target_sources(txstdlib PRIVATE
+    src/stdlib/native_gui/core/path.cpp
+    src/stdlib/native_gui/core/pixel_buffer.cpp
+    src/stdlib/native_gui/core/raster.cpp
+    src/stdlib/native_gui/core/font_reader.cpp
+    src/stdlib/native_gui/core/font_cmap.cpp
+    src/stdlib/native_gui/core/font_outline.cpp
+    src/stdlib/native_gui/core/font_compound.cpp
+    src/stdlib/native_gui/core/font_cache.cpp
+    src/stdlib/native_gui/core/unicode.cpp
+    src/stdlib/native_gui/core/unicode_properties.cpp
+    src/stdlib/native_gui/core/grapheme.cpp
+    src/stdlib/native_gui/core/word_boundary.cpp
+    src/stdlib/native_gui/core/text_buffer.cpp
+    src/stdlib/native_gui/core/text_navigation.cpp
+    src/stdlib/native_gui/core/text_layout.cpp
+    src/stdlib/native_gui/core/line_break.cpp
+    src/stdlib/native_gui/core/line_break_rules.cpp
+    src/stdlib/native_gui/core/image_io.cpp
+    src/backend/cpp/native_gui_abi.cpp
+    src/backend/cpp/native_gui_control_abi.cpp
+    src/backend/cpp/native_gui_application_abi.cpp
+    src/backend/cpp/native_gui_layout_abi.cpp
+    src/backend/cpp/native_gui_style_abi.cpp
+    src/backend/cpp/native_gui_text_abi.cpp
+    src/backend/cpp/native_gui_range_abi.cpp
+    src/stdlib/native_gui/application.cpp
+    src/stdlib/native_gui/resources.cpp
+    src/stdlib/native_gui/layout.cpp
+    src/stdlib/native_gui/arrange.cpp
+    src/stdlib/native_gui/grid.cpp
+    src/stdlib/gui/layout.cpp
+    src/stdlib/native_gui/input.cpp
+    src/stdlib/native_gui/drawing.cpp)
+target_sources(txstdlib PRIVATE
+    src/stdlib/native_gui/text_edit.cpp
+    src/stdlib/native_gui/text_keys.cpp
+    src/stdlib/native_gui/text_draw.cpp
+    src/stdlib/native_gui/control_actions.cpp)
 if(WIN32)
     target_sources(txstdlib PRIVATE
+        src/stdlib/native_gui/platform/windows_window.cpp
+        src/stdlib/native_gui/platform/windows_input.cpp
+        src/stdlib/native_gui/platform/windows_clipboard.cpp
         src/backend/cpp/graphics_window_abi.cpp
         src/backend/cpp/graphics_event_abi.cpp
         src/backend/cpp/graphics_draw_abi.cpp
@@ -589,7 +631,6 @@ if(WIN32)
         src/backend/cpp/gui_data_create_abi.cpp
         src/backend/cpp/gui_data_edit_abi.cpp
         src/backend/cpp/gui_data_query_abi.cpp
-        src/stdlib/gui/layout.cpp
         src/stdlib/gui/windows/resources.cpp
         src/stdlib/gui/windows/properties.cpp
         src/stdlib/gui/windows/text.cpp
@@ -598,6 +639,20 @@ if(WIN32)
         src/stdlib/gui/windows/measure.cpp
         src/stdlib/gui/windows/arrange.cpp)
     target_link_libraries(txstdlib PRIVATE user32 gdi32 d2d1 dwrite windowscodecs imm32 ole32 uuid comctl32 shell32 comdlg32)
+else()
+    target_sources(txstdlib PRIVATE
+        src/stdlib/native_gui/platform/x11_connection.cpp
+        src/stdlib/native_gui/platform/x11_setup.cpp
+        src/stdlib/native_gui/platform/x11_operations.cpp
+        src/stdlib/native_gui/platform/xim_transport.cpp
+        src/stdlib/native_gui/platform/xim_wire.cpp
+        src/stdlib/native_gui/platform/xim_session.cpp
+        src/stdlib/native_gui/platform/xim_input.cpp
+        src/stdlib/native_gui/platform/xim_messages.cpp
+        src/stdlib/native_gui/platform/linux_window.cpp
+        src/stdlib/native_gui/platform/linux_keyboard.cpp
+        src/stdlib/native_gui/platform/linux_input.cpp)
+    target_sources(txstdlib PRIVATE src/stdlib/native_gui/platform/linux_clipboard.cpp)
 endif()
 target_include_directories(txc PRIVATE src "${CMAKE_BINARY_DIR}/generated")
 target_include_directories(txstdlib PRIVATE src)

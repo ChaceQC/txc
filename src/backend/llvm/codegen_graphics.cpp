@@ -41,6 +41,22 @@ std::string graphics_symbol(const function_decl& target)
             }
         }
     }
+    else if (module == "native_gui")
+    {
+        if (operation == "open_app" && !target.parameters.empty())
+        {
+            symbol += "_with_font";
+        }
+        for (const auto* name : {"id", "close", "set_size", "set_visible", "set_enabled", "set_text",
+            "set_width", "set_height", "set_constraints", "set_margin", "set_alignment", "set_cell"})
+        {
+            if (operation == name)
+            {
+                symbol += "_" + target.parameters.front().type.name.substr(11);
+                break;
+            }
+        }
+    }
     else if (module == "gui" || module == "gui_data")
     {
         for (const auto* name : {"id", "is_open", "close", "set_enabled", "enabled",
@@ -78,7 +94,8 @@ void llvm_code_generator::write_graphics_declarations()
         {
             const auto& external = function->external_name;
             if (!external.starts_with("graphics.") && !external.starts_with("graphics_text.") &&
-                !external.starts_with("gui.") && !external.starts_with("gui_data."))
+                !external.starts_with("gui.") && !external.starts_with("gui_data.") &&
+                !external.starts_with("native_gui."))
             {
                 continue;
             }
@@ -111,6 +128,10 @@ void llvm_code_generator::write_graphics_declarations()
             if (external == "graphics.next_event")
             {
                 parameters.insert(parameters.end(), 6, "ptr");
+            }
+            else if (external == "native_gui.next_event")
+            {
+                parameters.push_back("ptr");
             }
             if (result != value_type::void_type)
             {
@@ -192,6 +213,10 @@ llvm_code_generator::ir_value llvm_code_generator::emit_graphics_call(
         {
             append("ptr " + global_bytes(definitions[index].type.name));
         }
+    }
+    if (target.external_name == "native_gui.next_event")
+    {
+        append("ptr " + global_bytes(item.type.parameters.front().parameters.front().name));
     }
     const bool returns_value = item.type != value_type::void_type;
     const auto output = returns_value ? allocate(item.type, item.position) : std::string{};

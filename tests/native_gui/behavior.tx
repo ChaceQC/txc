@@ -1,0 +1,81 @@
+import "native_gui.txh" as ui
+import "test.txh" as test
+import "error.txh" as errors
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "自绘 GUI ABI", 640.0, 400.0).value()
+    auto root = ui.root(window).value()
+    test.assert_equal(ui.id(root), ui.id(ui.root(window).value()))
+    ui.set_column(root, 24.0, 16.0)
+    auto group = ui.create_panel(root).value()
+    ui.set_row(group, 12.0, 8.0)
+    auto label = ui.create_label(root, "自绘控件 · 中文 😀").value()
+    auto button = ui.create_button(group, "按钮").value()
+    auto check = ui.create_check_box(group, "选中").value()
+    ui.set_size(button, 160.0, 48.0)
+    ui.set_text(button, "直接调用 ABI")
+    ui.set_text(label, "TX native_gui / 中文 😀")
+    ui.set_checked(check, true)
+    test.assert_true(ui.checked(check))
+    auto grid = ui.create_panel(root).value()
+    ui.set_grid(grid, 2, 2, 4.0, 8.0)
+    ui.set_height(grid, ui.fixed(120.0))
+    ui.set_grid_column(grid, 0, ui.fixed(100.0))
+    ui.set_grid_column(grid, 1, ui.stretch(1.0))
+    ui.set_grid_row(grid, 0, ui.fixed(36.0))
+    ui.set_grid_row(grid, 1, ui.stretch(1.0))
+    auto cell = ui.create_button(grid, "网格跨度").value()
+    ui.set_cell(cell, 1, 0, 1, 2)
+    ui.set_margin(cell, 2.0)
+    ui.set_width(cell, ui.stretch(1.0))
+    ui.set_constraints(cell, 80.0, 30.0, 1000.0, 100.0)
+    ui.set_alignment(cell, "stretch", "center")
+    auto input = ui.create_text_box(root, false).value()
+    ui.set_text(input, "甲é😀")
+    ui.set_selection(input, 1, 3)
+    test.assert_equal(ui.selection_start(input), 1)
+    test.assert_equal(ui.selection_end(input), 3)
+    test.assert_equal(ui.text(input), "甲é😀")
+    ui.set_password(input, true)
+    ui.set_read_only(input, true)
+    ui.set_text_limit(input, 100)
+    auto slider = ui.create_slider(root, 0.0, 100.0, 25.0, 1.0).value()
+    ui.set_slider_value(slider, 40.0)
+    test.assert_equal(ui.slider_value(slider), 40.0)
+    auto progress = ui.create_progress_bar(root).value()
+    ui.set_progress(progress, 0.0, 100.0, 40.0)
+    test.assert_equal(ui.progress_value(progress), 40.0)
+    auto light = ui.create_radio_button(group, "浅色", 1).value()
+    auto dark = ui.create_radio_button(group, "深色", 1).value()
+    ui.set_radio_selected(light, true)
+    ui.set_radio_selected(dark, true)
+    test.assert_true(!ui.radio_selected(light))
+    test.assert_true(ui.radio_selected(dark))
+    ui.set_theme(root, "dark")
+    ui.save_bitmap(root, "tx_build/native_gui/abi.bmp").value()
+    try
+    {
+        ui.set_size(button, -1.0, 40.0)
+        test.assert_true(false, "负尺寸应拒绝")
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal(e.code, "invalid_argument")
+    }
+    ui.close(group)
+    ui.close(button)
+    try
+    {
+        ui.set_text(button, "已关闭")
+        test.assert_true(false, "关闭父面板后别名应失效")
+    }
+    exception errors.graphics_error as e
+    {
+        test.assert_equal(e.code, "closed_resource")
+    }
+    ui.close(app)
+    ui.close(root)
+    return 0
+}
