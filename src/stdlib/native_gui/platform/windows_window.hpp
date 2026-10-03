@@ -7,6 +7,7 @@
 #include "stdlib/native_gui/platform/window.hpp"
 
 #include <deque>
+#include <functional>
 
 namespace tx::ui
 {
@@ -34,6 +35,7 @@ public:
     int next_wakeup_ms() const noexcept override;
     LRESULT message(UINT message, WPARAM wparam, LPARAM lparam);
     HWND hwnd = nullptr;
+    std::function<LRESULT(WPARAM, LPARAM)> accessibility;
 private:
     std::deque<window_event> events_;
     double scale_ = 1;

@@ -11,13 +11,23 @@
 1. 在 Windows Server 2022 runner 上使用 Python 3.12 及预装的 CMake、Ninja、7-Zip。
 2. 下载并核对 SHA-256，安装固定 GCC 13.1.0 POSIX/SEH/MSVCRT 和 LLVM 23.1.2。
 3. 执行 `scripts/build.ps1`，生成编译器、普通与 ThinLTO 标准库、链接器、DLL、接口和兼容清单。
-4. 验证正常工具包及 7 类兼容指纹错配；将整套产物打成 ZIP。
-5. 将实际 ZIP 解压到包含中文与空格的临时路径，清除构建工具 PATH 后检查语法，在 ThinLTO 和普通链接模式下分别编译并运行数值样例、ICU 示例和 GUI 发行自检；检查 Windows PE 子系统、DPI/Common Controls 清单及原生控件/绘图启动。
+4. 验证正常工具包及 7 类兼容指纹错配；执行自绘 GUI 的保留控件、容器/数据、基础交互、整形 ABI、命令/主题/模态与 UIA 客户端检查，再将整套产物打成 ZIP。
+5. 将实际 ZIP 解压到包含中文与空格的临时路径，清除构建工具 PATH 后检查语法，在 ThinLTO 和普通链接模式下分别编译并运行数值样例、ICU 示例、原有 GUI 和自绘 GUI 发行自检；检查 Windows PE 子系统、DPI/Common Controls 清单及控件/绘图启动。
 6. 上传通过验证的 ZIP 和 SHA256SUMS.txt，保留 14 天。构建失败保留 CMake 诊断。
 
 Linux 链在 `ubuntu-24.04` 上执行 `scripts/setup_linux.py` 安装原生依赖，以 LLVM 18 构建编译器和两套标准库。
-`scripts/package_release.py` 生成保留可执行权限的 tar.gz，`scripts/check_linux_package.py` 把实际包解压到中文与空格路径，清空工具 PATH 和动态库搜索环境后运行普通/ThinLTO、Unicode 与系统文件接口验证。
+构建输出显式固定为 `tx/linux`，既有运行时检查通过 `TXC_TOOL_DIR` 使用同一目录，打包显式传入 `--tool-dir tx/linux`。
+`scripts/package_release.py` 生成保留可执行权限的 tar.gz，`scripts/check_linux_package.py` 把实际包解压到中文与空格路径，清空工具 PATH 和动态库搜索环境后运行普通/ThinLTO、Unicode、系统文件和自绘 GUI 接口验证。
 Linux 产物以 `txc-linux-x64` Actions artifact 上传，缓存和失败诊断与 Windows 独立。
+
+GUI CI 入口为 `scripts/check_native_gui_ci.py`。Windows 显式使用 Arial，Linux 使用文泉驿正黑，
+整形 ABI 使用 DejaVu Sans。Linux GUI 检查与解包检查在 Xvfb 和独立 D-Bus 会话运行；
+AT-SPI 通过真实 Registry 遍历与操作，Portal 对端在额外隔离会话验证成功/取消/错误。
+不启动真人输入法或读屏验收，也不把 Xvfb/协议检查标为真实桌面体验验收。
+
+每个平台上传 `*-native-gui-results`，包含 `ci/results.json`、逐项日志、位图和 LLVM IR，
+失败时也保留；不会因协议测试失败而跳过失败或把错误计为通过。
+全量 Unicode 官方用例、性能测试和其他未修改标准库套件不由此 GUI 门禁触发。
 
 CI 缓存固定工具链及 ccache，构建失败时也保存已经完成的编译缓存；没有运行性能测试或全量标准库测试。
 上游 MinGW 缺少默认 manifest 对象时，构建脚本通过 windres 生成相同权限和系统兼容声明的对象。

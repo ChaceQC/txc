@@ -58,6 +58,10 @@ namespace
 {
 std::string key_name(WPARAM value)
 {
+    if (value >= VK_F1 && value <= VK_F12)
+    {
+        return "f" + std::to_string(value - VK_F1 + 1);
+    }
     if (value >= 'A' && value <= 'Z')
     {
         return std::string(1, static_cast<char>(value - 'A' + 'a'));

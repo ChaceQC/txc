@@ -1,6 +1,7 @@
 #include "stdlib/native_gui/state.hpp"
 #include "stdlib/native_gui/containers.hpp"
 #include "stdlib/native_gui/combo.hpp"
+#include "stdlib/native_gui/commands.hpp"
 
 #include <algorithm>
 
@@ -11,6 +12,10 @@ using tx::ui::window_event;
 
 void reset_interaction(node& root) noexcept
 {
+    if (const auto owner = root.window.lock())
+    {
+        close_menu(*owner);
+    }
     close_combo(root);
     const bool captured = !root.pressed.expired() && !root.keyboard_pressed;
     if (const auto pressed = root.pressed.lock())
@@ -111,6 +116,15 @@ void pointer(node& root, const window_event& event)
     }
     auto& window = owner_window(root);
     const auto hit = hit_test(root, event.x, event.y);
+    if (event.kind == event_kind::pointer_down && event.button == 3)
+    {
+        native_gui::event notification{"context_requested"};
+        notification.source_id = hit ? hit->id : root.id;
+        notification.x = event.x;
+        notification.y = event.y;
+        enqueue(window, std::move(notification));
+        return;
+    }
     bool changed = root.hovered.lock() != hit;
     root.hovered = hit;
     if (event.kind == event_kind::wheel)
@@ -211,6 +225,19 @@ void key(node& root, const window_event& event)
         return;
     }
     const bool down = event.kind == event_kind::key_down;
+    if (down && !event.repeat && event.key == "f10" && event.shift)
+    {
+        native_gui::event notification{"context_requested"};
+        notification.source_id = focused ? focused->id : root.id;
+        notification.x = focused ? focused->bounds.x : 0;
+        notification.y = focused ? focused->bounds.y + focused->bounds.height : 32;
+        enqueue(owner_window(root), std::move(notification));
+        return;
+    }
+    if (command_key(owner_window(root), event))
+    {
+        return;
+    }
     if (access_key(root, event))
     {
         return;
@@ -296,10 +323,22 @@ void key(node& root, const window_event& event)
 }
 }
 
-void process_event(window& window, const window_event& event)
+void process_event(window& window, const window_event& input)
 {
+    if (!window.modal_child.expired() || window.system_modal)
+    {
+        return;
+    }
     const auto root = window.native_gui_root;
     if (!root)
+    {
+        return;
+    }
+    const auto focused = root->focused.lock();
+    auto event = input;
+    event.x /= root->ui_scale;
+    event.y /= root->ui_scale;
+    if (!event.composing && (!focused || !focused->composing) && menu_input(window, event))
     {
         return;
     }

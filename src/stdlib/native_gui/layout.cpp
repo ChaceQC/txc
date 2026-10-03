@@ -1,5 +1,6 @@
 #include "stdlib/native_gui/layout_internal.hpp"
 #include "stdlib/native_gui/containers.hpp"
+#include "stdlib/native_gui/commands.hpp"
 
 #include <algorithm>
 #include <numeric>
@@ -19,7 +20,7 @@ void ensure_text(node& state, double width)
         return;
     }
     auto& root = root_node(state);
-    state.text_layout = std::make_unique<tx::ui::text_layout>(*root.font, display_text(state), 16.0, width,
+    state.text_layout = std::make_unique<tx::ui::text_layout>(*root.font, display_text(state), root.font_size, width,
         !state.combo && (!state.editor || state.editor->multiline));
     state.text_width = width;
 }
@@ -115,7 +116,8 @@ void layout(node& state)
     {
         return;
     }
-    const rectangle bounds{0, 0, width, height};
+    const double menu_height = menu_bar_height(window);
+    const rectangle bounds{0, menu_height, width, std::max(0.0, height - menu_height)};
     arrange(root, bounds, bounds);
     root.layout_width = width;
     root.layout_height = height;

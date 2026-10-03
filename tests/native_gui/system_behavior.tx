@@ -1,0 +1,34 @@
+import "native_gui.txh" as ui
+import "test.txh" as test
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "系统集成 ABI", 640.0, 480.0).value()
+    auto root = ui.root(window).value()
+    ui.set_theme(root, "system")
+    ui.set_font_size(root, 18.0)
+    auto command = ui.create_command(window, "运行", "ctrl+r", true).value()
+    auto toolbar = ui.create_toolbar(root).value()
+    auto button = ui.create_command_button(toolbar, command).value()
+    ui.set_accessibility(button, "运行命令", "Ctrl+R")
+    auto menu = ui.create_menu(window).value()
+    ui.append_menu_command(menu, command)
+    auto bar = ui.create_menu(window).value()
+    ui.append_submenu(bar, "操作", menu)
+    ui.set_menu_bar(window, bar)
+    ui.invoke_command(command)
+    test.assert_true(ui.command_checked(command), "命令应切换勾选状态")
+    ui.set_command_state(command, false, false)
+    test.assert_true(!ui.command_enabled(command), "共享命令应禁用")
+    auto status = ui.create_status_bar(root, "就绪").value()
+    ui.set_text(status, "ABI 检查")
+    auto dialog = ui.create_window(app, "模态", 300.0, 180.0).value()
+    ui.show_modal(dialog, window)
+    ui.end_dialog(dialog, 7)
+    test.assert_equal(ui.dialog_result(dialog).value().value(), 7)
+    ui.set_theme(root, "high_contrast")
+    ui.save_bitmap(root, "tx_build/native_gui/system_abi.bmp").value()
+    ui.close(app)
+    return 0
+}

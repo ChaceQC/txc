@@ -7,6 +7,10 @@ namespace
 {
 std::string key_name(std::uint32_t symbol)
 {
+    if (symbol >= 0xffbe && symbol <= 0xffc9)
+    {
+        return "f" + std::to_string(symbol - 0xffbe + 1);
+    }
     if (symbol >= 'a' && symbol <= 'z')
     {
         return std::string(1, static_cast<char>(symbol));

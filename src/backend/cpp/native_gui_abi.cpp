@@ -3,6 +3,7 @@
 #include "backend/cpp/graphics_result.hpp"
 #include "stdlib/native_gui/state.hpp"
 #include "stdlib/native_gui/core/image_io.hpp"
+#include "stdlib/native_gui/theme.hpp"
 
 using namespace tx_generated;
 using graphics::resource;
@@ -80,12 +81,7 @@ extern "C" int txrt_native_gui_set_theme(resource* panel, const void* theme) noe
         auto& state = native_gui::require_node(panel);
         native_gui::require_idle(state);
         const auto& name = detail::text_value(theme);
-        if (name != "light" && name != "dark")
-        {
-            native_gui::fail("invalid_argument", "自绘主题只支持 light/dark");
-        }
-        native_gui::root_node(state).dark = name == "dark";
-        native_gui::dirty(state);
+        native_gui::set_theme(state, name);
     });
 }
 

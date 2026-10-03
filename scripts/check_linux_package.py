@@ -58,6 +58,13 @@ def main():
         run([compiler, root / "tests/platform/linux_smoke.tx", "-o", smoke], directory, environment)
         if "linux-platform-ok" not in run([smoke], directory, environment):
             raise RuntimeError("Linux 系统接口验证失败")
+        for lto in (True, False):
+            program = directory / ("native-gui-lto" if lto else "native-gui-native")
+            run([compiler, directory / "examples/native_gui/release_smoke.tx", "-o", program,
+                 *([] if lto else ["--no-lto"])], directory, environment)
+            require_bundled_dependencies(program, directory / "tx_lib")
+            if run([program], directory, environment).strip() != "NATIVE_GUI_PACKAGE_OK":
+                raise RuntimeError("解包后的自绘 GUI、命令或模态验证失败")
         print("Linux 安装验证通过：包内 ELF 依赖、隔离工具路径、中文空格路径、普通/ThinLTO、Unicode、系统与文件")
 
 

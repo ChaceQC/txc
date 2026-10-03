@@ -613,8 +613,28 @@ target_sources(txstdlib PRIVATE
     src/stdlib/native_gui/data_draw.cpp
     src/backend/cpp/native_gui_data_abi.cpp
     src/backend/cpp/native_gui_data_query_abi.cpp)
+target_sources(txstdlib PRIVATE
+    src/stdlib/native_gui/commands.cpp
+    src/stdlib/native_gui/menus.cpp
+    src/stdlib/native_gui/menu_input.cpp
+    src/stdlib/native_gui/menu_draw.cpp
+    src/stdlib/native_gui/dialogs.cpp
+    src/stdlib/native_gui/theme.cpp
+    src/stdlib/native_gui/accessibility.cpp
+    src/stdlib/native_gui/accessibility_tree.cpp
+    src/stdlib/native_gui/accessibility_text.cpp
+    src/stdlib/native_gui/accessibility_menus.cpp
+    src/backend/cpp/native_gui_command_abi.cpp
+    src/backend/cpp/native_gui_system_abi.cpp)
 if(WIN32)
     target_sources(txstdlib PRIVATE
+        src/stdlib/native_gui/platform/windows_services.cpp
+        src/stdlib/native_gui/platform/windows_theme.cpp
+        src/stdlib/native_gui/platform/windows_accessibility.cpp
+        src/stdlib/native_gui/platform/windows_accessibility_navigation.cpp
+        src/stdlib/native_gui/platform/windows_accessibility_patterns.cpp
+        src/stdlib/native_gui/platform/windows_accessibility_text.cpp
+        src/stdlib/native_gui/platform/windows_accessibility_units.cpp
         src/stdlib/native_gui/platform/windows_window.cpp
         src/stdlib/native_gui/platform/windows_input.cpp
         src/stdlib/native_gui/platform/windows_clipboard.cpp
@@ -678,6 +698,21 @@ if(WIN32)
 else()
     target_sources(txstdlib PRIVATE
         src/stdlib/native_gui/platform/x11_connection.cpp
+        src/stdlib/native_gui/platform/linux_services.cpp
+        src/stdlib/native_gui/platform/linux_bus.cpp
+        src/stdlib/native_gui/platform/linux_theme.cpp
+        src/stdlib/native_gui/platform/linux_file_dialog.cpp
+        src/stdlib/native_gui/platform/linux_accessibility.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_properties.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_methods.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_accessible.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_component.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_selection.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_text.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_editable.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_text_selection.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_text_geometry.cpp
+        src/stdlib/native_gui/platform/linux_accessibility_schema.cpp
         src/stdlib/native_gui/platform/x11_setup.cpp
         src/stdlib/native_gui/platform/x11_operations.cpp
         src/stdlib/native_gui/platform/xim_transport.cpp

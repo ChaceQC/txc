@@ -68,7 +68,9 @@ extern "C" int txrt_native_gui_set_title(resource* window, const void* title) no
 {
     return native_gui::leaf_call([&]
     {
-        native_gui::require_window(window).host->set_title(detail::text_value(title));
+        auto& state = native_gui::require_window(window);
+        state.host->set_title(detail::text_value(title));
+        state.title = detail::text_value(title);
     });
 }
 

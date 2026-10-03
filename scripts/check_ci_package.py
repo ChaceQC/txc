@@ -72,6 +72,12 @@ def main():
             if source == "llvm_numeric.tx" and output.strip().splitlines() != ["5.0", "3"]:
                 raise RuntimeError(f"数值样例输出不符：{output}")
         check_gui_package(directory, environment)
+        for lto in (True, False):
+            program = directory / ("native-gui-lto.exe" if lto else "native-gui-native.exe")
+            run([txc, directory / "examples/native_gui/release_smoke.tx", "--subsystem", "windows",
+                 *([] if lto else ["--no-lto"]), "-o", program], directory, environment)
+            if run([program], directory, environment).strip() != "NATIVE_GUI_PACKAGE_OK":
+                raise RuntimeError("解包后的自绘 GUI、命令或模态验证失败")
         print("ZIP 安装验证通过：中文/空格路径、ThinLTO、普通链接、ICU、GUI 入口/清单/控件/绘图")
 
 

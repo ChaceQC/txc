@@ -241,6 +241,10 @@ std::optional<window_event> windows_window::next_event(int timeout_ms)
 
 LRESULT windows_window::message(UINT message, WPARAM wparam, LPARAM lparam)
 {
+    if (message == WM_GETOBJECT && accessibility && static_cast<LONG>(lparam) == -25)
+    {
+        return accessibility(wparam, lparam);
+    }
     LRESULT result = 0;
     if (input(message, wparam, lparam, result))
     {

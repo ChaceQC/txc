@@ -53,6 +53,7 @@ void set_combo_items(node& state, std::vector<std::u32string> items)
     }
     close_combo(root_node(state));
     state.combo->items = std::move(items);
+    ++state.combo->generation;
     state.combo->selected = -1;
     state.text.clear();
     state.text_layout.reset();

@@ -1,6 +1,7 @@
 #include "stdlib/native_gui/state.hpp"
 #include "stdlib/native_gui/containers.hpp"
 #include "stdlib/native_gui/combo.hpp"
+#include "stdlib/native_gui/commands.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -108,6 +109,10 @@ bool available(const node& state)
     while (current)
     {
         if (current->closed || !current->visible || !current->layout_visible || !current->enabled)
+        {
+            return false;
+        }
+        if (current->action && (current->action->closed || !current->action->enabled))
         {
             return false;
         }

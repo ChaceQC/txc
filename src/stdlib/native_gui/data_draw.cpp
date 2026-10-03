@@ -14,7 +14,7 @@ void cell_text(node& state, tx::ui::rasterizer& painter, tx::ui::rect bounds, st
     auto& cache = state.data->text_cache[{row, column}];
     if (!cache)
     {
-        cache = std::make_unique<tx::ui::text_layout>(*root_node(state).font, text, 16, std::max(1.0, bounds.width - 16), false);
+        cache = std::make_unique<tx::ui::text_layout>(*root_node(state).font, text, root_node(state).font_size, std::max(1.0, bounds.width - 16), false);
     }
     const double extra = std::max(0.0, bounds.width - 16 - cache->width());
     const double x = bounds.x + 8 + (alignment == 1 ? extra / 2 : alignment == 2 ? extra : 0);

@@ -5,3 +5,6 @@ EXPORTS
     UiaDisconnectProvider
     UiaRaiseAutomationEvent
     UiaRaiseAutomationPropertyChangedEvent
+    UiaGetReservedNotSupportedValue
+    UiaRaiseStructureChangedEvent
+    UiaClientsAreListening

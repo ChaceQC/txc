@@ -1,4 +1,5 @@
 #include "stdlib/native_gui/state.hpp"
+#include "stdlib/native_gui/commands.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -9,6 +10,11 @@ void activate(node& state)
 {
     if (!available(state))
     {
+        return;
+    }
+    if (state.action)
+    {
+        invoke_command(*state.action);
         return;
     }
     event notification{"activated"};

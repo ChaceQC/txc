@@ -33,7 +33,7 @@ void draw_combo_popup(node& root, tx::ui::rasterizer& painter, const palette& th
         const tx::ui::rect cell{bounds.x + 1, bounds.y + row * 32 + 1, std::max(0.0, bounds.width - 2), 30};
         painter.fill_rect(cell, static_cast<std::int64_t>(index) == combo.candidate ? theme.hover : theme.panel);
         painter.push_clip({cell.x + 8, cell.y, std::max(0.0, cell.width - 20), cell.height});
-        tx::ui::text_layout text(*root.font, combo.items[index], 16, std::max(1.0, cell.width - 20), false);
+        tx::ui::text_layout text(*root.font, combo.items[index], root.font_size, std::max(1.0, cell.width - 20), false);
         text.draw(painter, {cell.x + 8, cell.y + std::max(0.0, (cell.height - text.height()) / 2)}, theme.foreground);
         painter.pop_clip();
     }

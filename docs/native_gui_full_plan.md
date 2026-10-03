@@ -61,6 +61,8 @@ FreeType、HarfBuzz、Pango、Cairo、Skia 或 ICU 代替这些模块。字体�
 
 ## 当前状态
 
+已实现范围与未完成事项分别见 [续接记录](native_gui_progress.md) 和 [剩余工作清单](native_gui_remaining.md)。
+
 - 开发前已有工作已提交：`4b3fb6e`。
 - Direct2D/DirectWrite 原型已被自研软件绘制、TrueType/TTC 解析与基础排版替换。
 - 自研核心已在 Windows 与 Ubuntu 24.04 编译运行，相同输入的 BMP 输出哈希一致。
@@ -83,7 +85,8 @@ FreeType、HarfBuzz、Pango、Cairo、Skia 或 ICU 代替这些模块。字体�
 本轮新增接口与交互边界见 [容器契约](native_gui_containers.md) 和 [数据视图契约](native_gui_data.md)。
 验收入口 `scripts/check_native_gui_extended.py` 只检查本轮核心行为及普通/ThinLTO 静态 ABI。
 combo、访问键和默认/取消动作已接入，见 [基础交互契约](native_gui_interaction.md)。
-共享命令、菜单/对话框、系统/高对比主题和辅助技术仍未完成；
+共享命令、菜单/对话框、系统/高对比主题及 UIA/AT-SPI 已接入，具体能力与证据见
+[P6/P7 系统集成契约](native_gui_system.md)；真实读屏使用和完整桌面验收仍单独保留。
 原生 Wayland、完整键盘布局、字体格式/hinting、复杂脚本整形、图像采样/脏区仍在完整范围内。
 
 ## 本次续接：Linux 输入法

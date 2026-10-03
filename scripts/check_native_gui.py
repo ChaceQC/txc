@@ -10,7 +10,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 WINDOWS = os.name == "nt"
 OUTPUT = ROOT / "tx_build/native_gui"
-TOOL_DIR = ROOT / ("tx" if WINDOWS else "tx/linux")
+TOOL_DIR = Path(os.environ.get("TXC_TOOL_DIR", ROOT / ("tx" if WINDOWS else "tx/linux"))).resolve()
 TXC = TOOL_DIR / ("txc.exe" if WINDOWS else "txc")
 FONT = "C:/Windows/Fonts/msyh.ttc" if WINDOWS else ""
 

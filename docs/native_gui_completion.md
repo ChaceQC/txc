@@ -1,5 +1,46 @@
 # 完整版续接实施记录
 
+## 2026-10-03 本轮：P6/P7 命令与系统集成
+
+开始实现前，按用户要求将此前续接提交为 `37370b6`
+（`feat(native-gui): add shaping, containers, data views and interaction`）。
+本轮在此基线上增加共享命令、自绘菜单/上下文菜单、工具栏/状态栏、模态 owner、
+自绘消息框、Windows Shell/Linux Portal 文件选择、system/high_contrast、字号和应用缩放，
+以及 Windows UIA / Linux AT-SPI 的公共语义与操作桥接。具体接口见 [系统集成契约](native_gui_system.md)。
+
+实现使用直接静态 C ABI；普通控件和菜单继续自绘。命令共用状态，快捷键冲突明确拒绝，
+菜单取消不会穿透点击，打开菜单时暂停编辑器输入法。模态恢复 owner 和逻辑焦点。
+辅助访问通过 UI 线程处理，密码原文不公开，关闭节点与替换后的 combo 项旧引用失效。
+没有辅助客户端访问时不持续构建完整语义快照；协议模块按属性、组件、选择和文本职责拆分。
+
+| 最终定向验证 | Windows x64 | Ubuntu 24.04 x86_64 |
+| --- | --- | --- |
+| 普通静态库和 ThinLTO 工具包构建 | 通过 | 通过 |
+| 命令共享/冲突/禁用、菜单键盘操作/取消、模态阻塞与恢复 | 通过 | 通过 |
+| 高对比主题、字号/缩放、语义值/范围/选区/密码隔离与旧引用失效 | 通过 | 通过 |
+| `.tx` 直接调用 IR、普通和 ThinLTO ABI | 通过 | 通过 |
+| 系统辅助客户端遍历与实际操作 | UIA Invoke/Value/Text/Range 通过 | AT-SPI Registry/Action/EditableText/Text/Value 通过 |
+| 自绘消息框默认动作、系统文件取消和 owner 恢复 | 通过 | 消息/owner 公共逻辑已覆盖，未执行真人桌面操作 |
+| Portal 选择/取消/错误与中文 URI 解码 | 不适用 | 独立 D-Bus 对端通过 |
+| 同源 system_workbench 可执行文件 | 已生成 | 已生成 |
+| 真人读屏、真实 Linux Portal backend、真实中文输入法 | 未执行 | 未执行 |
+
+已实际查看高对比度渲染图 `tx_build/native_gui/system_windows.bmp`。
+未重跑 Unicode 官方用例、字体整形全量检查或无关标准库测试。
+
+同源示例产物 SHA-256：
+
+- `system_workbench.exe`：`0f5e36f162d0c14aa17d001e77903720bc705dd87358ec2142059fe1b4c08915`
+- `system_workbench_linux`：`6d2412ff35b97137ce5bfedafbb004f895192f32745ae8fc04750d6877543ea5`
+
+本节记录本地构建与协议验证。源码提交后的 GitHub CI 结果以对应提交的 Actions 运行记录为准。
+构建与协议验证不等同于完整 GUI、人工验收或正式发行完成；
+其余字体、渲染、平台与发行工作见 [剩余工作清单](native_gui_remaining.md)。
+
+确认双平台产物后，尝试使用原生 PowerShell 清理精确限定的 `build/` 路径，
+已先核对工作区绝对路径、目录不是重解析点及交付产物非空；自动审批仍返回
+`blocked by policy`，没有提供更具体原因。本轮未绕过限制，临时构建目录保留。
+
 ## 上轮续接：OpenType 整形
 
 本轮按尚缺的 R1/R2 继续，保留此前容器、数据和双向编辑实现。已实现字体表驱动的

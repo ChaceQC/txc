@@ -141,5 +141,23 @@ combo、访问键、默认/取消动作现已接入，详见 [基础交互契约
 同源示例为 [基础交互工作台](../examples/native_gui/interaction_workbench.tx)，定向入口为
 `scripts/check_native_gui_interaction.py`，支持 `--only behavior|abi`。
 
-命令/菜单/对话框、UIA/AT-SPI、系统/高对比主题、
+## 命令、对话框与系统集成
+
+共享命令通过 `create_command` 创建，`create_command_button` 和菜单引用同一份文字、禁用与勾选状态。
+`set_shortcut` 校验窗口内快捷键冲突；用户触发统一返回 `command`，`source_id` 为命令 ID。
+`create_menu/append_menu_command/append_submenu/append_separator` 构建菜单，`set_menu_bar` 安装菜单栏。
+右键与 Shift+F10 产生 `context_requested`，业务可用事件坐标调用 `popup_menu`。
+`create_toolbar` 返回普通 row 面板，`create_status_bar` 返回普通标签，可继续使用已有布局接口。
+
+`show_modal` 建立窗口 owner 关系；`end_dialog` 完成并关闭，`dialog_result` 读取确认结果。
+`message_box` 使用自绘消息窗口；`file_dialog` 选择文件、保存位置或目录，分别使用 `open/save/folder`。
+返回 `result<option<str>>`，取消为 none，平台错误为 error；选择保存位置不写入文件。
+
+主题支持 `light/dark/system/high_contrast`，默认跟随系统，系统高对比度优先。
+`set_font_size` 设置文字大小，`set_ui_scale` 在系统 DPI 之外缩放应用内容与命中坐标。
+`set_accessibility` 设置控件名称与帮助；UIA 和 AT-SPI 自动暴露控件语义与实际操作能力。
+密码框不公开原文或 Text/Value 接口；关闭控件和已替换的 combo 项不再接受旧引用操作。
+
+完整接口、系统依赖和验证边界见 [系统集成契约](native_gui_system.md)。同源示例为
+[系统集成工作台](../examples/native_gui/system_workbench.tx)，检查入口为 `scripts/check_native_gui_system.py`。
 原生 Wayland、字体与渲染余项、正式双平台发行和真实桌面验收仍未完成。

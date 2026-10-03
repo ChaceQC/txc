@@ -1,0 +1,116 @@
+import "native_gui.txh" as ui
+
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX · 命令与系统集成", 900.0, 680.0).value()
+    auto root = ui.root(window).value()
+    ui.set_column(root, 20.0, 12.0)
+    auto open = ui.create_command(window, "打开文件", "ctrl+o", false).value()
+    auto save = ui.create_command(window, "保存位置", "ctrl+s", false).value()
+    auto folder = ui.create_command(window, "选择目录", "", false).value()
+    auto about = ui.create_command(window, "关于", "f1", false).value()
+    auto system = ui.create_command(window, "跟随系统", "", false).value()
+    auto dark = ui.create_command(window, "深色", "", false).value()
+    auto contrast = ui.create_command(window, "高对比度", "", false).value()
+    auto file = ui.create_menu(window).value()
+    ui.append_menu_command(file, open)
+    ui.append_menu_command(file, save)
+    ui.append_menu_command(file, folder)
+    ui.append_separator(file)
+    ui.append_menu_command(file, about)
+    auto appearance = ui.create_menu(window).value()
+    ui.append_menu_command(appearance, system)
+    ui.append_menu_command(appearance, dark)
+    ui.append_menu_command(appearance, contrast)
+    auto bar = ui.create_menu(window).value()
+    ui.append_submenu(bar, "文件", file)
+    ui.append_submenu(bar, "外观", appearance)
+    ui.set_menu_bar(window, bar)
+    auto toolbar = ui.create_toolbar(root).value()
+    auto open_button = ui.create_command_button(toolbar, open).value()
+    auto save_button = ui.create_command_button(toolbar, save).value()
+    auto about_button = ui.create_command_button(toolbar, about).value()
+    auto heading = ui.create_label(root, "命令、菜单、对话框与辅助技术").value()
+    auto note = ui.create_label(root, "F10 打开菜单；Ctrl+O 选择文件；右键打开上下文菜单。读屏可访问下方输入和范围控件。").value()
+    auto editor = ui.create_text_box(root, true).value()
+    ui.set_text(editor, "中文、English 和 emoji 😀\n可以通过 UIA / AT-SPI 读取、编辑和选择这段文字。")
+    ui.set_accessibility(editor, "文档内容", "可编辑多行文本")
+    ui.set_height(editor, ui.stretch(1.0))
+    auto slider = ui.create_slider(root, 0.0, 100.0, 50.0, 1.0).value()
+    ui.set_accessibility(slider, "音量", "0 到 100")
+    auto status = ui.create_status_bar(root, "就绪 · 系统主题").value()
+    ui.show(window)
+    bool running = true
+    while running
+    {
+        auto pending = ui.next_event(app, -1).value()
+        if pending.is_some()
+        {
+            auto event = pending.value()
+            if event.kind == "close_requested"
+            {
+                running = false
+            }
+            else if event.kind == "context_requested"
+            {
+                ui.popup_menu(file, event.x, event.y)
+            }
+            else if event.kind == "command"
+            {
+                if event.source_id == ui.id(system)
+                {
+                    ui.set_theme(root, "system")
+                }
+                else if event.source_id == ui.id(dark)
+                {
+                    ui.set_theme(root, "dark")
+                }
+                else if event.source_id == ui.id(contrast)
+                {
+                    ui.set_theme(root, "high_contrast")
+                }
+                else if event.source_id == ui.id(about)
+                {
+                    auto answer = ui.message_box(window, "关于", "TX 自绘 GUI\n共享命令 · 系统主题 · UIA / AT-SPI", "ok").value()
+                    ui.set_text(status, "对话框返回：" + answer)
+                }
+                else
+                {
+                    str kind = "open"
+                    if event.source_id == ui.id(save)
+                    {
+                        kind = "save"
+                    }
+                    else if event.source_id == ui.id(folder)
+                    {
+                        kind = "folder"
+                    }
+                    auto selected = ui.file_dialog(window, kind, "选择文件或目录", "")
+                    if selected.is_ok()
+                    {
+                        auto path = selected.value()
+                        if path.is_some()
+                        {
+                            ui.set_text(status, "已选择：" + path.value())
+                        }
+                        else
+                        {
+                            ui.set_text(status, "已取消")
+                        }
+                    }
+                    else
+                    {
+                        ui.set_text(status, "文件选择服务不可用，请检查桌面服务。")
+                    }
+                }
+            }
+            else if event.kind == "accessibility_error"
+            {
+                ui.set_text(status, "辅助技术服务：" + event.text)
+            }
+        }
+    }
+    ui.close(app)
+    return 0
+}

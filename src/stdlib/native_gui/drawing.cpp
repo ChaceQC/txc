@@ -2,6 +2,8 @@
 #include "stdlib/native_gui/drawing.hpp"
 #include "stdlib/native_gui/containers.hpp"
 #include "stdlib/native_gui/combo.hpp"
+#include "stdlib/native_gui/commands.hpp"
+#include "stdlib/native_gui/theme.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -13,19 +15,6 @@ namespace
 using tx::ui::color;
 using tx::ui::rect;
 using tx::ui::rasterizer;
-
-palette colors(bool dark)
-{
-    if (dark)
-    {
-        return {{18, 23, 33, 255}, {28, 36, 51, 255}, {235, 242, 255, 255},
-            {117, 133, 158, 255}, {94, 158, 255, 255}, {46, 64, 92, 255},
-            {59, 84, 122, 255}, {69, 84, 110, 255}};
-    }
-    return {{240, 245, 252, 255}, {255, 255, 255, 255}, {31, 43, 64, 255},
-        {133, 143, 163, 255}, {48, 92, 194, 255}, {227, 237, 255, 255},
-        {201, 219, 250, 255}, {204, 217, 235, 255}};
-}
 
 rect rectangle_of(rectangle value)
 {
@@ -44,7 +33,7 @@ void control_background(node& state, node& root, rasterizer& painter, const pale
     }
     else if (state.kind == tx::graphics_kind::native_button)
     {
-        const auto fill = !enabled ? theme.background : pressed ? theme.pressed : hovered ? theme.hover : theme.panel;
+        const auto fill = !enabled ? theme.background : pressed ? theme.pressed : hovered || state.checked ? theme.hover : theme.panel;
         const bool default_action = enabled && root.default_button.lock().get() == &state;
         painter.fill_rounded_rect(bounds, 8, default_action ? theme.accent : theme.border);
         painter.fill_rounded_rect({bounds.x + 1, bounds.y + 1, std::max(0.0, bounds.width - 2),
@@ -181,12 +170,13 @@ tx::ui::pixel_buffer render(node& state)
     auto& window = owner_window(root);
     layout(root);
     tx::ui::pixel_buffer image(window.width, window.height);
-    const auto theme = colors(root.dark);
+    const auto theme = theme_palette(root);
     image.clear(theme.background);
     rasterizer painter(image);
     painter.set_scale(window.dpi / 96.0);
     draw_node(root, root, painter, theme);
     draw_combo_popup(root, painter, theme);
+    draw_menus(window, painter, theme);
     return image;
 }
 

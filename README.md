@@ -2,7 +2,10 @@
 
 独立自绘 GUI 实验库见 [native_gui](docs/native_gui.md)，可运行示例见
 [自绘工作台](examples/native_gui/workbench.tx)。目标是 Windows/Linux 全自研；当前自研渲染与字体核心已双平台验证，完整 GUI 仍在开发中。
-最近的 XIM 输入法与 Unicode 16.0 断行进展见 [续接记录](docs/native_gui_progress.md)，排版导出示例见 [宽窄文本布局](examples/native_gui/text_wrapping.tx)。
+现已接入双向/水平 OpenType 排版、容器与数据视图、共享命令/菜单/对话框、系统主题和 UIA/AT-SPI。
+最新接口见 [系统集成契约](docs/native_gui_system.md)，同源示例见 [系统集成工作台](examples/native_gui/system_workbench.tx)。
+尚缺的渲染、字体、复杂脚本、平台能力及真人验收见 [剩余工作](docs/native_gui_remaining.md)，
+已执行的验证见 [续接记录](docs/native_gui_progress.md)。
 
 使用 C++23 实现的静态强类型 .tx 语言编译器。当前版本解析、检查并编译仓库中的 example.tx，生成原生可执行文件。
 

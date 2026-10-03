@@ -27,6 +27,7 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 2G
       CCACHE_BASEDIR: ${{ github.workspace }}
+      TX_GUI_FONT: C:/Windows/Fonts/arial.ttf
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -54,6 +55,8 @@ jobs:
         run: ./scripts/build.ps1
       - name: Check package compatibility
         run: python -X utf8 scripts/check_package_compatibility.py
+      - name: Verify self-rendered GUI and Windows accessibility
+        run: python -X utf8 scripts/check_native_gui_ci.py --font C:/Windows/Fonts/arial.ttf --shaping-font C:/Windows/Fonts/arial.ttf
       - name: Verify JSON, serde, and typed queue contracts
         run: python -X utf8 scripts/check_runtime_hotspots.py
       - name: Create release ZIP
@@ -91,6 +94,16 @@ jobs:
           name: windows-runtime-contract-results
           path: tx_build/runtime_hotspot_checks/results.json
           if-no-files-found: ignore
+      - name: Preserve Windows GUI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-gui-results
+          path: |
+            tx_build/native_gui/ci/
+            tx_build/native_gui/*.bmp
+            tx_build/native_gui/*.ll
+          if-no-files-found: ignore
       - name: Save toolchains even after build failure
         if: always() && steps.toolchains.outcome == 'success' && steps.toolchain_cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
@@ -113,6 +126,8 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 2G
       CCACHE_BASEDIR: ${{ github.workspace }}
+      TXC_TOOL_DIR: ${{ github.workspace }}/tx/linux
+      TX_GUI_FONT: /usr/share/fonts/truetype/wqy/wqy-zenhei.ttc
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -120,6 +135,8 @@ jobs:
           python-version: '3.12'
       - name: Install Linux toolchain and native dependencies
         run: sudo python3 scripts/setup_linux.py
+      - name: Install GUI verification display, bus and fonts
+        run: sudo apt-get install -y --no-install-recommends xvfb xauth dbus-x11 at-spi2-core libsystemd0 fonts-dejavu-core fonts-wqy-zenhei
       - name: Install certificate and QUIC verification dependencies
         run: python -m pip install -r scripts/requirements_ci.txt
       - name: Restore Linux compiler cache
@@ -132,7 +149,9 @@ jobs:
             ubuntu-24.04-ccache-${{ hashFiles('scripts/setup_linux.py', 'CMakeLists.txt', 'cmake/**') }}-
       - name: Build Linux compiler and both standard libraries
         id: build
-        run: python -X utf8 scripts/build_linux.py
+        run: python -X utf8 scripts/build_linux.py --output tx/linux
+      - name: Verify self-rendered GUI and Linux accessibility
+        run: xvfb-run -a -s "-screen 0 1280x1024x24" dbus-run-session -- python -X utf8 scripts/check_native_gui_ci.py --font /usr/share/fonts/truetype/wqy/wqy-zenhei.ttc --shaping-font /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
       - name: Verify JSON, serde, typed queue, and directory contracts
         run: python -X utf8 scripts/check_runtime_hotspots.py
       - name: Create Linux release archive
@@ -140,9 +159,9 @@ jobs:
           TXC_REF: ${{ github.ref_name }}
           TXC_REF_TYPE: ${{ github.ref_type }}
           TXC_COMMIT: ${{ github.sha }}
-        run: python -X utf8 scripts/package_release.py
+        run: python -X utf8 scripts/package_release.py --tool-dir tx/linux
       - name: Verify extracted Linux package
-        run: python -X utf8 scripts/check_linux_package.py
+        run: xvfb-run -a -s "-screen 0 1280x1024x24" dbus-run-session -- python -X utf8 scripts/check_linux_package.py
       - name: Verify Linux process, async, and network contracts
         run: |
           python -X utf8 scripts/check_linux_runtime.py
@@ -178,6 +197,16 @@ jobs:
         with:
           name: linux-runtime-contract-results
           path: tx_build/runtime_hotspot_checks/results.json
+          if-no-files-found: ignore
+      - name: Preserve Linux GUI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-native-gui-results
+          path: |
+            tx_build/native_gui/ci/
+            tx_build/native_gui/*.bmp
+            tx_build/native_gui/*.ll
           if-no-files-found: ignore
       - name: Save completed Linux compilation work
         if: always() && steps.build.outcome != 'skipped' && steps.compiler_cache.outputs.cache-hit != 'true'

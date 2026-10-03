@@ -29,6 +29,9 @@ public:
     double scale() const noexcept override;
     std::intptr_t wait_handle() const noexcept override;
     int next_wakeup_ms() const noexcept override;
+    std::uint32_t native_id() const noexcept;
+    void set_modal_owner(linux_window& owner, bool enabled);
+    point screen_origin();
 private:
     x11_connection connection_;
     std::uint32_t window_ = 0, gc_ = 0, delete_atom_ = 0, protocols_atom_ = 0;

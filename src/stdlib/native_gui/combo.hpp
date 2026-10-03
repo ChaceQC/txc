@@ -9,6 +9,7 @@ struct combo_state
 {
     std::vector<std::u32string> items;
     std::int64_t selected = -1, candidate = -1;
+    std::uint64_t generation = 0;
     std::size_t first = 0;
     bool open = false, pointer_pressed = false;
 };

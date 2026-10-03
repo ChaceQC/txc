@@ -391,3 +391,50 @@ def set_constraints(control: native_gui_combo_box, min_width: float, min_height:
 def set_margin(control: native_gui_combo_box, margin: float) -> void
 def set_alignment(control: native_gui_combo_box, horizontal: str, vertical: str) -> void
 def set_cell(control: native_gui_combo_box, row: int, column: int, row_span: int, column_span: int) -> void
+
+# 共享命令、菜单、模态窗口和系统集成；见 docs/native_gui_system.md。
+def create_command(window: native_gui_window, text: str, shortcut: str, checkable: bool) -> result<native_gui_command>
+def id(command: native_gui_command) -> int
+def close(command: native_gui_command) -> void
+def set_command_state(command: native_gui_command, enabled: bool, checked: bool) -> void
+def command_enabled(command: native_gui_command) -> bool
+def command_checked(command: native_gui_command) -> bool
+def set_text(command: native_gui_command, text: str) -> void
+def set_shortcut(command: native_gui_command, shortcut: str) -> void
+def invoke_command(command: native_gui_command) -> void
+def create_menu(window: native_gui_window) -> result<native_gui_menu>
+def id(menu: native_gui_menu) -> int
+def close(menu: native_gui_menu) -> void
+def append_menu_command(menu: native_gui_menu, command: native_gui_command) -> void
+def append_submenu(menu: native_gui_menu, title: str, submenu: native_gui_menu) -> void
+def append_separator(menu: native_gui_menu) -> void
+def set_menu_bar(window: native_gui_window, menu: native_gui_menu) -> void
+def popup_menu(menu: native_gui_menu, x: float, y: float) -> void
+def dismiss_menu(window: native_gui_window) -> void
+def bind_button_command(button: native_gui_button, command: native_gui_command) -> void
+def create_command_button(parent: native_gui_panel, command: native_gui_command) -> result<native_gui_button>
+def create_toolbar(parent: native_gui_panel) -> result<native_gui_panel>
+def create_status_bar(parent: native_gui_panel, text: str) -> result<native_gui_label>
+def show_modal(dialog: native_gui_window, owner: native_gui_window) -> void
+def end_dialog(dialog: native_gui_window, value: int) -> void
+def dialog_result(dialog: native_gui_window) -> result<option<int>>
+def message_box(owner: native_gui_window, title: str, text: str, buttons: str) -> result<str>
+def file_dialog(owner: native_gui_window, kind: str, title: str, initial_name: str) -> result<option<str>>
+def set_font_size(panel: native_gui_panel, size: float) -> void
+def set_ui_scale(panel: native_gui_panel, scale: float) -> void
+def set_accessibility(control: native_gui_panel, name: str, help: str) -> void
+def set_accessibility(control: native_gui_label, name: str, help: str) -> void
+def set_accessibility(control: native_gui_button, name: str, help: str) -> void
+def set_accessibility(control: native_gui_check_box, name: str, help: str) -> void
+def set_accessibility(control: native_gui_text_box, name: str, help: str) -> void
+def set_accessibility(control: native_gui_progress_bar, name: str, help: str) -> void
+def set_accessibility(control: native_gui_slider, name: str, help: str) -> void
+def set_accessibility(control: native_gui_radio_button, name: str, help: str) -> void
+def set_accessibility(control: native_gui_combo_box, name: str, help: str) -> void
+def set_accessibility(control: native_gui_scroll, name: str, help: str) -> void
+def set_accessibility(control: native_gui_tabs, name: str, help: str) -> void
+def set_accessibility(control: native_gui_split, name: str, help: str) -> void
+def set_accessibility(control: native_gui_canvas, name: str, help: str) -> void
+def set_accessibility(control: native_gui_list_view, name: str, help: str) -> void
+def set_accessibility(control: native_gui_table_view, name: str, help: str) -> void
+def set_accessibility(control: native_gui_tree_view, name: str, help: str) -> void

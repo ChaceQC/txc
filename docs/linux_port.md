@@ -29,6 +29,11 @@
 
 `python3 scripts/build_linux.py` 构建普通与 ThinLTO 静态库。`scripts/setup_linux.py` 提供 Ubuntu 24.04 安装入口，具体系统语义见 [进程](process.md)、[IPC](ipc.md)、[网络](linux_network.md)、[TLS](tls.md) 与 [HTTP/3](http3.md)。
 
+开发和 CI 默认输出均为 `tx/linux`，可通过 `--output` 显式指定。运行时验证设置
+`TXC_TOOL_DIR="$PWD/tx/linux"`，打包使用 `python3 scripts/package_release.py --tool-dir tx/linux`。
+打包后的 tar.gz 内仍统一以 `tx/` 为工具包目录，不改变用户解压后的命令。
+自绘 GUI 的 X11/XWayland、AT-SPI 和 Portal 依赖及验收边界见 [系统集成契约](native_gui_system.md)。
+
 定向验证使用 `TXC_TOOL_DIR` 指定工具目录。安装包、进程与异步、网络、证书、TLS、HTTP/3 分别由 `check_linux_package.py`、`check_linux_runtime.py`、`check_linux_network.py`、`check_x509.py`、`check_tls_stream.py` 和 `check_http3_server.py` 覆盖。安全验证的 Python 依赖列在 `scripts/requirements_ci.txt`，不随工具包运行时分发。
 
 ## 完成证据

@@ -1,0 +1,42 @@
+import "native_gui.txh" as ui
+
+// 从实际解包目录运行；检查自绘、命令、语义入口和模态恢复后自行退出。
+def main() -> int
+{
+    auto app = ui.open_app().value()
+    auto window = ui.create_window(app, "TX native GUI package check", 480.0, 320.0).value()
+    auto root = ui.root(window).value()
+    ui.set_theme(root, "high_contrast")
+    auto action = ui.create_command(window, "执行", "ctrl+r", true).value()
+    auto toolbar = ui.create_toolbar(root).value()
+    auto button = ui.create_command_button(toolbar, action).value()
+    ui.set_accessibility(button, "执行命令", "安装包自检")
+    auto menu = ui.create_menu(window).value()
+    ui.append_menu_command(menu, action)
+    auto bar = ui.create_menu(window).value()
+    ui.append_submenu(bar, "操作", menu)
+    ui.set_menu_bar(window, bar)
+    auto editor = ui.create_text_box(root, false).value()
+    ui.set_text(editor, "中文 package 😀")
+    ui.set_accessibility(editor, "输入内容", "")
+    ui.invoke_command(action)
+    if !ui.command_checked(action)
+    {
+        ui.close(app)
+        return 1
+    }
+    ui.show(window)
+    ui.next_event(app, 0).value()
+    ui.paint(root).value()
+    auto dialog = ui.create_window(app, "Modal package check", 240.0, 120.0).value()
+    ui.show_modal(dialog, window)
+    ui.end_dialog(dialog, 7)
+    if ui.dialog_result(dialog).value().value() != 7
+    {
+        ui.close(app)
+        return 2
+    }
+    ui.close(app)
+    print("NATIVE_GUI_PACKAGE_OK")
+    return 0
+}

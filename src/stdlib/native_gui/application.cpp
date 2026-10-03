@@ -1,5 +1,9 @@
 #include "stdlib/native_gui/state.hpp"
 #include "backend/cpp/runtime_context.hpp"
+#include "stdlib/native_gui/dialogs.hpp"
+#include "stdlib/native_gui/commands.hpp"
+#include "stdlib/native_gui/theme.hpp"
+#include "stdlib/native_gui/accessibility.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -49,6 +53,7 @@ void poll_windows(app& state)
         {
             continue;
         }
+        window->accessibility->poll();
         for (unsigned count = 0; count < 64; ++count)
         {
             const auto pending = window->host->next_event(0);
@@ -58,13 +63,16 @@ void poll_windows(app& state)
             }
             if (pending->kind == tx::ui::event_kind::close_requested)
             {
-                enqueue(*window, {"close_requested"});
+                if (window->modal_child.expired() && !window->system_modal)
+                {
+                    enqueue(*window, {"close_requested"});
+                }
             }
             else if (pending->kind == tx::ui::event_kind::resized)
             {
                 window->width = pending->width;
                 window->height = pending->height;
-                window->dpi = window->host->scale() * 96;
+                window->dpi = window->host->scale() * 96 * (window->native_gui_root ? window->native_gui_root->ui_scale : 1);
                 window->minimized = !window->width || !window->height;
                 window->repaint = true;
                 enqueue(*window, {"resized"});
@@ -80,6 +88,10 @@ void poll_windows(app& state)
                 enqueue(*window, std::move(notification));
             }
             process_event(*window, *pending);
+        }
+        if (window->accessibility_platform)
+        {
+            window->accessibility_platform->poll(window->repaint);
         }
         if (window->repaint && window->visible && !window->minimized)
         {
@@ -158,6 +170,7 @@ std::shared_ptr<app> open_app(const std::string& requested_font)
         delete value;
     });
     state->font = std::make_shared<tx::ui::font_family>(tx::ui::system_font_family(font_path(requested_font)));
+    poll_theme(*state);
     context.native_gui_cleanup = [](void* value) noexcept
     {
         close_app(*static_cast<app*>(value));
@@ -177,10 +190,13 @@ std::shared_ptr<window> create_window(app& app, const std::string& title, double
     auto result = std::make_shared<window>();
     result->host = tx::ui::create_platform_window(title, static_cast<unsigned>(width), static_cast<unsigned>(height));
     result->owner = app.shared_from_this();
+    result->title = title;
     result->id = app.next_id++;
     result->dpi = result->host->scale() * 96;
     result->width = static_cast<unsigned>(width * result->host->scale());
     result->height = static_cast<unsigned>(height * result->host->scale());
+    result->accessibility = std::make_shared<accessibility_endpoint>(result);
+    result->accessibility_platform = connect_accessibility(*result);
     app.windows.push_back(result);
     return result;
 }
@@ -189,7 +205,15 @@ void close_window(window& window) noexcept
 {
     if (!window.closed)
     {
+        if (const auto child = window.modal_child.lock())
+        {
+            close_window(*child);
+        }
+        close_menu(window);
+        window.accessibility->disconnect();
+        window.accessibility_platform.reset();
         close_root(window);
+        restore_modal(window);
         window.host->close();
         window.closed = true;
     }
@@ -259,6 +283,7 @@ std::optional<event> next_event(app& state, std::int64_t timeout_ms)
     const auto started = std::chrono::steady_clock::now();
     while (state.open)
     {
+        poll_theme(state);
         bool animation = false;
         for (const auto& window : state.windows)
         {
@@ -291,7 +316,7 @@ std::optional<event> next_event(app& state, std::int64_t timeout_ms)
         {
             windows.push_back(window->host.get());
         }
-        int wait = timeout_ms < 0 ? -1 : static_cast<int>(timeout_ms - elapsed);
+        int wait = timeout_ms < 0 ? 20 : std::min(20, static_cast<int>(timeout_ms - elapsed));
         if (animation)
         {
             wait = wait < 0 ? 25 : std::min(wait, 25);

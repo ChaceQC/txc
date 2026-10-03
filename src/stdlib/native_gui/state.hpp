@@ -11,6 +11,7 @@
 
 #include <deque>
 #include <thread>
+#include <chrono>
 
 namespace tx_generated::native_gui
 {
@@ -23,6 +24,12 @@ struct node;
 struct app;
 struct window;
 struct combo_state;
+struct command;
+struct menu;
+struct menu_session;
+struct system_theme;
+class accessibility_endpoint;
+class accessibility_bridge;
 
 struct event
 {
@@ -52,6 +59,8 @@ struct app : graphics::resource, std::enable_shared_from_this<app>
     std::shared_ptr<tx::ui::font_family> font;
     std::vector<std::shared_ptr<window>> windows;
     std::deque<event> events;
+    std::shared_ptr<system_theme> theme;
+    std::chrono::steady_clock::time_point theme_poll;
 };
 
 struct window : graphics::resource, std::enable_shared_from_this<window>
@@ -66,6 +75,17 @@ struct window : graphics::resource, std::enable_shared_from_this<window>
     unsigned width = 0, height = 0;
     double dpi = 96;
     bool closed = false, visible = false, minimized = false, repaint = true;
+    std::string title;
+    std::vector<std::weak_ptr<command>> commands;
+    std::vector<std::weak_ptr<menu>> menus;
+    std::shared_ptr<menu> menu_bar;
+    std::shared_ptr<menu_session> menu_popup;
+    std::weak_ptr<window> modal_owner, modal_child;
+    std::weak_ptr<node> modal_focus;
+    std::optional<std::int64_t> dialog_result;
+    bool system_modal = false;
+    std::shared_ptr<accessibility_endpoint> accessibility;
+    std::shared_ptr<accessibility_bridge> accessibility_platform;
 };
 
 struct node : graphics::resource, std::enable_shared_from_this<node>
@@ -81,6 +101,8 @@ struct node : graphics::resource, std::enable_shared_from_this<node>
     unsigned depth = 0;
     bool closed = false, visible = true, enabled = true, checked = false;
     bool dirty = true, dark = false;
+    std::string theme = "system";
+    double font_size = 16, ui_scale = 1;
     bool layout_visible = true;
     layout_mode layout = layout_mode::column;
     gui::length width, height;
@@ -117,6 +139,8 @@ struct node : graphics::resource, std::enable_shared_from_this<node>
     std::unique_ptr<canvas_state> canvas;
     std::unique_ptr<data_view_state> data;
     std::shared_ptr<combo_state> combo;
+    std::shared_ptr<command> action;
+    std::string accessible_name, accessible_help, semantic_role;
 };
 
 [[noreturn]] void fail(const char* code, const std::string& message);
